@@ -2,6 +2,10 @@
 
 @section('title', 'Plantix-AI')
 
+@section('page_styles')
+    <link rel="stylesheet" href="{{ asset('assets/css/shop-dynamic.css') }}">
+@endsection
+
 @section('footer')
 @include('partials.footer-alt')
 @endsection
