@@ -120,6 +120,9 @@
                         <li>
                             <a href="{{ route('shop') }}">Shop</a>
                         </li>
+                        <li>
+                            <a href="{{ route('appointments') }}">Appointments</a>
+                        </li>
                     </ul>
                 </div><!-- /.navbar-collapse -->
 

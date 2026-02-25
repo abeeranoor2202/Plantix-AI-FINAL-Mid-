@@ -1,6 +1,6 @@
 ﻿@extends('layouts.app')
 
-@section('title', 'Plantix-AI')
+@section('title', 'My Appointments')
 
 @section('header')
 @include('partials.header-notopbar')
@@ -21,8 +21,8 @@
 @endsection
 
 @section('content')
-<div class="breadcrumb-area text-center shadow dark-hard bg-cover text-light bg-breadcrumb-default >
-    <div class=" container">
+<div class="breadcrumb-area text-center shadow dark-hard bg-cover text-light bg-breadcrumb-default">
+    <div class="container">
     <div class="row">
       <div class="col-lg-8 offset-lg-2">
         <h1>My Appointments</h1>

@@ -1,6 +1,6 @@
 ﻿@extends('layouts.app')
 
-@section('title', 'Plantix-AI')
+@section('title', 'Appointment Details')
 
 @section('header')
 @include('partials.header-notopbar')
