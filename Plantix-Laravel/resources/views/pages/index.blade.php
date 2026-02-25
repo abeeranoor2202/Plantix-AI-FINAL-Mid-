@@ -78,6 +78,9 @@
                         <li>
                             <a href="{{ route('shop') }}">Shop</a>
                         </li>
+                        <li>
+                            <a href="{{ route('appointments') }}">Appointments</a>
+                        </li>
                     </ul>
                 </div><!-- /.navbar-collapse -->
 
@@ -96,7 +99,7 @@
                                     </li>
                                 </ul>
                             </li>
-                            <li class="button"><a href="#">Register</a></li>
+                            <li class="button"><a href="{{ route('signup') }}">Register</a></li>
 
                         </ul>
                     </div>

@@ -42,8 +42,8 @@ Route::view('/forum/new', 'pages.forum-new')->name('forum.new');
 Route::view('/forum/thread', 'pages.forum-thread')->name('forum.thread');
 
 // ── Blog redirect (removed — now serves forum) ───────────────────────────────
-Route::redirect('/blog', '/forum');
-Route::redirect('/blog/single', '/forum/thread');
+Route::redirect('/blog', '/forum')->name('blog');
+Route::redirect('/blog/single', '/forum/thread')->name('blog.single');
 
 // ── Appointments ──────────────────────────────────────────────────────────────
 Route::view('/appointments', 'pages.appointments')->name('appointments');

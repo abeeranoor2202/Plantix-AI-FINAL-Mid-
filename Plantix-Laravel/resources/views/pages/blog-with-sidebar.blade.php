@@ -58,7 +58,7 @@
                             <!-- Single Item -->
                             <div class="item">
                                 <div class="thumb">
-                                    <a href="{{ route('blog.single') }}"><img
+                                    <a href="{{ route('forum.thread') }}"><img
                                             src="{{ asset('assets/img/blog/cotton_leaf_curl.png') }}"
                                             alt="Cotton leaf curl symptoms"></a>
                                     <div class="date"><strong>18</strong> <span>April, 2022</span></div>
@@ -75,7 +75,7 @@
                                         </ul>
                                     </div>
                                     <h2 class="title">
-                                        <a href="{{ route('blog.single') }}">How do you detect cotton leaf curl
+                                        <a href="{{ route('forum.thread') }}">How do you detect cotton leaf curl
                                             early?</a>
                                     </h2>
                                     <p>
@@ -83,14 +83,14 @@
                                         weather considerations in your region.
                                     </p>
                                     <a class="btn mt-10 btn-md btn-theme animation"
-                                        href="{{ route('blog.single') }}">Join Discussion</a>
+                                        href="{{ route('forum.thread') }}">Join Discussion</a>
                                 </div>
                             </div>
                             <!-- Single Item -->
                             <!-- Single Item -->
                             <div class="item">
                                 <div class="thumb">
-                                    <a href="{{ route('blog.single') }}"><img src="{{ asset('assets/img/blog/maize_urea.png') }}"
+                                    <a href="{{ route('forum.thread') }}"><img src="{{ asset('assets/img/blog/maize_urea.png') }}"
                                             alt="Farmer applying urea to maize"></a>
                                     <div class="date"><strong>26</strong> <span>July, 2022</span></div>
                                 </div>
@@ -106,7 +106,7 @@
                                         </ul>
                                     </div>
                                     <h2 class="title">
-                                        <a href="{{ route('blog.single') }}">Best urea split schedule for Kharif
+                                        <a href="{{ route('forum.thread') }}">Best urea split schedule for Kharif
                                             maize?</a>
                                     </h2>
                                     <p>
@@ -114,14 +114,14 @@
                                         stage-based nitrogen for higher efficiency.
                                     </p>
                                     <a class="btn mt-10 btn-md btn-theme animation"
-                                        href="{{ route('blog.single') }}">Join Discussion</a>
+                                        href="{{ route('forum.thread') }}">Join Discussion</a>
                                 </div>
                             </div>
                             <!-- Single Item -->
                             <!-- Single Item -->
                             <div class="item">
                                 <div class="thumb">
-                                    <a href="{{ route('blog.single') }}"><img src="{{ asset('assets/img/blog/rice_flood.png') }}"
+                                    <a href="{{ route('forum.thread') }}"><img src="{{ asset('assets/img/blog/rice_flood.png') }}"
                                             alt="Rice paddy field in flood"></a>
                                     <div class="date"><strong>12</strong> <span>March, 2022</span></div>
                                 </div>
@@ -137,7 +137,7 @@
                                         </ul>
                                     </div>
                                     <h2 class="title">
-                                        <a href="{{ route('blog.single') }}">Which rice varieties handled flooding
+                                        <a href="{{ route('forum.thread') }}">Which rice varieties handled flooding
                                             better?</a>
                                     </h2>
                                     <p>
@@ -145,7 +145,7 @@
                                         suggestions for flood-prone areas.
                                     </p>
                                     <a class="btn mt-10 btn-md btn-theme animation"
-                                        href="{{ route('blog.single') }}">Join Discussion</a>
+                                        href="{{ route('forum.thread') }}">Join Discussion</a>
                                 </div>
                             </div>
                             <!-- Single Item -->
@@ -156,15 +156,15 @@
                             <div class="col-md-12 pagi-area text-center">
                                 <nav aria-label="navigation">
                                     <ul class="pagination">
-                                        <li class="page-item"><a class="page-link" href="{{ route('blog') }}"><i
+                                        <li class="page-item"><a class="page-link" href="{{ route('forum') }}"><i
                                                     class="fas fa-angle-double-left"></i></a></li>
                                         <li class="page-item active"><a class="page-link"
-                                                href="{{ route('blog') }}">1</a></li>
-                                        <li class="page-item"><a class="page-link" href="{{ route('blog') }}">2</a>
+                                                href="{{ route('forum') }}">1</a></li>
+                                        <li class="page-item"><a class="page-link" href="{{ route('forum') }}">2</a>
                                         </li>
-                                        <li class="page-item"><a class="page-link" href="{{ route('blog') }}">3</a>
+                                        <li class="page-item"><a class="page-link" href="{{ route('forum') }}">3</a>
                                         </li>
-                                        <li class="page-item"><a class="page-link" href="{{ route('blog') }}"><i
+                                        <li class="page-item"><a class="page-link" href="{{ route('forum') }}"><i
                                                     class="fas fa-angle-double-right"></i></a></li>
                                     </ul>
                                 </nav>
@@ -189,12 +189,12 @@
                                 <ul>
                                     <li>
                                         <div class="thumb">
-                                            <a href="{{ route('blog.single') }}">
+                                            <a href="{{ route('forum.thread') }}">
                                                 <img src="{{ asset('assets/img/blog/cotton_leaf_curl.png') }}" alt="Cotton leaf curl">
                                             </a>
                                         </div>
                                         <div class="info">
-                                            <a href="{{ route('blog.single') }}">How do you detect cotton leaf curl
+                                            <a href="{{ route('forum.thread') }}">How do you detect cotton leaf curl
                                                 early?</a>
                                             <div class="meta-title">
                                                 <span class="post-date">12 Sep, 2025</span>
@@ -203,12 +203,12 @@
                                     </li>
                                     <li>
                                         <div class="thumb">
-                                            <a href="{{ route('blog.single') }}">
+                                            <a href="{{ route('forum.thread') }}">
                                                 <img src="{{ asset('assets/img/blog/maize_urea.png') }}" alt="Maize urea">
                                             </a>
                                         </div>
                                         <div class="info">
-                                            <a href="{{ route('blog.single') }}">Best urea split schedule for Kharif
+                                            <a href="{{ route('forum.thread') }}">Best urea split schedule for Kharif
                                                 maize?</a>
                                             <div class="meta-title">
                                                 <span class="post-date">05 Jul, 2025</span>
@@ -217,12 +217,12 @@
                                     </li>
                                     <li>
                                         <div class="thumb">
-                                            <a href="{{ route('blog.single') }}">
+                                            <a href="{{ route('forum.thread') }}">
                                                 <img src="{{ asset('assets/img/blog/rice_flood.png') }}" alt="Rice flood">
                                             </a>
                                         </div>
                                         <div class="info">
-                                            <a href="{{ route('blog.single') }}">Which rice varieties handled
+                                            <a href="{{ route('forum.thread') }}">Which rice varieties handled
                                                 flooding better?</a>
                                             <div class="meta-title">
                                                 <span class="post-date">29 Aug, 2025</span>
@@ -236,19 +236,19 @@
                                 <div class="sidebar-info">
                                     <ul>
                                         <li>
-                                            <a href="{{ route('blog') }}">Crop Health <span>69</span></a>
+                                            <a href="{{ route('forum') }}">Crop Health <span>69</span></a>
                                         </li>
                                         <li>
-                                            <a href="{{ route('blog') }}">Fertilizer Plans <span>25</span></a>
+                                            <a href="{{ route('forum') }}">Fertilizer Plans <span>25</span></a>
                                         </li>
                                         <li>
-                                            <a href="{{ route('blog') }}">Smart Irrigation <span>18</span></a>
+                                            <a href="{{ route('forum') }}">Smart Irrigation <span>18</span></a>
                                         </li>
                                         <li>
-                                            <a href="{{ route('blog') }}">AI in Agriculture <span>37</span></a>
+                                            <a href="{{ route('forum') }}">AI in Agriculture <span>37</span></a>
                                         </li>
                                         <li>
-                                            <a href="{{ route('blog') }}">Weather Insights <span>12</span></a>
+                                            <a href="{{ route('forum') }}">Weather Insights <span>12</span></a>
                                         </li>
                                     </ul>
                                 </div>
@@ -286,7 +286,7 @@
                                             </a>
                                         </li>
                                         <li>
-                                            <a href="{{ route('blog') }}">
+                                            <a href="{{ route('forum') }}">
                                                 <img src="{{ asset('assets/img/blog/community_discussion.png') }}"
                                                     alt="Community discussions">
                                             </a>
@@ -298,10 +298,10 @@
                                 <h4 class="title">Archives</h4>
                                 <div class="sidebar-info">
                                     <ul>
-                                        <li><a href="{{ route('blog') }}">Aug 2020</a></li>
-                                        <li><a href="{{ route('blog') }}">Sept 2020</a></li>
-                                        <li><a href="{{ route('blog') }}">Nov 2020</a></li>
-                                        <li><a href="{{ route('blog') }}">Dec 2020</a></li>
+                                        <li><a href="{{ route('forum') }}">Aug 2020</a></li>
+                                        <li><a href="{{ route('forum') }}">Sept 2020</a></li>
+                                        <li><a href="{{ route('forum') }}">Nov 2020</a></li>
+                                        <li><a href="{{ route('forum') }}">Dec 2020</a></li>
                                     </ul>
                                 </div>
                             </div>
@@ -336,13 +336,13 @@
                                 <h4 class="title">Tags</h4>
                                 <div class="sidebar-info">
                                     <ul>
-                                        <li><a href="{{ route('blog') }}">Plantix-AI</a></li>
-                                        <li><a href="{{ route('blog') }}">Disease Detection</a></li>
-                                        <li><a href="{{ route('blog') }}">Fertilizer</a></li>
-                                        <li><a href="{{ route('blog') }}">Crop Planning</a></li>
-                                        <li><a href="{{ route('blog') }}">Weather</a></li>
-                                        <li><a href="{{ route('blog') }}">Irrigation</a></li>
-                                        <li><a href="{{ route('blog') }}">Yield</a></li>
+                                        <li><a href="{{ route('forum') }}">Plantix-AI</a></li>
+                                        <li><a href="{{ route('forum') }}">Disease Detection</a></li>
+                                        <li><a href="{{ route('forum') }}">Fertilizer</a></li>
+                                        <li><a href="{{ route('forum') }}">Crop Planning</a></li>
+                                        <li><a href="{{ route('forum') }}">Weather</a></li>
+                                        <li><a href="{{ route('forum') }}">Irrigation</a></li>
+                                        <li><a href="{{ route('forum') }}">Yield</a></li>
                                     </ul>
                                 </div>
                             </div>

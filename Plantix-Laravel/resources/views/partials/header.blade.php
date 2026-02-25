@@ -142,7 +142,7 @@
                                     </li>
                                 </ul>
                             </li>
-                            <li class="button"><a href="#">Register</a></li>
+                            <li class="button"><a href="{{ route('signup') }}">Register</a></li>
                         </ul>
                     </div>
                     <!-- End Atribute Navigation -->
