@@ -3,12 +3,16 @@
 namespace App\Providers;
 
 use App\Models\Appointment;
+use App\Models\CropDiseaseReport;
+use App\Models\CropRecommendation;
 use App\Models\Order;
 use App\Models\Product;
 use App\Models\ReturnRequest;
 use App\Models\User;
 use App\Models\Vendor;
 use App\Policies\AppointmentPolicy;
+use App\Policies\CropDiseaseReportPolicy;
+use App\Policies\CropRecommendationPolicy;
 use App\Policies\OrderPolicy;
 use App\Policies\ProductPolicy;
 use App\Policies\ReturnRequestPolicy;
@@ -20,12 +24,14 @@ use Illuminate\Support\Facades\Gate;
 class AuthServiceProvider extends ServiceProvider
 {
     protected $policies = [
-        Vendor::class        => VendorPolicy::class,
-        Order::class         => OrderPolicy::class,
-        User::class          => UserPolicy::class,
-        Product::class       => ProductPolicy::class,
-        Appointment::class   => AppointmentPolicy::class,
-        ReturnRequest::class => ReturnRequestPolicy::class,
+        Vendor::class             => VendorPolicy::class,
+        Order::class              => OrderPolicy::class,
+        User::class               => UserPolicy::class,
+        Product::class            => ProductPolicy::class,
+        Appointment::class        => AppointmentPolicy::class,
+        ReturnRequest::class      => ReturnRequestPolicy::class,
+        CropRecommendation::class => CropRecommendationPolicy::class,
+        CropDiseaseReport::class  => CropDiseaseReportPolicy::class,
     ];
 
     public function boot(): void

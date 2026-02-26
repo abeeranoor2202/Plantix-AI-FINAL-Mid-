@@ -516,6 +516,32 @@ Route::prefix('admin')->name('admin.')->group(function () {
             Route::get('/privacyPolicy', [App\Http\Controllers\TermsAndConditionsController::class, 'privacyindex'])->name('privacyPolicy');
         });
 
+        // ── AI Agriculture Module (Admin Oversight) ──────────────────────────
+        Route::prefix('ai-modules')->name('ai.')->group(function () {
+            Route::get('/dashboard',                    [App\Http\Controllers\Admin\AdminAiModuleController::class, 'dashboard'])->name('dashboard');
+
+            // Crop Recommendations
+            Route::get('/crop-recommendations',         [App\Http\Controllers\Admin\AdminAiModuleController::class, 'cropRecommendations'])->name('crop-recommendations');
+            Route::get('/crop-recommendations/{id}',    [App\Http\Controllers\Admin\AdminAiModuleController::class, 'showCropRecommendation'])->name('crop-recommendations.show');
+
+            // Crop Plans
+            Route::get('/crop-plans',                   [App\Http\Controllers\Admin\AdminAiModuleController::class, 'cropPlans'])->name('crop-plans');
+
+            // Disease Reports
+            Route::get('/disease-reports',              [App\Http\Controllers\Admin\AdminAiModuleController::class, 'diseaseReports'])->name('disease-reports');
+            Route::get('/disease-reports/{id}',         [App\Http\Controllers\Admin\AdminAiModuleController::class, 'showDiseaseReport'])->name('disease-reports.show');
+            Route::post('/disease-reports/{id}/assign', [App\Http\Controllers\Admin\AdminAiModuleController::class, 'assignDisease'])->name('disease-reports.assign');
+
+            // Fertilizer Recommendations
+            Route::get('/fertilizer',                   [App\Http\Controllers\Admin\AdminAiModuleController::class, 'fertilizerRecommendations'])->name('fertilizer');
+
+            // Seasonal Data CRUD
+            Route::get('/seasonal-data',                [App\Http\Controllers\Admin\AdminAiModuleController::class, 'seasonalData'])->name('seasonal-data');
+            Route::post('/seasonal-data',               [App\Http\Controllers\Admin\AdminAiModuleController::class, 'storeSeasonalData'])->name('seasonal-data.store');
+            Route::put('/seasonal-data/{id}',           [App\Http\Controllers\Admin\AdminAiModuleController::class, 'updateSeasonalData'])->name('seasonal-data.update');
+            Route::delete('/seasonal-data/{id}',        [App\Http\Controllers\Admin\AdminAiModuleController::class, 'deleteSeasonalData'])->name('seasonal-data.destroy');
+        });
+
     }); // end admin middleware group
 }); // end /admin prefix
 
@@ -656,6 +682,46 @@ Route::middleware('customer')->group(function () {
     Route::get('/account/profile',   [App\Http\Controllers\Frontend\CustomerProfileController::class, 'show'])->name('account.profile');
     Route::put('/account/profile',   [App\Http\Controllers\Frontend\CustomerProfileController::class, 'update'])->name('account.profile.update');
     Route::post('/account/password', [App\Http\Controllers\Frontend\CustomerProfileController::class, 'changePassword'])->name('account.password');
+
+    // ── AI Agriculture Modules ────────────────────────────────────────────────
+
+    // Crop Recommendation
+    Route::get('/crop-recommendation',        [App\Http\Controllers\Frontend\CropRecommendationController::class, 'index'])->name('crop.recommendation');
+    Route::post('/crop-recommendation',       [App\Http\Controllers\Frontend\CropRecommendationController::class, 'recommend'])->name('crop.recommendation.recommend');
+    Route::get('/crop-recommendation/{id}',   [App\Http\Controllers\Frontend\CropRecommendationController::class, 'show'])->name('crop.recommendation.show');
+    Route::get('/crop-recommendation/history',[App\Http\Controllers\Frontend\CropRecommendationController::class, 'history'])->name('crop.recommendation.history');
+
+    // Crop Planning
+    Route::get('/crop-planning',              [App\Http\Controllers\Frontend\CropPlanningController::class, 'index'])->name('crop.planning');
+    Route::post('/crop-planning',             [App\Http\Controllers\Frontend\CropPlanningController::class, 'generate'])->name('crop.planning.generate');
+    Route::get('/crop-planning/{id}',         [App\Http\Controllers\Frontend\CropPlanningController::class, 'show'])->name('crop.planning.show');
+    Route::patch('/crop-planning/{id}/status',[App\Http\Controllers\Frontend\CropPlanningController::class, 'updateStatus'])->name('crop.planning.status');
+    Route::delete('/crop-planning/{id}',      [App\Http\Controllers\Frontend\CropPlanningController::class, 'destroy'])->name('crop.planning.destroy');
+
+    // Disease Identification
+    Route::get('/disease-identification',     [App\Http\Controllers\Frontend\DiseaseIdentificationController::class, 'index'])->name('disease.identification');
+    Route::post('/disease-identification',    [App\Http\Controllers\Frontend\DiseaseIdentificationController::class, 'detect'])->name('disease.detect');
+    Route::get('/disease/{id}',               [App\Http\Controllers\Frontend\DiseaseIdentificationController::class, 'show'])->name('disease.show');
+    Route::get('/disease-history',            [App\Http\Controllers\Frontend\DiseaseIdentificationController::class, 'history'])->name('disease.history');
+
+    // Fertilizer Recommendation
+    Route::get('/fertilizer-recommendation',      [App\Http\Controllers\Frontend\FertilizerRecommendationController::class, 'index'])->name('fertilizer.recommendation');
+    Route::post('/fertilizer-recommendation',     [App\Http\Controllers\Frontend\FertilizerRecommendationController::class, 'recommend'])->name('fertilizer.recommendation.recommend');
+    Route::get('/fertilizer-recommendation/{id}', [App\Http\Controllers\Frontend\FertilizerRecommendationController::class, 'show'])->name('fertilizer.recommendation.show');
+    Route::get('/fertilizer-history',             [App\Http\Controllers\Frontend\FertilizerRecommendationController::class, 'history'])->name('fertilizer.recommendation.history');
+
+    // Weather
+    Route::get('/weather',              [App\Http\Controllers\Frontend\WeatherController::class, 'current'])->name('weather');
+    Route::post('/weather/location',    [App\Http\Controllers\Frontend\WeatherController::class, 'saveLocation'])->name('weather.location');
+    Route::get('/weather/history',      [App\Http\Controllers\Frontend\WeatherController::class, 'history'])->name('weather.history');
+    Route::get('/weather/cities',       [App\Http\Controllers\Frontend\WeatherController::class, 'cities'])->name('weather.cities');
+
+    // AI Chat
+    Route::get('/plantix-ai',           [App\Http\Controllers\Frontend\AiChatController::class, 'index'])->name('ai.chat');
+    Route::post('/plantix-ai/message',  [App\Http\Controllers\Frontend\AiChatController::class, 'message'])->name('ai.chat.message');
+    Route::get('/plantix-ai/history',   [App\Http\Controllers\Frontend\AiChatController::class, 'history'])->name('ai.chat.history');
+    Route::post('/plantix-ai/new',      [App\Http\Controllers\Frontend\AiChatController::class, 'newSession'])->name('ai.chat.new');
+    Route::get('/plantix-ai/sessions',  [App\Http\Controllers\Frontend\AiChatController::class, 'sessions'])->name('ai.chat.sessions');
 
 }); // end customer middleware
 

@@ -32,6 +32,20 @@ class DatabaseSeeder extends Seeder
         // Truncate all seeded tables in reverse-dependency order (children first)
         $tables = [
             // New Plantix modules (children first)
+            'forum_ai_suggestions',
+            'ai_chat_messages',
+            'ai_chat_sessions',
+            'weather_alert_logs',
+            'weather_logs',
+            'user_locations',
+            'disease_suggestions',
+            'crop_disease_reports',
+            'fertilizer_recommendations',
+            'seasonal_data',
+            'crop_plans',
+            'crop_recommendations',
+            'soil_tests',
+            'farm_profiles',
             'forum_replies',
             'forum_threads',
             'forum_categories',
@@ -96,6 +110,7 @@ class DatabaseSeeder extends Seeder
             ForumCategorySeeder::class,
             ReturnReasonSeeder::class,
             ExpertSeeder::class,
+            SeasonalDataSeeder::class,
         ]);
     }
 }

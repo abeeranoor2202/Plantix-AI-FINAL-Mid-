@@ -142,4 +142,51 @@ class User extends Authenticatable
     {
         return $this->hasMany(ForumThread::class, 'user_id');
     }
+
+    // ── AI / Agriculture Relationships ──────────────────────────────────────
+    public function farmProfiles(): HasMany
+    {
+        return $this->hasMany(FarmProfile::class, 'user_id');
+    }
+
+    public function soilTests(): HasMany
+    {
+        return $this->hasMany(SoilTest::class, 'user_id')->latest();
+    }
+
+    public function cropRecommendations(): HasMany
+    {
+        return $this->hasMany(CropRecommendation::class, 'user_id')->latest();
+    }
+
+    public function cropPlans(): HasMany
+    {
+        return $this->hasMany(CropPlan::class, 'user_id')->latest();
+    }
+
+    public function diseaseReports(): HasMany
+    {
+        return $this->hasMany(CropDiseaseReport::class, 'user_id')->latest();
+    }
+
+    public function fertilizerRecommendations(): HasMany
+    {
+        return $this->hasMany(FertilizerRecommendation::class, 'user_id')->latest();
+    }
+
+    // ── Weather / Chat Relationships ────────────────────────────────────────
+    public function locations(): HasMany
+    {
+        return $this->hasMany(UserLocation::class, 'user_id');
+    }
+
+    public function primaryLocation(): HasOne
+    {
+        return $this->hasOne(UserLocation::class, 'user_id')->where('is_primary', true);
+    }
+
+    public function aiChatSessions(): HasMany
+    {
+        return $this->hasMany(AiChatSession::class, 'user_id')->latest();
+    }
 }

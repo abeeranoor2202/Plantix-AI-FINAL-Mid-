@@ -41,4 +41,19 @@ return [
     // Refund wallet credit validity (days)
     'wallet_credit_validity_days' => (int) env('PLANTIX_WALLET_VALIDITY', 365),
 
+    // ── AI / External API Keys ──────────────────────────────────────────────
+    // OpenWeatherMap (https://openweathermap.org/api)
+    'openweather_api_key' => env('OPENWEATHER_API_KEY', ''),
+
+    // OpenAI GPT (https://platform.openai.com)
+    'openai_api_key' => env('OPENAI_API_KEY', ''),
+
+    // Plant Disease Detection API (Roboflow / custom endpoint)
+    'disease_api_url' => env('DISEASE_API_URL', ''),
+    'disease_api_key' => env('DISEASE_API_KEY', ''),
+
+    // AI Chat settings
+    'ai_chat_model'       => env('OPENAI_CHAT_MODEL', 'gpt-4o-mini'),
+    'ai_chat_max_history' => (int) env('AI_CHAT_MAX_HISTORY', 10),
+
 ];
