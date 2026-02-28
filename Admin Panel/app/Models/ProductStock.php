@@ -42,18 +42,4 @@ class ProductStock extends Model
     {
         return $this->quantity <= 0;
     }
-
-    /**
-     * Safely decrement stock within a transaction.
-     * Returns false if insufficient stock.
-     */
-    public function decrement(int $qty): bool
-    {
-        if ($this->quantity < $qty) {
-            return false;
-        }
-
-        $this->decrement('quantity', $qty);
-        return true;
-    }
 }

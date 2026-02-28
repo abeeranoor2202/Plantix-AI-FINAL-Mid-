@@ -11,7 +11,7 @@ class ProductRepository implements ProductRepositoryInterface
 {
     public function paginate(array $filters = [], int $perPage = 20): LengthAwarePaginator
     {
-        $query = Product::with(['vendor', 'category', 'brand', 'stock'])
+        $query = Product::with(['vendor', 'category', 'stock'])
             ->withTrashed(false);
 
         if (! empty($filters['search'])) {
@@ -27,10 +27,6 @@ class ProductRepository implements ProductRepositoryInterface
 
         if (! empty($filters['vendor_id'])) {
             $query->where('vendor_id', $filters['vendor_id']);
-        }
-
-        if (! empty($filters['brand_id'])) {
-            $query->where('brand_id', $filters['brand_id']);
         }
 
         if (isset($filters['is_active'])) {
@@ -49,7 +45,7 @@ class ProductRepository implements ProductRepositoryInterface
 
     public function findById(int $id): Product
     {
-        return Product::with(['vendor', 'category', 'brand', 'images', 'attributes', 'stock'])
+        return Product::with(['vendor', 'category', 'images', 'attributes', 'stock'])
                       ->findOrFail($id);
     }
 
