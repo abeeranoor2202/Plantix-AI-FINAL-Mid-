@@ -3,15 +3,19 @@
 @include('partials.head')
 <body>
 
-@section('header')
-@include('partials.header')
-@show
+@hasSection('header')
+    @yield('header')
+@else
+    @include('partials.header-notopbar')
+@endif
 
 @yield('content')
 
-@section('footer')
-@include('partials.footer')
-@show
+@hasSection('footer')
+    @yield('footer')
+@else
+    @include('partials.footer')
+@endif
 
 @include('partials.scripts')
 @yield('page_scripts')

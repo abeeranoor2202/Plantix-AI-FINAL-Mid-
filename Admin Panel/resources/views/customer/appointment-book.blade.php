@@ -2,9 +2,6 @@
 
 @section('title', 'Book Appointment')
 
-@section('header')
-@include('partials.header-notopbar')
-@endsection
 
 @section('footer')
 @include('partials.footer-alt')

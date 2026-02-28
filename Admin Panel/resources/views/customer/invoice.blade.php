@@ -2,9 +2,6 @@
 
 @section('title', 'Invoice #{{ $order->order_number }}')
 
-@section('header')
-@include('partials.header-notopbar')
-@endsection
 
 @section('footer')
 @include('partials.footer-alt')

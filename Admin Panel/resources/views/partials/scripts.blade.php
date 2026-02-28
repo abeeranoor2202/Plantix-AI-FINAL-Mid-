@@ -19,4 +19,3 @@
     <script src="{{ asset('assets/js/main.js') }}"></script>
     <script src="{{ asset('assets/js/toast.js') }}"></script>
     <script src="{{ asset('assets/js/strict-validation.js') }}"></script>
-    <script src="{{ asset('assets/js/auth.js') }}"></script>

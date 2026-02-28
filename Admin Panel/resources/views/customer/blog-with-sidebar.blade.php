@@ -281,7 +281,7 @@
                                             </a>
                                         </li>
                                         <li>
-                                            <a href="{{ route('plantix-ai') }}">
+                                            <a href="{{ route('ai.chat') }}">
                                                 <img src="{{ asset('assets/img/blog/ai_farming.jpg') }}" alt="AI for farming overview">
                                             </a>
                                         </li>

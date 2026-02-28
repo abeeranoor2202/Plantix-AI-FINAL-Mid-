@@ -208,7 +208,7 @@
                 <div class="col-lg-4">
                     <h4 class="sub-title">Expert Team</h4>
                     <h2 class="title">Meet our agricultural technology specialists</h2>
-                    <a class="btn btn-theme secondary mt-10 btn-md radius animation" href="{{ route('plantix-ai') }}">Explore
+                    <a class="btn btn-theme secondary mt-10 btn-md radius animation" href="{{ route('ai.chat') }}">Explore
                         Plantix-AI</a>
                 </div>
                 <div class="col-lg-7 offset-lg-1">
