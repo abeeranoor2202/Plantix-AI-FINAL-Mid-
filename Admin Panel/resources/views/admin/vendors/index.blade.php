@@ -34,32 +34,30 @@
     <div class="card-agri" style="padding: 0; overflow: hidden; background: white; border: none; box-shadow: 0 10px 30px rgba(0,0,0,0.04);">
         <div style="padding: 24px 32px; border-bottom: 1px solid var(--agri-border); display: flex; justify-content: space-between; align-items: center; background: white;">
             <div style="display: flex; gap: 8px; background: var(--agri-bg); padding: 6px; border-radius: 16px; border: 1px solid var(--agri-border);">
-                <a href="{{url('/vendors/all')}}" class="btn-agri {{ !request()->is('vendors/approved') && !request()->is('vendors/pending') ? 'btn-agri-primary' : '' }}" style="padding: 8px 24px; font-size: 12px; text-decoration: none; font-weight: 800; border-radius: 12px; border: none; background: {{ !request()->is('vendors/approved') && !request()->is('vendors/pending') ? 'var(--agri-primary)' : 'transparent' }}; color: {{ !request()->is('vendors/approved') && !request()->is('vendors/pending') ? 'white' : 'var(--agri-text-muted)' }};">
-                    Complete Ledger
+                <a href="{{ route('admin.vendors') }}" class="btn-agri {{ !request()->filled('status') && !request()->filled('approval') ? 'btn-agri-primary' : '' }}" style="padding: 8px 24px; font-size: 12px; text-decoration: none; font-weight: 800; border-radius: 12px; border: none; background: {{ !request()->filled('status') && !request()->filled('approval') ? 'var(--agri-primary)' : 'transparent' }}; color: {{ !request()->filled('status') && !request()->filled('approval') ? 'white' : 'var(--agri-text-muted)' }};">
+                    All Vendors
                 </a>
-                <a href="{{url('/vendors/approved')}}" class="btn-agri {{ request()->is('vendors/approved') ? 'btn-agri-primary' : '' }}" style="padding: 8px 24px; font-size: 12px; text-decoration: none; font-weight: 800; border-radius: 12px; border: none; background: {{ request()->is('vendors/approved') ? 'var(--agri-primary)' : 'transparent' }}; color: {{ request()->is('vendors/approved') ? 'white' : 'var(--agri-text-muted)' }};">
-                    Verified
+                <a href="{{ route('admin.vendors', ['approval' => 'approved']) }}" class="btn-agri {{ request()->query('approval') === 'approved' ? 'btn-agri-primary' : '' }}" style="padding: 8px 24px; font-size: 12px; text-decoration: none; font-weight: 800; border-radius: 12px; border: none; background: {{ request()->query('approval') === 'approved' ? 'var(--agri-primary)' : 'transparent' }}; color: {{ request()->query('approval') === 'approved' ? 'white' : 'var(--agri-text-muted)' }};">
+                    Approved
                 </a>
-                <a href="{{url('/vendors/pending')}}" class="btn-agri {{ request()->is('vendors/pending') ? 'btn-agri-primary' : '' }}" style="padding: 8px 24px; font-size: 12px; text-decoration: none; font-weight: 800; border-radius: 12px; border: none; background: {{ request()->is('vendors/pending') ? 'var(--agri-primary)' : 'transparent' }}; color: {{ request()->is('vendors/pending') ? 'white' : 'var(--agri-text-muted)' }};">
-                    Awaiting Audit
+                <a href="{{ route('admin.vendors', ['approval' => 'pending']) }}" class="btn-agri {{ request()->query('approval') === 'pending' ? 'btn-agri-primary' : '' }}" style="padding: 8px 24px; font-size: 12px; text-decoration: none; font-weight: 800; border-radius: 12px; border: none; background: {{ request()->query('approval') === 'pending' ? 'var(--agri-primary)' : 'transparent' }}; color: {{ request()->query('approval') === 'pending' ? 'white' : 'var(--agri-text-muted)' }};">
+                    Pending
                 </a>
             </div>
             
             <div style="display: flex; align-items: center; gap: 20px;">
                 <div style="position: relative;">
                     <i class="fas fa-search" style="position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: var(--agri-primary); font-size: 14px; opacity: 0.7;"></i>
-                    <input type="text" id="search-input" placeholder="Search expert registry..." class="form-agri" style="padding-left: 44px; width: 300px; height: 44px; font-size: 14px; font-weight: 600;">
+                    <form method="GET" action="{{ route('admin.vendors') }}" style="display: inline;">
+                        <input type="text" name="search" placeholder="Search vendors..." class="form-agri" value="{{ request('search') }}" style="padding-left: 44px; width: 300px; height: 44px; font-size: 14px; font-weight: 600;">
+                    </form>
                 </div>
 
-                <?php if (
-                    ($type == "approved" && in_array('approve.vendors.delete', json_decode(@session('admin_permissions'), true))) ||
-                    ($type == "pending" && in_array('pending.vendors.delete', json_decode(@session('admin_permissions'), true))) ||
-                    ($type == "all" && in_array('vendors.delete', json_decode(@session('admin_permissions'), true)))
-                ) { ?>
+                @if(in_array('vendors', json_decode(session('admin_permissions', '[]'), true)))
                     <button id="deleteAll" class="btn-agri" style="color: var(--agri-error); font-size: 13px; font-weight: 800; border: none; border-radius: 12px; padding: 12px 20px; background: #FEF2F2; display: flex; align-items: center; gap: 8px;">
-                        <i class="fas fa-trash-alt"></i> Bulk Decommission
+                        <i class="fas fa-trash-alt"></i> Bulk Delete
                     </button>
-                <?php } ?>
+                @endif
             </div>
         </div>
 
@@ -71,262 +69,76 @@
         </div>
 
         <div class="table-responsive">
-            <table id="userTable" class="table mb-0" style="vertical-align: middle; width: 100%;">
+            <table class="table mb-0" style="vertical-align: middle; width: 100%;">
                 <thead style="background: var(--agri-bg);">
                     <tr>
-                        <?php if (
-                            ($type == "approved" && in_array('approve.vendors.delete', json_decode(@session('admin_permissions'), true))) ||
-                            ($type == "pending" && in_array('pending.vendors.delete', json_decode(@session('admin_permissions'), true))) ||
-                            ($type == "all" && in_array('vendors.delete', json_decode(@session('admin_permissions'), true)))
-                        ) { ?>
-                            <th style="padding: 20px 32px; border: none; width: 40px;">
-                                <div class="form-check m-0">
-                                    <input type="checkbox" id="is_active" class="form-check-input" style="cursor: pointer; width: 20px; height: 20px;">
-                                </div>
-                            </th>
-                        <?php } ?>
-                        <th style="padding: 20px 32px; font-size: 11px; font-weight: 800; color: var(--agri-text-muted); text-transform: uppercase; letter-spacing: 1px; border: none;">Expert/Partner Profile</th>
-                        <th style="padding: 20px 32px; font-size: 11px; font-weight: 800; color: var(--agri-text-muted); text-transform: uppercase; letter-spacing: 1px; border: none;">Credential Channels</th>
-                        <th style="padding: 20px 32px; font-size: 11px; font-weight: 800; color: var(--agri-text-muted); text-transform: uppercase; letter-spacing: 1px; border: none;">Ecosystem Onboarding</th>
-                        <th style="padding: 20px 32px; font-size: 11px; font-weight: 800; color: var(--agri-text-muted); text-transform: uppercase; letter-spacing: 1px; border: none;" class="text-center">Verification Audit</th>
-                        <th style="padding: 20px 32px; font-size: 11px; font-weight: 800; color: var(--agri-text-muted); text-transform: uppercase; letter-spacing: 1px; border: none;" class="text-center">Operational Status</th>
-                        <th style="padding: 20px 32px; font-size: 11px; font-weight: 800; color: var(--agri-text-muted); text-transform: uppercase; letter-spacing: 1px; border: none;" class="text-end">Management</th>
+                        <th style="padding: 20px 32px; font-size: 11px; font-weight: 800; color: var(--agri-text-muted); text-transform: uppercase; letter-spacing: 1px; border: none;">Vendor Name</th>
+                        <th style="padding: 20px 32px; font-size: 11px; font-weight: 800; color: var(--agri-text-muted); text-transform: uppercase; letter-spacing: 1px; border: none;">Owner</th>
+                        <th style="padding: 20px 32px; font-size: 11px; font-weight: 800; color: var(--agri-text-muted); text-transform: uppercase; letter-spacing: 1px; border: none;">Phone</th>
+                        <th style="padding: 20px 32px; font-size: 11px; font-weight: 800; color: var(--agri-text-muted); text-transform: uppercase; letter-spacing: 1px; border: none;" class="text-center">Approval</th>
+                        <th style="padding: 20px 32px; font-size: 11px; font-weight: 800; color: var(--agri-text-muted); text-transform: uppercase; letter-spacing: 1px; border: none;" class="text-center">Status</th>
+                        <th style="padding: 20px 32px; font-size: 11px; font-weight: 800; color: var(--agri-text-muted); text-transform: uppercase; letter-spacing: 1px; border: none;" class="text-end">Actions</th>
                     </tr>
                 </thead>
-                <tbody id="append_list1"></tbody>
+                <tbody>
+                    @forelse($vendors as $vendor)
+                        <tr style="border-bottom: 1px solid var(--agri-border);">
+                            <td style="padding: 16px 32px;">
+                                <div style="font-weight: 700; color: var(--agri-primary-dark); font-size: 14px;">
+                                    {{ $vendor->title }}
+                                </div>
+                                <div style="font-size: 12px; color: var(--agri-text-muted); margin-top: 4px;">
+                                    {{ \Illuminate\Support\Str::limit($vendor->description, 50) }}
+                                </div>
+                            </td>
+                            <td style="padding: 16px 32px; font-size: 14px;">
+                                {{ $vendor->author?->name ?? 'N/A' }}
+                            </td>
+                            <td style="padding: 16px 32px; font-size: 14px;">
+                                {{ $vendor->phone }}
+                            </td>
+                            <td style="padding: 16px 32px; text-align: center;">
+                                <span style="display: inline-block; padding: 6px 12px; border-radius: 8px; background: {{ $vendor->is_approved ? '#d4edda' : '#fff3cd' }}; color: {{ $vendor->is_approved ? '#155724' : '#856404' }}; font-weight: 600; font-size: 12px;">
+                                    {{ $vendor->is_approved ? '✓ Approved' : '⏳ Pending' }}
+                                </span>
+                            </td>
+                            <td style="padding: 16px 32px; text-align: center;">
+                                <span style="display: inline-block; padding: 6px 12px; border-radius: 8px; background: {{ $vendor->is_active ? '#d4edda' : '#f8d7da' }}; color: {{ $vendor->is_active ? '#155724' : '#721c24' }}; font-weight: 600; font-size: 12px;">
+                                    {{ $vendor->is_active ? '✓ Active' : '✗ Inactive' }}
+                                </span>
+                            </td>
+                            <td style="padding: 16px 32px; text-align: right;">
+                                <div style="display: flex; gap: 8px; justify-content: flex-end;">
+                                    <a href="{{ route('admin.vendors.view', $vendor->id) }}" class="btn btn-sm btn-info" style="font-size: 12px; padding: 6px 12px;">
+                                        View
+                                    </a>
+                                    <a href="{{ route('admin.vendors.edit', $vendor->id) }}" class="btn btn-sm btn-primary" style="font-size: 12px; padding: 6px 12px;">
+                                        Edit
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="6" style="padding: 40px; text-align: center; color: var(--agri-text-muted); font-weight: 700;">
+                                No vendors found
+                            </td>
+                        </tr>
+                    @endforelse
+                </tbody>
             </table>
         </div>
+
+        {{-- Pagination --}}
+        @if($vendors->hasPages())
+            <div style="padding: 24px 32px; border-top: 1px solid var(--agri-border); display: flex; justify-content: between; align-items: center;">
+                {{ $vendors->links() }}
+            </div>
+        @endif
     </div>
 </div>
 
 <style>
-    .dataTables_empty { padding: 80px 0 !important; font-weight: 800; color: var(--agri-text-muted); text-transform: uppercase; font-size: 14px; }
-    .expert-row:hover { background: var(--agri-bg); }
     .form-check-input:checked { background-color: var(--agri-primary); border-color: var(--agri-primary); }
 </style>
-@endsection
-
-@section('scripts')
-<script type="text/javascript">
-    var type = "{{$type}}";
-    var user_permissions = '<?php echo @session("admin_permissions") ?>';
-    user_permissions = Object.values(JSON.parse(user_permissions || "[]"));
-    var checkDeletePermission = false;
-
-    if (
-        (type == 'pending' && $.inArray('pending.vendors.delete', user_permissions) >= 0) ||
-        (type == 'approved' && $.inArray('approve.vendors.delete', user_permissions) >= 0) ||
-        (type == 'all' && $.inArray('vendors.delete', user_permissions) >= 0)
-    ) {
-        checkDeletePermission = true;
-    }
-
-    var placeholderImage = '{{ asset("images/placeholder.png") }}';
-
-    function getCookie(name) {
-        const nameEQ = name + "=";
-        const cookies = document.cookie.split(';');
-        for(let i = 0; i < cookies.length; i++) {
-            const cookie = cookies[i].trim();
-            if(cookie.indexOf(nameEQ) === 0) {
-                return decodeURIComponent(cookie.substring(nameEQ.length));
-            }
-        }
-        return null;
-    }
-
-    $(document).ready(function () {
-        const table = $('#userTable').DataTable({
-            pageLength: 10,
-            processing: false,
-            serverSide: true,
-            responsive: true,
-            autoWidth: false,
-            ajax: function (data, callback, settings) {
-                const start = data.start;
-                const length = data.length;
-                const searchValue = data.search.value.toLowerCase();
-                const orderColumnIndex = data.order[0].column;
-                const orderDirection = data.order[0].dir;
-                
-                const orderableColumns = (checkDeletePermission) ? 
-                    ['','','first_name', 'email', 'created_at','','',''] : 
-                    ['','first_name', 'email', 'created_at','','',''];
-                
-                const orderByField = orderableColumns[orderColumnIndex];
-
-                $.ajax({
-                    url: '/api/admin/vendors-list',
-                    method: 'GET',
-                    data: {
-                        type: type,
-                        search: searchValue,
-                        page: Math.floor(start / length) + 1,
-                        limit: length,
-                        orderBy: orderByField || 'created_at',
-                        orderDir: orderDirection
-                    },
-                    success: function(response) {
-                        if (response.success && response.data) {
-                            let records = [];
-                            response.data.forEach(async function(vendor) {
-                                records.push(await buildHTML(vendor));
-                            });
-                            
-                            setTimeout(() => {
-                                callback({
-                                    draw: data.draw,
-                                    recordsTotal: response.meta.total,
-                                    recordsFiltered: response.meta.total,
-                                    data: records
-                                });
-                            }, 100);
-                        } else {
-                            callback({ draw: data.draw, recordsTotal: 0, recordsFiltered: 0, data: [] });
-                        }
-                    },
-                    error: function(xhr) {
-                        console.error('Error fetching vendors', xhr);
-                        callback({ draw: data.draw, recordsTotal: 0, recordsFiltered: 0, data: [] });
-                    }
-                });
-            },
-            order: (checkDeletePermission) ? [[2, 'desc']] : [[1, 'desc']],
-            columnDefs: [{ orderable: false, targets: '_all' }],
-            dom: 't<"p-4 d-flex justify-content-between align-items-center"ip>',
-            language: {
-                zeroRecords: 'NO EXPERTS MATCH YOUR SEARCH CRITERIA',
-                emptyTable: 'SERVICE PARTNER ECOSYSTEM IS EMPTY',
-                processing: ""
-            }
-        });
-
-        $('#search-input').on('keyup', function () { table.search($(this).val()).draw(); });
-
-        $("#is_active").click(function () { $("#userTable .is_open").prop('checked', $(this).prop('checked')); });
-
-        $(document).on("click", ".form-switch input", function (e) {
-            var ischeck = $(this).is(':checked');
-            var id = this.id;
-            $.ajax({
-                url: '/api/admin/vendors/' + id + '/status',
-                method: 'PUT',
-                headers: {
-                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                },
-                data: { is_active: ischeck },
-                success: function(response) {
-                    console.log('Vendor status updated');
-                },
-                error: function(xhr) {
-                    console.error('Error updating vendor status', xhr);
-                    alert('Failed to update vendor status');
-                }
-            });
-        });
-
-        $(document).on("click", ".delete-btn", function (e) {
-            if (confirm("CRITICAL: Decommission this expert? This will revoke all platform access and remove their entry from the ledger.")) {
-                var id = $(this).data('id');
-                $.ajax({
-                    url: '/api/admin/vendors/' + id,
-                    method: 'DELETE',
-                    headers: {
-                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                    },
-                    success: function(response) {
-                        location.reload();
-                    },
-                    error: function(xhr) {
-                        console.error('Error deleting vendor', xhr);
-                        alert('Failed to delete vendor');
-                    }
-                });
-            }
-        });
-
-        $("#deleteAll").click(function () {
-            if ($('#userTable .is_open:checked').length) {
-                if (confirm("CRITICAL: Bulk decommission selected partners? This action is non-reversible.")) {
-                    let promises = [];
-                    $('#userTable .is_open:checked').each(function () { 
-                        promises.push(
-                            $.ajax({
-                                url: '/api/admin/vendors/' + $(this).attr('dataId'),
-                                method: 'DELETE',
-                                headers: {
-                                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                                }
-                            })
-                        );
-                    });
-                    Promise.all(promises).then(() => location.reload());
-                }
-            } else { alert("Select at least one partner for bulk decommissioning."); }
-        });
-    });
-
-    async function buildHTML(val) {
-        var html = [];
-        var id = val.id;
-
-        // Selection
-        if (checkDeletePermission) {
-            html.push('<td style="padding: 24px 32px;"><div class="form-check"><input type="checkbox" id="is_open_' + id + '" class="is_open form-check-input" dataId="' + id + '" style="width: 20px; height: 20px;"></div></td>');
-        }
-
-        // Expert Profile
-        var profilePic = val.profile_picture_url || placeholderImage;
-        html.push('<td style="padding: 24px 32px;"><div style="display:flex; align-items:center; gap:16px;">' +
-            '<div style="position:relative;"><img src="' + profilePic + '" onerror="this.src=\'' + placeholderImage + '\'" style="width:52px; height:52px; border-radius:14px; object-fit:cover; border:2px solid var(--agri-bg);">' +
-            (val.is_document_verified ? '<div style="position:absolute; bottom:-4px; right:-4px; background:var(--agri-primary); color:white; width:20px; height:20px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:10px; border:2px solid white;"><i class="fas fa-check"></i></div>' : '') +
-            '</div>' +
-            '<div><div style="font-weight:800; color:var(--agri-text-heading); font-size:15px;">' + (val.first_name || '') + ' ' + (val.last_name || '') + '</div>' +
-            '<div style="font-size:10px; font-weight:800; color:var(--agri-primary); text-transform:uppercase;">' + (val.role || 'Partner') + ' NODE</div></div></div></td>');
-
-        // Contact Details
-        html.push('<td style="padding: 24px 32px;"><div style="font-size:13px; color:var(--agri-text-heading); font-weight:700;">' + (val.email || '—') + '</div>' +
-            '<div style="font-size:12px; color:var(--agri-text-muted); font-weight:600; margin-top:2px;"><i class="fas fa-phone-alt me-2" style="font-size:10px;"></i>' + (val.phone_number || 'N/A') + '</div></td>');
-
-        // Joined Date
-        var dateStr = '—';
-        if (val.created_at) {
-            var d = new Date(val.created_at);
-            dateStr = '<div style="font-weight:700; font-size:13px; color:var(--agri-text-heading);">' + d.toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'}) + '</div>' +
-                      '<div style="font-size:11px; color:var(--agri-text-muted); font-weight:600;">' + d.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) + '</div>';
-        }
-        html.push('<td style="padding: 24px 32px;">' + dateStr + '</td>');
-
-        // Verification Audit
-        var docUrl = "{{route('admin.vendors.document', ':id')}}".replace(':id', id);
-        var auditStatus = val.is_document_verified ? 
-            '<span style="background:var(--agri-primary-light); color:var(--agri-primary); padding:6px 16px; border-radius:12px; font-size:10px; font-weight:900;">AUDIT PASSED</span>' :
-            '<span style="background:#FFFBEB; color:#B45309; padding:6px 16px; border-radius:12px; font-size:10px; font-weight:900;">PENDING AUDIT</span>';
-
-        html.push('<td style="padding: 24px 32px;" class="text-center">' +
-            '<div style="margin-bottom:8px;">' + auditStatus + '</div>' +
-            '<a href="' + docUrl + '" style="font-size:11px; font-weight:800; color:var(--agri-primary); text-decoration:none; text-transform:uppercase; letter-spacing:0.5px;">Review Credentials <i class="fas fa-arrow-right ms-1"></i></a></td>');
-
-        // Operational Status
-        var statusBadge = val.is_active ? 
-            '<span style="background:var(--agri-primary-light); color:var(--agri-primary); padding:2px 10px; border-radius:100px; font-size:10px; font-weight:800; border:1px solid var(--agri-primary)40;">OPERATIONAL</span>' :
-            '<span style="background:#F3F4F6; color:#6B7280; padding:2px 10px; border-radius:100px; font-size:10px; font-weight:800; border:1px solid #D1D5DB;">SUSPENDED</span>';
-        
-        html.push('<td style="padding: 24px 32px;" class="text-center">' +
-            '<div style="display:flex; flex-direction:column; align-items:center; gap:8px;">' +
-            statusBadge +
-            '<div class="form-check form-switch p-0 m-0"><input type="checkbox" class="form-check-input" ' + (val.is_active ? 'checked' : '') + ' id="' + id + '" style="width:40px; height:20px; cursor:pointer; margin:0;"></div>' +
-            '</div></td>');
-
-        // Actions
-        if (checkDeletePermission) {
-            html.push('<td style="padding: 24px 32px;" class="text-end"><div style="display:flex; justify-content:flex-end; gap:8px;">' +
-                '<a href="' + "{{route('admin.vendors.edit', ':id')}}".replace(':id', id) + '" class="btn-agri" style="padding:8px 12px; background:var(--agri-bg); color:var(--agri-text-heading); border-radius:10px; text-decoration:none; font-size:12px; font-weight:700;"><i class="fas fa-edit"></i></a>' +
-                '<button class="btn-agri delete-btn" data-id="' + id + '" style="padding:8px 12px; background:#FEF2F2; color:var(--agri-error); border:none; border-radius:10px; font-size:12px;"><i class="fas fa-trash-alt"></i></button>' +
-                '</div></td>');
-        }
-
-        return html;
-    }
-</script>
 @endsection

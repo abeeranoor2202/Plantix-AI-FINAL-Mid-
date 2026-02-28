@@ -156,12 +156,16 @@ class UserController extends Controller
                   ->orWhere('phone', 'like', '%' . $request->search . '%');
         }
 
-        if ($request->filled('status')) {
-            $query->where('is_active', $request->status === 'active' ? true : false);
+        if ($request->filled('approval')) {
+            if ($request->approval === 'approved') {
+                $query->where('is_approved', true);
+            } elseif ($request->approval === 'pending') {
+                $query->where('is_approved', false);
+            }
         }
 
-        if ($request->filled('approval')) {
-            $query->where('is_approved', $request->approval === 'approved' ? true : false);
+        if ($request->filled('status')) {
+            $query->where('is_active', $request->status === 'active' ? true : false);
         }
 
         $vendors = $query->latest()->paginate(20);
