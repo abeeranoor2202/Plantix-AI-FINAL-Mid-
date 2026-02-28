@@ -1,225 +1,94 @@
 @extends('layouts.app')
 
-
-
 @section('content')
-
-    <div class="page-wrapper">
-
-        <!-- <div class="row page-titles"> -->
-
-        <div class="card">
-
-            <div class="payment-top-tab mt-3 mb-3">
-
-                <ul class="nav nav-tabs card-header-tabs align-items-end">
-
-                    <li class="nav-item">
-
-                        <a class="nav-link  stripe_active_label" href="{!! url('settings/payment/stripe') !!}"><i
-
-                                    class="fa fa-envelope-o mr-2"></i>{{trans('lang.app_setting_stripe')}}<span
-
-                                    class="badge ml-2"></span>
-
-                        </a>
-
-                    </li>
-
-                    <li class="nav-item">
-
-                        <a class="nav-link active cod_active_label" href="{!! url('settings/payment/cod') !!}"><i
-
-                                    class="fa fa-envelope-o mr-2"></i>{{trans('lang.app_setting_cod_short')}}<span
-
-                                    class="badge ml-2"></span>
-
-                        </a>
-
-                    </li>
-
-
-
-                    <li class="nav-item">
-
-                        <a class="nav-link razorpay_active_label" href="{!! url('settings/payment/razorpay') !!}"><i
-
-                                    class="fa fa-envelope-o mr-2"></i>{{trans('lang.app_setting_razorpay')}}<span
-
-                                    class="badge ml-2"></span>
-
-                        </a>
-
-                    </li>
-
-                    <li class="nav-item">
-
-                        <a class="nav-link paypal_active_label" href="{!! url('settings/payment/paypal') !!}"><i
-
-                                    class="fa fa-envelope-o mr-2"></i>{{trans('lang.app_setting_paypal')}}<span
-
-                                    class="badge ml-2"></span>
-
-                        </a>
-
-                    </li>
-
-
-
-                    <li class="nav-item">
-
-                        <a class="nav-link paytm_active_label" href="{!! url('settings/payment/paytm') !!}"><i
-
-                                    class="fa fa-envelope-o mr-2"></i>{{trans('lang.app_setting_paytm')}}<span
-
-                                    class="badge ml-2"></span>
-
-                        </a>
-
-                    </li>
-
-                    <li class="nav-item">
-
-                        <a class="nav-link wallet_active_label" href="{!! url('settings/payment/wallet') !!}"><i
-
-                                    class="fa fa-envelope-o mr-2"></i>{{trans('lang.app_setting_wallet')}}<span
-
-                                    class="badge ml-2"></span>
-
-                        </a>
-
-                    </li>
-
-                    <li class="nav-item">
-
-                        <a class="nav-link payfast_active_label" href="{!! url('settings/payment/payfast') !!}"><i
-
-                                    class="fa fa-envelope-o mr-2"></i>{{trans('lang.payfast')}}<span
-
-                                    class="badge ml-2"></span>
-
-                        </a>
-
-                    </li>
-
-
-
-                    <li class="nav-item">
-
-                        <a class="nav-link paystack_active_label" href="{!! url('settings/payment/paystack') !!}"><i
-
-                                    class="fa fa-envelope-o mr-2"></i>{{trans('lang.app_setting_paystack_lable')}}<span
-
-                                    class="badge ml-2"></span></a>
-
-                    </li>
-
-
-
-                    <li class="nav-item">
-
-                        <a class="nav-link flutterWave_active_label" href="{!! url('settings/payment/flutterwave') !!}"><i
-
-                                    class="fa fa-envelope-o mr-2"></i>{{trans('lang.flutterWave')}}<span
-
-                                    class="badge ml-2"></span></a>
-
-                    </li>
-
-                    <li class="nav-item">
-
-                        <a class="nav-link mercadopago_active_label"
-
-                        href="{!! url('settings/payment/mercadopago') !!}"><i
-
-                                    class="fa fa-envelope-o mr-2"></i>{{trans('lang.mercadopago')}}<span
-
-                                    class="badge ml-2"></span></a>
-
-                    </li>
-
-                    <li class="nav-item">
-                        <a class="nav-link xendit_active_label"
-                           href="{!! url('settings/payment/xendit') !!}"><i
-                                class="fa fa-envelope-o mr-2"></i>{{trans('lang.app_setting_xendit')}}<span
-                                class="badge ml-2"></span></a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link orangepay_active_label"
-                           href="{!! url('settings/payment/orangepay') !!}"><i
-                                class="fa fa-envelope-o mr-2"></i>{{trans('lang.app_setting_orangepay')}}<span
-                                class="badge ml-2"></span></a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link midtrans_active_label"
-                           href="{!! url('settings/payment/midtrans') !!}"><i
-                                class="fa fa-envelope-o mr-2"></i>{{trans('lang.app_setting_midtrans')}}<span
-                                class="badge ml-2"></span></a>
-                    </li>
-
-                </ul>
-
-            </div>
-
-            <div class="card-body">
-
-                <div id="data-table_processing" class="dataTables_processing panel panel-default"
-
-                     style="display: none;">Processing...
-
+<div class="container-fluid" style="padding-top: 24px;">
+
+    {{-- Breadcrumb/Header Section --}}
+    <div style="margin-bottom: 32px;">
+        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
+            <a href="{{url('/dashboard')}}" style="text-decoration: none; color: var(--agri-text-muted); font-size: 14px; font-weight: 600;">{{trans('lang.dashboard')}}</a>
+            <i class="fas fa-chevron-right" style="font-size: 10px; color: var(--agri-text-muted);"></i>
+            <span style="color: var(--agri-text-muted); font-size: 14px; font-weight: 600;">Settings</span>
+            <i class="fas fa-chevron-right" style="font-size: 10px; color: var(--agri-text-muted);"></i>
+            <span style="color: var(--agri-primary); font-size: 14px; font-weight: 600;">Payments</span>
+        </div>
+        <h1 style="font-size: 28px; font-weight: 700; color: var(--agri-primary-dark); margin: 0;">{{trans('lang.app_setting_payment_method')}}</h1>
+    </div>
+
+    {{-- Payment Sub-Navigation --}}
+    <div style="display: flex; gap: 24px; border-bottom: 2px solid var(--agri-border); margin-bottom: 32px; padding-bottom: 2px;">
+        <a href="{{url('settings/payment/stripe')}}" class="stripe_active_label" style="text-decoration: none; padding: 12px 4px; position: relative; color: var(--agri-text-muted); font-weight: 600; display: flex; align-items: center; gap: 8px;">
+            <i class="fab fa-stripe" style="font-size: 20px;"></i>
+            {{trans('lang.app_setting_stripe')}}
+            <span class="badge" style="font-size: 10px; padding: 2px 6px; border-radius: 20px;"></span>
+        </a>
+        <a href="{{url('settings/payment/cod')}}" class="cod_active_label" style="text-decoration: none; padding: 12px 4px; position: relative; color: var(--agri-primary); font-weight: 700; border-bottom: 3px solid var(--agri-primary); display: flex; align-items: center; gap: 8px;">
+            <i class="fas fa-hand-holding-usd" style="font-size: 18px;"></i>
+            {{trans('lang.app_setting_cod_short')}}
+            <span class="badge" style="font-size: 10px; padding: 2px 6px; border-radius: 20px;"></span>
+        </a>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card-agri" style="padding: 40px;">
+                
+                <div id="data-table_processing" class="dataTables_processing" style="display: none; background: rgba(255,255,255,0.8); color: var(--agri-primary); font-weight: 700; border-radius: 12px; z-index: 10;">
+                    <div class="spinner-border spinner-border-sm mr-2" role="status"></div>
+                    {{trans('lang.processing')}}
                 </div>
 
-                <div class="row restaurant_payout_create">
+                <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 32px;">
+                    <div style="width: 48px; height: 48px; background: rgba(var(--agri-primary-rgb), 0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: var(--agri-primary);">
+                        <i class="fas fa-money-bill-wave" style="font-size: 24px;"></i>
+                    </div>
+                    <div>
+                        <h4 style="font-size: 18px; font-weight: 700; color: var(--agri-primary-dark); margin: 0;">Cash on Delivery</h4>
+                        <p style="font-size: 13px; color: var(--agri-text-muted); margin: 0;">Direct cash payments upon successful delivery.</p>
+                    </div>
+                </div>
 
-                    <div class="restaurant_payout_create-inner">
-
-                        <fieldset>
-
-                            <legend><i class="mr-3 fa fa-money"></i>{{trans('lang.app_setting_cod_short')}}</legend>
-
-                            <div class="form-check width-100">
-
-                                <input type="checkbox" class=" enable_cod" id="enable_cod">
-
-                                <label class="col-3 control-label"
-
-                                       for="enable_cod">{{trans('lang.app_setting_enable_cod')}}</label>
-
-                                <div class="form-text text-muted">
-
-                                    {!! trans('lang.app_settings_enable_cod_help') !!}
-
-                                </div>
-
-                            </div>
-
-                        </fieldset>
-
+                <form>
+                    <div style="background: var(--agri-bg); padding: 24px; border-radius: 16px; border: 1px solid var(--agri-border); display: flex; align-items: center; justify-content: space-between;">
+                        <div>
+                            <h5 style="font-size: 15px; font-weight: 700; color: var(--agri-text-heading); margin-bottom: 4px;">{{trans('lang.app_setting_enable_cod')}}</h5>
+                            <p style="font-size: 13px; color: var(--agri-text-muted); margin: 0;">{!! trans('lang.app_settings_enable_cod_help') !!}</p>
+                        </div>
+                        <div class="form-check form-switch" style="padding: 0; margin: 0;">
+                            <input type="checkbox" class="enable_cod" id="enable_cod" style="width: 50px; height: 26px; cursor: pointer; accent-color: var(--agri-primary);">
+                        </div>
                     </div>
 
-                </div>
-
+                    <div style="display: flex; gap: 16px; margin-top: 40px; border-top: 1px solid var(--agri-border); padding-top: 32px;">
+                        <button type="button" class="btn-agri btn-agri-primary edit-form-btn" style="flex: 2; height: 48px; font-size: 15px;">
+                            <i class="fas fa-save" style="margin-right: 8px;"></i> {{trans('lang.save')}}
+                        </button>
+                        <a href="{{url('/dashboard')}}" class="btn-agri btn-agri-outline" style="flex: 1; height: 48px; display: flex; align-items: center; justify-content: center; text-decoration: none; font-size: 15px;">
+                             {{trans('lang.cancel')}}
+                        </a>
+                    </div>
+                </form>
             </div>
-
-
-
-            <div class="form-group col-12 text-center btm-btn">
-
-                <button type="button" class="btn btn-primary edit-form-btn"><i
-
-                            class="fa fa-save"></i> {{trans('lang.save')}}</button>
-
-                <a href="{{url('/dashboard')}}" class="btn btn-default"><i
-
-                            class="fa fa-undo"></i>{{trans('lang.cancel')}}</a>
-
-            </div>
-
-
-
         </div>
 
+        {{-- Info Card --}}
+        <div class="col-lg-4">
+            <div class="card-agri" style="padding: 24px; background: linear-gradient(135deg, var(--agri-primary-dark) 0%, #1b3d2f 100%); color: white; border: none;">
+                <h5 style="font-weight: 700; margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
+                    <i class="fas fa-info-circle"></i> Logistic Insight
+                </h5>
+                <p style="font-size: 14px; opacity: 0.9; line-height: 1.6;">
+                    Cash on Delivery (COD) remains a vital payment option for agricultural merchants. It builds trust with farmers who prefer manual verification of received seeds, equipment, or products before finalizing payment.
+                </p>
+                <div style="background: rgba(255,255,255,0.1); padding: 16px; border-radius: 12px; margin-top: 16px;">
+                    <div style="font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; opacity: 0.7; margin-bottom: 4px;">Merchant Rule</div>
+                    <div style="font-size: 14px;">Ensure delivery partners are equipped for secure cash collection.</div>
+                </div>
+            </div>
+        </div>
     </div>
+</div>
+@endsection
 
 
 

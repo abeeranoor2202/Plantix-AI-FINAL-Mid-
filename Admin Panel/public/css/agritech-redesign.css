@@ -1,0 +1,193 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@400;600;700&display=swap');
+
+:root {
+    /* Brand Colors */
+    --agri-primary: #10B981;        /* Emerald 500 */
+    --agri-primary-hover: #059669;  /* Emerald 600 */
+    --agri-primary-light: #ECFDF5;  /* Emerald 50 */
+    --agri-primary-dark: #064E3B;   /* Emerald 900 */
+    
+    --agri-secondary: #FBBF24;      /* Amber 400 */
+    --agri-secondary-hover: #D97706; /* Amber 600 */
+    
+    /* Neutrals */
+    --agri-white: #FFFFFF;
+    --agri-bg: #F8FAFC;            /* Slate 50 */
+    --agri-border: #E2E8F0;        /* Slate 200 */
+    --agri-text-main: #334155;     /* Slate 700 */
+    --agri-text-muted: #94A3B8;    /* Slate 400 */
+    --agri-text-heading: #0F172A;  /* Slate 900 */
+    
+    /* Functional */
+    --agri-success: #10B981;
+    --agri-error: #EF4444;
+    --agri-warning: #F59E0B;
+    --agri-info: #3B82F6;
+
+    /* Spacing & Radius */
+    --agri-radius-lg: 20px;
+    --agri-radius-md: 16px;
+    --agri-radius-sm: 12px;
+    --agri-shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+    --agri-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.05), 0 4px 6px -4px rgb(0 0 0 / 0.05);
+    --agri-shadow-lg: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+}
+
+/* Base Styles */
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: var(--agri-bg);
+    color: var(--agri-text-main);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: 'Outfit', sans-serif;
+    color: var(--agri-text-heading);
+    font-weight: 600;
+}
+
+/* Typography Scale */
+h1 { font-size: 2.25rem; line-height: 2.5rem; }
+h2 { font-size: 1.875rem; line-height: 2.25rem; }
+h3 { font-size: 1.5rem; line-height: 2rem; }
+.text-body-lg { font-size: 1.125rem; }
+.text-body-md { font-size: 1rem; }
+.text-body-sm { font-size: 0.875rem; }
+
+/* Buttons */
+.btn-agri {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.75rem 1.5rem;
+    font-weight: 500;
+    border-radius: var(--agri-radius-md);
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    border: none;
+    cursor: pointer;
+    gap: 0.5rem;
+}
+
+.btn-agri-primary {
+    background-color: var(--agri-primary);
+    color: white;
+    box-shadow: var(--agri-shadow);
+}
+
+.btn-agri-primary:hover {
+    background-color: var(--agri-primary-hover);
+    transform: translateY(-1px);
+    box-shadow: var(--agri-shadow-lg);
+}
+
+.btn-agri-secondary {
+    background-color: var(--agri-secondary);
+    color: var(--agri-primary-dark);
+}
+
+.btn-agri-secondary:hover {
+    background-color: var(--agri-secondary-hover);
+    transform: translateY(-1px);
+}
+
+.btn-agri-outline {
+    background-color: transparent;
+    border: 2px solid var(--agri-primary);
+    color: var(--agri-primary);
+}
+
+.btn-agri-outline:hover {
+    background-color: var(--agri-primary-light);
+}
+
+/* Cards */
+.card-agri {
+    background: var(--agri-white);
+    border-radius: var(--agri-radius-lg);
+    box-shadow: var(--agri-shadow);
+    border: 1px solid var(--agri-border);
+    padding: 1.5rem;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card-agri:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--agri-shadow-lg);
+}
+
+/* Form Inputs */
+.form-agri {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border-radius: var(--agri-radius-sm);
+    border: 1px solid var(--agri-border);
+    background-color: var(--agri-white);
+    transition: border-color 0.2s, box-shadow 0.2s;
+    outline: none;
+}
+
+.form-agri:focus {
+    border-color: var(--agri-primary);
+    box-shadow: 0 0 0 4px var(--agri-primary-light);
+}
+
+/* Layout Utilities */
+.container-agri {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 0 2rem;
+}
+
+.grid-agri {
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    gap: 1.5rem;
+}
+
+/* Sidebar & Navigation */
+.sidebar-agri {
+    background-color: var(--agri-white);
+    border-right: 1px solid var(--agri-border);
+    height: 100vh;
+    padding: 2rem 1.5rem;
+}
+
+.nav-link-agri {
+    display: flex;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    border-radius: var(--agri-radius-sm);
+    color: var(--agri-text-muted);
+    transition: all 0.2s;
+    text-decoration: none;
+    gap: 1rem;
+}
+
+.nav-link-agri:hover, .nav-link-agri.active {
+    background-color: var(--agri-primary-light);
+    color: var(--agri-primary);
+}
+
+.nav-link-agri.active {
+    font-weight: 600;
+}
+
+/* AI Feature Accents */
+.ai-glass {
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+.ai-pulse {
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4);
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); }
+    70% { box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+}

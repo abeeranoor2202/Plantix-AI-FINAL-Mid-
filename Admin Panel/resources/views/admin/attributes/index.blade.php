@@ -1,103 +1,64 @@
 ﻿@extends('layouts.app')
 
 @section('content')
+<div class="container-fluid" style="padding-top: 24px;">
 
-<div class="page-wrapper">
-
-    <div class="row page-titles">
-
-        <div class="col-md-5 align-self-center">
-
-            <h3 class="text-themecolor">{{trans('lang.item_attribute_plural')}}</h3>
-
-        </div>
-
-        <div class="col-md-7 align-self-center">
-            <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="{{url('/dashboard')}}">{{trans('lang.dashboard')}}</a></li>
-                <li class="breadcrumb-item active">{{trans('lang.item_attribute_plural')}}</li>
-            </ol>
-        </div>
-
+    {{-- Header Section --}}
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px;">
         <div>
-
+            <h1 style="font-size: 28px; font-weight: 700; color: var(--agri-primary-dark); margin: 0;">{{trans('lang.item_attribute_plural')}}</h1>
+            <p style="color: var(--agri-text-muted); margin: 4px 0 0 0;">Categorize and define unique characteristics for vendor products.</p>
         </div>
-
+        <div style="display: flex; gap: 12px;">
+            <a href="{!! route('admin.attributes.create') !!}" class="btn-agri btn-agri-primary" style="text-decoration: none; display: flex; align-items: center; gap: 8px;">
+                <i class="fas fa-plus"></i>
+                {{trans('lang.attribute_create')}}
+            </a>
+        </div>
     </div>
 
+    <div class="row">
+        <div class="col-12">
+            <div class="card-agri" style="padding: 0; overflow: hidden;">
+                <div class="card-header bg-white border-bottom-0 pt-4 pb-1 px-4">
+                    <div style="display: flex; align-items: center; gap: 24px;">
+                        <a href="{!! url()->current() !!}" style="text-decoration: none; color: var(--agri-primary); font-weight: 700; font-size: 15px; border-bottom: 3px solid var(--agri-primary); padding-bottom: 12px;">
+                            <i class="fas fa-list" style="margin-right: 8px;"></i>
+                            {{trans('lang.attribute_table')}}
+                        </a>
+                    </div>
+                </div>
 
-    <div class="container-fluid">
-
-        <div class="row">
-
-            <div class="col-12">
-
-                <div class="card">
-
-                    <div class="card-header">
-                        <ul class="nav nav-tabs align-items-end card-header-tabs w-100">
-                            <li class="nav-item">
-                                <a class="nav-link active" href="{!! url()->current() !!}"><i
-                                        class="fa fa-list mr-2"></i>{{trans('lang.attribute_table')}}</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" href="{!! route('admin.attributes.create') !!}"><i
-                                        class="fa fa-plus mr-2"></i>{{trans('lang.attribute_create')}}</a>
-                            </li>
-                        </ul>
+                <div class="card-body p-0">
+                    <div id="data-table_processing" class="dataTables_processing" style="display: none; background: rgba(255,255,255,0.8); color: var(--agri-primary); font-weight: 700;">
+                        <div class="spinner-border spinner-border-sm mr-2" role="status"></div>
+                        {{trans('lang.processing')}}
                     </div>
 
-                    <div class="card-body">
-
-                        <div id="data-table_processing" class="dataTables_processing panel panel-default"
-                            style="display: none;">{{trans('lang.processing')}}
-                        </div>
-
-                        <div class="table-responsive m-t-10">
-
-
-                            <table id="attributeTable"
-                                class="display nowrap table table-hover table-striped table-bordered table table-striped"
-                                cellspacing="0" width="100%">
-
-                                <thead>
-
-                                    <tr>
-
-                                        <th>{{trans('lang.attribute_name')}}</th>
-
-                                        <th>{{trans('lang.actions')}}</th>
-
-                                    </tr>
-
-                                </thead>
-
-                                <tbody id="append_list1">
-
-
-                                </tbody>
-
-                            </table>
-                        </div>
+                    <div class="table-responsive">
+                        <table id="attributeTable" class="table mb-0" style="vertical-align: middle;">
+                            <thead style="background: var(--agri-bg);">
+                                <tr>
+                                    <th style="padding: 16px 24px; font-size: 12px; font-weight: 600; color: var(--agri-text-muted); text-transform: uppercase; border: none;">{{trans('lang.attribute_name')}}</th>
+                                    <th style="padding: 16px 24px; font-size: 12px; font-weight: 600; color: var(--agri-text-muted); text-transform: uppercase; border: none; text-align: right;">{{trans('lang.actions')}}</th>
+                                </tr>
+                            </thead>
+                            <tbody id="append_list1">
+                                {{-- Loaded via JS --}}
+                            </tbody>
+                        </table>
                     </div>
-
                 </div>
             </div>
-
-
         </div>
-
     </div>
-
 </div>
 @endsection
-
 
 @section('scripts')
 <script type="text/javascript">
 
     var database = firebase.firestore();
-
     var ref = database.collection('vendor_attributes').orderBy('title');
     var append_list = '';
 
@@ -109,13 +70,12 @@
     }
 
     $(document).ready(function () {
-
         jQuery("#data-table_processing").show();
 
         const table = $('#attributeTable').DataTable({
-            pageLength: 10, // Number of rows per page
-            processing: false, // Show processing indicator
-            serverSide: true, // Enable server-side processing
+            pageLength: 10,
+            processing: false,
+            serverSide: true,
             responsive: true,
             ajax: function (data, callback, settings) {
                 const start = data.start;
@@ -123,8 +83,8 @@
                 const searchValue = data.search.value.toLowerCase();
                 const orderColumnIndex = data.order[0].column;
                 const orderDirection = data.order[0].dir;
-                const orderableColumns = ['title']; // Ensure this matches the actual column names
-                const orderByField = orderableColumns[orderColumnIndex]; // Adjust the index to match your table
+                const orderableColumns = ['title'];
+                const orderByField = orderableColumns[orderColumnIndex];
 
                 if (searchValue.length >= 3 || searchValue.length === 0) {
                     $('#data-table_processing').show();
@@ -132,29 +92,22 @@
 
                 ref.get().then(async function (querySnapshot) {
                     if (querySnapshot.empty) {
-                        console.error("No data found in Firestore.");
-                        $('#data-table_processing').hide(); // Hide loader
+                        $('#data-table_processing').hide();
                         callback({
                             draw: data.draw,
                             recordsTotal: 0,
                             recordsFiltered: 0,
-                            data: [] // No data
+                            data: []
                         });
                         return;
                     }
 
-                    let records = [];
                     let filteredRecords = [];
-
                     querySnapshot.forEach(function (doc) {
                         let childData = doc.data();
-                        childData.id = doc.id; // Ensure the document ID is included in the data              
-
+                        childData.id = doc.id;
                         if (searchValue) {
-                            if (
-                                (childData.title && childData.title.toLowerCase().toString().includes(searchValue))
-
-                            ) {
+                            if (childData.title && childData.title.toLowerCase().toString().includes(searchValue)) {
                                 filteredRecords.push(childData);
                             }
                         } else {
@@ -165,110 +118,70 @@
                     filteredRecords.sort((a, b) => {
                         let aValue = a[orderByField] ? a[orderByField].toString().toLowerCase() : '';
                         let bValue = b[orderByField] ? b[orderByField].toString().toLowerCase() : '';
-
-                        if (orderDirection === 'asc') {
-                            return (aValue > bValue) ? 1 : -1;
-                        } else {
-                            return (aValue < bValue) ? 1 : -1;
-                        }
+                        return orderDirection === 'asc' ? (aValue > bValue ? 1 : -1) : (aValue < bValue ? 1 : -1);
                     });
 
                     const totalRecords = filteredRecords.length;
-
                     const paginatedRecords = filteredRecords.slice(start, start + length);
+                    let records = [];
 
                     await Promise.all(paginatedRecords.map(async (childData) => {
                         var getData = await buildHTML(childData);
                         records.push(getData);
                     }));
 
-                    $('#data-table_processing').hide(); // Hide loader
+                    $('#data-table_processing').hide();
                     callback({
                         draw: data.draw,
-                        recordsTotal: totalRecords, // Total number of records in Firestore
-                        recordsFiltered: totalRecords, // Number of records after filtering (if any)
-                        data: records // The actual data to display in the table
+                        recordsTotal: totalRecords,
+                        recordsFiltered: totalRecords,
+                        data: records
                     });
                 }).catch(function (error) {
-                    console.error("Error fetching data from Firestore:", error);
-                    $('#data-table_processing').hide(); // Hide loader
-                    callback({
-                        draw: data.draw,
-                        recordsTotal: 0,
-                        recordsFiltered: 0,
-                        data: [] // No data due to error
-                    });
+                    console.error("Firestore error:", error);
+                    $('#data-table_processing').hide();
+                    callback({ draw: data.draw, recordsTotal: 0, recordsFiltered: 0, data: [] });
                 });
             },
             order: [[0, 'asc']],
-            columnDefs: [
-
-                { orderable: false, targets: [1] },
-            ],
+            columnDefs: [{ orderable: false, targets: [1] }],
             "language": {
                 "zeroRecords": "{{trans("lang.no_record_found")}}",
                 "emptyTable": "{{trans("lang.no_record_found")}}",
-                "processing": "" // Remove default loader
+                "processing": ""
             },
-
+            dom: '<"d-flex justify-content-between align-items-center pt-3 px-4"f>t<"d-flex justify-content-between align-items-center py-3 px-4"ip>'
         });
-        table.columns.adjust().draw();
-
-        function debounce(func, wait) {
-            let timeout;
-            const context = this;
-            return function (...args) {
-                clearTimeout(timeout);
-                timeout = setTimeout(() => func.apply(context, args), wait);
-            };
-        }
-        $('#search-input').on('input', debounce(function () {
-            const searchValue = $(this).val();
-            if (searchValue.length >= 3) {
-                $('#data-table_processing').show();
-                table.search(searchValue).draw();
-            } else if (searchValue.length === 0) {
-                $('#data-table_processing').show();
-                table.search('').draw();
-            }
-        }, 300));
-
-
-
     });
 
     function buildHTML(val) {
         var html = [];
-        newdate = '';
-
         var id = val.id;
         var route1 = '{{route("admin.attributes.edit",":id")}}';
         route1 = route1.replace(':id', id);
 
-        html.push('<a href="' + route1 + '">' + val.title + '</a>');
-        var actionHtml = '';
-        actionHtml = actionHtml + '<span class="action-btn"><a href="' + route1 + '"><i class="fa fa-edit"></i></a>';
+        html.push('<div style="display: flex; align-items: center; gap: 12px;"><div style="width: 36px; height: 36px; background: var(--agri-primary-light); color: var(--agri-primary); border-radius: 8px; display: flex; align-items: center; justify-content: center;"><i class="fas fa-tag"></i></div><a href="' + route1 + '" style="font-weight: 700; color: var(--agri-text-heading); text-decoration: none; font-size: 15px;">' + val.title + '</a></div>');
+        
+        var actionHtml = '<div style="display: flex; justify-content: flex-end; gap: 8px;">';
+        actionHtml += '<a href="' + route1 + '" class="btn-agri" style="padding: 8px; background: var(--agri-bg); color: var(--agri-secondary-dark); border-radius: 10px; border: 1px solid var(--agri-border); text-decoration: none;" title="Edit"><i class="fas fa-edit"></i></a>';
         if (checkDeletePermission) {
-            actionHtml += '<a id="' + val.id + '" name="attribute-delete" class="delete-btn" href="javascript:void(0)"><i class="fa fa-trash"></i></a>';
+            actionHtml += '<a id="' + val.id + '" name="attribute-delete" class="btn-agri" style="padding: 8px; background: var(--agri-error-light); color: var(--agri-error); border-radius: 10px; border: none; text-decoration: none;" href="javascript:void(0)" title="Delete"><i class="fas fa-trash"></i></a>';
         }
-        actionHtml +='</span>';
+        actionHtml += '</div>';
         
         html.push(actionHtml);
-
         return html;
-
     }
-
 
     $(document).on("click", "a[name='attribute-delete']", function (e) {
         var id = this.id;
-        jQuery("#data-table_processing").show();
-        database.collection('vendor_attributes').doc(id).delete().then(function (result) {
-            window.location.href = '{{ route("admin.attributes")}}';
-        });
+        if(confirm('Are you sure you want to delete this attribute?')) {
+            jQuery("#data-table_processing").show();
+            database.collection('vendor_attributes').doc(id).delete().then(function (result) {
+                window.location.href = '{{ route("admin.attributes")}}';
+            });
+        }
     });
 
-
 </script>
-
 @endsection

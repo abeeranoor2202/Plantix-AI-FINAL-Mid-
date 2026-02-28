@@ -1,89 +1,69 @@
 ﻿@extends('layouts.app')
 
 @section('content')
-    <div class="page-wrapper">
-        <div class="row page-titles">
-            <div class="col-md-5 align-self-center">
-                <h3 class="text-themecolor">{{trans('lang.item_attribute_plural')}}</h3>
-            </div>
+<div class="container-fluid" style="padding-top: 24px;">
 
-            <div class="col-md-7 align-self-center">
-                <ol class="breadcrumb">
-                    <li class="breadcrumb-item"><a href="{{url('/dashboard')}}">{{trans('lang.dashboard')}}</a></li>
-                    <li class="breadcrumb-item"><a
-                                href="{!! route('admin.attributes') !!}">{{trans('lang.item_attribute_plural')}}</a></li>
-                    <li class="breadcrumb-item active">{{trans('lang.attribute_create')}}</li>
-                </ol>
-            </div>
+    {{-- Breadcrumb/Header Section --}}
+    <div style="margin-bottom: 32px;">
+        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
+            <a href="{!! route('admin.attributes') !!}" style="text-decoration: none; color: var(--agri-text-muted); font-size: 14px; font-weight: 600;">{{trans('lang.item_attribute_plural')}}</a>
+            <i class="fas fa-chevron-right" style="font-size: 10px; color: var(--agri-text-muted);"></i>
+            <span style="color: var(--agri-primary); font-size: 14px; font-weight: 600;">{{trans('lang.attribute_create')}}</span>
         </div>
+        <h1 style="font-size: 28px; font-weight: 700; color: var(--agri-primary-dark); margin: 0;">{{trans('lang.attribute_create')}}</h1>
+    </div>
 
-        <div class="card-body">
-
-            <div id="data-table_processing" class="dataTables_processing panel panel-default"
-                 style="display: none;">{{trans('lang.processing')}}</div>
-            <div class="error_top" style="display:none"></div>
-            <div class="row restaurant_payout_create">
-
-                <div class="restaurant_payout_create-inner">
-                    <fieldset>
-                        <legend>{{trans('lang.attribute_create')}}</legend>
-                        <div class="form-group row width-100">
-                            <label class="col-3 control-label">{{trans('lang.attribute_name')}}</label>
-                            <div class="col-7">
-                                <input type="text" class="form-control cat-name">
-                                <div class="form-text text-muted">{{ trans("lang.attribute_name_help") }} </div>
-                            </div>
-                        </div>
-
-                    </fieldset>
+    <div class="row justify-content-center">
+        <div class="col-lg-8 col-md-10">
+            <div class="card-agri" style="padding: 40px;">
+                
+                <div id="data-table_processing" class="dataTables_processing" style="display: none; background: rgba(255,255,255,0.8); color: var(--agri-primary); font-weight: 700;">
+                    <div class="spinner-border spinner-border-sm mr-2" role="status"></div>
+                    {{trans('lang.processing')}}
                 </div>
 
+                <div class="error_top" style="display:none; background: var(--agri-error-light); color: var(--agri-error); padding: 16px; border-radius: 12px; margin-bottom: 24px; font-weight: 600;"></div>
+
+                <form>
+                    <div style="margin-bottom: 32px;">
+                        <h4 style="font-size: 18px; font-weight: 700; color: var(--agri-text-heading); margin-bottom: 24px;">General Information</h4>
+                        <div class="row g-4">
+                            <div class="col-12">
+                                <label style="font-size: 13px; font-weight: 600; color: var(--agri-text-heading); margin-bottom: 8px; display: block;">{{trans('lang.attribute_name')}} <span class="text-danger">*</span></label>
+                                <input type="text" class="form-agri cat-name" placeholder="e.g. Color, Size, Voltage, Material">
+                                <div style="font-size: 11px; color: var(--agri-text-muted); margin-top: 6px;">{{ trans("lang.attribute_name_help") }}</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; gap: 16px; border-top: 1px solid var(--agri-border); padding-top: 32px;">
+                        <button type="button" class="btn-agri btn-agri-primary save-form-btn" style="flex: 2; height: 48px; font-size: 15px;">
+                            <i class="fas fa-save" style="margin-right: 8px;"></i> {{trans('lang.save')}}
+                        </button>
+                        <a href="{!! route('admin.attributes') !!}" class="btn-agri btn-agri-outline" style="flex: 1; height: 48px; display: flex; align-items: center; justify-content: center; text-decoration: none; font-size: 15px;">
+                             {{trans('lang.cancel')}}
+                        </a>
+                    </div>
+                </form>
             </div>
-
         </div>
-        <div class="form-group col-12 text-center btm-btn">
-            <button type="button" class="btn btn-primary save-form-btn"><i
-                        class="fa fa-save"></i> {{trans('lang.save')}}</button>
-            <a href="{!! route('admin.attributes') !!}" class="btn btn-default"><i
-                        class="fa fa-undo"></i>{{trans('lang.cancel')}}</a>
-        </div>
-
     </div>
-
-    </div>
-
-    </div>
-
+</div>
 @endsection
 
 @section('scripts')
-    
     <script>
-
         var database = firebase.firestore();
         var ref = database.collection('vendor_attributes');
-        var photo = "";
         var id_attribute = "<?php echo uniqid();?>";
-        var attribute_length = 1;
-
 
         $(document).ready(function () {
-            jQuery("#data-table_processing").show();
-            ref.get().then(async function (snapshots) {
-                attribute_length = snapshots.size + 1;
-                jQuery("#data-table_processing").hide();
-            })
-
             $(".save-form-btn").click(function () {
                 var title = $(".cat-name").val();
-
-                $(".error_top").hide();
-                $(".error_top").html("");
+                $(".error_top").hide().html("");
 
                 if (title == '') {
-
-                    $(".error_top").show();
-                    $(".error_top").append("<p>{{trans('lang.enter_itemattribute_title_error')}}</p>");
+                    $(".error_top").show().append("<p>{{trans('lang.enter_itemattribute_title_error')}}</p>");
                     window.scrollTo(0, 0);
                 } else {
                     jQuery("#data-table_processing").show();
@@ -93,47 +73,8 @@
                     }).then(function (result) {
                         window.location.href = '{{ route("admin.attributes")}}';
                     });
-
                 }
-
             });
-
-
         });
-
-        var storageRef = firebase.storage().ref('images');
-
-        function handleFileSelect(evt) {
-            var f = evt.target.files[0];
-            var reader = new FileReader();
-            reader.onload = (function (theFile) {
-                return function (e) {
-
-                    var filePayload = e.target.result;
-                    var val = $('#attribute_image').val().toLowerCase();
-                    var ext = val.split('.')[1];
-                    var docName = val.split('fakepath')[1];
-                    var filename = $('#attribute_image').val().replace(/C:\\fakepath\\/i, '')
-                    var timestamp = Number(new Date());
-                    var uploadTask = storageRef.child(filename).put(theFile);
-                    uploadTask.on('state_changed', function (snapshot) {
-                        var progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-                    }, function (error) {
-                    }, function () {
-                        uploadTask.snapshot.ref.getDownloadURL().then(function (downloadURL) {
-                            jQuery("#uploding_image").text("Upload is completed");
-                            photo = downloadURL;
-                            $(".cat_image").empty();
-                            $(".cat_image").append('<img class="rounded" style="width:50px" src="' + photo + '" alt="image">');
-
-                        });
-                    });
-
-                };
-            })(f);
-            reader.readAsDataURL(f);
-        }
-
-
     </script>
 @endsection

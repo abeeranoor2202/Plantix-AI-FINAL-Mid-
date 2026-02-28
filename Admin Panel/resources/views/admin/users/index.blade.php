@@ -1,197 +1,160 @@
 @extends('layouts.app')
 
 @section('content')
+<div class="container-fluid" style="padding-top: 24px; padding-bottom: 40px;">
 
-<div class="page-wrapper">
-
-
-    <div class="row page-titles mb-4 pb-3 border-bottom align-items-center">
-        <div class="col-md-5">
-            <h3 class="text-dark fw-bold mb-0">
-                <i class="fa fa-users text-success me-2" style="background: rgba(40, 167, 69, 0.1); padding: 12px; border-radius: 12px; width: 44px; text-align: center;"></i>
-                {{trans('lang.admin_plural')}}
-            </h3>
+    {{-- Header Section --}}
+    <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 32px;">
+        <div>
+            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
+                <a href="{{url('/dashboard')}}" style="text-decoration: none; color: var(--agri-text-muted); font-size: 14px; font-weight: 600;">{{trans('lang.dashboard')}}</a>
+                <i class="fas fa-chevron-right" style="font-size: 10px; color: var(--agri-text-muted);"></i>
+                <span style="color: var(--agri-primary); font-size: 14px; font-weight: 600;">Internal Governance</span>
+            </div>
+            <h1 style="font-size: 28px; font-weight: 700; color: var(--agri-primary-dark); margin: 0;">{{trans('lang.admin_plural')}}</h1>
+            <p style="color: var(--agri-text-muted); margin: 4px 0 0 0;">Manage high-level administrative accounts and platform governance credentials.</p>
         </div>
-        <div class="col-md-7 text-end">
-            <ol class="breadcrumb d-inline-flex bg-transparent p-0 m-0">
-                <li class="breadcrumb-item"><a href="{{url('/dashboard')}}" class="text-muted text-decoration-none">{{trans('lang.dashboard')}}</a></li>
-                <li class="breadcrumb-item active text-dark fw-semibold">{{trans('lang.admin_plural')}}</li>
-            </ol>
-        </div>
+        <a href="{!! route('admin.users.create') !!}" class="btn-agri btn-agri-primary" style="text-decoration: none; display: flex; align-items: center; gap: 8px; font-weight: 700;">
+            <i class="fas fa-user-plus"></i>
+            {{trans('lang.create_admin')}}
+        </a>
     </div>
 
-
-    <div class="container-fluid pl-0 pr-0">
-        <div class="row">
-            <div class="col-12">
-                <div class="card border-0 shadow-sm" style="border-radius: 20px; overflow: hidden;">
-                    <div class="card-header bg-white border-bottom-0 pt-4 pb-0 px-5 d-flex justify-content-between align-items-center">
-                        <div>
-                            <h4 class="mb-0 fw-bold text-dark">{{trans('lang.admin_table')}}</h4>
-                            <p class="text-muted small mt-1">Manage administrative users and their permissions.</p>
-                        </div>
-                        <a href="{!! route('admin.users.create') !!}" class="btn btn-success rounded-pill px-4 shadow-sm fw-bold">
-                            <i class="fa fa-plus me-2"></i>{{trans('lang.create_admin')}}
-                        </a>
-                    </div>
-                    <div class="card-body p-5">
-                        <div id="data-table_processing" class="dataTables_processing panel panel-default text-success" style="display: none;">Processing...</div>
-                        <div class="table-responsive">
-                            <table id="adminTable" class="table table-hover align-middle mb-0" cellspacing="0" width="100%">
-                                <thead class="table-light">
-                                    <tr>
-                                        <?php if (in_array('admin.users.delete', json_decode(@session('admin_permissions'),true))) { ?>
-                                        <th class="delete-all ps-4" style="width: 50px;">
-                                            <div class="form-check m-0">
-                                                <input type="checkbox" id="is_active" class="form-check-input">
-                                                <label class="form-check-label d-none" for="is_active"></label>
-                                            </div>
-                                            <a id="deleteAll" class="do_not_delete text-danger small mt-1 d-block" href="javascript:void(0)" style="font-size: 0.70rem; text-decoration: none;">
-                                                <i class="fa fa-trash"></i> {{trans('lang.all')}}
-                                            </a>
-                                        </th>
-                                        <?php } ?>
-                                        <th class="fw-medium text-muted text-uppercase small">{{trans('lang.name')}}</th>
-                                        <th class="fw-medium text-muted text-uppercase small">{{trans('lang.email')}}</th>
-                                        <th class="fw-medium text-muted text-uppercase small">{{trans('lang.role')}}</th>
-                                        <th class="text-end pe-4 fw-medium text-muted text-uppercase small">{{trans('lang.actions')}}</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="append_list1">
-                                    @foreach($users as $user)
-                                    <tr class="hover-card-row">
-                                        <?php if (in_array('admin.users.delete', json_decode(@session('admin_permissions'),true))) { ?>
-                                        <td class="delete-all ps-4">
-                                            <div class="form-check m-0">
-                                                <input type="checkbox" id="is_open_{{$user->id}}" class="is_open form-check-input custom-checkbox" dataid="{{$user->id}}">
-                                            </div>
-                                        </td>
-                                        <?php } ?>
-
-                                        <td>
-                                            <div class="d-flex align-items-center">
-                                                <div class="bg-success text-white rounded-circle d-flex align-items-center justify-content-center fw-bold me-3 shadow-sm" style="width: 44px; height: 44px; font-size: 1.1rem; background: linear-gradient(135deg, #28a745 0%, #20c997 100%) !important;">
-                                                    {{ strtoupper(substr($user->name, 0, 1)) }}
-                                                </div>
-                                                <div>
-                                                    <a href="{{route('admin.users.edit', ['id' => $user->id])}}" class="text-decoration-none fw-bold text-dark fs-6 d-block mb-0">
-                                                        {{ $user->name }}
-                                                    </a>
-                                                    <span class="text-muted small">Admin User</span>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td>
-                                            <div class="d-flex align-items-center text-muted">
-                                                <i class="fa fa-envelope-o me-2 text-success opacity-75"></i>
-                                                {{ $user->email }}
-                                            </div>
-                                        </td>
-                                        <td>
-                                            <span class="badge bg-light text-success rounded-pill px-3 py-2 fw-semibold border shadow-sm small">
-                                                <i class="fa fa-shield me-1"></i> {{ $user->roleName }}
-                                            </span>
-                                        </td>
-                                        <td class="action-btn text-end pe-4">
-                                            <div class="d-flex justify-content-end gap-2">
-                                                <a href="{{route('admin.users.edit', ['id' => $user->id])}}" class="btn btn-sm btn-light text-success rounded-circle shadow-sm hover-card d-flex align-items-center justify-content-center" style="width: 38px; height: 38px;" title="Edit">
-                                                    <i class="fa fa-edit"></i>
-                                                </a>
-                                                 @if($user->id != 1)
-                                                <?php if (in_array('admin.admin.users.delete', json_decode(@session('admin_permissions'),true))) { ?>
-                                                <a href="{{route('admin.admin.users.delete', ['id' => $user->id])}}" class="btn btn-sm btn-light text-danger rounded-circle shadow-sm hover-card d-flex align-items-center justify-content-center delete-btn" style="width: 38px; height: 38px;" title="Delete">
-                                                    <i class="fa fa-trash"></i>
-                                                </a>
-                                                 <?php } ?>     
-                                                 @endif  
-                                            </div>
-                                        </td>
-                                    </tr>
-                                    @endforeach
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
+    @if(session('success'))
+        <div class="card-agri mb-4" style="background: var(--agri-primary-light); border: 1px solid var(--agri-primary); border-radius: 12px; padding: 12px 20px;">
+            <div style="display: flex; align-items: center; gap: 12px; color: var(--agri-primary);">
+                <i class="fas fa-check-circle"></i>
+                <span style="font-weight: 700;">{{ session('success') }}</span>
             </div>
         </div>
+    @endif
+
+    {{-- Governance Ledger --}}
+    <div class="card-agri" style="padding: 0; overflow: hidden; background: white;">
+        <div style="padding: 24px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--agri-border); background: white;">
+            <h4 style="font-size: 16px; font-weight: 700; color: var(--agri-text-heading); margin: 0;">Administrator Registry</h4>
+            
+            <?php if (in_array('admin.users.delete', json_decode(@session('admin_permissions'),true))) { ?>
+                <button id="deleteAll" class="btn-agri" style="color: var(--agri-error); background: #FEF2F2; border: none; padding: 8px 16px; font-size: 13px; font-weight: 700;">
+                    <i class="fas fa-trash-alt me-2"></i> Bulk Revoke Access
+                </button>
+            <?php } ?>
+        </div>
+        
+        <div class="table-responsive">
+            <table id="adminTable" class="table mb-0" style="vertical-align: middle;">
+                <thead style="background: var(--agri-bg);">
+                    <tr>
+                        <?php if (in_array('admin.users.delete', json_decode(@session('admin_permissions'),true))) { ?>
+                        <th style="padding: 16px 24px; border: none; width: 50px;">
+                            <div class="form-check m-0">
+                                <input type="checkbox" id="is_active" class="form-check-input" style="cursor: pointer; width: 18px; height: 18px;">
+                            </div>
+                        </th>
+                        <?php } ?>
+                        <th style="padding: 16px 24px; font-size: 11px; font-weight: 800; color: var(--agri-text-muted); text-transform: uppercase; letter-spacing: 0.5px; border: none;">Identity</th>
+                        <th style="padding: 16px 24px; font-size: 11px; font-weight: 800; color: var(--agri-text-muted); text-transform: uppercase; letter-spacing: 0.5px; border: none;">Communications</th>
+                        <th style="padding: 16px 24px; font-size: 11px; font-weight: 800; color: var(--agri-text-muted); text-transform: uppercase; letter-spacing: 0.5px; border: none;">Assigned Authority</th>
+                        <th style="padding: 16px 24px; font-size: 11px; font-weight: 800; color: var(--agri-text-muted); text-transform: uppercase; letter-spacing: 0.5px; border: none;" class="text-end">Management</th>
+                    </tr>
+                </thead>
+                <tbody id="append_list1">
+                    @foreach($users as $user)
+                        <tr style="border-bottom: 1px solid var(--agri-border); transition: 0.2s;">
+                            <?php if (in_array('admin.users.delete', json_decode(@session('admin_permissions'),true))) { ?>
+                            <td style="padding: 16px 24px;">
+                                <div class="form-check m-0">
+                                    <input type="checkbox" id="is_open_{{$user->id}}" class="is_open form-check-input" dataid="{{$user->id}}" style="cursor: pointer; width: 18px; height: 18px;">
+                                </div>
+                            </td>
+                            <?php } ?>
+
+                            <td style="padding: 16px 24px;">
+                                <div style="display: flex; align-items: center; gap: 14px;">
+                                    <div style="width: 44px; height: 44px; border-radius: 12px; background: var(--agri-primary-light); color: var(--agri-primary); display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 18px; border: 1px solid var(--agri-primary)30;">
+                                        {{ strtoupper(substr($user->name, 0, 1)) }}
+                                    </div>
+                                    <div>
+                                        <div style="font-weight: 800; color: var(--agri-text-heading); font-size: 15px;">{{ $user->name }}</div>
+                                        <div style="font-size: 10px; color: var(--agri-text-muted); font-weight: 800; text-transform: uppercase; margin-top: 2px;">
+                                            <i class="fas fa-crown me-1" style="color: var(--agri-secondary);"></i> Governance Member
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td style="padding: 16px 24px;">
+                                <div style="display: flex; align-items: center; gap: 8px; color: var(--agri-text-main); font-size: 13px; font-weight: 600;">
+                                    <i class="far fa-envelope-open" style="color: var(--agri-primary); font-size: 12px;"></i>
+                                    {{ $user->email }}
+                                </div>
+                            </td>
+                            <td style="padding: 16px 24px;">
+                                <div style="background: var(--agri-bg); color: var(--agri-text-heading); padding: 6px 14px; border-radius: 100px; font-size: 11px; font-weight: 800; display: inline-flex; align-items: center; gap: 8px; border: 1px solid var(--agri-border);">
+                                    <i class="fas fa-key" style="font-size: 10px; color: var(--agri-primary);"></i>
+                                    {{ $user->roleName }}
+                                </div>
+                            </td>
+                            <td style="padding: 16px 24px;" class="text-end">
+                                <div style="display: flex; justify-content: flex-end; gap: 8px;">
+                                    <a href="{{route('admin.users.edit', ['id' => $user->id])}}" class="btn-agri" style="padding: 8px 12px; background: var(--agri-bg); color: var(--agri-text-heading); border-radius: 10px; text-decoration: none; font-size: 12px; font-weight: 700; display: flex; align-items: center; gap: 6px;" title="Edit Governance Account">
+                                        <i class="fas fa-user-cog"></i> Modify
+                                    </a>
+                                    @if($user->id != 1)
+                                        <?php if (in_array('admin.users.delete', json_decode(@session('admin_permissions'),true))) { ?>
+                                        <a href="{{route('admin.users.delete', ['id' => $user->id])}}" class="btn-agri" style="padding: 8px 12px; background: #FEF2F2; color: var(--agri-error); border-radius: 10px; border: none; text-decoration: none;" onclick="return confirm('CRITICAL: Permanently revoke administrative access for this account?')" title="Revoke Access">
+                                            <i class="fas fa-user-minus"></i>
+                                        </a>
+                                        <?php } ?>     
+                                    @endif
+                                </div>
+                            </td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
     </div>
-
 </div>
-
-</div>
-</div>
-
 @endsection
 
 @section('scripts')
-
 <script type="text/javascript">
-
-    var user_permissions = '<?php echo @session("admin_permissions")?>';
-    user_permissions = Object.values(JSON.parse(user_permissions));
-    var checkDeletePermission = false;
-    if ($.inArray('admin.users.delete', user_permissions) >= 0) {
-        checkDeletePermission = true;
-    }
-
-    if (checkDeletePermission) {
+    $(document).ready(function() {
         $('#adminTable').DataTable({
             order: [],
-            columnDefs: [
-                { orderable: false, targets: [0, 4] },
-
-            ],
+            columnDefs: [{ orderable: false, targets: [0, 4] }],
             "language": {
-                "zeroRecords": "{{trans("lang.no_record_found")}}",
-                "emptyTable": "{{trans("lang.no_record_found")}}"
-                        },
-            responsive: true
+                "zeroRecords": "No governance accounts identified",
+                "emptyTable": "Governance registry is currently empty"
+            },
+            responsive: true,
+            dom: '<"p-4 d-flex justify-content-between align-items-center mb-0"f>t<"p-4 d-flex justify-content-between align-items-center mt-0"ip>'
         });
-    }
-    else
-    {
-        $('#adminTable').DataTable({
-            order: [],
-            columnDefs: [
-                { orderable: false, targets: [3] },
 
-            ],
-            "language": {
-                "zeroRecords": "{{trans("lang.no_record_found")}}",
-                "emptyTable": "{{trans("lang.no_record_found")}}"
-                        },
-            responsive: true
+        $('.dataTables_filter input').addClass('form-agri').css({'height':'40px', 'min-width':'250px'});
+
+        $("#is_active").click(function () {
+            $("#adminTable .is_open").prop('checked', $(this).prop('checked'));
         });
-    }
 
-    $("#is_active").click(function () {
-        $("#adminTable .is_open").prop('checked', $(this).prop('checked'));
+        $("#deleteAll").click(function () {
+            if ($('#adminTable .is_open:checked').length) {
+                if (confirm('Are You Sure want to Delete Selected Data ?')) {
+                    var arrayUsers = [];
+                    $('#adminTable .is_open:checked').each(function () {
+                        var dataId = $(this).attr('dataId');
+                        arrayUsers.push(dataId);
+                    });
 
-    });
-
-    $("#deleteAll").click(function () {
-        if ($('#adminTable .is_open:checked').length) {
-            if (confirm('Are You Sure want to Delete Selected Data ?')) {
-                var arrayUsers = [];
-                $('#adminTable .is_open:checked').each(function () {
-                    var dataId = $(this).attr('dataId');
-                    arrayUsers.push(dataId);
-
-                });
-
-                arrayUsers = JSON.stringify(arrayUsers);
-                var url = "{{url('admin-users/delete', 'id')}}";
-                url = url.replace('id', arrayUsers);
-
-                $(this).attr('href', url);
+                    arrayUsers = JSON.stringify(arrayUsers);
+                    var url = "{{url('admin-users/delete', 'id')}}";
+                    url = url.replace('id', arrayUsers);
+                    window.location.href = url;
+                }
+            } else {
+                alert('Please Select Any One Record.');
             }
-        } else {
-            alert('Please Select Any One Record .');
-        }
+        });
     });
-    
 </script>
-
-
 @endsection

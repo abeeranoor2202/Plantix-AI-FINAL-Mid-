@@ -162,5 +162,37 @@ class AdminProductController extends Controller
 
         return back()->with('success', 'Featured status updated.');
     }
+
+    public function reviews(Request $request): View
+    {
+        $query = \App\Models\Review::with(['user', 'product', 'vendor'])->orderBy('created_at', 'desc');
+
+        if ($request->filled('rating')) {
+            $query->where('rating', $request->rating);
+        }
+
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->whereHas('product', function($pq) use ($search) {
+                    $pq->where('name', 'like', "%{$search}%");
+                })->orWhereHas('user', function($uq) use ($search) {
+                    $uq->where('name', 'like', "%{$search}%");
+                });
+            });
+        }
+
+        $reviews = $query->paginate(20);
+
+        return view('admin.reviews.index', compact('reviews'));
+    }
+
+    public function destroyReview(int $id): RedirectResponse
+    {
+        $review = \App\Models\Review::findOrFail($id);
+        $review->delete();
+
+        return back()->with('success', 'Review deleted successfully.');
+    }
 }
 

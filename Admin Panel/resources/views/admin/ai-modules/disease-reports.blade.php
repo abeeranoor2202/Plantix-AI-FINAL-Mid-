@@ -6,9 +6,9 @@
 <div class="container-fluid">
 
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="h4 mb-0"><i class="fas fa-virus me-2 text-warning"></i>Crop Disease Reports</h2>
-        <a href="{{ route('admin.ai.dashboard') }}" class="btn btn-outline-secondary btn-sm">
-            <i class="fas fa-arrow-left me-1"></i> AI Dashboard
+        <h2 class="h4 mb-0"><i class="mdi mdi-robot me-2" style="color: var(--agri-primary);"></i>Crop Disease Intelligence</h2>
+        <a href="{{ route('admin.ai.dashboard') }}" class="btn btn-warning btn-sm">
+            <i class="mdi mdi-arrow-left me-1"></i> AI Dashboard
         </a>
     </div>
 
@@ -36,7 +36,7 @@
                         <td>{{ $report->detected_disease ?? '<em class="text-muted">Pending</em>' }}</td>
                         <td>
                             @if($report->confidence_score)
-                                <span class="badge bg-info">{{ $report->confidence_percent }}</span>
+                                <span class="ai-badge">{{ $report->confidence_percent }}</span>
                             @else
                                 <span class="text-muted">—</span>
                             @endif

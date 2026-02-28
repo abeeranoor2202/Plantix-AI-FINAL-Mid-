@@ -4,784 +4,407 @@
 
 @section('content')
 
-    <div class="page-wrapper">
-
-    <div class="row page-titles mb-4 pb-3 border-bottom">
-        <div class="col-md-5 align-self-center">
-            <h3 class="text-themecolor fw-bold"><i class="fa fa-cogs text-success me-2"></i>{{trans('lang.app_setting_global')}}</h3>
-        </div>
-        <div class="col-md-7 align-self-center">
-            <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="{{url('/dashboard')}}">{{trans('lang.dashboard')}}</a></li>
-                <li class="breadcrumb-item active">{{trans('lang.app_setting_global')}}</li>
-            </ol>
-        </div>
-    </div>
-
-    <div class="container-fluid">
-        <div class="card border-0 shadow-sm mb-4" style="border-radius:16px;">
-            <div class="card-body p-4">
-
-            <div id="data-table_processing" class="dataTables_processing panel panel-default"
-
-                 style="display: none;">{{trans('lang.processing')}}</div>
-
-            <div class="error_top" style="display:none"></div>
-
-            <div class="row restaurant_payout_create">
-
-                <div class="restaurant_payout_create-inner">
-
-                    <fieldset>
-
-                        <legend><i class="mr-3 mdi mdi-settings"></i>{{trans('lang.app_setting_global')}}</legend>
-
-
-
-                        <div class="form-group row width-100">
-
-                            <label class="col-5 control-label">{{trans('lang.app_setting_app_name')}}</label>
-
-                            <div class="col-7">
-
-                                <input type="text" class="form-control application_name">
-
-                                <div class="form-text text-muted">
-
-                                    {{ trans("lang.app_setting_app_name_help") }}
-
-                                </div>
-
-                            </div>
-
-                        </div>
-
-                        <div class="form-group row width-100">
-
-                            <label class="col-5 control-label">{{trans('lang.app_setting_meta_title')}}</label>
-
-                            <div class="col-7">
-
-                                <input type="text" class="form-control meta_title">
-
-                                <div class="form-text text-muted">
-
-                                    {{ trans("lang.app_setting_meta_title_help") }}
-
-                                </div>
-
-                            </div>
-
-                        </div>
-
-                        <div class="form-group row width-50">
-
-                            <label class="col-3 control-label">{{trans('lang.upload_app_logo')}}</label>
-
-                            <input type="file" class="col-7" onChange="handleFileSelect(event)">
-
-                            <div id="uploding_image"></div>
-
-                            <div class="logo_img_thumb"></div>
-
-                        </div>
-
-
-
-                        <div class="form-group row width-50">
-
-                            <label class="col-5 control-label">{{trans('lang.menu_placeholder_image')}}</label>
-
-                            <input type="file" class="col-7" onChange="handleFileSelectplaceholder(event)">
-
-                            <div id="uploading_placeholder"></div>
-
-                            <div class="placeholder_img_thumb">
-
-                            </div>
-
-                        </div>
-
-
-
-                        <div class="form-group row width-50">
-
-                            <label class="col-3 control-label">{{trans('lang.upload_favicon')}}</label>
-
-                            <input type="file" class="col-7" onChange="handleFileSelectFavicon(event)">
-
-                            <div id="uploding_favicon"></div>
-
-                            <div class="favicon_img_thumb"></div>
-
-                        </div>
-
-                        <div class="form-group width-100 choose-theme">
-
-                            <label class="col-12 control-label">{{trans('lang.app_homepage_theme')}}</label>
-
-                            <div class="col-12">
-
-                                <div class="select-theme-radio">
-
-                                    <label class="form-check-label" for="app_homepage_theme_1">
-
-                                        <input type="radio" class="btn-check" name="app_homepage_theme" id="app_homepage_theme_1" value="theme_1">
-
-                                        <img src="{{url('images/app_homepage_theme_1.png')}}" height="150">
-
-                                    </label>
-
-                                    <label class="form-check-label" for="app_homepage_theme_2">
-
-                                        <input type="radio" class="btn-check" name="app_homepage_theme" id="app_homepage_theme_2" value="theme_2">
-
-                                        <img src="{{url('images/app_homepage_theme_2.png')}}" height="150">
-
-                                    </label>
-
-                                </div>
-
-                            </div>
-
-                        </div>
-
-                        <div class="form-group row width-50">
-
-                            <label class="col-5 control-label">{{trans('lang.admin_panel_color_settings')}}</label>
-
-                            <input type="color" class="ml-3" name="admin_color" id="admin_color">
-
-                        </div>
-
-                        <div class="form-group row width-50">
-
-                            <label class="col-5 control-label">{{trans('lang.store_panel_color_settings')}}</label>
-
-                            <input type="color" class="ml-3" name="store_color" id="store_color">
-
-                        </div>
-
-                        <div class="form-group row width-50">
-
-                            <label class="col-5 control-label">{{trans('lang.website_color_settings')}}</label>
-
-                            <input type="color" class="ml-3" name="website_color" id="website_color">
-
-                        </div>
-
-                        <div class="form-group row width-50">
-
-                            <label class="col-5 control-label">{{trans('lang.app_customer_color_settings')}}</label>
-
-                            <input type="color" class="ml-3" name="customer_app_color" id="customer_app_color">
-
-                        </div>
-
-                        <div class="form-group row width-50">
-
-                            <label class="col-5 control-label">{{trans('lang.app_driver_color_settings')}}</label>
-
-                            <input type="color" class="ml-3" name="driver_app_color" id="driver_app_color">
-
-                        </div>
-
-                        <div class="form-group row width-50">
-
-                            <label class="col-5 control-label">{{trans('lang.app_store_color_settings')}}</label>
-
-                            <input type="color" class="ml-3" name="restaurant_app_color" id="restaurant_app_color">
-
-                        </div>
-
-
-                    </fieldset>
-
-                    <fieldset>
-
-                        <legend>{{trans('lang.google_map_api_key_title')}}</legend>
-
-
-
-                        <div class="form-group row width-100">
-
-                            <label class="col-3 control-label">{{trans('lang.google_map_api_key')}}</label>
-
-                            <div class="col-7">
-
-                                <input type="password" class="form-control address_line1" name="map_key"
-
-                                       id="map_key">
-
-                            </div>
-
-                        </div>
-
-                    </fieldset>
-
-
-
-                    <fieldset>
-
-                        <legend><i class="mr-3 fa fa-solid fa-address-book"></i>{{trans('lang.contact_us')}}</legend>
-
-
-
-                        <div class="form-group row width-50">
-
-                            <label class="col-5 control-label">{{trans('lang.contact_us_address')}}</label>
-
-                            <div class="col-7">
-
-                                <textarea class="form-control contact_us_address" rows="3"></textarea>
-
-                                <div class="form-text text-muted">
-
-                                    {{ trans("lang.contact_us_address_help") }}
-
-                                </div>
-
-                            </div>
-
-                        </div>
-
-
-
-                        <div class="form-group row width-50">
-
-                            <label class="col-5 control-label">{{trans('lang.contact_us_email')}}</label>
-
-                            <div class="col-7">
-
-                                <input type="text" class="form-control contact_us_email">
-
-                                <div class="form-text text-muted">
-
-                                    {{ trans("lang.contact_us_email_help") }}
-
-                                </div>
-
-                            </div>
-
-                        </div>
-
-
-
-                        <div class="form-group row width-50">
-
-                            <label class="col-5 control-label">{{trans('lang.contact_us_phone')}}</label>
-
-                            <div class="col-7">
-
-                                <input type="number" class="form-control contact_us_phone">
-
-                                <div class="form-text text-muted">
-
-                                    {{ trans("lang.contact_us_phone_help") }}
-
-                                </div>
-
-                            </div>
-
-                        </div>
-
-
-
-                    </fieldset>
-
-
-
-                    <fieldset>
-
-                        <legend>{{trans('lang.map_redirection')}}</legend>
-
-                        <div class="form-group row width-100">
-                            <label class="col-4 control-label">{{trans('lang.select_map_type_for_application')}}</label>
-                                <div class="col-7">
-                                    <select name="selectedMapType" id="selectedMapType"
-                                        class="form-control selectedMapType">
-                                        <option value="google">{{trans("lang.google_maps")}}</option>
-                                        <option value="osm">{{trans("lang.open_street_map")}}</option>
-                                    </select>
-                                </div>
-                                <div class="form-text pl-3 text-muted">
-                                    <span><strong>{{trans("lang.note")}} :</strong>
-                                        {{trans("lang.google_map_note")}}<br>
-                                        {{trans("lang.open_street_map_note")}}<br>
-                                        <strong>{{trans("lang.recommended_note")}}</strong></span>
-                                </div>
-                        </div>
- 
-                        <div class="form-group row width-100">
-
-                            <label class="col-4 control-label">{{trans('lang.select_map_type')}}</label>
-
-                            <div class="col-7">
-
-                                <select name="map_type" id="map_type" class="form-control map_type">
-
-                                    <option value="">{{trans("lang.select_type")}}</option>
-
-                                    <option value="google">{{trans("lang.google_map")}}</option>
-
-                                    <option value="googleGo">{{trans("lang.google_go_map")}}</option>
-
-                                    <option value="waze">{{trans("lang.waze_map")}}</option>
-
-                                    <option value="mapswithme">{{trans("lang.mapswithme_map")}}</option>
-
-                                    <option value="yandexNavi">{{trans("lang.vandexnavi_map")}}</option>
-
-                                    <option value="yandexMaps">{{trans("lang.vandex_map")}}</option>
-
-                                    <option value="inappmap">{{trans("lang.inapp_map")}}</option>
-
-                                </select>
-
-                            </div>
-
-                        </div>
-
-
-
-                        <div class="form-group row width-100">
-
-                            <label class="col-4 control-label">{{trans('lang.driver_location_update')}}</label>
-
-                            <div class="col-7">
-
-                                <input name="radius" id="driver_location_update" class="form-control">
-
-                            </div>
-
-                        </div>
-
-
-
-                        <div class="form-group row width-100">
-
-                            <div class="form-check width-100">
-
-                                <input type="checkbox" class="form-check-inline" id="single_order_receive">
-
-                                <label class="col-5 control-label" for="single_order_receive">{{ trans('lang.single_order_receive')}}</label>
-
-                            </div>
-
-                        </div>
-
-
-
-                    </fieldset>
-
-
-
-                    <fieldset>
-
-                        <legend><i class="mr-3 mdi mdi-cash-100"></i>{{trans('lang.wallet_settings')}}</legend>
-
-                        <div class="form-group row width-100">
-
-                            <label class="col-4 control-label">{{ trans('lang.minimum_deposit_amount')}}</label>
-
-                            <div class="col-7">
-
-                                <div class="control-inner">
-
-                                    <input type="number" class="form-control minimum_deposit_amount">
-
-                                </div>
-
-                            </div>
-
-                        </div>
-
-                        <div class="form-group row width-100">
-
-                            <label class="col-4 control-label">{{ trans('lang.minimum_withdrawal_amount')}}</label>
-
-                            <div class="col-7">
-
-                                <div class="control-inner">
-
-                                    <input type="number" class="form-control minimum_withdrawal_amount">
-
-                                </div>
-
-                            </div>
-
-                        </div>
-
-                    </fieldset>
-
-
-
-                    <fieldset>
-
-                        <legend><i class="mr-3 mdi mdi-share"></i>{{trans('lang.referral_settings')}}</legend>
-
-                        <div class="form-group row width-100">
-
-                            <label class="col-4 control-label">{{ trans('lang.referral_amount')}}</label>
-
-                            <div class="col-7">
-
-                                <div class="control-inner">
-
-                                    <input type="number" class="form-control referral_amount">
-
-                                    <span class="currentCurrency"></span>
-
-                                    <div class="form-text text-muted">
-
-                                        {{ trans("lang.referral_amount_help") }}
-
-                                    </div>
-
-                                </div>
-
-                            </div>
-
-                        </div>
-
-                    </fieldset>
-
-
-
-                    <fieldset>
-
-                        <legend><i class="mr-3 mdi mdi-shopping"></i>{{trans('lang.store_settings')}}</legend>
-
-                        <div class="form-group row width-100">
-
-                            <div class="form-check width-100">
-
-                                <input type="checkbox" class="form-check-inline" id="restaurant_can_upload_story">
-
-                                <label class="col-5 control-label"
-
-                                       for="restaurant_can_upload_story">{{ trans('lang.store_can_upload_story')}}</label>
-
-                                <input type="checkbox" class="form-check-inline" id="auto_approve_restaurant">
-
-                                <label class="col-5 control-label"
-
-                                       for="auto_approve_restaurant">{{ trans('lang.auto_approve_store')}}</label>
-
-                            </div>
-
-                        </div>
-
-                        <div class="form-group row width-50" id="story_upload_time_div" style="display:none;">
-
-                            <label class="col-5 control-label">{{trans('lang.story_upload_time')}}</label>
-
-                            <div class="col-7">
-
-                                <input type="number" class="form-control" id="story_upload_time" value="30" min="0">
-
-                                <div class="form-text text-muted">
-
-                                    {{ trans("lang.story_upload_time_help") }}
-
-                                </div>
-
-                            </div>
-
-                        </div>
-
-                    </fieldset>
-
-
-
-                    <fieldset>
-
-                        <legend>{{trans('lang.email_setting')}}</legend>
-
-
-
-
-
-                        <div class="form-group row width-50">
-
-
-
-                            <label class="col-3 control-label">{{trans('lang.smtp')}} {{trans('lang.from_name')}}</label>
-
-
-
-                            <div class="col-7">
-
-
-
-                                <input type="text" class="form-control from_name">
-
-
-
-                            </div>
-
-
-
-                        </div>
-
-
-
-                        <div class="form-group row width-50">
-
-
-
-                            <label class="col-3 control-label">{{trans('lang.smtp')}} {{trans('lang.host')}}</label>
-
-
-
-                            <div class="col-7">
-
-
-
-                                <input type="text" class="form-control host">
-
-
-
-                            </div>
-
-
-
-                        </div>
-
-
-
-                        <div class="form-group row width-50">
-
-
-
-                            <label class="col-3 control-label">{{trans('lang.smtp')}} {{trans('lang.port')}}</label>
-
-
-
-                            <div class="col-7">
-
-
-
-                                <input type="text" class="form-control port">
-
-
-
-                            </div>
-
-
-
-                        </div>
-
-
-
-                        <div class="form-group row width-50">
-
-
-
-                            <label class="col-3 control-label">{{trans('lang.smtp_user_name')}}</label>
-
-
-
-                            <div class="col-7">
-
-
-
-                                <input type="text" class="form-control user_name">
-
-
-
-                            </div>
-
-
-
-                        </div>
-
-
-
-                        <div class="form-group row width-50">
-
-
-
-                            <label class="col-3 control-label">{{trans('lang.smtp')}} {{trans('lang.password')}}</label>
-
-
-
-                            <div class="col-7">
-
-
-
-                                <input type="password" class="form-control password">
-
-
-
-                            </div>
-
-
-
-                        </div>
-
-
-
-                    </fieldset>
-
-
-
-                    <fieldset>
-
-
-
-                        <legend><i class="mr-3 mdi mdi-comment-alert"></i>{{trans('lang.notification_setting')}}</legend>
-
-
-
-                        <div class="form-group row width-100">
-
-                            <label class="col-5 control-label">{{trans('lang.sender_id')}}</label>
-
-                            <div class="col-7">
-
-                                <input type="text" class="form-control" id="sender_id">
-
-                            </div>
-
-                            <div class="form-text pl-3 text-muted">
-
-                                {{ trans("lang.notification_sender_id_help") }}
-
-                            </div>
-
-                        </div>
-
-
-
-                        <div class="form-group row width-100">
-
-                            <label class="col-3 control-label">{{trans('lang.upload_json_file')}}</label>
-
-                            <input type="file" class="col-7 pb-2" onChange="handleUploadJsonFile(event)">
-
-                            <div id="uploding_json_file"></div>
-
-                            <div id="uploded_json_file"></div>
-
-                            <div class="form-text pl-3 text-muted">
-
-                                {{ trans("lang.notification_json_file_help") }}
-
-                            </div>
-
-                        </div>
-
-
-
-                    </fieldset>
-
-
-
-                    <fieldset>
-
-                        <legend><i class="mr-3 fa fa-solid fa fa-android"></i>{{trans('lang.version')}}</legend>
-
-
-
-                        <div class="form-group row width-50">
-
-                            <label class="col-5 control-label">{{trans('lang.app_version')}}</label>
-
-                            <div class="col-7">
-
-                                <input type="text" class="form-control app_version">
-
-
-
-                            </div>
-
-                        </div>
-
-
-
-                        <div class="form-group row width-50">
-
-                            <label class="col-5 control-label">{{trans('lang.web_version')}}</label>
-
-                            <div class="col-7">
-
-                                <input type="text" class="form-control" id="web_version">
-
-
-
-                            </div>
-
-                        </div>
-
-                        <div class="form-group row width-50">
-
-                            <label class="col-5 control-label">{{trans('lang.app_setting_app_store_link')}}</label>
-
-                            <div class="col-7">
-
-                                <input type="text" class="form-control" id="app_store_link">
-
-                           </div>
-
-                        </div>
-
-                        <div class="form-group row width-50">
-
-                            <label class="col-5 control-label">{{trans('lang.app_setting_play_store_link')}}</label>
-
-                            <div class="col-7">
-
-                                <input type="text" class="form-control" id="play_store_link">
-
-                           </div>
-
-                        </div>
-
-                    </fieldset>
-
-                </div>
-
+    <div class="container-fluid" style="padding-top: 24px; padding-bottom: 48px;">
+
+        {{-- Header Section --}}
+        <div style="margin-bottom: 32px;">
+            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
+                <a href="{{url('/dashboard')}}" style="text-decoration: none; color: var(--agri-text-muted); font-size: 14px; font-weight: 600;">{{trans('lang.dashboard')}}</a>
+                <i class="fas fa-chevron-right" style="font-size: 10px; color: var(--agri-text-muted);"></i>
+                <span style="color: var(--agri-primary); font-size: 14px; font-weight: 600;">{{trans('lang.app_setting_global')}}</span>
             </div>
-
+            <h1 style="font-size: 28px; font-weight: 700; color: var(--agri-primary-dark); margin: 0;">Global Application Controls</h1>
+            <p style="color: var(--agri-text-muted); margin-top: 4px;">Manage core identity, configurations, and system-wide integrations.</p>
         </div>
 
+        <div id="data-table_processing" class="dataTables_processing" style="display: none; background: rgba(255,255,255,0.9); border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
+            <div class="spinner-border text-primary mr-2" role="status"></div>
+            {{trans('lang.processing')}}
+        </div>
 
+        <div class="error_top" style="display:none; background: var(--agri-error-light); color: var(--agri-error); padding: 16px; border-radius: 12px; margin-bottom: 24px; font-weight: 600;"></div>
 
-                    <div class="card-footer bg-white border-top py-4 d-flex justify-content-end gap-3 mt-4" style="border-bottom-left-radius: 16px; border-bottom-right-radius: 16px;">
-                        <a href="{{url('/dashboard')}}" class="btn btn-light rounded-pill px-4 shadow-sm fw-bold border">
-                            <i class="fa fa-undo me-2"></i>{{trans('lang.cancel')}}
-                        </a>
-                        <button type="button" class="btn btn-success rounded-pill px-5 shadow-sm fw-bold save-form-btn">
-                            <i class="fa fa-save me-2"></i> {{trans('lang.save')}}
-                        </button>
+        <div class="row g-4">
+            {{-- App Identity & SEO --}}
+            <div class="col-lg-6">
+                <div class="card-agri" style="height: 100%;">
+                    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 24px;">
+                        <div style="width: 40px; height: 40px; background: var(--agri-primary-light); color: var(--agri-primary); border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+                            <i class="fas fa-fingerprint"></i>
+                        </div>
+                        <h4 style="font-size: 18px; font-weight: 700; color: var(--agri-text-heading); margin: 0;">App Identity & SEO</h4>
+                    </div>
+
+                    <div style="margin-bottom: 20px;">
+                        <label style="font-size: 13px; font-weight: 600; color: var(--agri-text-heading); margin-bottom: 8px; display: block;">{{trans('lang.app_setting_app_name')}}</label>
+                        <input type="text" class="form-agri application_name" placeholder="Enter App Name">
+                        <div style="font-size: 11px; color: var(--agri-text-muted); margin-top: 4px;">{{ trans("lang.app_setting_app_name_help") }}</div>
+                    </div>
+
+                    <div style="margin-bottom: 0;">
+                        <label style="font-size: 13px; font-weight: 600; color: var(--agri-text-heading); margin-bottom: 8px; display: block;">{{trans('lang.app_setting_meta_title')}}</label>
+                        <input type="text" class="form-agri meta_title" placeholder="Enter Meta Title">
+                        <div style="font-size: 11px; color: var(--agri-text-muted); margin-top: 4px;">{{ trans("lang.app_setting_meta_title_help") }}</div>
                     </div>
                 </div>
             </div>
 
-
-
-    <div class="modal fade" id="themeModal" tabindex="-1" role="dialog" aria-labelledby="themeModalLabel" aria-hidden="true">
-
-        <div class="modal-dialog" role="document" style="max-width: 50%;">
-
-            <div class="modal-content">
-
-                <div class="modal-body">
-
-                    <div class="form-group">
-
-                        <img id="themeImage" src="" width="630">
-
+            {{-- Visual Assets --}}
+            <div class="col-lg-6">
+                <div class="card-agri" style="height: 100%;">
+                    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 24px;">
+                        <div style="width: 40px; height: 40px; background: var(--agri-secondary-light); color: var(--agri-secondary-dark); border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+                            <i class="fas fa-image"></i>
+                        </div>
+                        <h4 style="font-size: 18px; font-weight: 700; color: var(--agri-text-heading); margin: 0;">Visual Assets</h4>
                     </div>
 
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label style="font-size: 12px; font-weight: 600; color: var(--agri-text-heading); margin-bottom: 8px; display: block;">{{trans('lang.upload_app_logo')}}</label>
+                            <input type="file" class="form-control-sm" style="font-size: 11px;" onChange="handleFileSelect(event)">
+                            <div class="logo_img_thumb mt-2" style="border: 1px dashed var(--agri-border); padding: 5px; border-radius: 8px; min-height: 60px; display: flex; align-items: center; justify-content: center;"></div>
+                        </div>
+                        <div class="col-md-4">
+                            <label style="font-size: 12px; font-weight: 600; color: var(--agri-text-heading); margin-bottom: 8px; display: block;">{{trans('lang.upload_favicon')}}</label>
+                            <input type="file" class="form-control-sm" style="font-size: 11px;" onChange="handleFileSelectFavicon(event)">
+                            <div class="favicon_img_thumb mt-2" style="border: 1px dashed var(--agri-border); padding: 5px; border-radius: 8px; min-height: 60px; display: flex; align-items: center; justify-content: center;"></div>
+                        </div>
+                        <div class="col-md-4">
+                            <label style="font-size: 12px; font-weight: 600; color: var(--agri-text-heading); margin-bottom: 8px; display: block;">{{trans('lang.menu_placeholder_image')}}</label>
+                            <input type="file" class="form-control-sm" style="font-size: 11px;" onChange="handleFileSelectplaceholder(event)">
+                            <div class="placeholder_img_thumb mt-2" style="border: 1px dashed var(--agri-border); padding: 5px; border-radius: 8px; min-height: 60px; display: flex; align-items: center; justify-content: center;"></div>
+                        </div>
+                    </div>
                 </div>
-
             </div>
 
+            {{-- Color Palette & Branding --}}
+            <div class="col-12">
+                <div class="card-agri">
+                    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 24px;">
+                        <div style="width: 40px; height: 40px; background: #EEF2FF; color: #4F46E5; border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+                            <i class="fas fa-palette"></i>
+                        </div>
+                        <h4 style="font-size: 18px; font-weight: 700; color: var(--agri-text-heading); margin: 0;">Global Branding Palette</h4>
+                    </div>
+
+                    <div class="row g-4">
+                        @php
+                            $color_settings = [
+                                ['id' => 'admin_color', 'label' => trans('lang.admin_panel_color_settings')],
+                                ['id' => 'store_color', 'label' => trans('lang.store_panel_color_settings')],
+                                ['id' => 'website_color', 'label' => trans('lang.website_color_settings')],
+                                ['id' => 'customer_app_color', 'label' => trans('lang.app_customer_color_settings')],
+                                ['id' => 'driver_app_color', 'label' => trans('lang.app_driver_color_settings')],
+                                ['id' => 'restaurant_app_color', 'label' => trans('lang.app_store_color_settings')],
+                            ];
+                        @endphp
+                        @foreach($color_settings as $color)
+                            <div class="col-md-2 col-sm-4">
+                                <label style="font-size: 12px; font-weight: 600; color: var(--agri-text-muted); margin-bottom: 8px; display: block; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">{{ $color['label'] }}</label>
+                                <div style="position: relative; height: 44px;">
+                                    <input type="color" name="{{ $color['id'] }}" id="{{ $color['id'] }}" style="position: absolute; width: 100%; height: 100%; border: none; padding: 0; background: none; cursor: pointer; border-radius: 10px;">
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+            </div>
+
+            {{-- Homepage Theme Selection --}}
+            <div class="col-12">
+                <div class="card-agri">
+                    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 24px;">
+                        <div style="width: 40px; height: 40px; background: #FFF7ED; color: #C2410C; border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+                            <i class="fas fa-desktop"></i>
+                        </div>
+                        <h4 style="font-size: 18px; font-weight: 700; color: var(--agri-text-heading); margin: 0;">Homepage Layout Strategy</h4>
+                    </div>
+
+                    <div style="display: flex; gap: 24px;">
+                        <label class="theme-card" for="app_homepage_theme_1" style="flex: 1; cursor: pointer; position: relative;">
+                            <input type="radio" name="app_homepage_theme" id="app_homepage_theme_1" value="theme_1" style="position: absolute; opacity: 0;">
+                            <div class="theme-preview" style="border: 2px solid var(--agri-border); border-radius: 16px; overflow: hidden; transition: all 0.3s ease;">
+                                <img src="{{url('images/app_homepage_theme_1.png')}}" style="width: 100%; height: 200px; object-fit: cover;">
+                                <div style="padding: 12px; text-align: center; font-weight: 700; background: var(--agri-bg);">Modern Minimalist</div>
+                            </div>
+                        </label>
+                        <label class="theme-card" for="app_homepage_theme_2" style="flex: 1; cursor: pointer; position: relative;">
+                            <input type="radio" name="app_homepage_theme" id="app_homepage_theme_2" value="theme_2" style="position: absolute; opacity: 0;">
+                            <div class="theme-preview" style="border: 2px solid var(--agri-border); border-radius: 16px; overflow: hidden; transition: all 0.3s ease;">
+                                <img src="{{url('images/app_homepage_theme_2.png')}}" style="width: 100%; height: 200px; object-fit: cover;">
+                                <div style="padding: 12px; text-align: center; font-weight: 700; background: var(--agri-bg);">Feature Centric</div>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            {{-- Contact Information --}}
+            <div class="col-lg-6">
+                <div class="card-agri" style="height: 100%;">
+                    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 24px;">
+                        <div style="width: 40px; height: 40px; background: #F0FDF4; color: #166534; border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+                            <i class="fas fa-address-book"></i>
+                        </div>
+                        <h4 style="font-size: 18px; font-weight: 700; color: var(--agri-text-heading); margin: 0;">Support & Contact</h4>
+                    </div>
+
+                    <div style="margin-bottom: 20px;">
+                        <label style="font-size: 13px; font-weight: 600; color: var(--agri-text-heading); margin-bottom: 8px; display: block;">{{trans('lang.contact_us_address')}}</label>
+                        <textarea class="form-agri contact_us_address" rows="3" placeholder="Enter physical address"></textarea>
+                    </div>
+
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label style="font-size: 13px; font-weight: 600; color: var(--agri-text-heading); margin-bottom: 8px; display: block;">{{trans('lang.contact_us_email')}}</label>
+                            <input type="email" class="form-agri contact_us_email" placeholder="support@domain.com">
+                        </div>
+                        <div class="col-md-6">
+                            <label style="font-size: 13px; font-weight: 600; color: var(--agri-text-heading); margin-bottom: 8px; display: block;">{{trans('lang.contact_us_phone')}}</label>
+                            <input type="text" class="form-agri contact_us_phone" placeholder="+1234567890">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {{-- Map & Location Logic --}}
+            <div class="col-lg-6">
+                <div class="card-agri" style="height: 100%;">
+                    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 24px;">
+                        <div style="width: 40px; height: 40px; background: #FEF2F2; color: #991B1B; border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+                            <i class="fas fa-map-marked-alt"></i>
+                        </div>
+                        <h4 style="font-size: 18px; font-weight: 700; color: var(--agri-text-heading); margin: 0;">Geospatial Intelligence</h4>
+                    </div>
+
+                    <div style="margin-bottom: 20px;">
+                        <label style="font-size: 13px; font-weight: 600; color: var(--agri-text-heading); margin-bottom: 8px; display: block;">{{trans('lang.google_map_api_key')}}</label>
+                        <input type="password" class="form-agri" name="map_key" id="map_key" placeholder="••••••••••••••••">
+                    </div>
+
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label style="font-size: 13px; font-weight: 600; color: var(--agri-text-heading); margin-bottom: 8px; display: block;">App Map Provider</label>
+                            <select id="selectedMapType" class="form-agri">
+                                <option value="google">{{trans("lang.google_maps")}}</option>
+                                <option value="osm">{{trans("lang.open_street_map")}}</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label style="font-size: 13px; font-weight: 600; color: var(--agri-text-heading); margin-bottom: 8px; display: block;">Navigation Preference</label>
+                            <select id="map_type" class="form-agri">
+                                <option value="">{{trans("lang.select_type")}}</option>
+                                <option value="google">{{trans("lang.google_map")}}</option>
+                                <option value="googleGo">{{trans("lang.google_go_map")}}</option>
+                                <option value="waze">{{trans("lang.waze_map")}}</option>
+                                <option value="mapswithme">{{trans("lang.mapswithme_map")}}</option>
+                                <option value="yandexNavi">{{trans("lang.vandexnavi_map")}}</option>
+                                <option value="yandexMaps">{{trans("lang.vandex_map")}}</option>
+                                <option value="inappmap">{{trans("lang.inapp_map")}}</option>
+                            </select>
+                        </div>
+                        <div class="col-12">
+                            <label style="font-size: 13px; font-weight: 600; color: var(--agri-text-heading); margin-bottom: 8px; display: block;">{{trans('lang.driver_location_update')}} (Radius)</label>
+                            <input name="radius" id="driver_location_update" class="form-agri" placeholder="e.g. 50">
+                        </div>
+                        <div class="col-12">
+                            <div class="form-check" style="padding-left: 0; display: flex; align-items: center; gap: 10px;">
+                                <input type="checkbox" id="single_order_receive" style="width: 18px; height: 18px; accent-color: var(--agri-primary);">
+                                <label style="font-size: 13px; font-weight: 600; color: var(--agri-text-heading); margin: 0;" for="single_order_receive">{{ trans('lang.single_order_receive')}}</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {{-- Financial & Growth Engine --}}
+            <div class="col-lg-6">
+                <div class="card-agri" style="height: 100%;">
+                    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 24px;">
+                        <div style="width: 40px; height: 40px; background: #F0F9FF; color: #075985; border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+                            <i class="fas fa-coins"></i>
+                        </div>
+                        <h4 style="font-size: 18px; font-weight: 700; color: var(--agri-text-heading); margin: 0;">Financials & Growth</h4>
+                    </div>
+
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            <label style="font-size: 13px; font-weight: 600; color: var(--agri-text-heading); margin-bottom: 8px; display: block;">{{ trans('lang.minimum_deposit_amount')}}</label>
+                            <div style="position: relative;">
+                                <input type="number" class="form-agri minimum_deposit_amount" style="padding-right: 40px;">
+                                <span class="currentCurrency" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); font-weight: 700; color: var(--agri-primary);"></span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label style="font-size: 13px; font-weight: 600; color: var(--agri-text-heading); margin-bottom: 8px; display: block;">{{ trans('lang.minimum_withdrawal_amount')}}</label>
+                            <div style="position: relative;">
+                                <input type="number" class="form-agri minimum_withdrawal_amount" style="padding-right: 40px;">
+                                <span class="currentCurrency" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); font-weight: 700; color: var(--agri-primary);"></span>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <label style="font-size: 13px; font-weight: 600; color: var(--agri-text-heading); margin-bottom: 8px; display: block;">{{ trans('lang.referral_amount')}}</label>
+                            <div style="position: relative;">
+                                <input type="number" class="form-agri referral_amount" style="padding-right: 40px;">
+                                <span class="currentCurrency" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); font-weight: 700; color: var(--agri-primary);"></span>
+                            </div>
+                            <div style="font-size: 11px; color: var(--agri-text-muted); margin-top: 6px;">{{ trans("lang.referral_amount_help") }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {{-- Operational Rules --}}
+            <div class="col-lg-6">
+                <div class="card-agri" style="height: 100%;">
+                    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 24px;">
+                        <div style="width: 40px; height: 40px; background: #FAF5FF; color: #6B21A8; border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+                            <i class="fas fa-sliders-h"></i>
+                        </div>
+                        <h4 style="font-size: 18px; font-weight: 700; color: var(--agri-text-heading); margin: 0;">Operational Rules</h4>
+                    </div>
+
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <div class="form-check" style="padding-left: 0; display: flex; align-items: center; gap: 10px; margin-bottom: 12px;">
+                                <input type="checkbox" id="restaurant_can_upload_story" style="width: 18px; height: 18px; accent-color: var(--agri-primary);">
+                                <label style="font-size: 13px; font-weight: 600; color: var(--agri-text-heading); margin: 0;" for="restaurant_can_upload_story">{{ trans('lang.store_can_upload_story')}}</label>
+                            </div>
+                            <div class="form-check" style="padding-left: 0; display: flex; align-items: center; gap: 10px;">
+                                <input type="checkbox" id="auto_approve_restaurant" style="width: 18px; height: 18px; accent-color: var(--agri-primary);">
+                                <label style="font-size: 13px; font-weight: 600; color: var(--agri-text-heading); margin: 0;" for="auto_approve_restaurant">{{ trans('lang.auto_approve_store')}}</label>
+                            </div>
+                        </div>
+                        <div class="col-12" id="story_upload_time_div" style="display:none;">
+                            <label style="font-size: 13px; font-weight: 600; color: var(--agri-text-heading); margin-bottom: 8px; display: block;">{{trans('lang.story_upload_time')}} (Seconds)</label>
+                            <input type="number" class="form-agri" id="story_upload_time" value="30" min="0">
+                            <div style="font-size: 11px; color: var(--agri-text-muted); margin-top: 6px;">{{ trans("lang.story_upload_time_help") }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {{-- Email Delivery (SMTP) --}}
+            <div class="col-lg-6">
+                <div class="card-agri" style="height: 100%;">
+                    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 24px;">
+                        <div style="width: 40px; height: 40px; background: #ECFDF5; color: #065F46; border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+                            <i class="fas fa-envelope-open-text"></i>
+                        </div>
+                        <h4 style="font-size: 18px; font-weight: 700; color: var(--agri-text-heading); margin: 0;">Email Delivery (SMTP)</h4>
+                    </div>
+
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label style="font-size: 13px; font-weight: 600; color: var(--agri-text-heading); margin-bottom: 8px; display: block;">From Name</label>
+                            <input type="text" class="form-agri from_name">
+                        </div>
+                        <div class="col-md-6">
+                            <label style="font-size: 13px; font-weight: 600; color: var(--agri-text-heading); margin-bottom: 8px; display: block;">SMTP Host</label>
+                            <input type="text" class="form-agri host">
+                        </div>
+                        <div class="col-md-6">
+                            <label style="font-size: 13px; font-weight: 600; color: var(--agri-text-heading); margin-bottom: 8px; display: block;">SMTP Port</label>
+                            <input type="text" class="form-agri port">
+                        </div>
+                        <div class="col-md-6">
+                            <label style="font-size: 13px; font-weight: 600; color: var(--agri-text-heading); margin-bottom: 8px; display: block;">Username</label>
+                            <input type="text" class="form-agri user_name">
+                        </div>
+                        <div class="col-12">
+                            <label style="font-size: 13px; font-weight: 600; color: var(--agri-text-heading); margin-bottom: 8px; display: block;">Password</label>
+                            <input type="password" class="form-agri password">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {{-- Push Notifications --}}
+            <div class="col-lg-6">
+                <div class="card-agri" style="height: 100%;">
+                    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 24px;">
+                        <div style="width: 40px; height: 40px; background: #FFF1F2; color: #BE123C; border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+                            <i class="fas fa-bell"></i>
+                        </div>
+                        <h4 style="font-size: 18px; font-weight: 700; color: var(--agri-text-heading); margin: 0;">Push Communications</h4>
+                    </div>
+
+                    <div style="margin-bottom: 20px;">
+                        <label style="font-size: 13px; font-weight: 600; color: var(--agri-text-heading); margin-bottom: 8px; display: block;">FCM Sender ID</label>
+                        <input type="text" class="form-agri" id="sender_id" placeholder="Enter Sender ID">
+                        <div style="font-size: 11px; color: var(--agri-text-muted); margin-top: 4px;">{{ trans("lang.notification_sender_id_help") }}</div>
+                    </div>
+
+                    <div style="margin-bottom: 0;">
+                        <label style="font-size: 13px; font-weight: 600; color: var(--agri-text-heading); margin-bottom: 8px; display: block;">Service Account JSON</label>
+                        <div style="background: var(--agri-bg); border: 2px dashed var(--agri-border); padding: 20px; border-radius: 12px; text-align: center;">
+                            <input type="file" id="json_upload" style="display: none;" onChange="handleUploadJsonFile(event)">
+                            <label for="json_upload" class="btn-agri btn-agri-outline" style="cursor: pointer; display: inline-flex; align-items: center; gap: 8px;">
+                                <i class="fas fa-upload"></i> Choose JSON File
+                            </label>
+                            <div id="uploding_json_file" class="mt-2 small text-primary"></div>
+                            <div id="uploded_json_file" class="mt-2"></div>
+                            <div style="font-size: 11px; color: var(--agri-text-muted); margin-top: 10px;">{{ trans("lang.notification_json_file_help") }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {{-- Versioning & Distribution --}}
+            <div class="col-12">
+                <div class="card-agri">
+                    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 24px;">
+                        <div style="width: 40px; height: 40px; background: #F8FAFC; color: #475569; border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+                            <i class="fas fa-code-branch"></i>
+                        </div>
+                        <h4 style="font-size: 18px; font-weight: 700; color: var(--agri-text-heading); margin: 0;">Versioning & App Stores</h4>
+                    </div>
+
+                    <div class="row g-4">
+                        <div class="col-md-3">
+                            <label style="font-size: 13px; font-weight: 600; color: var(--agri-text-heading); margin-bottom: 8px; display: block;">App Build Version</label>
+                            <input type="text" class="form-agri app_version">
+                        </div>
+                        <div class="col-md-3">
+                            <label style="font-size: 13px; font-weight: 600; color: var(--agri-text-heading); margin-bottom: 8px; display: block;">Web Core Version</label>
+                            <input type="text" class="form-agri" id="web_version">
+                        </div>
+                        <div class="col-md-3">
+                            <label style="font-size: 13px; font-weight: 600; color: var(--agri-text-heading); margin-bottom: 8px; display: block;">App Store URL</label>
+                            <input type="text" class="form-agri" id="app_store_link">
+                        </div>
+                        <div class="col-md-3">
+                            <label style="font-size: 13px; font-weight: 600; color: var(--agri-text-heading); margin-bottom: 8px; display: block;">Play Store URL</label>
+                            <input type="text" class="form-agri" id="play_store_link">
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
 
+        {{-- Sticky Footer Actions --}}
+        <div style="position: fixed; bottom: 0; left: 0; right: 0; background: rgba(255,255,255,0.8); backdrop-filter: blur(10px); border-top: 1px solid var(--agri-border); padding: 16px 24px; display: flex; justify-content: flex-end; gap: 16px; z-index: 1000;">
+            <a href="{{url('/dashboard')}}" class="btn-agri btn-agri-outline" style="height: 44px; display: flex; align-items: center; text-decoration: none;">
+                <i class="fas fa-undo" style="margin-right: 8px;"></i> Discard Changes
+            </a>
+            <button type="button" class="btn-agri btn-agri-primary save-form-btn" style="height: 44px; min-width: 160px;">
+                <i class="fas fa-save" style="margin-right: 8px;"></i> Broadcast Updates
+            </button>
+        </div>
     </div>
+
+    <style>
+        .theme-card input:checked + .theme-preview {
+            border-color: var(--agri-primary) !important;
+            box-shadow: 0 0 0 4px var(--agri-primary-light);
+            transform: translateY(-4px);
+        }
+        .theme-card:hover .theme-preview {
+            border-color: var(--agri-primary);
+        }
+    </style>
 
 
 

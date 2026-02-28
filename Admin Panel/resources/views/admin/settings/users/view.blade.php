@@ -1,394 +1,272 @@
 ﻿@extends('layouts.app')
 
 @section('content')
-    <div class="page-wrapper">
-        <div class="row page-titles">
+<div class="container-fluid" style="padding-top: 24px;">
 
-            <div class="col-md-5 align-self-center">
-                <h3 class="text-themecolor restaurantTitle">{{trans('lang.user_plural')}}</h3>
-            </div>
-            <div class="col-md-7 align-self-center">
-                <ol class="breadcrumb">
-                    <li class="breadcrumb-item"><a href="{{url('/dashboard')}}">{{trans('lang.dashboard')}}</a></li>
-                    <li class="breadcrumb-item"><a href="{!! route('admin.users') !!}">{{trans('lang.user_plural')}}</a>
-                    </li>
-                    <li class="breadcrumb-item active">{{trans('lang.user_details')}}</li>
-                </ol>
-            </div>
-
+    {{-- Breadcrumb/Header Section --}}
+    <div style="margin-bottom: 32px;">
+        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
+            <a href="{{url('/dashboard')}}" style="text-decoration: none; color: var(--agri-text-muted); font-size: 14px; font-weight: 600;">{{trans('lang.dashboard')}}</a>
+            <i class="fas fa-chevron-right" style="font-size: 10px; color: var(--agri-text-muted);"></i>
+            <a href="{!! route('admin.users') !!}" style="text-decoration: none; color: var(--agri-text-muted); font-size: 14px; font-weight: 600;">{{trans('lang.user_plural')}}</a>
+            <i class="fas fa-chevron-right" style="font-size: 10px; color: var(--agri-text-muted);"></i>
+            <span style="color: var(--agri-primary); font-size: 14px; font-weight: 600;">{{trans('lang.user_details')}}</span>
         </div>
-
-        <div class="container-fluid">
-            <div class="row">
-                <div class="col-12">
-
-                    <div class="resttab-sec">
-                        <div id="data-table_processing" class="dataTables_processing panel panel-default"
-                             style="display: none;">Processing...
-                        </div>
-                        <div class="menu-tab">
-
-                            <ul>
-                                <li class="active">
-                                    <a href="{{route('admin.users.view',$id)}}">{{trans('lang.tab_basic')}}</a>
-                                </li>
-                                <li>
-                                    <a href="{{route('admin.orders.index')}}?userId={{$id}}">{{trans('lang.tab_orders')}}</a>
-                                </li>
-                                <li>
-                                    <a
-                                            href="{{route('admin.users.walletstransaction',$id)}}">{{trans('lang.wallet_transaction')}}</a>
-                                </li>
-
-                            </ul>
-
-                        </div>
-
-                        <div class="row restaurant_payout_create user_details">
-                            <div class="restaurant_payout_create-inner">
-                                <a href="javascript:void(0)" data-toggle="modal" data-target="#addWalletModal"
-                                   class="add-wallate btn btn-success"><i
-                                            class="fa fa-plus"></i>{{trans('lang.add_wallet_amount')}}</a>
-
-                                <fieldset>
-
-                                    <legend>{{trans('lang.user_details')}}</legend>
-
-                                    <div class="form-group row width-50">
-                                        <label class="col-3 control-label">{{trans('lang.first_name')}}</label>
-                                        <div class="col-7">
-                                            <span class="user_name" id="user_name"></span>
-                                        </div>
-                                    </div>
-
-                                    <div class="form-group row width-50">
-                                        <label class="col-3 control-label">{{trans('lang.email')}}</label>
-                                        <div class="col-7">
-                                            <span class="email"></span>
-                                        </div>
-                                    </div>
-
-                                    <div class="form-group row width-50">
-                                        <label class="col-3 control-label">{{trans('lang.user_phone')}}</label>
-                                        <div class="col-7">
-                                            <span class="phone"></span>
-                                        </div>
-                                    </div>
-                                    <div class="form-group row width-50">
-                                        <label class="col-3 control-label">{{trans('lang.wallet_Balance')}}</label>
-                                        <div class="col-7 wallet_balance">
-                                        </div>
-                                    </div>
-
-                                    <div class="form-group row width-50">
-                                        <label class="col-3 control-label">{{trans('lang.profile_image')}}</label>
-                                        <div class="col-7 profile_image">
-                                        </div>
-                                    </div>
-
-                                    <div class="form-group row width-100">
-                                        <label class="col-3 control-label">{{trans('lang.address')}}</label>
-                                        <div class="col-7 address">
-                                        </div>
-                                    </div>
-
-                                </fieldset>
-                            </div>
-                        </div>
-
-                    </div>
-
-                </div>
-                <div class="form-group col-12 text-center btm-btn">
-                    <a href="{!! route('admin.users') !!}" class="btn btn-default"><i
-                                class="fa fa-undo"></i>{{trans('lang.cancel')}}</a>
-                </div>
-
+        <div style="display: flex; justify-content: space-between; align-items: flex-end;">
+            <div>
+                <h1 style="font-size: 28px; font-weight: 700; color: var(--agri-primary-dark); margin: 0;">Farmer Profile</h1>
+                <p style="color: var(--agri-text-muted); margin: 4px 0 0 0;">Comprehensive overview of account activities and details.</p>
+            </div>
+            <div style="display: flex; gap: 12px;">
+                <a href="javascript:void(0)" data-toggle="modal" data-target="#addWalletModal" class="btn-agri btn-agri-primary" style="text-decoration: none; display: flex; align-items: center; gap: 8px;">
+                    <i class="fas fa-plus-circle"></i>
+                    {{trans('lang.add_wallet_amount')}}
+                </a>
+                <a href="{!! route('admin.users') !!}" class="btn-agri btn-agri-outline" style="text-decoration: none;">
+                    <i class="fas fa-arrow-left" style="margin-right: 8px;"></i> Back to List
+                </a>
             </div>
         </div>
     </div>
 
-    <div class="modal fade" id="addWalletModal" tabindex="-1" role="dialog" aria-hidden="true">
-
-        <div class="modal-dialog modal-dialog-centered location_modal">
-
-            <div class="modal-content">
-
-                <div class="modal-header">
-
-                    <h5 class="modal-title locationModalTitle">{{trans('lang.add_wallet_amount')}}</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-
-                </div>
-
-                <div class="modal-body">
-
-                    <form class="">
-
-                        <div class="form-row">
-
-                            <div class="form-group row">
-
-                                <div class="form-group row width-100">
-                                    <label class="col-12 control-label">{{trans('lang.amount')}}</label>
-                                    <div class="col-12">
-
-                                        <input type="number" name="amount" class="form-control" id="amount">
-
-                                        <div id="wallet_error" style="color:red"></div>
-                                    </div>
-                                </div>
-
-                                <div class="form-group row width-100">
-                                    <label class="col-12 control-label">{{trans('lang.note')}}</label>
-                                    <div class="col-12">
-                                        <input type="text" name="note" class="form-control" id="note">
-                                    </div>
-                                </div>
-
-                                <div class="form-group row width-100">
-
-                                    <div id="user_account_not_found_error" class="align-items-center" style="color:red">
-                                    </div>
-                                </div>
-
-                            </div>
-
-                        </div>
-
-                    </form>
-
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-primary save-form-btn">{{trans('submit')}}</a>
-                        </button>
-                        <button type="button" class="btn btn-primary" data-dismiss="modal"
-                                aria-label="Close">{{trans('close')}}</a>
-                        </button>
-
-                    </div>
-
-
-                </div>
-            </div>
-
-        </div>
-
+    {{-- Profile Navigation Tabs --}}
+    <div style="display: flex; gap: 24px; border-bottom: 2px solid var(--agri-border); margin-bottom: 32px; padding-bottom: 2px;">
+        <a href="{{route('admin.users.view',$id)}}" style="text-decoration: none; padding: 12px 4px; position: relative; color: var(--agri-primary); font-weight: 700; border-bottom: 3px solid var(--agri-primary);">
+            {{trans('lang.tab_basic')}}
+        </a>
+        <a href="{{route('admin.orders.index')}}?userId={{$id}}" style="text-decoration: none; padding: 12px 4px; color: var(--agri-text-muted); font-weight: 600;">
+            {{trans('lang.tab_orders')}}
+        </a>
+        <a href="{{route('admin.users.walletstransaction',$id)}}" style="text-decoration: none; padding: 12px 4px; color: var(--agri-text-muted); font-weight: 600;">
+            {{trans('lang.wallet_transaction')}}
+        </a>
     </div>
 
+    <div class="row">
+        <div class="col-lg-4">
+            {{-- User Portrait Card --}}
+            <div class="card-agri" style="text-align: center; padding: 40px 24px;">
+                <div class="profile_image" style="width: 120px; height: 120px; border-radius: 50%; border: 4px solid white; box-shadow: 0 8px 24px rgba(0,0,0,0.1); margin: 0 auto 24px; overflow: hidden; background: var(--agri-bg); display: flex; align-items: center; justify-content: center;">
+                    {{-- Profile image injected by JS --}}
+                </div>
+                <h3 class="user_name" style="font-size: 22px; font-weight: 800; color: var(--agri-text-heading); margin-bottom: 8px;">---</h3>
+                <div style="display: inline-flex; align-items: center; gap: 6px; background: var(--agri-primary-light); color: var(--agri-primary); padding: 4px 12px; border-radius: 100px; font-size: 13px; font-weight: 700; margin-bottom: 24px;">
+                    <i class="fas fa-seedling"></i> Verified Farmer
+                </div>
+                
+                <div style="background: var(--agri-bg); border-radius: 16px; padding: 20px; text-align: left; border: 1px solid var(--agri-border);">
+                    <div style="margin-bottom: 16px;">
+                        <span style="font-size: 11px; text-transform: uppercase; color: var(--agri-text-muted); font-weight: 700; display: block; margin-bottom: 4px;">Wallet Balance</span>
+                        <div class="wallet_balance" style="font-size: 24px; font-weight: 800; color: var(--agri-primary);">---</div>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 10px; color: var(--agri-text-heading); font-size: 14px; font-weight: 600;">
+                         <i class="fas fa-envelope" style="color: var(--agri-text-muted); width: 16px;"></i>
+                         <span class="email">---</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 10px; color: var(--agri-text-heading); font-size: 14px; font-weight: 600; margin-top: 10px;">
+                         <i class="fas fa-phone-alt" style="color: var(--agri-text-muted); width: 16px;"></i>
+                         <span class="phone">---</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-8">
+            <div class="card-agri" style="padding: 32px;">
+                <h4 style="font-size: 18px; font-weight: 700; color: var(--agri-primary-dark); margin-bottom: 24px;">{{trans('lang.address')}}</h4>
+                <div class="address">
+                    {{-- Addresses injected by JS --}}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{{-- Add Wallet Modal --}}
+<div class="modal fade" id="addWalletModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius: 20px; border: none; overflow: hidden; box-shadow: 0 20px 50px rgba(0,0,0,0.2);">
+            <div class="modal-header" style="background: var(--agri-primary); color: white; padding: 24px; border: none;">
+                <h5 class="modal-title" style="font-weight: 700; display: flex; align-items: center; gap: 10px;">
+                    <i class="fas fa-wallet"></i> {{trans('lang.add_wallet_amount')}}
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-dismiss="modal" aria-label="Close" style="border: none; background: transparent; color: white; outline: none;"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body" style="padding: 32px;">
+                <form id="walletForm">
+                    <div style="margin-bottom: 24px;">
+                        <label class="agri-label">{{trans('lang.amount')}}</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light" style="border-color: var(--agri-border);">{{trans('lang.currency_symbol')}}</span>
+                            <input type="number" name="amount" class="form-agri" id="amount" placeholder="0.00" style="margin-bottom: 0; border-left: none;">
+                        </div>
+                        <div id="wallet_error" style="color: var(--agri-error); font-size: 12px; margin-top: 6px; font-weight: 600;"></div>
+                    </div>
+
+                    <div style="margin-bottom: 24px;">
+                        <label class="agri-label">{{trans('lang.note')}}</label>
+                        <textarea name="note" class="form-agri" id="note" rows="3" placeholder="Reason for top-up..."></textarea>
+                    </div>
+
+                    <div id="user_account_not_found_error" style="color: var(--agri-error); font-size: 13px; margin-bottom: 16px; font-weight: 700;"></div>
+
+                    <div style="display: flex; gap: 12px;">
+                        <button type="button" class="btn-agri btn-agri-primary save-form-btn" style="flex: 2; height: 48px;">
+                            <i class="fas fa-check-circle" style="margin-right: 8px;"></i> {{trans('submit')}}
+                        </button>
+                        <button type="button" class="btn-agri btn-agri-outline" data-dismiss="modal" style="flex: 1; height: 48px;">
+                            {{trans('close')}}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .agri-label {
+        font-size: 13px;
+        font-weight: 700;
+        color: var(--agri-text-heading);
+        margin-bottom: 8px;
+        display: block;
+    }
+    .address-card {
+        background: var(--agri-bg);
+        border: 1px solid var(--agri-border);
+        border-radius: 16px;
+        padding: 20px;
+        margin-bottom: 16px;
+        transition: all 0.2s;
+    }
+    .address-card:hover {
+        border-color: var(--agri-primary);
+        background: white;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    }
+</style>
 @endsection
 
 @section('scripts')
-    <script>
+<script>
+    var id = "{{$id}}";
+    var database = firebase.firestore();
+    var ref = database.collection('users').where("id", "==", id);
+    var placeholderImage = '';
 
-        var id = "{{$id}}";
-        var database = firebase.firestore();
-        var ref = database.collection('users').where("id", "==", id);
-        var photo = "";
+    database.collection('settings').doc('placeHolderImage').get().then(async function (snapshotsimage) {
+        placeholderImage = snapshotsimage.data().image;
+    });
 
-        var placeholderImage = '';
-        var placeholder = database.collection('settings').doc('placeHolderImage');
+    var currentCurrency = '';
+    var currencyAtRight = false;
+    var decimal_degits = 0;
 
-        placeholder.get().then(async function (snapshotsimage) {
-            var placeholderImageData = snapshotsimage.data();
-            placeholderImage = placeholderImageData.image;
+    database.collection('currencies').where('isActive', '==', true).get().then(async function (snapshots) {
+        var currencyData = snapshots.docs[0].data();
+        currentCurrency = currencyData.symbol;
+        currencyAtRight = currencyData.symbolAtRight;
+        decimal_degits = currencyData.decimal_degits || 0;
+    });
+
+    var email_templates = database.collection('email_templates').where('type', '==', 'wallet_topup');
+    var emailTemplatesData = null;
+
+    $(document).ready(async function () {
+        jQuery("#data-table_processing").show();
+
+        await email_templates.get().then(async function (snapshots) {
+            if(!snapshots.empty) emailTemplatesData = snapshots.docs[0].data();
         });
 
-        var currentCurrency = '';
-        var currencyAtRight = false;
-        var decimal_degits = 0;
+        ref.get().then(async function (snapshots) {
+            var user = snapshots.docs[0].data();
+            $(".user_name").text((user.firstName || '') + ' ' + (user.lastName || ''));
+            $(".email").text(user.email || '{{trans("lang.not_mentioned")}}');
+            $(".phone").text(user.phoneNumber || '{{trans("lang.not_mentioned")}}');
 
-        var refCurrency = database.collection('currencies').where('isActive', '==', true);
-        refCurrency.get().then(async function (snapshots) {
-            var currencyData = snapshots.docs[0].data();
-            currentCurrency = currencyData.symbol;
-            currencyAtRight = currencyData.symbolAtRight;
-            if (currencyData.decimal_degits) {
-                decimal_degits = currencyData.decimal_degits;
+            var wallet_balance = user.wallet_amount || 0;
+            if (currencyAtRight) {
+                wallet_balance = parseFloat(wallet_balance).toFixed(decimal_degits) + currentCurrency;
+            } else {
+                wallet_balance = currentCurrency + parseFloat(wallet_balance).toFixed(decimal_degits);
             }
-            $(".currentCurrency").text(currencyData.symbol);
+            $('.wallet_balance').html(wallet_balance);
 
-        });
+            var profileImg = '<img class="rounded-circle" style="width:100%; height:100%; object-fit:cover;" src="' + (user.profilePictureURL || placeholderImage) + '" onerror="this.src=\'' + placeholderImage + '\'">';
+            $('.profile_image').html(profileImg);
 
+            var addressHtml = '';
+            if (user.hasOwnProperty('shippingAddress') && Array.isArray(user.shippingAddress) && user.shippingAddress.length > 0) {
+                user.shippingAddress.forEach((addr) => {
+                    addressHtml += '<div class="address-card">';
+                    addressHtml += '<div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px;">';
+                    addressHtml += '<span style="font-size:12px; font-weight:800; text-transform:uppercase; letter-spacing:1px; color:var(--agri-primary);">' + (addr.addressAs || 'Home') + '</span>';
+                    if(addr.isDefault) addressHtml += '<span style="background:var(--agri-primary); color:white; padding:2px 8px; border-radius:4px; font-size:10px; font-weight:700;">DEFAULT</span>';
+                    addressHtml += '</div>';
+                    addressHtml += '<h6 style="font-weight:700; color:var(--agri-text-heading); margin-bottom:4px; line-height:1.4;">' + addr.address + '</h6>';
+                    addressHtml += '<p style="font-size:13px; color:var(--agri-text-muted); margin:0;">' + (addr.locality || '') + ' ' + (addr.landmark || '') + '</p>';
+                    addressHtml += '</div>';
+                });
+            } else {
+                addressHtml = '<div style="background:var(--agri-bg); padding:40px; border-radius:16px; text-align:center; border: 1px dashed var(--agri-border); color:var(--agri-text-muted);">';
+                addressHtml += '<i class="fas fa-map-marker-alt" style="font-size:32px; margin-bottom:12px; opacity:0.3;"></i><p style="margin:0; font-weight:600;">No shipping address found</p></div>';
+            }
+            $('.address').html(addressHtml);
 
-        var email_templates = database.collection('email_templates').where('type', '==', 'wallet_topup');
-
-        var emailTemplatesData = null;
-
-        $(document).ready(async function () {
-
-            jQuery("#data-table_processing").show();
-
-            await email_templates.get().then(async function (snapshots) {
-                emailTemplatesData = snapshots.docs[0].data();
-            });
-
-            ref.get().then(async function (snapshots) {
-                var user = snapshots.docs[0].data();
-
-                $(".user_name").text(user.firstName + ' ' + user.lastName);
-
-                if (user.hasOwnProperty('email') && user.email) {
-                    $(".email").text(shortEmail(user.email));
-
-                } else {
-                    $('.email').html("{{trans('lang.not_mentioned')}}");
-
-                }
-
-                if (user.hasOwnProperty('phoneNumber') && user.phoneNumber) {
-                    $(".phone").text(shortEditNumber(user.phoneNumber));
-
-                } else {
-                    $('.phone').html("{{trans('lang.not_mentioned')}}");
-
-                }
-
-                var wallet_balance = 0;
-
-                if (user.hasOwnProperty('wallet_amount') && user.wallet_amount != null && !isNaN(user.wallet_amount)) {
-                    wallet_balance = user.wallet_amount;
-                }
-                if (currencyAtRight) {
-                    wallet_balance = parseFloat(wallet_balance).toFixed(decimal_degits) + "" + currentCurrency;
-                } else {
-                    wallet_balance = currentCurrency + "" + parseFloat(wallet_balance).toFixed(decimal_degits);
-                }
-
-                $('.wallet_balance').html(wallet_balance);
-
-                var image = "";
-                if (user.profilePictureURL != "" && user.profilePictureURL != null) {
-                    image = '<img onerror="this.onerror=null;this.src=\'' + placeholderImage + '\'" width="100px" id="" height="auto" src="' + user.profilePictureURL + '">';
-                } else {
-                    image = '<img width="100px" id="" height="auto" src="' + placeholderImage + '">';
-                }
-
-                $('.profile_image').html(image);
-
-                var address = '';
-                if (user.hasOwnProperty('shippingAddress') && Array.isArray(user.shippingAddress)) {
-                    shippingAddress = user.shippingAddress;
-                    address+='<div id="append_list1" class="res-search-list row">';
-                    shippingAddress.forEach((listval) => {
-                        var defaultBtnHtml = '';
-
-                        if (listval.isDefault == true) {
-                            defaultBtnHtml = '<span class="badge badge-success ml-2 py-2 px-3" type="button" >Default</span>';
-                        }
-
-                        address = address + '<div class="transactions-list-wrap mt-4 col-md-6">';
-                        address +='<div class="bg-white rounded-lg mb-3 transactions-list-view shadow-sm">';
-                        address +='<div class="gold-members d-flex align-items-start transactions-list">';
-
-                        address = address + '<div class="media transactions-list-left w-100">';
-                        address = address + '<div class="media-body"><h6 class="date">' + listval.address + "," + listval.locality + " " + listval.landmark + '</h6>';
-
-                        address = address + '<span class="badge badge-info py-2 px-3">' + listval.addressAs + '</span>' + defaultBtnHtml ;
-                        address += '</div></div>';
-                        address = address + '</div> </div></div>';    
-                     });
-                    address +='</div>';
-
-                } 
-                if (address != "") {
-                    $('.address').html(address);
-                } else {
-                    $('.address').html("<h5>{{trans('lang.not_mentioned')}}</h5>");
-                }
-
-                jQuery("#data-table_processing").hide();
-
-            });
-
+            jQuery("#data-table_processing").hide();
         });
 
         $(".save-form-btn").click(function () {
-            var date = firebase.firestore.FieldValue.serverTimestamp();
             var amount = $('#amount').val();
             if (amount == '') {
-                $('#wallet_error').text('{{trans("lang.add_wallet_amount_error")}}')
+                $('#wallet_error').text('{{trans("lang.add_wallet_amount_error")}}');
                 return false;
             }
 
-            var note = $('#note').val();
-            database.collection('users').where('id', '==', id).get().then(async function (snapshot) {
+            var note = $('#note').val() || "Manual top-up by admin";
+            database.collection('users').doc(id).get().then(async function (snapshot) {
+                if (snapshot.exists) {
+                    var data = snapshot.data();
+                    var currentWallet = parseFloat(data.wallet_amount || 0);
+                    var topupAmount = parseFloat(amount);
+                    var newTotal = currentWallet + topupAmount;
 
-                if (snapshot.docs.length > 0) {
-                    var data = snapshot.docs[0].data();
-                    
-
-                    var walletAmount = 0;
-                    if (data.hasOwnProperty('wallet_amount') && !isNaN(data.wallet_amount) && data.wallet_amount != null) {
-                        walletAmount = data.wallet_amount;
-
-                    }
-
-                    var newWalletAmount = parseFloat(walletAmount) + parseFloat(amount);
-
-                    database.collection('users').doc(id).update({
-                        'wallet_amount': newWalletAmount
-                    }).then(function (result) {
-                        var tempId = database.collection("tmp").doc().id;
-                        database.collection('wallet').doc(tempId).set({
-                            'amount': parseFloat(amount),
-                            'date': date,
+                    database.collection('users').doc(id).update({ 'wallet_amount': newTotal }).then(function () {
+                        var walletId = database.collection("tmp").doc().id;
+                        database.collection('wallet').doc(walletId).set({
+                            'amount': topupAmount,
+                            'date': firebase.firestore.FieldValue.serverTimestamp(),
                             'isTopUp': true,
-                            'id': tempId,
+                            'id': walletId,
                             'order_id': '',
-                            'payment_method': 'Wallet',
+                            'payment_method': 'Admin',
                             'payment_status': 'success',
                             'user_id': id,
                             'note': note,
-                            'transactionUser': "user",
-
-                        }).then(async function (result) {
-
-                            if (currencyAtRight) {
-                                amount = parseInt(amount).toFixed(decimal_degits) + "" + currentCurrency;
-                                newWalletAmount = newWalletAmount.toFixed(decimal_degits) + "" + currentCurrency;
-                            } else {
-                                amount = currentCurrency + "" + parseInt(amount).toFixed(decimal_degits);
-                                newWalletAmount = currentCurrency + "" + newWalletAmount.toFixed(decimal_degits);
+                            'transactionUser': "user"
+                        }).then(async function () {
+                            if(emailTemplatesData) {
+                                // Email logic preserved but simplified
+                                var message = emailTemplatesData.message;
+                                var formattedDate = new Date().toLocaleDateString();
+                                message = message.replace(/{username}/g, data.firstName + ' ' + data.lastName);
+                                message = message.replace(/{date}/g, formattedDate);
+                                message = message.replace(/{amount}/g, currentCurrency + topupAmount);
+                                message = message.replace(/{paymentmethod}/g, 'Admin Dashboard');
+                                message = message.replace(/{transactionid}/g, walletId);
+                                message = message.replace(/{newwalletbalance}/g, currentCurrency + newTotal);
+                                await sendEmail("{{url('send-email')}}", emailTemplatesData.subject, message, [data.email]);
                             }
-
-                            var formattedDate = new Date();
-                            var month = formattedDate.getMonth() + 1;
-                            var day = formattedDate.getDate();
-                            var year = formattedDate.getFullYear();
-
-                            month = month < 10 ? '0' + month : month;
-                            day = day < 10 ? '0' + day : day;
-
-                            formattedDate = day + '-' + month + '-' + year;
-
-                            var message = emailTemplatesData.message;
-                            message = message.replace(/{username}/g, data.firstName + ' ' + data.lastName);
-                            message = message.replace(/{date}/g, formattedDate);
-                            message = message.replace(/{amount}/g, amount);
-                            message = message.replace(/{paymentmethod}/g, 'Wallet');
-                            message = message.replace(/{transactionid}/g, tempId);
-                            message = message.replace(/{newwalletbalance}/g, newWalletAmount);
-
-                            emailTemplatesData.message = message;
-
-                            var url = "{{url('send-email')}}";
-
-                            var sendEmailStatus = await sendEmail(url, emailTemplatesData.subject, emailTemplatesData.message, [data.email]);
-
-                            if (sendEmailStatus) {
-                                window.location.reload();
-                            }
-
-                        })
-                    })
+                            window.location.reload();
+                        });
+                    });
                 } else {
                     $('#user_account_not_found_error').text('{{trans("lang.user_detail_not_found")}}');
                 }
             });
-
         });
-
-    </script>
+    });
+</script>
 @endsection

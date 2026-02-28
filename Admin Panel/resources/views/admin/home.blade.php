@@ -10,322 +10,212 @@
              style="display: none;margin-top:20px;">{{trans('lang.processing')}}
         </div>
 
-        <div class="card mb-3 business-analytics">  
+        <!-- Business Analytics -->
+        <div class="card-agri mb-4" style="border: none; background: transparent; box-shadow: none; padding: 0;">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px;">
+                <h2 style="font-size: 24px; font-weight: 700; color: var(--agri-primary-dark); margin: 0;">
+                    {{trans('lang.dashboard_business_analytics')}}
+                </h2>
+                <div style="background: var(--agri-white); padding: 8px 16px; border-radius: 12px; border: 1px solid var(--agri-border); font-size: 14px; font-weight: 500; color: var(--agri-text-muted);">
+                    Real-time Data
+                </div>
+            </div>
 
-            <div class="card-body">
-
-                <div class="row flex-between align-items-center g-2 mb-3 order_stats_header">
-                    <div class="col-sm-6">
-                        <h4 class="d-flex align-items-center text-capitalize gap-10 mb-0">
-                            {{trans('lang.dashboard_business_analytics')}}</h4>
+            <div class="row g-4">
+                {{-- Total Earnings --}}
+                <div class="col-sm-6 col-lg-3">
+                    <div class="card-agri" style="cursor: pointer;" onclick="location.href='{!! route('admin.payments.index') !!}'">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
+                            <div style="background: var(--agri-primary-light); padding: 10px; border-radius: 12px;">
+                                <i class="mdi mdi-cash-usd" style="color: var(--agri-primary); font-size: 24px;"></i>
+                            </div>
+                        </div>
+                        <h5 style="color: var(--agri-text-muted); font-size: 14px; margin-bottom: 4px;">{{trans('lang.dashboard_total_earnings')}}</h5>
+                        <h2 id="earnings_count" style="font-size: 28px; font-weight: 700; color: var(--agri-primary-dark); margin: 0;">--</h2>
                     </div>
                 </div>
 
-                <div class="row business-analytics_list">
-
-                    <div class="col-sm-6 col-lg-3 mb-3">
-                        <div class="card-box" onclick="location.href='{!! route('admin.payments') !!}'">
-                            <h5>{{trans('lang.dashboard_total_earnings')}}</h5>
-                            <h2 id="earnings_count"></h2>
-                            <i class="mdi mdi-cash-usd"></i>
-                        </div>
-                    </div>
-
-                    <div class="col-sm-6 col-lg-3 mb-3">
-                        <div class="card-box" onclick="location.href='{!! route('admin.stores') !!}'">
-                            <h5>{{trans('lang.dashboard_total_stores')}}</h5>
-                            <h2 id="vendor_count"></h2>
-                            <i class="mdi mdi-shopping"></i>
-                        </div>
-                    </div>
-
-                    <div class="col-sm-6 col-lg-3 mb-3">
-                        <div class="card-box" onclick="location.href='{!! route('admin.orders.index') !!}'">
-                            <h5>{{trans('lang.dashboard_total_orders')}}</h5>
-                            <h2 id="order_count"></h2>
-                            <i class="mdi mdi-cart"></i>
-                        </div>
-                    </div>
-
-                    <div class="col-sm-6 col-lg-3 mb-3">
-                        <div class="card-box" onclick="location.href='{!! route('admin.products.index') !!}'">
-                            <h5>{{trans('lang.dashboard_total_products')}}</h5>
-                            <h2 id="product_count"></h2>
-                            <i class="mdi mdi-buffer"></i>
-                        </div>
-                    </div>
-
-                    <div class="col-sm-6 col-lg-3 mb-3">
-                        <div class="card-box" onclick="location.href='{!! route('admin.payments') !!}'">
-                            <h5>{{trans('lang.admin_commission')}}</h5>
-                            <h2 id="admincommission_count"></h2>
-                            <i class="ti-wallet"></i>
-                        </div>
-                    </div>
-
-                    <div class="col-sm-6 col-lg-3 mb-3">
-                        <div class="card-box" onclick="location.href='{!! route('admin.users') !!}'">
-                            <h5>{{trans('lang.dashboard_total_clients')}}</h5>
-                            <h2 id="users_count"></h2>
-                            <i class="mdi mdi-account"></i>
-                        </div>
-                    </div>
-
-                    <div class="col-sm-6 col-lg-3 mb-3">
-                        <div class="card-box" onclick="location.href='{!! route('admin.drivers') !!}'">
-                            <h5>{{trans('lang.dashboard_total_drivers')}}</h5>
-                            <h2 id="driver_count"></h2>
-                            <i class="mdi mdi-account-check"></i>
-                        </div>
-                    </div>
-
-                    <div class="col-sm-6 col-lg-3 mb-3">
-
-                    </div>
-
-
-                    <div class="col-sm-6 col-lg-3">
-                        <a class="order-status pending" href="{{ route('admin.orders.index','status=order-placed') }}">
-                            <div class="data">
-                                <i class="mdi mdi-lan-pending"></i>
-                                <h6 class="status">{{trans('lang.dashboard_order_placed')}}</h6>
+                {{-- Total Stores --}}
+                <div class="col-sm-6 col-lg-3">
+                    <div class="card-agri" style="cursor: pointer;" onclick="location.href='{!! route('admin.stores') !!}'">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
+                            <div style="background: #FFFBEB; padding: 10px; border-radius: 12px;">
+                                <i class="mdi mdi-shopping" style="color: var(--agri-secondary); font-size: 24px;"></i>
                             </div>
-                            <span class="count" id="placed_count"></span> </a>
+                        </div>
+                        <h5 style="color: var(--agri-text-muted); font-size: 14px; margin-bottom: 4px;">{{trans('lang.dashboard_total_stores')}}</h5>
+                        <h2 id="vendor_count" style="font-size: 28px; font-weight: 700; color: var(--agri-text-heading); margin: 0;">--</h2>
                     </div>
+                </div>
 
-                    <div class="col-sm-6 col-lg-3">
-                        <a class="order-status confirmed"  href="{!! route('admin.orders.index','status=order-confirmed') !!}">
-                            <div class="data">
-                                <i class="mdi mdi-check-circle"></i>
-                                <h6 class="status">{{trans('lang.dashboard_order_confirmed')}}</h6>
+                {{-- Total Orders --}}
+                <div class="col-sm-6 col-lg-3">
+                    <div class="card-agri" style="cursor: pointer;" onclick="location.href='{!! route('admin.orders.index') !!}'">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
+                            <div style="background: #EFF6FF; padding: 10px; border-radius: 12px;">
+                                <i class="mdi mdi-cart" style="color: var(--agri-info); font-size: 24px;"></i>
                             </div>
-                            <span class="count" id="confirmed_count"></span> </a>
+                        </div>
+                        <h5 style="color: var(--agri-text-muted); font-size: 14px; margin-bottom: 4px;">{{trans('lang.dashboard_total_orders')}}</h5>
+                        <h2 id="order_count" style="font-size: 28px; font-weight: 700; color: var(--agri-text-heading); margin: 0;">--</h2>
                     </div>
+                </div>
 
-                    <div class="col-sm-6 col-lg-3">
-                        <a class="order-status packaging"  href="{!! route('admin.orders.index','status=order-shipped') !!}">
-                            <div class="data">
-                                <i class="mdi mdi-clipboard-outline"></i>
-                                <h6 class="status">{{trans('lang.dashboard_order_shipped')}}</h6>
+                {{-- Admin Commission --}}
+                <div class="col-sm-6 col-lg-3">
+                    <div class="card-agri" style="cursor: pointer;" onclick="location.href='{!! route('admin.payments') !!}'">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
+                            <div style="background: #F0FDF4; padding: 10px; border-radius: 12px;">
+                                <i class="ti-wallet" style="color: var(--agri-primary-hover); font-size: 24px;"></i>
                             </div>
-                            <span class="count" id="shipped_count"></span> </a>
+                        </div>
+                        <h5 style="color: var(--agri-text-muted); font-size: 14px; margin-bottom: 4px;">{{trans('lang.admin_commission')}}</h5>
+                        <h2 id="admincommission_count" style="font-size: 28px; font-weight: 700; color: var(--agri-text-heading); margin: 0;">--</h2>
                     </div>
+                </div>
+            </div>
 
-                    <div class="col-sm-6 col-lg-3">
-                        <a class="order-status delivered" href="{!! route('admin.orders.index','status=order-completed') !!}">
-                            <div class="data">
-                                <i class="mdi mdi-check-circle-outline"></i>
-                                <h6 class="status">{{trans('lang.dashboard_order_completed')}}</h6>
+            <!-- Order Status Grid -->
+            <div class="row g-3 mt-4">
+                <div class="col-md-12">
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px;">
+                        {{-- Individual Status Items --}}
+                        <a href="{{ route('admin.orders.index','status=order-placed') }}" class="card-agri" style="text-decoration: none; padding: 16px; display: flex; align-items: center; justify-content: space-between;">
+                            <div>
+                                <h6 style="font-size: 12px; font-weight: 600; color: var(--agri-text-muted); text-transform: uppercase; margin-bottom: 4px;">Placed</h6>
+                                <h4 id="placed_count" style="margin: 0; font-weight: 700; color: var(--agri-text-heading);">0</h4>
                             </div>
-                            <span class="count" id="completed_count"></span>
+                            <div style="background: var(--agri-bg); padding: 8px; border-radius: 10px;">
+                                <i class="mdi mdi-lan-pending" style="color: var(--agri-primary);"></i>
+                            </div>
                         </a>
-                    </div>
 
-                    <div class="col-sm-6 col-lg-3">
-                        <a class="order-status canceled" href="{!! route('admin.orders.index','status=order-canceled') !!}">
-                            <div class="data">
-                                <i class="mdi mdi-window-close"></i>
-                                <h6 class="status">{{trans('lang.dashboard_order_canceled')}}</h6>
+                        <a href="{{ route('admin.orders.index','status=order-confirmed') }}" class="card-agri" style="text-decoration: none; padding: 16px; display: flex; align-items: center; justify-content: space-between;">
+                            <div>
+                                <h6 style="font-size: 12px; font-weight: 600; color: var(--agri-text-muted); text-transform: uppercase; margin-bottom: 4px;">Confirmed</h6>
+                                <h4 id="confirmed_count" style="margin: 0; font-weight: 700; color: var(--agri-text-heading);">0</h4>
                             </div>
-                            <span class="count" id="canceled_count"></span>
-                        </a>
-                    </div>
-
-                    <div class="col-sm-6 col-lg-3">
-                        <a class="order-status failed" href="{!! route('admin.orders.index','status=order-failed') !!}">
-                            <div class="data">
-                                <i class="mdi mdi-alert-circle-outline"></i>
-                                <h6 class="status">{{trans('lang.dashboard_order_failed')}}</h6>
+                            <div style="background: var(--agri-bg); padding: 8px; border-radius: 10px;">
+                                <i class="mdi mdi-check-circle" style="color: #059669;"></i>
                             </div>
-                            <span class="count" id="failed_count"></span>
                         </a>
-                    </div>
 
-                    <div class="col-sm-6 col-lg-3">
-                        <a class="order-status failed" href="{!! route('admin.orders.index','status=order-pending') !!}">
-                            <div class="data">
-                                <i class="mdi mdi-car-connected"></i>
-                                <h6 class="status">{{trans('lang.dashboard_order_pending')}}</h6>
+                        <a href="{{ route('admin.orders.index','status=order-shipped') }}" class="card-agri" style="text-decoration: none; padding: 16px; display: flex; align-items: center; justify-content: space-between;">
+                            <div>
+                                <h6 style="font-size: 12px; font-weight: 600; color: var(--agri-text-muted); text-transform: uppercase; margin-bottom: 4px;">Shipped</h6>
+                                <h4 id="shipped_count" style="margin: 0; font-weight: 700; color: var(--agri-text-heading);">0</h4>
                             </div>
-                            <span class="count" id="pending_count"></span>
+                            <div style="background: var(--agri-bg); padding: 8px; border-radius: 10px;">
+                                <i class="mdi mdi-truck-delivery" style="color: var(--agri-info);"></i>
+                            </div>
                         </a>
-                    </div>
 
-                </div>
+                        <a href="{{ route('admin.orders.index','status=order-completed') }}" class="card-agri" style="text-decoration: none; padding: 16px; display: flex; align-items: center; justify-content: space-between;">
+                            <div>
+                                <h6 style="font-size: 12px; font-weight: 600; color: var(--agri-text-muted); text-transform: uppercase; margin-bottom: 4px;">Completed</h6>
+                                <h4 id="completed_count" style="margin: 0; font-weight: 700; color: var(--agri-text-heading);">0</h4>
+                            </div>
+                            <div style="background: var(--agri-primary-light); padding: 8px; border-radius: 10px;">
+                                <i class="mdi mdi-check-underline" style="color: var(--agri-primary);"></i>
+                            </div>
+                        </a>
 
-            </div>
-
-        </div>
-
-        <div class="row">
-
-            <div class="col-lg-4">
-                <div class="card hover-card">
-                    <div class="card-header no-border">
-                        <div class="d-flex justify-content-between">
-                            <h3 class="card-title">{{trans('lang.total_sales')}}</h3>
-                        </div>
-                    </div>
-                    <div class="card-body">
-                        <div class="position-relative">
-                            <canvas id="sales-chart" height="200"></canvas>
-                        </div>
-
-                        <div class="d-flex flex-row justify-content-end">
-                            <span class="mr-2"> <i class="fa fa-square" style="color:#2EC7D9"></i> {{trans('lang.dashboard_this_year')}} </span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-lg-4">
-                <div class="card hover-card">
-                    <div class="card-header no-border">
-                        <div class="d-flex justify-content-between">
-                            <h3 class="card-title">{{trans('lang.service_overview')}}</h3>
-                        </div>
-                    </div>
-                    <div class="card-body">
-                        <div class="flex-row">
-                            <canvas id="visitors" height="222"></canvas>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-lg-4">
-                <div class="card hover-card">
-                    <div class="card-header no-border">
-                        <div class="d-flex justify-content-between">
-                            <h3 class="card-title">{{trans('lang.sales_overview')}}</h3>
-                        </div>
-                    </div>
-                    <div class="card-body">
-                        <div class="flex-row">
-                            <canvas id="commissions" height="222"></canvas>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-        </div>
-
-        <div class="row daes-sec-sec mb-3">
-            <div class="col-lg-6">
-                <div class="card hover-card">
-                    <div class="card-header no-border d-flex justify-content-between">
-                        <h3 class="card-title">{{trans('lang.store_plural')}}</h3>
-                        <div class="card-tools">
-                            <a href="{{route('admin.stores')}}" class="btn btn-tool btn-sm"><i class="fa fa-bars"></i>
-                            </a>
-                        </div>
-                    </div>
-                    <div class="card-body p-0">
-                       <div class="table-responsive px-3"> 
-                        <table class="table table-striped table-valign-middle" id="storeTable">
-                            <thead>
-                            <tr>
-                                <th style="text-align:center">{{trans('lang.store_image')}}</th>
-                                <th>{{trans('lang.store')}}</th>
-                                <th>{{trans('lang.store_review_review')}}</th>
-                                <th>{{trans('lang.actions')}}</th>
-                            </tr>
-                            </thead>
-                            <tbody id="append_list">
-
-                            </tbody>
-                        </table>
-                    </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-lg-6">
-                <div class="card hover-card">
-                    <div class="card-header no-border d-flex justify-content-between">
-                        <h3 class="card-title">{{trans('lang.recent_orders')}}</h3>
-                        <div class="card-tools">
-                            <a href="{{route('admin.orders.index')}}" class="btn btn-tool btn-sm"><i class="fa fa-bars"></i> </a>
-                        </div>
-                    </div>
-                    <div class="card-body p-0">
-                       <div class="table-responsive px-3"> 
-                        <table class="table table-striped table-valign-middle" id="orderTable">
-                            <thead>
-                            <tr>
-                                <th style="text-align:center">{{trans('lang.order_id')}}</th>
-                                <th>{{trans('lang.store')}}</th>
-                                <th>{{trans('lang.total_amount')}}</th>
-                                <th>{{trans('lang.quantity')}}</th>
-                            </tr>
-                            </thead>
-                            <tbody id="append_list_recent_order">
-
-                            </tbody>
-                        </table>
-                      </div>
+                        <a href="{{ route('admin.orders.index','status=order-canceled') }}" class="card-agri" style="text-decoration: none; padding: 16px; display: flex; align-items: center; justify-content: space-between;">
+                            <div>
+                                <h6 style="font-size: 12px; font-weight: 600; color: var(--agri-text-muted); text-transform: uppercase; margin-bottom: 4px;">Canceled</h6>
+                                <h4 id="canceled_count" style="margin: 0; font-weight: 700; color: var(--agri-text-heading);">0</h4>
+                            </div>
+                            <div style="background: #FEF2F2; padding: 8px; border-radius: 10px;">
+                                <i class="mdi mdi-close-circle" style="color: var(--agri-error);"></i>
+                            </div>
+                        </a>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="row daes-sec-sec">
 
-            <div class="col-lg-6">
-                <div class="card hover-card">
-                    <div class="card-header no-border d-flex justify-content-between">
-                        <h3 class="card-title">{{trans('lang.top_drivers')}}</h3>
-                        <div class="card-tools">
-                            <a href="{{route('admin.drivers')}}" class="btn btn-tool btn-sm"><i class="fa fa-bars"></i> </a>
-                        </div>
+        <div class="row mt-4">
+            <div class="col-lg-4 mb-4">
+                <div class="card-agri" style="height: 100%;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <h3 style="font-size: 18px; font-weight: 700; color: var(--agri-text-heading); margin: 0;">{{trans('lang.total_sales')}}</h3>
                     </div>
-                    <div class="card-body p-0">
-                      <div class="table-responsive px-3">  
-                        <table class="table table-striped table-valign-middle" id="driverTable">
-                            <thead>
-                            <tr>
-                                <th style="text-align:center">{{trans('lang.store_image')}}</th>
-                                <th>{{trans('lang.driver')}}</th>
-                                <th>{{trans('lang.order_completed')}}</th>
-                                <th>{{trans('lang.actions')}}</th>
-                            </tr>
-                            </thead>
-                            <tbody id="append_list_top_drivers">
-
-                            </tbody>
-                        </table>
-                    </div>
+                    <div style="position: relative; height: 250px;">
+                        <canvas id="sales-chart"></canvas>
                     </div>
                 </div>
             </div>
 
-            <div class="col-lg-6">
-                <div class="card hover-card">
-                    <div class="card-header no-border d-flex justify-content-between">
-                        <h3 class="card-title">{{trans('lang.recent_payouts')}}</h3>
-                        <div class="card-tools">
-                            <a href="{{route('admin.payoutRequests.stores')}}" class="btn btn-tool btn-sm"><i class="fa fa-bars"></i> </a>
-                        </div>
+            <div class="col-lg-4 mb-4">
+                <div class="card-agri" style="height: 100%;">
+                    <div style="margin-bottom: 20px;">
+                        <h3 style="font-size: 18px; font-weight: 700; color: var(--agri-text-heading); margin: 0;">{{trans('lang.service_overview')}}</h3>
                     </div>
-                    <div class="card-body p-0">
-                      <div class="table-responsive px-3">  
-                        <table class="table table-striped table-valign-middle" id="recentPayoutsTable">
-                            <thead>
-                            <tr>
-                                <th>{{ trans('lang.store')}}</th>
-                                <th>{{trans('lang.paid_amount')}}</th>
-                                <th>{{trans('lang.date')}}</th>
-                                <th>{{trans('lang.stores_payout_note')}}</th>
-                            </tr>
-                            </thead>
-                            <tbody id="append_list_recent_payouts">
+                    <div style="height: 250px;">
+                        <canvas id="visitors"></canvas>
+                    </div>
+                </div>
+            </div>
 
-                            </tbody>
-                        </table>
+            <div class="col-lg-4 mb-4">
+                <div class="card-agri" style="height: 100%;">
+                    <div style="margin-bottom: 20px;">
+                        <h3 style="font-size: 18px; font-weight: 700; color: var(--agri-text-heading); margin: 0;">{{trans('lang.sales_overview')}}</h3>
                     </div>
+                    <div style="height: 250px;">
+                        <canvas id="commissions"></canvas>
                     </div>
                 </div>
             </div>
         </div>
+
+        <div class="row mt-2">
+            <div class="col-lg-6 mb-4">
+                <div class="card-agri" style="padding: 0; overflow: hidden;">
+                    <div style="padding: 20px 24px; border-bottom: 1px solid var(--agri-border); display: flex; justify-content: space-between; align-items: center;">
+                        <h3 style="font-size: 18px; font-weight: 700; color: var(--agri-text-heading); margin: 0;">Top {{trans('lang.store_plural')}}</h3>
+                        <a href="{{route('admin.stores')}}" style="color: var(--agri-primary); font-size: 14px; font-weight: 600; text-decoration: none;">View All</a>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table" id="storeTable" style="margin: 0;">
+                            <thead style="background: var(--agri-bg);">
+                                <tr>
+                                    <th style="font-size: 12px; color: var(--agri-text-muted); padding: 12px 24px; border: none;">IMAGE</th>
+                                    <th style="font-size: 12px; color: var(--agri-text-muted); padding: 12px 24px; border: none;">{{trans('lang.store')}}</th>
+                                    <th style="font-size: 12px; color: var(--agri-text-muted); padding: 12px 24px; border: none;">RATING</th>
+                                    <th style="font-size: 12px; color: var(--agri-text-muted); padding: 12px 24px; border: none;">ACTIONS</th>
+                                </tr>
+                            </thead>
+                            <tbody id="append_list"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-6 mb-4">
+                <div class="card-agri" style="padding: 0; overflow: hidden;">
+                    <div style="padding: 20px 24px; border-bottom: 1px solid var(--agri-border); display: flex; justify-content: space-between; align-items: center;">
+                        <h3 style="font-size: 18px; font-weight: 700; color: var(--agri-text-heading); margin: 0;">{{trans('lang.recent_orders')}}</h3>
+                        <a href="{{route('admin.orders.index')}}" style="color: var(--agri-primary); font-size: 14px; font-weight: 600; text-decoration: none;">View All</a>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table" id="orderTable" style="margin: 0;">
+                            <thead style="background: var(--agri-bg);">
+                                <tr>
+                                    <th style="font-size: 12px; color: var(--agri-text-muted); padding: 12px 24px; border: none;">ID</th>
+                                    <th style="font-size: 12px; color: var(--agri-text-muted); padding: 12px 24px; border: none;">{{trans('lang.store')}}</th>
+                                    <th style="font-size: 12px; color: var(--agri-text-muted); padding: 12px 24px; border: none;">AMOUNT</th>
+                                    <th style="font-size: 12px; color: var(--agri-text-muted); padding: 12px 24px; border: none;">STATUS</th>
+                                </tr>
+                            </thead>
+                            <tbody id="append_list_recent_order"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
 
         <!-- ============================================================== -->
 

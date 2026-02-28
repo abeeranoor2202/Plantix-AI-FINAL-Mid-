@@ -1,517 +1,256 @@
 @extends('layouts.app')
 
-
-
 @section('content')
-
-<div class="page-wrapper">
-
-    <div class="card">
-
-        <div class="payment-top-tab mt-3 mb-3">
-
-            <ul class="nav nav-tabs card-header-tabs align-items-end">
-
-                <li class="nav-item">
-
-                    <a class="nav-link active stripe_active_label" href="{!! url('settings/payment/stripe') !!}"><i
-
-                            class="fa fa-envelope-o mr-2"></i>{{trans('lang.app_setting_stripe')}}<span
-
-                            class="badge ml-2"></span>
-
-                    </a>
-
-                </li>
-
-                <li class="nav-item">
-
-                    <a class="nav-link cod_active_label" href="{!! url('settings/payment/cod') !!}"><i
-
-                            class="fa fa-envelope-o mr-2"></i>{{trans('lang.app_setting_cod_short')}}<span
-
-                            class="badge ml-2"></span>
-
-                    </a>
-
-                </li>
-
-
-
-                <li class="nav-item">
-
-                    <a class="nav-link razorpay_active_label" href="{!! url('settings/payment/razorpay') !!}"><i
-
-                            class="fa fa-envelope-o mr-2"></i>{{trans('lang.app_setting_razorpay')}}<span
-
-                            class="badge ml-2"></span>
-
-                    </a>
-
-                </li>
-
-                <li class="nav-item">
-
-                    <a class="nav-link paypal_active_label" href="{!! url('settings/payment/paypal') !!}"><i
-
-                            class="fa fa-envelope-o mr-2"></i>{{trans('lang.app_setting_paypal')}}<span
-
-                            class="badge ml-2"></span>
-
-                    </a>
-
-                </li>
-
-
-
-                <li class="nav-item">
-
-                    <a class="nav-link paytm_active_label" href="{!! url('settings/payment/paytm') !!}"><i
-
-                            class="fa fa-envelope-o mr-2"></i>{{trans('lang.app_setting_paytm')}}<span
-
-                            class="badge ml-2"></span>
-
-                    </a>
-
-                </li>
-
-                <li class="nav-item">
-
-                    <a class="nav-link wallet_active_label" href="{!! url('settings/payment/wallet') !!}"><i
-
-                            class="fa fa-envelope-o mr-2"></i>{{trans('lang.app_setting_wallet')}}<span
-
-                            class="badge ml-2"></span>
-
-                    </a>
-
-                </li>
-
-                <li class="nav-item">
-
-                    <a class="nav-link payfast_active_label" href="{!! url('settings/payment/payfast') !!}"><i
-
-                            class="fa fa-envelope-o mr-2"></i>{{trans('lang.payfast')}}<span class="badge ml-2"></span>
-
-                    </a>
-
-                </li>
-
-
-
-                <li class="nav-item">
-
-                    <a class="nav-link paystack_active_label" href="{!! url('settings/payment/paystack') !!}"><i
-
-                            class="fa fa-envelope-o mr-2"></i>{{trans('lang.app_setting_paystack_lable')}}<span
-
-                            class="badge ml-2"></span></a>
-
-                </li>
-
-
-
-                <li class="nav-item">
-
-                    <a class="nav-link flutterWave_active_label" href="{!! url('settings/payment/flutterwave') !!}"><i
-
-                            class="fa fa-envelope-o mr-2"></i>{{trans('lang.flutterWave')}}<span
-
-                            class="badge ml-2"></span></a>
-
-                </li>
-
-                <li class="nav-item">
-
-                    <a class="nav-link mercadopago_active_label" href="{!! url('settings/payment/mercadopago') !!}"><i
-
-                            class="fa fa-envelope-o mr-2"></i>{{trans('lang.mercadopago')}}<span
-
-                            class="badge ml-2"></span></a>
-
-                </li>
-
-                <li class="nav-item">
-                    <a class="nav-link xendit_active_label"
-                       href="{!! url('settings/payment/xendit') !!}"><i
-                            class="fa fa-envelope-o mr-2"></i>{{trans('lang.app_setting_xendit')}}<span
-                            class="badge ml-2"></span></a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link orangepay_active_label"
-                       href="{!! url('settings/payment/orangepay') !!}"><i
-                            class="fa fa-envelope-o mr-2"></i>{{trans('lang.app_setting_orangepay')}}<span
-                            class="badge ml-2"></span></a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link midtrans_active_label"
-                       href="{!! url('settings/payment/midtrans') !!}"><i
-                            class="fa fa-envelope-o mr-2"></i>{{trans('lang.app_setting_midtrans')}}<span
-                            class="badge ml-2"></span></a>
-                </li>
-
-            </ul>
-
+<div class="container-fluid" style="padding-top: 24px;">
+
+    {{-- Breadcrumb/Header Section --}}
+    <div style="margin-bottom: 32px;">
+        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
+            <a href="{{url('/dashboard')}}" style="text-decoration: none; color: var(--agri-text-muted); font-size: 14px; font-weight: 600;">{{trans('lang.dashboard')}}</a>
+            <i class="fas fa-chevron-right" style="font-size: 10px; color: var(--agri-text-muted);"></i>
+            <span style="color: var(--agri-text-muted); font-size: 14px; font-weight: 600;">Settings</span>
+            <i class="fas fa-chevron-right" style="font-size: 10px; color: var(--agri-text-muted);"></i>
+            <span style="color: var(--agri-primary); font-size: 14px; font-weight: 600;">Payments</span>
         </div>
-
-
-
-        <div class="card-body">
-
-            <div id="data-table_processing" class="dataTables_processing panel panel-default" style="display: none;">
-
-                Processing...
-
-            </div>
-
-            <div class="row restaurant_payout_create">
-
-                <div class="restaurant_payout_create-inner">
-
-                    <fieldset>
-
-                        <legend><i class="mr-3 fa fa-cc-stripe"></i>{{trans('lang.app_setting_stripe')}}</legend>
-
-
-
-                        <div class="form-check width-100">
-
-                            <input type="checkbox" class="enable_stripe" id="enable_stripe">
-
-                            <label class="col-3 control-label"
-
-                                for="enable_stripe">{{trans('lang.app_setting_enable_stripe')}}</label>
-
-                            <div class="form-text text-muted">
-
-                                {!! trans('lang.app_setting_enable_stripe_help') !!}
-
-                            </div>
-
-                        </div>
-
-
-
-                        <div class="form-group row width-100">
-
-                            <label class="col-3 control-label">{{trans('lang.app_setting_stripe_key')}}</label>
-
-                            <div class="col-7">
-
-                                <input type="text" class="form-control stripe_key">
-
-                                <div class="form-text text-muted">
-
-                                    {!! trans('lang.app_setting_stripe_key_help') !!}
-
-                                </div>
-
-                            </div>
-
-                        </div>
-
-
-
-                        <div class="form-group row width-100">
-
-                            <label class="col-3 control-label">{{trans('lang.app_setting_stripe_secret')}}</label>
-
-                            <div class="col-7">
-
-                                <input type="text" class=" col-7 form-control stripe_secret">
-
-                                <div class="form-text text-muted">
-
-                                    {!! trans('lang.app_setting_stripe_secret_help') !!}
-
-                                </div>
-
-                            </div>
-
-                        </div>
-
-                    </fieldset>
-
-                    <fieldset>
-
-                        <legend><i class="mr-3 fa fa-cc-stripe"></i>{{trans('lang.withdraw_setting')}}</legend>
-
-
-
-                        <div class="form-check width-100">
-
-                            <input type="checkbox" class="withdraw_enable" id="withdraw_enable">
-
-                            <label class="col-3 control-label"
-
-                                for="withdraw_enable">{{trans('lang.app_setting_enable_stripe')}}</label>
-
-                            <div class="form-text text-muted">
-
-                                {!! trans('lang.withdraw_setting_enable_stripe_help') !!}
-
-                            </div>
-
-                        </div>
-
-                    </fieldset>
-
-                </div>
-
-            </div>
-
-        </div>
-
-        <div class="form-group col-12 text-center btm-btn">
-
-            <button type="button" class="btn btn-primary edit-form-btn"><i class="fa fa-save"></i>
-
-                {{trans('lang.save')}}</button>
-
-            <a href="{{url('/dashboard')}}" class="btn btn-default"><i
-
-                    class="fa fa-undo"></i>{{trans('lang.cancel')}}</a>
-
-        </div>
-
+        <h1 style="font-size: 28px; font-weight: 700; color: var(--agri-primary-dark); margin: 0;">{{trans('lang.app_setting_payment_method')}}</h1>
     </div>
 
+    {{-- Payment Sub-Navigation --}}
+    <div style="display: flex; gap: 24px; border-bottom: 2px solid var(--agri-border); margin-bottom: 32px; padding-bottom: 2px;">
+        <a href="{{url('settings/payment/stripe')}}" class="stripe_active_label" style="text-decoration: none; padding: 12px 4px; position: relative; color: var(--agri-primary); font-weight: 700; border-bottom: 3px solid var(--agri-primary); display: flex; align-items: center; gap: 8px;">
+            <i class="fab fa-stripe" style="font-size: 20px;"></i>
+            {{trans('lang.app_setting_stripe')}}
+            <span class="badge" style="font-size: 10px; padding: 2px 6px; border-radius: 20px;"></span>
+        </a>
+        <a href="{{url('settings/payment/cod')}}" class="cod_active_label" style="text-decoration: none; padding: 12px 4px; position: relative; color: var(--agri-text-muted); font-weight: 600; display: flex; align-items: center; gap: 8px;">
+            <i class="fas fa-hand-holding-usd" style="font-size: 18px;"></i>
+            {{trans('lang.app_setting_cod_short')}}
+            <span class="badge" style="font-size: 10px; padding: 2px 6px; border-radius: 20px;"></span>
+        </a>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card-agri" style="padding: 40px;">
+                
+                <div id="data-table_processing" class="dataTables_processing" style="display: none; background: rgba(255,255,255,0.8); color: var(--agri-primary); font-weight: 700; border-radius: 12px; z-index: 10;">
+                    <div class="spinner-border spinner-border-sm mr-2" role="status"></div>
+                    {{trans('lang.processing')}}
+                </div>
+
+                <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 32px;">
+                    <div style="width: 48px; height: 48px; background: rgba(var(--agri-primary-rgb), 0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: var(--agri-primary);">
+                        <i class="fab fa-cc-stripe" style="font-size: 24px;"></i>
+                    </div>
+                    <div>
+                        <h4 style="font-size: 18px; font-weight: 700; color: var(--agri-primary-dark); margin: 0;">Stripe Integration</h4>
+                        <p style="font-size: 13px; color: var(--agri-text-muted); margin: 0;">Secure online credit/debit card processing.</p>
+                    </div>
+                </div>
+
+                <form>
+                    {{-- Enable Stripe --}}
+                    <div style="background: var(--agri-bg); padding: 24px; border-radius: 16px; border: 1px solid var(--agri-border); display: flex; align-items: center; justify-content: space-between; margin-bottom: 32px;">
+                        <div>
+                            <h5 style="font-size: 15px; font-weight: 700; color: var(--agri-text-heading); margin-bottom: 4px;">{{trans('lang.app_setting_enable_stripe')}}</h5>
+                            <p style="font-size: 13px; color: var(--agri-text-muted); margin: 0;">{!! trans('lang.app_setting_enable_stripe_help') !!}</p>
+                        </div>
+                        <div class="form-check form-switch" style="padding: 0; margin: 0;">
+                            <input type="checkbox" class="enable_stripe" id="enable_stripe" style="width: 50px; height: 26px; cursor: pointer; accent-color: var(--agri-primary);">
+                        </div>
+                    </div>
+
+                    {{-- API Credentials --}}
+                    <div style="margin-bottom: 32px;">
+                        <h5 style="font-size: 16px; font-weight: 700; color: var(--agri-text-heading); margin-bottom: 20px; display: flex; align-items: center; gap: 8px;">
+                            <i class="fas fa-key" style="color: var(--agri-primary);"></i> API Credentials
+                        </h5>
+                        
+                        <div class="row g-4">
+                            <div class="col-12">
+                                <label style="font-size: 13px; font-weight: 600; color: var(--agri-text-heading); margin-bottom: 8px; display: block;">{{trans('lang.app_setting_stripe_key')}}</label>
+                                <input type="text" class="form-agri stripe_key" placeholder="pk_test_...">
+                                <div style="font-size: 11px; color: var(--agri-text-muted); margin-top: 4px;">{!! trans('lang.app_setting_stripe_key_help') !!}</div>
+                            </div>
+
+                            <div class="col-12">
+                                <label style="font-size: 13px; font-weight: 600; color: var(--agri-text-heading); margin-bottom: 8px; display: block;">{{trans('lang.app_setting_stripe_secret')}}</label>
+                                <input type="password" class="form-agri stripe_secret" placeholder="sk_test_...">
+                                <div style="font-size: 11px; color: var(--agri-text-muted); margin-top: 4px;">{!! trans('lang.app_setting_stripe_secret_help') !!}</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Payouts Section --}}
+                    <div style="background: rgba(var(--agri-primary-rgb), 0.05); padding: 24px; border-radius: 16px; border: 1px dashed var(--agri-primary); display: flex; align-items: center; justify-content: space-between; margin-bottom: 32px;">
+                        <div>
+                            <h5 style="font-size: 15px; font-weight: 700; color: var(--agri-primary-dark); margin-bottom: 4px;">{{trans('lang.withdraw_setting')}}</h5>
+                            <p style="font-size: 13px; color: var(--agri-text-muted); margin: 0;">{!! trans('lang.withdraw_setting_enable_stripe_help') !!}</p>
+                        </div>
+                        <div class="form-check form-switch" style="padding: 0; margin: 0;">
+                            <input type="checkbox" class="withdraw_enable" id="withdraw_enable" style="width: 50px; height: 26px; cursor: pointer; accent-color: var(--agri-primary);">
+                        </div>
+                    </div>
+
+                    <div style="display: flex; gap: 16px; margin-top: 40px; border-top: 1px solid var(--agri-border); padding-top: 32px;">
+                        <button type="button" class="btn-agri btn-agri-primary edit-form-btn" style="flex: 2; height: 48px; font-size: 15px;">
+                            <i class="fas fa-save" style="margin-right: 8px;"></i> {{trans('lang.save')}}
+                        </button>
+                        <a href="{{url('/dashboard')}}" class="btn-agri btn-agri-outline" style="flex: 1; height: 48px; display: flex; align-items: center; justify-content: center; text-decoration: none; font-size: 15px;">
+                             {{trans('lang.cancel')}}
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        {{-- Security Card --}}
+        <div class="col-lg-4">
+            <div class="card-agri" style="padding: 24px; background: white; border-top: 4px solid var(--agri-primary);">
+                <h5 style="font-weight: 700; color: var(--agri-primary-dark); margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
+                    <i class="fas fa-shield-alt"></i> Security Standard
+                </h5>
+                <p style="font-size: 14px; color: var(--agri-text-muted); line-height: 1.6; margin-bottom: 20px;">
+                    Stripe is a PCI Service Provider Level 1, which is the most stringent level of security available in the payments industry.
+                </p>
+                <div style="display: flex; flex-direction: column; gap: 12px;">
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <div style="width: 32px; height: 32px; border-radius: 50%; background: #e3f2fd; color: #1e88e5; display: flex; align-items: center; justify-content: center; font-size: 14px;">
+                            <i class="fas fa-lock"></i>
+                        </div>
+                        <span style="font-size: 13px; font-weight: 600; color: var(--agri-text-heading);">SSL Encrypted</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <div style="width: 32px; height: 32px; border-radius: 50%; background: #e8f5e9; color: #43a047; display: flex; align-items: center; justify-content: center; font-size: 14px;">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                        <span style="font-size: 13px; font-weight: 600; color: var(--agri-text-heading);">Verified by Stripe</span>
+                    </div>
+                </div>
+                <div style="margin-top: 24px; padding-top: 24px; border-top: 1px solid var(--agri-border);">
+                     <a href="https://stripe.com/docs/keys" target="_blank" style="color: var(--agri-primary); font-size: 13px; text-decoration: none; font-weight: 600; display: flex; align-items: center; gap: 4px;">
+                         How to get API keys? <i class="fas fa-external-link-alt" style="font-size: 10px;"></i>
+                     </a>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
-
-
-
 @endsection
-
-
 
 @section('scripts')
 
-
-
 <script>
-
     var database = firebase.firestore();
-
     var ref = database.collection('settings').doc('stripeSettings');
-
     var codData = database.collection('settings').doc('CODSettings');
-
     var razorpayData = database.collection('settings').doc('razorpaySettings');
-
     var paypalData = database.collection('settings').doc('paypalSettings');
-
     var paytmData = database.collection('settings').doc('PaytmSettings');
-
     var walletData = database.collection('settings').doc('walletSettings');
-
     var payFastSettings = database.collection('settings').doc('payFastSettings');
-
     var payStackSettings = database.collection('settings').doc('payStack');
-
     var flutterWaveSettings = database.collection('settings').doc('flutterWave');
-
     var MercadopagoSettings = database.collection('settings').doc('MercadoPago');
-
     var xenditSettings = database.collection('settings').doc('xendit_settings');
-        
     var orangePaySettings = database.collection('settings').doc('orange_money_settings');
-
     var midtransSettings = database.collection('settings').doc('midtrans_settings');
 
-
     $(document).ready(function () {
-
         jQuery("#data-table_processing").show();
-
         ref.get().then(async function (snapshots) {
-
             var stripe = snapshots.data();
 
-
-
             if (stripe == undefined) {
-
                 database.collection('settings').doc('stripeSettings').set({}).then(function (result) {
-
                     location.reload();
-
                 });
-
-
-
             }
 
-
-
             try {
-
                 if (stripe.isEnabled) {
-
                     $(".enable_stripe").prop('checked', true);
-
                     jQuery(".stripe_active_label span").addClass('badge-success');
-
                     jQuery(".stripe_active_label span").text('Active');
-
                 }
-
                 if (stripe.isWithdrawEnabled) {
-
                     $(".withdraw_enable").prop('checked', true);
-
                 }
-
-
 
                 $(".stripe_key").val(stripe.stripeKey);
-
                 $(".stripe_secret").val(stripe.stripeSecret);
 
-
-
                 codData.get().then(async function (codSnapshots) {
-
                     var cod = codSnapshots.data();
-
                     if (cod.isEnabled) {
-
                         jQuery(".cod_active_label span").addClass('badge-success');
-
                         jQuery(".cod_active_label span").text('Active');
-
                     }
-
-
-
                 })
-
-
 
                 razorpayData.get().then(async function (razorpaySnapshots) {
-
                     var razorPay = razorpaySnapshots.data();
-
                     if (razorPay.isEnabled) {
-
                         jQuery(".razorpay_active_label span").addClass('badge-success');
-
                         jQuery(".razorpay_active_label span").text('Active');
-
                     }
-
                 })
-
-
 
                 paypalData.get().then(async function (paypalSnapshots) {
-
                     var paypal = paypalSnapshots.data();
-
                     if (paypal.isEnabled) {
-
                         jQuery(".paypal_active_label span").addClass('badge-success');
-
                         jQuery(".paypal_active_label span").text('Active');
-
                     }
-
                 })
-
-
 
                 paytmData.get().then(async function (codSnapshots) {
-
                     var paytm = codSnapshots.data();
-
                     if (paytm.isEnabled) {
-
                         jQuery(".paytm_active_label span").addClass('badge-success');
-
                         jQuery(".paytm_active_label span").text('Active');
-
                     }
-
                 })
-
-
 
                 walletData.get().then(async function (walletSnapshots) {
-
                     var wallet = walletSnapshots.data();
-
                     if (wallet.isEnabled) {
-
                         jQuery(".wallet_active_label span").addClass('badge-success');
-
                         jQuery(".wallet_active_label span").text('Active');
-
                     }
-
                 })
-
-
 
                 payFastSettings.get().then(async function (payFastSnapshots) {
-
                     var payFast = payFastSnapshots.data();
-
                     if (payFast.isEnable) {
-
                         jQuery(".payfast_active_label span").addClass('badge-success');
-
                         jQuery(".payfast_active_label span").text('Active');
-
                     }
-
                 })
-
-
 
                 payStackSettings.get().then(async function (payStackSnapshots) {
-
                     var payStack = payStackSnapshots.data();
-
                     if (payStack.isEnable) {
-
                         jQuery(".paystack_active_label span").addClass('badge-success');
-
                         jQuery(".paystack_active_label span").text('Active');
-
                     }
-
                 })
 
-
-
                 flutterWaveSettings.get().then(async function (flutterWaveSnapshots) {
-
                     var flutterWave = flutterWaveSnapshots.data();
-
                     if (flutterWave.isEnable) {
-
                         jQuery(".flutterWave_active_label span").addClass('badge-success');
-
                         jQuery(".flutterWave_active_label span").text('Active');
-
                     }
-
                 })
 
                 MercadopagoSettings.get().then(async function (mercadopagoSnapshots) {
-
                     var mercadopago = mercadopagoSnapshots.data();
-
                     if (mercadopago.isEnabled) {
-
                         jQuery(".mercadopago_active_label span").addClass('badge-success');
-
                         jQuery(".mercadopago_active_label span").text('Active');
-
                     }
-
                 })
-
 
                 xenditSettings.get().then(async function (xenditSnapshots) {
                     var xendit = xenditSnapshots.data();
@@ -536,69 +275,27 @@
                         jQuery(".midtrans_active_label span").text('Active');
                     }
                 })
-                
 
             } catch (error) {
-
-
-
             }
-
-
-
             jQuery("#data-table_processing").hide();
-
-
-
         })
 
-
-
         $(".edit-form-btn").click(function () {
-
-
-
             var stripeKey = $(".stripe_key").val();
-
             var stripeSecret = $(".stripe_secret").val();
-
             var isStripeEnabled = $(".enable_stripe").is(":checked");
-
             var isWithdrawEnabled = $(".withdraw_enable").is(":checked");
 
             database.collection('settings').doc("stripeSettings").update({
-
                 'isEnabled': isStripeEnabled,
-
                 'stripeKey': stripeKey,
-
                 'stripeSecret': stripeSecret,
-
                 'isWithdrawEnabled': isWithdrawEnabled
-
             }).then(function (result) {
-
-
-
                 window.location.href = '{{ url("settings/payment/stripe")}}';
-
-
-
             });
-
-
-
         })
-
-
-
     })
-
-
-
 </script>
-
-
-
 @endsection
-

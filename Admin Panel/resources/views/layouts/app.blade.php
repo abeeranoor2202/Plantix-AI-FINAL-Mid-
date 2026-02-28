@@ -23,9 +23,7 @@
           href="<?php echo str_replace('images/', 'images%2F', @$_COOKIE['favicon']); ?>">
 
     <!-- Fonts -->
-
     <link rel="dns-prefetch" href="//fonts.gstatic.com">
-
     <link href="https://fonts.googleapis.com/css?family=Nunito" rel="stylesheet">
 
     <!-- Styles -->
@@ -60,142 +58,31 @@
 
     <link href="{{ asset('assets/plugins/summernote/summernote-bs4.css') }}" rel="stylesheet">
 
-    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css">
-
     <link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.4.1/css/responsive.dataTables.min.css">
-
-    <link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.4.1/css/responsive.dataTables.min.css">
+    
+    <!-- AgriTech Redesign: Core Design System -->
+    <link href="{{ asset('css/agritech-redesign.css') }}" rel="stylesheet">
 
     <style>
-        :root {
-            --admin-primary: #0f3524;
-            --admin-accent: #ffca28;
-            --admin-text: #c8e6c9;
-            --hover-shadow: 0 12px 24px rgba(0,0,0,0.08);
-            --card-shadow: 0 4px 12px rgba(0,0,0,0.03);
-            --primary: #0f3524;
-            --success: #2e7d32;
-            --warning: #ffca28;
+        /* Modern structure overrides */
+        #main-wrapper {
+            background-color: var(--agri-bg);
+            min-height: 100vh;
         }
-        body { background: #f4f7f5 !important; }
+        .page-wrapper {
+            background-color: var(--agri-bg) !important;
+            margin-top: 80px;
+        }
+        .scroll-sidebar {
+            background: var(--agri-white);
+        }
         .topbar {
-            background: rgba(255, 255, 255, 0.95) !important;
-            backdrop-filter: blur(10px);
-            border-bottom: 1px solid rgba(0,0,0,0.05);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.02) !important;
+            position: sticky;
+            top: 0;
+            z-index: 1050;
         }
-        .left-sidebar { background: var(--admin-primary) !important; }
-        .sidebar-nav ul li a {
-            color: var(--admin-text) !important;
-            transition: all 0.2s ease;
-        }
-        .sidebar-nav ul li a:hover,
-        .sidebar-nav ul li a.active {
-            color: #0d2b1f !important;
-            background: var(--admin-accent) !important;
-            border-radius: 8px; margin: 4px 10px;
-            transform: translateX(4px);
-            padding-left: 10px !important;
-        }
-        .sidebar-nav > ul > li > a i { color: inherit !important; }
-        
-        .card {
-            border-radius: 12px !important;
-            box-shadow: var(--card-shadow) !important;
-            border: none !important;
-        }
-        .hover-card { transition: all 0.3s ease !important; border-radius: 12px; }
-        .hover-card:hover {
-            transform: translateY(-5px) !important;
-            box-shadow: var(--hover-shadow) !important;
-        }
-        
-        /* Dashboard specific modern touches */
-        .card-box {
-            border-radius: 12px !important;
-            box-shadow: var(--card-shadow) !important;
-            transition: all 0.3s ease !important;
-            background: linear-gradient(135deg, #0f3524 0%, #175036 100%) !important;
-            color: #fff !important;
-            border: none !important;
-            padding: 20px !important;
-        }
-        .card-box:hover {
-            transform: translateY(-5px) !important;
-            box-shadow: var(--hover-shadow) !important;
-        }
-        .card-box h5 { color: #c8e6c9 !important; font-weight: 600; margin-bottom: 10px;}
-        .card-box h2 { color: #ffca28 !important; font-weight: bold; }
-        .card-box i { color: rgba(255,202,40,0.8) !important; }
-        
-        .order-status {
-            border-radius: 12px !important;
-            background: #fff !important;
-            box-shadow: var(--card-shadow) !important;
-            transition: all 0.3s ease !important;
-            border: 1px solid rgba(0,0,0,0.02) !important;
-            padding: 15px !important;
-        }
-        .order-status:hover {
-            transform: translateY(-5px) !important;
-            box-shadow: var(--hover-shadow) !important;
-            border-color: var(--admin-accent) !important;
-        }
-        .order-status .data i { color: #0f3524 !important; }
-        .order-status .status { color: #444 !important; font-weight: 600; margin-top: 5px; }
-        .order-status .count {
-            background: #ffca28 !important; color: #0f3524 !important;
-            font-weight: bold !important; border-radius: 20px !important;
-            padding: 4px 12px !important;
-            top: 15px !important;
-            right: 15px !important;
-        }
-
-        /* ── Global Admin Sub-page Overrides ──────────────────────────── */
-        /* Typography */
-        .page-titles {
-            background: #fff !important; border-radius: 12px !important;
-            padding: 15px 25px !important; margin: 20px 0 !important;
-            box-shadow: var(--card-shadow) !important;
-        }
-        .text-themecolor { color: var(--admin-primary) !important; font-weight: 700 !important; }
-
-        /* Buttons (Pagination and Actions) */
-        .btn-primary, .btn-info, .btn-success {
-            background-color: var(--success) !important; border-color: var(--success) !important; color: #fff !important;
-            border-radius: 6px !important; transition: all 0.2s;
-        }
-        .btn-primary:hover, .btn-info:hover, .btn-success:hover {
-            background-color: var(--primary) !important; border-color: var(--primary) !important;
-            transform: translateY(-2px); box-shadow: 0 4px 8px rgba(46,125,50,0.2) !important;
-        }
-        .btn-warning {
-            background-color: var(--warning) !important; border-color: var(--warning) !important; color: #000 !important;
-        }
-        .page-item.active .page-link {
-            background-color: var(--success) !important; border-color: var(--success) !important; color: #fff !important;
-        }
-
-        /* Tabs */
-        .nav-tabs .nav-link { color: #666 !important; font-weight: 600; border: none !important; padding: 12px 20px !important; }
-        .nav-tabs .nav-link:hover { color: var(--success) !important; background: transparent !important; }
-        .nav-tabs .nav-link.active {
-            color: var(--success) !important;
-            background: transparent !important;
-            border-bottom: 3px solid var(--warning) !important;
-        }
-
-        /* Datatables / Tables */
-        table.dataTable thead th, table.table thead th {
-            background-color: #e8f5e9 !important;
-            color: var(--primary) !important;
-            border-bottom: 2px solid #c8e6c9 !important;
-            font-weight: 700 !important;
-        }
-        table.dataTable.no-footer { border-bottom: 1px solid #c8e6c9 !important; }
-        table.dataTable tbody tr:hover { background-color: #f1f8f2 !important; }
-
     </style>
+
 </head>
 
 <body>

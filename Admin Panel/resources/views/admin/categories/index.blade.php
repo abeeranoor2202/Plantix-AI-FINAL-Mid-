@@ -1,326 +1,220 @@
 ﻿@extends('layouts.app')
 
 @section('content')
+<div class="container-fluid" style="padding-top: 24px; padding-bottom: 40px;">
 
-<div class="page-wrapper">
-
-    <div class="row page-titles mb-4 pb-3 border-bottom align-items-center">
-        <div class="col-md-5">
-            <h3 class="text-dark fw-bold mb-0">
-                <i class="fa fa-tags text-success me-2" style="background: rgba(40, 167, 69, 0.1); padding: 12px; border-radius: 12px;"></i>
-                {{trans('lang.category_plural')}}
-            </h3>
+    {{-- Header Section --}}
+    <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 32px;">
+        <div>
+            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
+                <a href="{{url('/dashboard')}}" style="text-decoration: none; color: var(--agri-text-muted); font-size: 14px; font-weight: 600;">Catalog Management</a>
+                <i class="fas fa-chevron-right" style="font-size: 10px; color: var(--agri-text-muted);"></i>
+                <span style="color: var(--agri-primary); font-size: 14px; font-weight: 600;">Taxonomic Registry</span>
+            </div>
+            <h1 style="font-size: 28px; font-weight: 700; color: var(--agri-primary-dark); margin: 0;">{{trans('lang.category_plural')}}</h1>
+            <p style="color: var(--agri-text-muted); margin: 4px 0 0 0;">Architect and manage the hierarchical classification of products and services.</p>
         </div>
-        <div class="col-md-7 text-end">
-            <ol class="breadcrumb d-inline-flex bg-transparent p-0 m-0">
-                <li class="breadcrumb-item"><a href="{{url('/dashboard')}}" class="text-muted text-decoration-none">{{trans('lang.dashboard')}}</a></li>
-                <li class="breadcrumb-item active text-dark fw-semibold">{{trans('lang.category_plural')}}</li>
-            </ol>
-        </div>
+        <a href="{!! route('admin.categories.create') !!}" class="btn-agri btn-agri-primary" style="text-decoration: none; display: flex; align-items: center; gap: 10px; font-weight: 700;">
+            <i class="fas fa-plus"></i> Instantiate Category
+        </a>
     </div>
 
-
-    <div class="container-fluid">
-
-        <div class="row">
-            <div class="col-12">
-                <div class="card border-0 shadow-sm" style="border-radius: 20px; overflow: hidden;">
-                    <div class="card-header bg-white border-bottom-0 pt-4 pb-0 px-5 d-flex justify-content-between align-items-center">
-                        <div>
-                            <h4 class="mb-0 fw-bold text-dark">{{trans('lang.category_table')}}</h4>
-                            <p class="text-muted small mt-1">Manage all your store and vendor categories here.</p>
-                        </div>
-                        <a href="{!! route('admin.categories.create') !!}" class="btn btn-success rounded-pill px-4 shadow-sm fw-bold">
-                            <i class="fa fa-plus me-2"></i>{{trans('lang.category_create')}}
-                        </a>
-                    </div>
-                    <div class="card-body p-5">
-
-                        <div id="data-table_processing" class="dataTables_processing panel panel-default text-success" style="display: none;">{{trans('lang.processing')}}
-                        </div>
-
-                        <div class="table-responsive m-t-10">
-
-
-                            <table id="categoriesTable"
-                                   class="display nowrap table table-hover table-striped table-bordered table table-striped"
-                                   cellspacing="0" width="100%">
-
-                                <thead>
-
-                                <tr>
-                                    <?php if (in_array('category.delete', json_decode(@session('admin_permissions'),true))) { ?>
-                                    <th class="delete-all"><input type="checkbox" id="is_active"><label class="col-3 control-label" for="is_active">
-                                            <a id="deleteAll" class="do_not_delete" href="javascript:void(0)"><i class="fa fa-trash"></i> {{trans('lang.all')}}</a></label></th>
-                                    <?php } ?>
-
-                                    <th>{{trans('lang.category_image')}}</th>
-
-                                    <th>{{trans('lang.faq_category_name')}}</th>
-                                    <th>{{trans('lang.item_plural')}}</th>
-                                    <th> {{trans('lang.item_publish')}}</th>
-                                    <th>{{trans('lang.actions')}}</th>
-
-                                </tr>
-
-                                </thead>
-
-                            </table>
-                        </div>
-
-                    </div>
-
+    {{-- Taxonomy Card --}}
+    <div class="card-agri" style="padding: 0; overflow: hidden; background: white; border: none; box-shadow: 0 10px 30px rgba(0,0,0,0.04);">
+        <div style="padding: 24px 32px; border-bottom: 1px solid var(--agri-border); display: flex; justify-content: space-between; align-items: center; background: white;">
+            <h4 style="margin: 0; font-size: 16px; font-weight: 700; color: var(--agri-text-heading);">Classification Inventory</h4>
+            
+            <div style="display: flex; align-items: center; gap: 20px;">
+                <div style="position: relative;">
+                    <i class="fas fa-search" style="position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: var(--agri-primary); font-size: 14px; opacity: 0.7;"></i>
+                    <input type="text" id="search-input" placeholder="Search categories..." class="form-agri" style="padding-left: 44px; width: 280px; height: 44px; font-size: 14px; font-weight: 600;">
                 </div>
 
+                <?php if (in_array('category.delete', json_decode(@session('admin_permissions'),true))) { ?>
+                    <button id="deleteAll" class="btn-agri" style="color: var(--agri-error); font-size: 13px; font-weight: 700; border: none; border-radius: 12px; padding: 12px 20px; background: #FEF2F2; display: flex; align-items: center; gap: 8px;">
+                        <i class="fas fa-trash-alt"></i> Bulk Deletion
+                    </button>
+                <?php } ?>
             </div>
-
         </div>
 
-    </div>
+        <div id="data-table_processing" class="dataTables_processing" style="display: none; background: rgba(255,255,255,0.95); position: absolute; top: 0; left: 0; right: 0; bottom: 0; display: flex; align-items: center; justify-content: center; z-index: 100;">
+            <div style="text-align: center;">
+                <div class="spinner-border text-success" role="status" style="width: 3rem; height: 3rem;"></div>
+                <div style="margin-top: 16px; font-weight: 800; color: var(--agri-primary); letter-spacing: 1px;">SYNCING CATALOG...</div>
+            </div>
+        </div>
 
+        <div class="table-responsive">
+            <table id="categoriesTable" class="table mb-0" style="vertical-align: middle; width: 100%;">
+                <thead style="background: var(--agri-bg);">
+                    <tr>
+                        <?php if (in_array('category.delete', json_decode(@session('admin_permissions'),true))) { ?>
+                            <th style="padding: 20px 32px; border: none; width: 40px;">
+                                <div class="form-check m-0">
+                                    <input type="checkbox" id="is_active" class="form-check-input" style="cursor: pointer; width: 20px; height: 20px;">
+                                </div>
+                            </th>
+                        <?php } ?>
+                        <th style="padding: 20px 32px; font-size: 11px; font-weight: 800; color: var(--agri-text-muted); text-transform: uppercase; letter-spacing: 1px; border: none;">Class Node</th>
+                        <th style="padding: 20px 32px; font-size: 11px; font-weight: 800; color: var(--agri-text-muted); text-transform: uppercase; letter-spacing: 1px; border: none;" class="text-center">Catalog Density</th>
+                        <th style="padding: 20px 32px; font-size: 11px; font-weight: 800; color: var(--agri-text-muted); text-transform: uppercase; letter-spacing: 1px; border: none;" class="text-center">Visibility</th>
+                        <th style="padding: 20px 32px; font-size: 11px; font-weight: 800; color: var(--agri-text-muted); text-transform: uppercase; letter-spacing: 1px; border: none;" class="text-end">Management</th>
+                    </tr>
+                </thead>
+                <tbody id="append_list1"></tbody>
+            </table>
+        </div>
+    </div>
 </div>
+
+<style>
+    .dataTables_empty { padding: 80px 0 !important; font-weight: 800; color: var(--agri-text-muted); text-transform: uppercase; font-size: 14px; }
+    .form-check-input:checked { background-color: var(--agri-primary); border-color: var(--agri-primary); }
+</style>
 @endsection
 
 @section('scripts')
-
 <script type="text/javascript">
-
     var database = firebase.firestore();
-   
     var ref = database.collection('vendor_categories').orderBy('title');
-    
     var placeholderImage = '';
 
-    var user_permissions = '<?php echo @session("user_permissions")?>';
-    user_permissions = Object.values(JSON.parse(user_permissions));
+    var user_permissions = '<?php echo @session("admin_permissions")?>';
+    user_permissions = Object.values(JSON.parse(user_permissions || "[]"));
     var checkDeletePermission = false;
     if ($.inArray('category.delete', user_permissions) >= 0) {
         checkDeletePermission = true;
     }
 
     $(document).ready(function () {
-
-        jQuery("#data-table_processing").show();
-
-        var placeholder = database.collection('settings').doc('placeHolderImage');
-        placeholder.get().then(async function (snapshotsimage) {
-            var placeholderImageData = snapshotsimage.data();
-            placeholderImage = placeholderImageData.image;
+        database.collection('settings').doc('placeHolderImage').get().then(async function (snapshotsimage) {
+            placeholderImage = snapshotsimage.data().image;
         });
 
         const table = $('#categoriesTable').DataTable({
-            pageLength: 10, // Number of rows per page
-            processing: false, // Show processing indicator
-            serverSide: true, // Enable server-side processing
+            pageLength: 10,
+            processing: false,
+            serverSide: true,
             responsive: true,
+            autoWidth: false,
             ajax: function (data, callback, settings) {
                 const start = data.start;
                 const length = data.length;
                 const searchValue = data.search.value.toLowerCase();
                 const orderColumnIndex = data.order[0].column;
                 const orderDirection = data.order[0].dir;
-                const orderableColumns = (checkDeletePermission) ? ['','','title', 'totalProducts','',''] : ['','title', 'totalProducts','','']; // Ensure this matches the actual column names
-                const orderByField = orderableColumns[orderColumnIndex]; // Adjust the index to match your table
-
-
-                if (searchValue.length >= 3 || searchValue.length === 0) {
-                    $('#data-table_processing').show();
-                }
+                const orderableColumns = (checkDeletePermission) ? ['','','title', 'totalProducts','',''] : ['','title', 'totalProducts','',''];
+                const orderByField = orderableColumns[orderColumnIndex];
 
                 ref.get().then(async function (querySnapshot) {
                     if (querySnapshot.empty) {
-                        console.error("No data found in Firestore.");
-                        $('#data-table_processing').hide(); // Hide loader
-                        callback({
-                            draw: data.draw,
-                            recordsTotal: 0,
-                            recordsFiltered: 0,
-                            data: [] // No data
-                        });
+                        callback({ draw: data.draw, recordsTotal: 0, recordsFiltered: 0, data: [] });
                         return;
                     }
 
-                    let records = [];
                     let filteredRecords = [];                  
-
                     await Promise.all(querySnapshot.docs.map(async (doc) => {
                         let childData = doc.data();
-                        childData.id = doc.id; // Ensure the document ID is included in the data
-
-                        if (childData.id) {
-                            childData.totalProducts = await getProductTotal(childData.id);
-                        }
-                        else {
-                            childData.totalProducts = 0;
-                        }
+                        childData.id = doc.id;
+                        childData.totalProducts = childData.id ? await getProductTotal(childData.id) : 0;
                         
-                        if (searchValue) {
-                            if (
-                                (childData.title && childData.title.toString().toLowerCase().includes(searchValue)) ||
-                                (childData.totalProducts && childData.totalProducts.toString().includes(searchValue))
-                            ) {
-                                filteredRecords.push(childData);
-                            }
-                        } else {
+                        if (!searchValue || childData.title.toLowerCase().includes(searchValue)) {
                             filteredRecords.push(childData);
                         }
                     }));
 
                     filteredRecords.sort((a, b) => {
-                        let aValue = a[orderByField] ? a[orderByField].toString().toLowerCase() : '';
-                        let bValue = b[orderByField] ? b[orderByField].toString().toLowerCase() : '';
+                        let aVal = a[orderByField] || '';
+                        let bVal = b[orderByField] || '';
                         if (orderByField === 'totalProducts') {
-                            aValue = a[orderByField] ? parseInt(a[orderByField]) : 0;
-                            bValue = b[orderByField] ? parseInt(b[orderByField]) : 0;
-                        }                        
-                        if (orderDirection === 'asc') {
-                            return (aValue > bValue) ? 1 : -1;
-                        } else {
-                            return (aValue < bValue) ? 1 : -1;
+                            aVal = parseInt(a[orderByField]) || 0;
+                            bVal = parseInt(b[orderByField]) || 0;
                         }
+                        return orderDirection === 'asc' ? (aVal > bVal ? 1 : -1) : (aVal < bVal ? 1 : -1);
                     });
 
-                    const totalRecords = filteredRecords.length;
-                    
-                    
-                    filteredRecords.slice(start, start + length).forEach(function (childData) {
-                        var id = childData.id;
-                        var route1 = '{{route("admin.categories.edit",":id")}}';
-                        route1 = route1.replace(':id', id);
-                        var url = '{{url("items?categoryID=id")}}';
-                        url = url.replace("id", id);
-                        records.push([
-                            checkDeletePermission ? '<td class="delete-all"><input type="checkbox" id="is_open_' + childData.id + '" class="is_open" dataId="' + childData.id + '"><label class="col-3 control-label"\n' + 'for="is_open_' + childData.id + '" ></label></td>' : '',
-                            childData.photo == '' || childData.photo == null ? '<img class="rounded" style="width:50px" src="' + placeholderImage + '" alt="image">' : '<img onerror="this.onerror=null;this.src=\'' + placeholderImage + '\'" class="rounded shadow-sm" style="width:50px" src="' + childData.photo + '" alt="image">',
-                            '<a href="' + route1 + '" class="text-success fw-bold text-decoration-none">' + childData.title + '</a>',
-                            '<a href="' + url + '" class="badge bg-info-subtle text-info fw-bold px-3 py-2 rounded-pill text-decoration-none">'+childData.totalProducts+'</a>',
-                            childData.publish ? '<div class="form-check form-switch m-0"><input class="form-check-input custom-switch text-success" type="checkbox" checked id="' + childData.id + '" name="isActive" style="width: 40px; height: 20px;"></div>' : '<div class="form-check form-switch m-0"><input class="form-check-input custom-switch text-success" type="checkbox" id="' + childData.id + '" name="isActive" style="width: 40px; height: 20px;"></div>',
-                            '<span class="action-btn"><a href="' + route1 + '" class="btn btn-sm btn-light border shadow-sm mx-1"><i class="fa fa-edit text-success"></i></a><?php if(in_array('category.delete', json_decode(@session('admin_permissions'),true))){ ?> <a id="' + childData.id + '" name="category-delete" class="btn btn-sm btn-light border shadow-sm mx-1 delete-btn" href="javascript:void(0)"><i class="fa fa-trash text-danger"></i></a><?php } ?></span>'                           
-                        ]);
-                    });
+                    const paginatedRecords = filteredRecords.slice(start, start + length);
+                    let records = [];
+                    paginatedRecords.forEach(childData => { records.push(buildHTML(childData)); });
 
-                    $('#data-table_processing').hide(); // Hide loader
-                    callback({
-                        draw: data.draw,
-                        recordsTotal: totalRecords, // Total number of records in Firestore
-                        recordsFiltered: totalRecords, // Number of records after filtering (if any)
-                        data: records // The actual data to display in the table
-                    });
-                }).catch(function (error) {
-                    console.error("Error fetching data from Firestore:", error);
-                    $('#data-table_processing').hide(); // Hide loader
-                    callback({
-                        draw: data.draw,
-                        recordsTotal: 0,
-                        recordsFiltered: 0,
-                        data: [] // No data due to error
-                    });
+                    callback({ draw: data.draw, recordsTotal: filteredRecords.length, recordsFiltered: filteredRecords.length, data: records });
                 });
             },           
-            order: (checkDeletePermission) ? [2, 'asc'] : [1,'asc'],
-            columnDefs: [
-                
-                { orderable: false, targets: (checkDeletePermission) ? [0, 1, 4, 5] : [0, 3, 4] },
-            ],
-            "language": {
-                "zeroRecords": "{{trans("lang.no_record_found")}}",
-                "emptyTable": "{{trans("lang.no_record_found")}}",
-                "processing": "" // Remove default loader
-            },
-        
+            order: (checkDeletePermission) ? [[2, 'asc']] : [[1,'asc']],
+            columnDefs: [{ orderable: false, targets: '_all' }],
+            dom: 't<"p-4 d-flex justify-content-between align-items-center"ip>',
+            language: { zeroRecords: "NO CLASSIFICATIONS MATCHING YOUR SEARCH", emptyTable: "TAXONOMIC REGISTRY IS EMPTY", processing: "" }
         });
 
-    
-        table.columns.adjust().draw();
+        $('#search-input').on('keyup', function () { table.search($(this).val()).draw(); });
 
-        function debounce(func, wait) {
-            let timeout;
-            const context = this;
-            return function(...args) {
-                clearTimeout(timeout);
-                timeout = setTimeout(() => func.apply(context, args), wait);
-            };
-        }
+        $(document).on("click", ".form-switch input", function (e) {
+            var ischeck = $(this).is(':checked');
+            var id = this.id;
+            database.collection('vendor_categories').doc(id).update({'publish': ischeck});
+        });
 
-        $('#search-input').on('input', debounce(function () {
-            const searchValue = $(this).val();
-            if (searchValue.length >= 3) {
-                $('#data-table_processing').show();
-                table.search(searchValue).draw();
-            } else if (searchValue.length === 0) {
-                $('#data-table_processing').show();
-                table.search('').draw();
+        $(document).on("click", ".delete-btn", function (e) {
+            if (confirm("CRITICAL: Excise this category branch? This action will impact all downstream sub-classifications and product alignments.")) {
+                var id = $(this).data('id');
+                database.collection('vendor_categories').doc(id).delete().then(() => window.location.reload());
             }
-        }, 300));
-       
+        });
 
+        $("#is_active").click(function () { $("#categoriesTable .is_open").prop('checked', $(this).prop('checked')); });
+
+        $("#deleteAll").click(function () {
+            if ($('#categoriesTable .is_open:checked').length) {
+                if (confirm("CRITICAL: Bulk excise selected classifications? This will decouple all associated product catalog associations.")) {
+                    let promises = [];
+                    $('#categoriesTable .is_open:checked').each(function () { promises.push(database.collection('vendor_categories').doc($(this).attr('dataId')).delete()); });
+                    Promise.all(promises).then(() => window.location.reload());
+                }
+            } else { alert("Select at least one classification node."); }
+        });
     });
 
-   
-    async function getProductTotal(id, section_id) {
-        var vendor_products = database.collection('vendor_products').where('categoryID', '==', id);
-        var Product_total = 0;
-        if (section_id) {
-            vendor_products = vendor_products.where('section_id', '==', section_id)
+    function buildHTML(val) {
+        var html = [];
+        var id = val.id;
+        var editUrl = '{{route("admin.categories.edit",":id")}}'.replace(':id', id);
+        var catalogUrl = '{{url("items?categoryID=id")}}'.replace("id", id);
+        var photo = val.photo || placeholderImage;
+
+        if (checkDeletePermission) {
+            html.push('<td style="padding: 24px 32px;"><div class="form-check"><input type="checkbox" id="is_open_' + id + '" class="is_open form-check-input" style="width: 20px; height: 20px;" dataId="' + id + '"></div></td>');
         }
-        await vendor_products.get().then(async function (productSnapshots) {
-            Product_total = productSnapshots.docs.length;
-        });
-        return Product_total;
+
+        html.push('<td style="padding: 24px 32px;"><div style="display: flex; align-items: center; gap: 16px;">' +
+            '<div style="width: 52px; height: 52px; border-radius: 14px; overflow: hidden; border: 2px solid var(--agri-bg); background: white;">' +
+            '<img src="' + photo + '" onerror="this.src=\'' + placeholderImage + '\'" style="width: 100%; height: 100%; object-fit: cover;"></div>' +
+            '<div><div style="font-weight: 800; color: var(--agri-text-heading); font-size: 15px;">' + val.title + '</div>' +
+            '<div style="font-size: 10px; font-weight: 800; color: var(--agri-primary); text-transform: uppercase; margin-top: 4px;">' + (val.id.substring(0,8)) + ' NODE</div></div></div></td>');
+
+        html.push('<td style="padding: 24px 32px;" class="text-center"><a href="' + catalogUrl + '" style="background: var(--agri-primary-light); color: var(--agri-primary); padding: 6px 16px; border-radius: 12px; font-size: 12px; font-weight: 800; text-decoration: none; border: 1px solid var(--agri-primary)30;">' +
+            '<i class="fas fa-layer-group me-2"></i>' + val.totalProducts + ' Nodes Registered</a></td>');
+
+        var statusBadge = val.publish ? 
+            '<span style="background:var(--agri-primary-light); color:var(--agri-primary); padding:2px 10px; border-radius:100px; font-size:10px; font-weight:900; border:1px solid var(--agri-primary)40;">LIVE</span>' :
+            '<span style="background:#F3F4F6; color:#6B7280; padding:2px 10px; border-radius:100px; font-size:10px; font-weight:900; border:1px solid #D1D5DB;">DRAFT</span>';
+
+        html.push('<td style="padding: 24px 32px;" class="text-center"><div style="display:flex; flex-direction:column; align-items:center; gap:8px;">' +
+            statusBadge +
+            '<div class="form-check form-switch p-0 m-0"><input type="checkbox" class="form-check-input" ' + (val.publish ? 'checked' : '') + ' id="' + id + '" style="width:40px; height:20px; cursor:pointer;"></div>' +
+            '</div></td>');
+
+        html.push('<td style="padding: 24px 32px;" class="text-end"><div style="display: flex; justify-content: flex-end; gap: 8px;">' +
+            '<a href="' + editUrl + '" class="btn-agri" style="padding: 8px 12px; background: var(--agri-bg); color: var(--agri-text-heading); border-radius: 10px; text-decoration: none; font-size: 12px; font-weight: 700;"><i class="fas fa-edit"></i></a>' +
+            (checkDeletePermission ? '<button class="btn-agri delete-btn" data-id="' + id + '" style="padding: 8px 12px; background: #FEF2F2; color: var(--agri-error); border: none; border-radius: 10px;"><i class="fas fa-trash-alt"></i></button>' : '') +
+            '</div></td>');
+
+        return html;
     }
 
-
-    $(document).on("click", "a[name='category-delete']", function (e) {
-        var id = this.id;
-        database.collection('vendor_categories').doc(id).delete().then(function (result) {
-            window.location.href = '{{ route("admin.categories")}}';
-        });
-    });
-
-
-    $("#is_active").click(function () {
-        $("#categoriesTable .is_open").prop('checked', $(this).prop('checked'));
-    });
-
-    $("#deleteAll").click(function () {
-
-        if ($('#categoriesTable .is_open:checked').length) {
-
-            if (confirm("{{trans('lang.selected_delete_alert')}}")) {
-                jQuery("#data-table_processing").show();
-                $('#categoriesTable .is_open:checked').each(function () {
-                    var dataId = $(this).attr('dataId');
-                    
-                    database.collection('vendor_categories').doc(dataId).delete().then(function () {
-                        setTimeout(function () {
-                            window.location.reload();
-                        }, 7000);
-
-                    });
-
-                });
-
-            }
-        } else {
-            alert("{{trans('lang.select_delete_alert')}}");
-        }
-    });
-
-    $(document).on("click", "input[name='isActive']", function (e) {
-        var ischeck = $(this).is(':checked');
-        var id = this.id;
-        if (ischeck) {
-            database.collection('vendor_categories').doc(id).update({'publish': true}).then(function (result) {
-
-            });
-        } else {
-            database.collection('vendor_categories').doc(id).update({'publish': false}).then(function (result) {
-
-            });
-        }
-
-    });
-
+    async function getProductTotal(id) {
+        var snapshot = await database.collection('vendor_products').where('categoryID', '==', id).get();
+        return snapshot.docs.length;
+    }
 </script>
-
 @endsection

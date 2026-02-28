@@ -1,29 +1,33 @@
 @extends('layouts.app')
 
-@section('title', 'Add Product')
+@section('title', 'Inaugurate SKU')
 
 @section('content')
-<div class="container-fluid">
+<div class="container-fluid" style="padding-top: 24px; padding-bottom: 40px;">
 
-    <div class="row page-titles border-bottom pb-3 mb-4">
-        <div class="col-md-5 align-self-center d-flex align-items-center">
-            <a href="{{ route('admin.products.index') }}" class="btn btn-light border shadow-sm rounded-circle d-flex align-items-center justify-content-center me-3" style="width:40px;height:40px;">
-                <i class="fas fa-arrow-left text-muted"></i>
-            </a>
-            <h3 class="text-themecolor fw-bold mb-0">Add New Product</h3>
+    {{-- Header Section --}}
+    <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 32px;">
+        <div>
+            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
+                <a href="{!! route('admin.products.index') !!}" style="text-decoration: none; color: var(--agri-text-muted); font-size: 14px; font-weight: 600;">Inventory Ledger</a>
+                <i class="fas fa-chevron-right" style="font-size: 10px; color: var(--agri-text-muted);"></i>
+                <span style="color: var(--agri-primary); font-size: 14px; font-weight: 600;">SKU Registration</span>
+            </div>
+            <h1 style="font-size: 28px; font-weight: 700; color: var(--agri-primary-dark); margin: 0;">Inaugurate New SKU</h1>
+            <p style="color: var(--agri-text-muted); margin: 4px 0 0 0;">Register a new physical or digital asset into the global commerce ecosystem.</p>
         </div>
-        <div class="col-md-7 align-self-center">
-            <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="{{url('/dashboard')}}">{{trans('lang.dashboard')}}</a></li>
-                <li class="breadcrumb-item"><a href="{!! route('admin.products.index') !!}">Products</a></li>
-                <li class="breadcrumb-item active">Add Product</li>
-            </ol>
-        </div>
+        <a href="{{ route('admin.products.index') }}" class="btn-agri btn-agri-outline" style="text-decoration: none; display: flex; align-items: center; gap: 10px; font-weight: 700; padding: 12px 24px;">
+            <i class="fas fa-arrow-left"></i> Return to Ledger
+        </a>
     </div>
 
     @if($errors->any())
-        <div class="alert alert-danger">
-            <ul class="mb-0">
+        <div class="alert alert-danger mb-4" style="border-radius: 16px; border: none; background: #FEF2F2; color: var(--agri-error); font-weight: 700; padding: 20px;">
+            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+                <i class="fas fa-exclamation-triangle"></i>
+                <span>VALIDATION PROTOCOL FAILURE</span>
+            </div>
+            <ul class="mb-0" style="font-size: 13px; font-weight: 600; opacity: 0.9;">
                 @foreach($errors->all() as $error)
                     <li>{{ $error }}</li>
                 @endforeach
@@ -34,12 +38,11 @@
     <form method="POST" action="{{ route('admin.products.store') }}" enctype="multipart/form-data">
         @csrf
         @include('admin.products._form')
-        <div class="mt-4 pb-5 d-flex justify-content-end gap-3">
-            <a href="{{ route('admin.products.index') }}" class="btn btn-light rounded-pill px-4 shadow-sm fw-bold border">
-                <i class="fa fa-undo me-2"></i>Cancel
-            </a>
-            <button type="submit" class="btn btn-success rounded-pill px-4 shadow-sm fw-bold">
-                <i class="fas fa-save me-2"></i> Create Product
+        
+        <div style="margin-top: 40px; padding: 32px 40px; background: white; border-top: 1px solid var(--agri-border); border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.04); display: flex; justify-content: flex-end; gap: 16px;">
+            <a href="{{ route('admin.products.index') }}" class="btn-agri btn-agri-outline" style="padding: 14px 40px; text-decoration: none; font-weight: 700; min-width: 160px; display: flex; align-items: center; justify-content: center;">{{trans('lang.cancel')}}</a>
+            <button type="submit" class="btn-agri btn-agri-primary" style="padding: 14px 60px; font-weight: 800; font-size: 16px; border-radius: 14px; display: flex; align-items: center; gap: 12px; box-shadow: 0 8px 20px rgba(var(--agri-primary-rgb), 0.2);">
+                <i class="fas fa-save"></i> COMMENCE REGISTRATION
             </button>
         </div>
     </form>

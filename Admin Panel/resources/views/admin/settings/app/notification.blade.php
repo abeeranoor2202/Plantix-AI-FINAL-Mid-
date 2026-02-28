@@ -1,136 +1,111 @@
 @extends('layouts.app')
 
 @section('content')
-    <div class="page-wrapper">
-        <div class="row page-titles">
+<div class="container-fluid" style="padding-top: 24px;">
 
-            <div class="col-md-5 align-self-center">
-                <h3 class="text-themecolor">{{ trans('lang.app_setting_notifications')}}</h3>
-            </div>
-            <div class="col-md-7 align-self-center">
-                <ol class="breadcrumb">
-                    <li class="breadcrumb-item"><a href="{{url('/dashboard')}}">{{trans('lang.dashboard')}}</a></li>
-                    <li class="breadcrumb-item active">{{ trans('lang.app_setting_notifications')}}</li>
-                </ol>
-            </div>
+    {{-- Breadcrumb/Header Section --}}
+    <div style="margin-bottom: 32px;">
+        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
+            <a href="{{url('/dashboard')}}" style="text-decoration: none; color: var(--agri-text-muted); font-size: 14px; font-weight: 600;">{{trans('lang.dashboard')}}</a>
+            <i class="fas fa-chevron-right" style="font-size: 10px; color: var(--agri-text-muted);"></i>
+            <span style="color: var(--agri-primary); font-size: 14px; font-weight: 600;">{{ trans('lang.app_setting_notifications')}}</span>
         </div>
-
-        <div class="card-body">
-            <div id="data-table_processing" class="dataTables_processing panel panel-default" style="display: none;">
-                Processing...
-            </div>
-            <div class="row restaurant_payout_create">
-                <div class="restaurant_payout_create-inner">
-                    <fieldset>
-                        <legend><i class="mr-3 fa fa-bell"></i>{{trans('lang.app_setting_notifications')}}</legend>
-                        <div class="form-check width-100">
-                            <input type="checkbox" class="enable_pushnotification" id="enable_pushnotification">
-                            <label class="col-5 control-label"
-                                   for="enable_pushnotification">{{trans('lang.app_setting_enable_notifications')}}</label>
-                            <div class="form-text text-muted">
-                                {!! trans('lang.app_setting_enable_notifications_help') !!}
-                            </div>
-                        </div>
-
-                        <div class="form-group row width-100">
-                            <label class="col-3 control-label">{{trans('lang.app_setting_fcm_key')}}</label>
-                            <div class="col-7">
-                                <input type="text" class="form-control fcm_key">
-                                <div class="form-text text-muted">
-                                    {!! trans('lang.app_setting_fcm_key_help') !!}
-                                </div>
-                            </div>
-                        </div>
-                        <div class="form-group row width-100">
-                            <label class="col-5 control-label">{{trans('lang.app_setting_firebase_api_key')}}</label>
-                            <div class="col-7">
-                                <input type="text" class="form-control firebase_api_key">
-                                <div class="form-text text-muted">
-                                    {!! trans('lang.app_setting_firebase_api_key_help') !!}
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="form-group row width-100">
-                            <label class="col-5 control-label">{{trans('lang.app_setting_firebase_database_url')}}</label>
-                            <div class="col-7">
-                                <input type="text" class="form-control firebase_db_url">
-                                <div class="form-text text-muted">
-                                    {!! trans('lang.app_setting_firebase_database_url_help') !!}
-                                </div>
-                            </div>
-                        </div>
-                        <div class="form-group row width-100">
-                            <label class="col-5 control-label">{{trans('lang.app_setting_firebase_storage_bucket')}}</label>
-                            <div class="col-7">
-                                <input type="text" class="form-control firebase_storage_bucket">
-                                <div class="form-text text-muted">
-                                    {!! trans('lang.app_setting_firebase_storage_bucket_help') !!}
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="form-group row width-100">
-                            <label class="col-5 control-label">{{trans('lang.app_setting_firebase_app_id')}}</label>
-                            <div class="col-7">
-                                <input type="text" class=" form-control firebase_app_id">
-                                <div class="form-text text-muted">
-                                    {!! trans('lang.app_setting_firebase_app_id_help') !!}
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="form-group row width-100">
-                            <label class="col-5 control-label">{{trans('lang.app_setting_firebase_auth_domain')}}</label>
-                            <div class="col-7">
-                                <input type="text" class=" form-control firebase_auth_domain">
-                                <div class="form-text text-muted">
-                                    {!! trans('lang.app_setting_firebase_auth_domain_help') !!}
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="form-group row width-100">
-                            <label class="col-5 control-label">{{trans('lang.app_setting_firebase_project_id')}}</label>
-                            <div class="col-7">
-                                <input type="text" class="form-control firebase_project_id">
-                                <div class="form-text text-muted">
-                                    {!! trans('lang.app_setting_firebase_project_id_help') !!}
-                                </div>
-                            </div>
-                        </div>
-                        <div class="form-group row width-100">
-                            <label class="col-5 control-label">{{trans('lang.app_setting_firebase_messaging_sender_id')}}</label>
-                            <div class="col-7">
-                                <input type="text" class="form-control firebase_message_sender_id">
-                                <div class="form-text text-muted">
-                                    {!! trans('lang.app_setting_firebase_messaging_sender_id_help') !!}
-                                </div>
-                            </div>
-                        </div>
-                        <div class="form-group row width-100">
-                            <label class="col-5 control-label">{{trans('lang.app_setting_firebase_measurement_id')}}</label>
-                            <div class="col-7">
-                                <input type="text" class=" col-6 form-control firebase_measurment_id">
-                                <div class="form-text text-muted">
-                                    {!! trans('lang.app_setting_firebase_measurement_id_help') !!}
-                                </div>
-                            </div>
-                        </div>
-                    </fieldset>
-                </div>
-            </div>
-        </div>
-
-
-        <div class="form-group col-12 text-center btm-btn">
-            <button type="button" class="btn btn-primary notification_save_btn"><i
-                        class="fa fa-save"></i> {{trans('lang.save')}}</button>
-            <a href="{{url('/dashboard')}}" class="btn btn-default"><i class="fa fa-undo"></i>{{trans('lang.cancel')}}
-            </a>
-        </div>
-
+        <h1 style="font-size: 28px; font-weight: 700; color: var(--agri-primary-dark); margin: 0;">{{ trans('lang.app_setting_notifications')}}</h1>
+        <p style="color: var(--agri-text-muted); margin-top: 4px;">Configure real-time push notification channels and Firebase cloud integration.</p>
     </div>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-9 col-md-11">
+            <div class="card-agri" style="padding: 40px;">
+                
+                <div id="data-table_processing" class="dataTables_processing" style="display: none; background: rgba(255,255,255,0.8); color: var(--agri-primary); font-weight: 700; border-radius: 12px;">
+                    <div class="spinner-border spinner-border-sm mr-2" role="status"></div>
+                    {{trans('lang.processing')}}
+                </div>
+
+                <form>
+                    {{-- Primary Toggle --}}
+                    <div style="background: var(--agri-bg); padding: 24px; border-radius: 16px; margin-bottom: 32px; border: 1px solid var(--agri-border); display: flex; align-items: center; justify-content: space-between;">
+                        <div>
+                            <h4 style="font-size: 18px; font-weight: 700; color: var(--agri-primary-dark); margin-bottom: 4px;">{{trans('lang.app_setting_enable_notifications')}}</h4>
+                            <p style="font-size: 13px; color: var(--agri-text-muted); margin: 0;">{!! trans('lang.app_setting_enable_notifications_help') !!}</p>
+                        </div>
+                        <div class="form-check form-switch" style="padding: 0; margin: 0;">
+                            <input type="checkbox" class="enable_pushnotification" id="enable_pushnotification" style="width: 50px; height: 26px; cursor: pointer; accent-color: var(--agri-primary);">
+                        </div>
+                    </div>
+
+                    {{-- Technical Configuration --}}
+                    <div style="margin-bottom: 32px;">
+                        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 24px;">
+                            <i class="fas fa-fire" style="color: #FFA000; font-size: 20px;"></i>
+                            <h4 style="font-size: 18px; font-weight: 700; color: var(--agri-text-heading); margin: 0;">Firebase Cloud Configuration</h4>
+                        </div>
+
+                        <div class="row g-4">
+                            <div class="col-12">
+                                <label style="font-size: 13px; font-weight: 600; color: var(--agri-text-heading); margin-bottom: 8px; display: block;">{{trans('lang.app_setting_fcm_key')}}</label>
+                                <input type="text" class="form-agri fcm_key" placeholder="Enter Server Key">
+                                <div style="font-size: 11px; color: var(--agri-text-muted); margin-top: 4px;">{!! trans('lang.app_setting_fcm_key_help') !!}</div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label style="font-size: 13px; font-weight: 600; color: var(--agri-text-heading); margin-bottom: 8px; display: block;">{{trans('lang.app_setting_firebase_api_key')}}</label>
+                                <input type="text" class="form-agri firebase_api_key">
+                            </div>
+
+                            <div class="col-md-6">
+                                <label style="font-size: 13px; font-weight: 600; color: var(--agri-text-heading); margin-bottom: 8px; display: block;">{{trans('lang.app_setting_firebase_project_id')}}</label>
+                                <input type="text" class="form-agri firebase_project_id">
+                            </div>
+
+                            <div class="col-md-12">
+                                <label style="font-size: 13px; font-weight: 600; color: var(--agri-text-heading); margin-bottom: 8px; display: block;">{{trans('lang.app_setting_firebase_database_url')}}</label>
+                                <input type="text" class="form-agri firebase_db_url">
+                            </div>
+
+                            <div class="col-md-6">
+                                <label style="font-size: 13px; font-weight: 600; color: var(--agri-text-heading); margin-bottom: 8px; display: block;">{{trans('lang.app_setting_firebase_storage_bucket')}}</label>
+                                <input type="text" class="form-agri firebase_storage_bucket">
+                            </div>
+
+                            <div class="col-md-6">
+                                <label style="font-size: 13px; font-weight: 600; color: var(--agri-text-heading); margin-bottom: 8px; display: block;">{{trans('lang.app_setting_firebase_app_id')}}</label>
+                                <input type="text" class="form-agri firebase_app_id">
+                            </div>
+
+                            <div class="col-md-6">
+                                <label style="font-size: 13px; font-weight: 600; color: var(--agri-text-heading); margin-bottom: 8px; display: block;">{{trans('lang.app_setting_firebase_auth_domain')}}</label>
+                                <input type="text" class="form-agri firebase_auth_domain">
+                            </div>
+
+                            <div class="col-md-6">
+                                <label style="font-size: 13px; font-weight: 600; color: var(--agri-text-heading); margin-bottom: 8px; display: block;">{{trans('lang.app_setting_firebase_messaging_sender_id')}}</label>
+                                <input type="text" class="form-agri firebase_message_sender_id">
+                            </div>
+
+                            <div class="col-md-12">
+                                <label style="font-size: 13px; font-weight: 600; color: var(--agri-text-heading); margin-bottom: 8px; display: block;">{{trans('lang.app_setting_firebase_measurement_id')}}</label>
+                                <input type="text" class="form-agri firebase_measurment_id">
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Actions --}}
+                    <div style="display: flex; gap: 16px; border-top: 1px solid var(--agri-border); padding-top: 32px;">
+                        <button type="button" class="btn-agri btn-agri-primary notification_save_btn" style="flex: 2; height: 48px; font-size: 15px;">
+                            <i class="fas fa-save" style="margin-right: 8px;"></i> Broadcast Settings
+                        </button>
+                        <a href="{{url('/dashboard')}}" class="btn-agri btn-agri-outline" style="flex: 1; height: 48px; display: flex; align-items: center; justify-content: center; text-decoration: none; font-size: 15px;">
+                             Discard
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+@endsection
     </div>
 @endsection
 
