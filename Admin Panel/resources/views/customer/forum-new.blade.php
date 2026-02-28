@@ -7,14 +7,7 @@
 @include('partials.footer-alt')
 @endsection
 
-@section('page_scripts')
-    <script src="{{ asset('assets/js/cart.js') }}"></script>
-    <script src="{{ asset('assets/js/experts.js') }}"></script>
-    <script src="{{ asset('assets/js/dialogs.js') }}"></script>
-    <script src="{{ asset('assets/js/toast.js') }}"></script>
-    <script src="{{ asset('assets/js/forum.js') }}"></script>
-    <script src="{{ asset('assets/js/strict-validation.js') }}"></script>
-@endsection
+@section('page_scripts')@endsection
 
 @section('content')
 <div class="breadcrumb-area text-center shadow dark-hard bg-cover text-light bg-breadcrumb-default">
@@ -40,16 +33,34 @@
         <div class="col-lg-8">
           <div class="panel-card p-4">
             <h3 class="mb-3">Create a Thread</h3>
-            <form id="newThreadForm">
-              <div class="mb-3"><label class="form-label">Title</label><input id="threadTitle" class="form-control"
-                  placeholder="Brief title" required></div>
-              <div class="mb-3"><label class="form-label">Details</label><textarea id="threadBody" class="form-control"
-                  rows="6" placeholder="Describe the problem or topic" required></textarea></div>
+
+            @if($errors->any())
+              <div class="alert alert-danger">
+                <ul class="mb-0">@foreach($errors->all() as $e)<li>{{ $e }}</li>@endforeach</ul>
+              </div>
+            @endif
+
+            <form method="POST" action="{{ route('forum.store') }}">
+              @csrf
               <div class="mb-3">
-                <label class="form-label">Tags (comma separated)</label>
-                <input id="threadTags" class="form-control" placeholder="e.g., Wheat, Pest, Irrigation" data-label="Tags (comma-separated)">
-                <div id="presetTags" class="mt-2"></div>
-                <div class="form-text">Use tags like crop names, issues, or regions. Click chips to toggle.</div>
+                <label class="form-label">Title *</label>
+                <input name="title" class="form-control" placeholder="Brief title" value="{{ old('title') }}" required>
+                @error('title')<div class="text-danger small">{{ $message }}</div>@enderror
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Category</label>
+                <select name="forum_category_id" class="form-control">
+                  <option value="">-- Select Category --</option>
+                  @foreach($categories as $cat)
+                  <option value="{{ $cat->id }}" {{ old('forum_category_id') == $cat->id ? 'selected' : '' }}>{{ $cat->name }}</option>
+                  @endforeach
+                </select>
+                @error('forum_category_id')<div class="text-danger small">{{ $message }}</div>@enderror
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Details *</label>
+                <textarea name="body" class="form-control" rows="6" placeholder="Describe the problem or topic" required>{{ old('body') }}</textarea>
+                @error('body')<div class="text-danger small">{{ $message }}</div>@enderror
               </div>
               <div class="d-flex gap-2">
                 <button type="submit" class="btn btn-theme">Post</button>

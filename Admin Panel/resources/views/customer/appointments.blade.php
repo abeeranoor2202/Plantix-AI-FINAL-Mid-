@@ -7,15 +7,7 @@
 @include('partials.footer-alt')
 @endsection
 
-@section('page_scripts')
-    <script src="{{ asset('assets/js/cart.js') }}"></script>
-    <script src="{{ asset('assets/js/experts.js') }}"></script>
-    <script src="{{ asset('assets/js/dialogs.js') }}"></script>
-    <script src="{{ asset('assets/js/toast.js') }}"></script>
-    <script src="{{ asset('assets/js/auth-pages.js') }}"></script>
-    <script src="{{ asset('assets/js/appointments.js') }}"></script>
-    <script src="{{ asset('assets/js/strict-validation.js') }}"></script>
-@endsection
+@section('page_scripts')@endsection
 
 @section('content')
 <div class="breadcrumb-area text-center shadow dark-hard bg-cover text-light bg-breadcrumb-default">
@@ -51,25 +43,46 @@
               <a href="{{ route('appointment.book') }}" class="btn btn-theme btn-sm"><i class="fas fa-plus"></i> Book
                 Appointment</a>
             </div>
-            <div id="appointmentsTableWrap" class="table-responsive">
+@if(session('success'))
+              <div class="alert alert-success">{{ session('success') }}</div>
+            @endif
+            @if($appointments->isEmpty())
+              <p class="text-muted">No appointments yet. <a href="{{ route('appointment.book') }}">Book one now</a>.</p>
+            @else
+            <div class="table-responsive">
               <table class="table table-striped align-middle">
                 <thead>
                   <tr>
                     <th>ID</th>
                     <th>Date/Time</th>
-                    <th>Type</th>
                     <th>Expert</th>
                     <th>Status</th>
                     <th>Actions</th>
                   </tr>
                 </thead>
-                <tbody id="appointmentsTableBody">
+                <tbody>
+                  @foreach($appointments as $appt)
                   <tr>
-                    <td colspan="6">Loading...</td>
+                    <td><a href="{{ route('appointment.details', $appt->id) }}">#{{ $appt->id }}</a></td>
+                    <td>{{ $appt->scheduled_at ? $appt->scheduled_at->format('d M Y H:i') : '-' }}</td>
+                    <td>{{ $appt->expert->user->name ?? 'Any Expert' }}</td>
+                    <td><span class="badge bg-{{ $appt->status === 'completed' ? 'success' : ($appt->status === 'cancelled' ? 'danger' : 'warning') }}">{{ ucfirst($appt->status) }}</span></td>
+                    <td class="d-flex gap-1">
+                      <a href="{{ route('appointment.details', $appt->id) }}" class="btn btn-sm btn-outline-primary">View</a>
+                      @if(in_array($appt->status, ['pending','confirmed']))
+                      <form method="POST" action="{{ route('appointment.cancel', $appt->id) }}">
+                        @csrf
+                        <button class="btn btn-sm btn-outline-danger" onclick="return confirm('Cancel?')">Cancel</button>
+                      </form>
+                      @endif
+                    </td>
                   </tr>
+                  @endforeach
                 </tbody>
               </table>
             </div>
+            {{ $appointments->links() }}
+            @endif
             <div class="mt-3 d-flex gap-2">
               <a href="{{ route('shop') }}" class="btn btn-border">Continue Shopping</a>
               <a href="{{ route('account.profile') }}" class="btn btn-theme">Go to Profile</a>

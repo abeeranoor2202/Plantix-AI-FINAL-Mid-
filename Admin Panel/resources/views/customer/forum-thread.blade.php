@@ -7,14 +7,7 @@
 @include('partials.footer-alt')
 @endsection
 
-@section('page_scripts')
-    <script src="{{ asset('assets/js/cart.js') }}"></script>
-    <script src="{{ asset('assets/js/experts.js') }}"></script>
-    <script src="{{ asset('assets/js/dialogs.js') }}"></script>
-    <script src="{{ asset('assets/js/toast.js') }}"></script>
-    <script src="{{ asset('assets/js/forum.js') }}"></script>
-    <script src="{{ asset('assets/js/strict-validation.js') }}"></script>
-@endsection
+@section('page_scripts')@endsection
 
 @section('content')
 <div class="breadcrumb-area text-center shadow dark-hard bg-cover text-light bg-breadcrumb-default">
@@ -37,35 +30,80 @@
   <div id="forum-thread-page" class="default-padding">
     <div class="container">
       <div class="panel-card p-4">
+
+        @if(session('success'))
+          <div class="alert alert-success">{{ session('success') }}</div>
+        @endif
+
+        {{-- Thread header --}}
         <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
           <div>
-            <h3 class="mb-1"><span id="th-title-text">Thread</span> <span id="th-pinned"
-                class="badge bg-warning text-dark ms-2 hidden">Pinned</span></h3>
-            <div class="text-muted small" id="th-meta">-</div>
-            <div class="mt-2" id="th-tags"></div>
-          </div>
-          <div class="text-end">
-            <div class="btn-group">
-              <button id="th-up" class="btn btn-sm btn-outline-secondary" title="Upvote"><i
-                  class="fas fa-thumbs-up"></i></button>
-              <button id="th-down" class="btn btn-sm btn-outline-secondary" title="Downvote"><i
-                  class="fas fa-thumbs-down"></i></button>
+            <h3 class="mb-1">
+              {{ $thread->title }}
+              @if($thread->is_pinned ?? false)
+                <span class="badge bg-warning text-dark ms-2">Pinned</span>
+              @endif
+              @if($thread->is_solved ?? false)
+                <span class="badge bg-success ms-2">Solved</span>
+              @endif
+            </h3>
+            <div class="text-muted small">
+              Posted by {{ $thread->user->name ?? 'Unknown' }} &bull; {{ $thread->created_at->format('d M Y H:i') }}
+              @if($thread->category) &bull; <span class="badge bg-secondary">{{ $thread->category->name }}</span>@endif
             </div>
-            <div class="mt-1 small">Votes: <span id="th-votes">0</span></div>
-            <button id="th-solved" class="btn btn-sm btn-outline-success mt-2 hidden">Mark Solved</button>
-            <button id="th-pin" class="btn btn-sm btn-outline-warning mt-2 hidden">Pin</button>
-            <button id="th-delete" class="btn btn-sm btn-outline-danger mt-2 hidden">Delete</button>
-            <div id="th-pin-status" class="small text-muted mt-1"></div>
+          </div>
+          <div class="d-flex gap-2 flex-wrap">
+            @auth
+            @if(auth('web')->id() === $thread->user_id)
+            <form method="POST" action="{{ route('forum.delete', $thread->id) }}">
+              @csrf @method('DELETE')
+              <button class="btn btn-sm btn-outline-danger" onclick="return confirm('Delete this thread?')"><i class="fas fa-trash"></i></button>
+            </form>
+            @endif
+            @endauth
+            <a href="{{ route('forum') }}" class="btn btn-border btn-sm">Back to Forum</a>
           </div>
         </div>
         <hr>
-        <div id="th-body" class="mb-4"></div>
-        <h5>Replies</h5>
-        <div id="th-posts" class="mb-3"></div>
-        <div id="th-reply-box" class="border rounded p-3 bg-light">
-          <textarea id="replyBody" class="form-control mb-2" rows="4" placeholder="Write a reply..." required data-label="Reply message"></textarea>
-          <button id="replyBtn" class="btn btn-theme btn-sm">Reply</button>
+
+        {{-- Thread body --}}
+        <div class="mb-4">{!! nl2br(e($thread->body)) !!}</div>
+
+        {{-- Replies --}}
+        <h5>Replies ({{ $thread->replies->count() }})</h5>
+        @forelse($thread->replies as $reply)
+        <div class="border rounded p-3 mb-2 {{ $reply->is_accepted ? 'border-success' : '' }}">
+          <div class="d-flex justify-content-between">
+            <strong>{{ $reply->user->name ?? 'User' }}</strong>
+            <small class="text-muted">{{ $reply->created_at->diffForHumans() }}</small>
+          </div>
+          <p class="mb-0 mt-1">{{ $reply->body }}</p>
         </div>
+        @empty
+        <p class="text-muted">No replies yet. Be the first to reply!</p>
+        @endforelse
+
+        {{-- Reply form --}}
+        @auth
+        <div class="border rounded p-3 bg-light mt-3">
+          <h6>Leave a Reply</h6>
+          @if($errors->any())
+            <div class="alert alert-danger py-2">
+              <ul class="mb-0">@foreach($errors->all() as $e)<li>{{ $e }}</li>@endforeach</ul>
+            </div>
+          @endif
+          <form method="POST" action="{{ route('forum.reply', $thread->id) }}">
+            @csrf
+            <textarea name="body" class="form-control mb-2" rows="4" placeholder="Write a reply..." required>{{ old('body') }}</textarea>
+            <button class="btn btn-theme btn-sm">Reply</button>
+          </form>
+        </div>
+        @else
+        <div class="alert alert-info mt-3">
+          <a href="{{ route('login') }}">Sign in</a> to leave a reply.
+        </div>
+        @endauth
+
       </div>
     </div>
   </div>

@@ -7,13 +7,7 @@
 @include('partials.footer-alt')
 @endsection
 
-@section('page_scripts')
-    <script src="{{ asset('assets/js/cart.js') }}"></script>
-    <script src="{{ asset('assets/js/dialogs.js') }}"></script>
-    <script src="{{ asset('assets/js/toast.js') }}"></script>
-    <script src="{{ asset('assets/js/auth-pages.js') }}"></script>
-    <script src="{{ asset('assets/js/strict-validation.js') }}"></script>
-@endsection
+@section('page_scripts')@endsection
 
 @section('content')
 <!-- Breadcrumb -->
@@ -48,40 +42,68 @@
         <div class="col-lg-8">
           <div class="checkout-form panel-card p-4">
             <h3>Profile</h3>
-            <form id="profile-form">
-              <div class="row g-3">
-                <div class="col-md-6"><label for="profName">Name *</label><input id="profName" type="text"
-                    class="form-control" placeholder="Your full name" required></div>
-                <div class="col-md-6"><label for="profEmail">Email</label><input id="profEmail" type="email"
-                    class="form-control" placeholder="Your email" disabled title="Email cannot be changed"></div>
-                <div class="col-md-6"><label for="profPhone">Phone *</label><input id="profPhone" type="tel"
-                    class="form-control" placeholder="Your phone" required></div>
+
+            @if(session('success'))
+              <div class="alert alert-success">{{ session('success') }}</div>
+            @endif
+            @if($errors->any())
+              <div class="alert alert-danger">
+                <ul class="mb-0">@foreach($errors->all() as $e)<li>{{ $e }}</li>@endforeach</ul>
               </div>
-              <hr class="my-4">
-              <h5>Billing / Shipping Address</h5>
+            @endif
+
+            <form method="POST" action="{{ route('account.profile.update') }}" enctype="multipart/form-data">
+              @csrf @method('PUT')
               <div class="row g-3">
-                <div class="col-md-6"><label for="profFirstName">First Name *</label><input id="profFirstName"
-                    type="text" class="form-control" placeholder="First name" required></div>
-                <div class="col-md-6"><label for="profLastName">Last Name *</label><input id="profLastName" type="text"
-                    class="form-control" placeholder="Last name" required></div>
-                <div class="col-md-6"><label for="profCompany">Company (optional)</label><input id="profCompany"
-                    type="text" class="form-control" placeholder="Company (optional)"></div>
-                <div class="col-md-6"><label for="profCountry">Country *</label><input id="profCountry" type="text"
-                    class="form-control" value="Pakistan" placeholder="Country" required></div>
-                <div class="col-md-6"><label for="profCity">City *</label><input id="profCity" type="text"
-                    class="form-control" placeholder="City" required></div>
-                <div class="col-md-6"><label for="profState">State/Province *</label><input id="profState" type="text"
-                    class="form-control" placeholder="State or Province" required></div>
-                <div class="col-md-6"><label for="profPostal">Postal Code *</label><input id="profPostal" type="text"
-                    class="form-control" placeholder="Postal code" required></div>
-                <div class="col-md-12"><label for="profAddress1">Address Line 1 *</label><input id="profAddress1"
-                    type="text" class="form-control" placeholder="Street address" required></div>
-                <div class="col-md-12"><label for="profAddress2">Address Line 2</label><input id="profAddress2"
-                    type="text" class="form-control" placeholder="Apartment, suite, unit, etc. (optional)"></div>
+                <div class="col-md-6">
+                  <label class="form-label">Name *</label>
+                  <input name="name" type="text" class="form-control" value="{{ old('name', $user->name) }}" required>
+                  @error('name')<div class="text-danger small">{{ $message }}</div>@enderror
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Email</label>
+                  <input type="email" class="form-control" value="{{ $user->email }}" disabled title="Email cannot be changed">
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Phone</label>
+                  <input name="phone" type="tel" class="form-control" value="{{ old('phone', $user->phone) }}">
+                  @error('phone')<div class="text-danger small">{{ $message }}</div>@enderror
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Profile Photo</label>
+                  <input name="profile_photo" type="file" class="form-control" accept="image/*">
+                  @error('profile_photo')<div class="text-danger small">{{ $message }}</div>@enderror
+                </div>
               </div>
-              <button type="submit" id="saveProfileBtn" class="btn btn-theme mt-3">Save Profile</button>
+              <button type="submit" class="btn btn-theme mt-3">Save Profile</button>
             </form>
-            <a id="viewOrdersLink" class="btn btn-border mt-3" href="{{ route('orders') }}">View Orders</a>
+
+            <hr class="my-4">
+            <h5>Change Password</h5>
+            <form method="POST" action="{{ route('account.password') }}">
+              @csrf
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <label class="form-label">Current Password *</label>
+                  <input name="current_password" type="password" class="form-control" required>
+                  @error('current_password')<div class="text-danger small">{{ $message }}</div>@enderror
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">New Password *</label>
+                  <input name="password" type="password" class="form-control" required>
+                  @error('password')<div class="text-danger small">{{ $message }}</div>@enderror
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Confirm Password *</label>
+                  <input name="password_confirmation" type="password" class="form-control" required>
+                </div>
+              </div>
+              <button type="submit" class="btn btn-border mt-3">Update Password</button>
+            </form>
+
+            <div class="mt-3">
+              <a href="{{ route('orders') }}" class="btn btn-border">View Orders</a>
+            </div>
           </div>
         </div>
       </div>

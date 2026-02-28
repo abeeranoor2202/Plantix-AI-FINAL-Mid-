@@ -7,14 +7,7 @@
 @include('partials.footer-alt')
 @endsection
 
-@section('page_scripts')
-    <script src="{{ asset('assets/js/experts.js') }}"></script>
-    <script src="{{ asset('assets/js/cart.js') }}"></script>
-    <script src="{{ asset('assets/js/dialogs.js') }}"></script>
-    <script src="{{ asset('assets/js/toast.js') }}"></script>
-    <script src="{{ asset('assets/js/auth-pages.js') }}"></script>
-    <script src="{{ asset('assets/js/strict-validation.js') }}"></script>
-@endsection
+@section('page_scripts')@endsection
 
 @section('content')
 <div class="breadcrumb-area text-center shadow dark-hard bg-cover text-light bg-breadcrumb-default"
@@ -40,31 +33,32 @@
         <div class="col-md-6">
           <div class="checkout-form panel-card p-4">
             <h3 class="mb-3">Choose a new password</h3>
-            <div class="mb-3">
-              <label class="form-label me-3">Account type</label>
-              <div class="btn-group" role="group" aria-label="Role">
-                <input type="radio" class="btn-check" name="resetRole" id="resetCustomer" value="customer"
-                  autocomplete="off" checked>
-                <label class="btn btn-outline-success" for="resetCustomer">Customer</label>
-                <input type="radio" class="btn-check" name="resetRole" id="resetExpert" value="expert"
-                  autocomplete="off">
-                <label class="btn btn-outline-success" for="resetExpert">Expert</label>
+
+            @if ($errors->any())
+              <div class="alert alert-danger">
+                <ul class="mb-0">@foreach ($errors->all() as $e)<li>{{ $e }}</li>@endforeach</ul>
               </div>
-            </div>
-            <form id="reset-form">
+            @endif
+
+            <form method="POST" action="{{ route('password.update') }}">
+              @csrf
+              <input type="hidden" name="token" value="{{ $token }}">
               <div class="mb-3">
                 <label>Email</label>
-                <input id="resetEmail" type="email" class="form-control" placeholder="Enter your email" required data-label="Email address">
-              </div>
-              <div class="mb-3">
-                <label>Reset Code</label>
-                <input id="resetToken" type="text" class="form-control" placeholder="Enter the code sent to your email"
-                  required>
+                <input type="email" name="email" class="form-control @error('email') is-invalid @enderror"
+                  placeholder="Enter your email" value="{{ old('email', request('email')) }}" required>
+                @error('email')<div class="invalid-feedback">{{ $message }}</div>@enderror
               </div>
               <div class="mb-3">
                 <label>New Password</label>
-                <input id="resetNewPassword" type="password" class="form-control" placeholder="Enter a new password"
-                  minlength="8" required data-label="New password (min 8 characters)">
+                <input type="password" name="password" class="form-control @error('password') is-invalid @enderror"
+                  placeholder="Enter a new password (min 8 characters)" required>
+                @error('password')<div class="invalid-feedback">{{ $message }}</div>@enderror
+              </div>
+              <div class="mb-3">
+                <label>Confirm New Password</label>
+                <input type="password" name="password_confirmation" class="form-control"
+                  placeholder="Repeat new password" required>
               </div>
               <button class="btn btn-theme w-100" type="submit">Reset Password</button>
             </form>

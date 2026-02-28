@@ -7,15 +7,7 @@
 @include('partials.footer-alt')
 @endsection
 
-@section('page_scripts')
-    <script src="{{ asset('assets/js/cart.js') }}"></script>
-    <script src="{{ asset('assets/js/experts.js') }}"></script>
-    <script src="{{ asset('assets/js/dialogs.js') }}"></script>
-    <script src="{{ asset('assets/js/toast.js') }}"></script>
-    <script src="{{ asset('assets/js/auth-pages.js') }}"></script>
-    <script src="{{ asset('assets/js/appointments.js') }}"></script>
-    <script src="{{ asset('assets/js/strict-validation.js') }}"></script>
-@endsection
+@section('page_scripts')@endsection
 
 @section('content')
 <div
@@ -45,98 +37,46 @@
           <div class="col-lg-8">
             <div class="panel-card p-4">
               <h3 class="mb-3">Appointment Details</h3>
-              <form id="appointment-form">
+              @if($errors->any())
+                <div class="alert alert-danger">
+                  <ul class="mb-0">
+                    @foreach($errors->all() as $error)
+                      <li>{{ $error }}</li>
+                    @endforeach
+                  </ul>
+                </div>
+              @endif
+              <form method="POST" action="{{ route('appointment.store') }}">
+                @csrf
                 <div class="row g-3">
                   <div class="col-md-6">
-                    <label for="apptType" class="form-label">Type</label>
-                    <select
-                      id="apptType"
-                      class="form-control"
-                      required
-                      data-label="Appointment type"
-                    >
-                      <option value="Consultation">Consultation</option>
-                      <option value="Soil Testing">Soil Testing</option>
-                      <option value="Field Visit">Field Visit</option>
-                    </select>
-                  </div>
-                  <div class="col-md-6">
-                    <label for="apptExpert" class="form-label">Expert</label>
-                    <select
-                      id="apptExpert"
-                      class="form-control"
-                      data-label="Expert"
-                    >
+                    <label class="form-label">Expert</label>
+                    <select name="expert_id" class="form-control">
                       <option value="">Any available expert</option>
+                      @foreach($experts as $expert)
+                      <option value="{{ $expert->id }}" {{ old('expert_id') == $expert->id ? 'selected' : '' }}>
+                        {{ $expert->user->name ?? 'Expert #'.$expert->id }}
+                        @if($expert->specialization) &mdash; {{ $expert->specialization }}@endif
+                      </option>
+                      @endforeach
                     </select>
+                    @error('expert_id')<div class="text-danger small">{{ $message }}</div>@enderror
                   </div>
                   <div class="col-md-6">
-                    <label for="apptDate" class="form-label">Date</label>
-                    <input
-                      type="date"
-                      id="apptDate"
-                      class="form-control"
-                      required
-                      data-label="Appointment date"
-                    />
-                  </div>
-                  <div class="col-md-6">
-                    <label for="apptTime" class="form-label">Time</label>
-                    <input
-                      type="time"
-                      id="apptTime"
-                      class="form-control"
-                      required
-                      data-label="Appointment time"
-                    />
-                  </div>
-                  <div class="col-md-6">
-                    <label for="apptChannel" class="form-label">Channel</label>
-                    <select
-                      id="apptChannel"
-                      class="form-control"
-                      required
-                      data-label="Appointment channel"
-                    >
-                      <option value="In-Person">In-Person</option>
-                      <option value="Phone">Phone</option>
-                      <option value="Video">Video</option>
-                    </select>
+                    <label class="form-label">Date &amp; Time *</label>
+                    <input type="datetime-local" name="scheduled_at" class="form-control"
+                           value="{{ old('scheduled_at') }}"
+                           min="{{ now()->addHour()->format('Y-m-d\TH:i') }}" required>
+                    @error('scheduled_at')<div class="text-danger small">{{ $message }}</div>@enderror
                   </div>
                   <div class="col-12">
-                    <label for="apptNotes" class="form-label"
-                      >Notes (optional)</label
-                    >
-                    <textarea
-                      id="apptNotes"
-                      rows="3"
-                      class="form-control"
-                      placeholder="Any details or requests"
-                      data-label="Appointment notes"
-                    ></textarea>
-                  </div>
-                  <div class="col-12">
-                    <label class="form-label">Location</label>
-                    <input
-                      type="text"
-                      id="apptAddress1"
-                      class="form-control mb-2"
-                      placeholder="Address line 1"
-                      data-label="Address line 1"
-                    />
-                    <input
-                      type="text"
-                      id="apptAddress2"
-                      class="form-control"
-                      placeholder="Address line 2 (optional)"
-                      data-label="Address line 2"
-                    />
+                    <label class="form-label">Notes (optional)</label>
+                    <textarea name="notes" rows="3" class="form-control" placeholder="Describe your concern or any details">{{ old('notes') }}</textarea>
+                    @error('notes')<div class="text-danger small">{{ $message }}</div>@enderror
                   </div>
                 </div>
                 <div class="mt-4 d-flex gap-2">
-                  <button type="submit" class="btn btn-theme">
-                    Book Appointment
-                  </button>
+                  <button type="submit" class="btn btn-theme">Book Appointment</button>
                   <a href="{{ route('appointments') }}" class="btn btn-border">Cancel</a>
                 </div>
               </form>
