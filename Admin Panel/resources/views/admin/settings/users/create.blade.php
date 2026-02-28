@@ -170,7 +170,6 @@
 				url: '{{ route("api.admin.users.store") }}',
 				method: 'POST',
 				headers: {
-					'Authorization': 'Bearer ' + getCookie('token'),
 					'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
 				},
 				processData: false,

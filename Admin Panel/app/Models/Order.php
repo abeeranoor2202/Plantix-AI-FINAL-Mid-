@@ -14,7 +14,7 @@ class Order extends Model
         'status', 'subtotal', 'delivery_fee', 'tax_amount', 'discount_amount',
         'total', 'payment_method', 'payment_status',
         'delivery_address', 'delivery_lat', 'delivery_lng',
-        'notes', 'estimated_delivery',
+        'notes', 'estimated_delivery', 'delivered_at',
     ];
 
     protected $casts = [
@@ -24,6 +24,7 @@ class Order extends Model
         'discount_amount'    => 'decimal:2',
         'total'              => 'decimal:2',
         'estimated_delivery' => 'datetime',
+        'delivered_at'       => 'datetime',
     ];
 
     protected static function booted(): void
@@ -115,16 +116,37 @@ class Order extends Model
     public static function statusBadgeClass(string $status): string
     {
         return match($status) {
-            'pending'         => 'badge-warning',
-            'accepted'        => 'badge-info',
-            'preparing'       => 'badge-primary',
-            'ready'           => 'badge-secondary',
-            'driver_assigned' => 'badge-dark',
-            'picked_up'       => 'badge-light',
-            'delivered'       => 'badge-success',
-            'rejected',
-            'cancelled'       => 'badge-danger',
-            default           => 'badge-secondary',
+            'pending'          => 'badge-warning',
+            'confirmed'        => 'badge-info',
+            'processing'       => 'badge-primary',
+            'shipped'          => 'badge-secondary',
+            'delivered'        => 'badge-success',
+            'cancelled'        => 'badge-danger',
+            'rejected'         => 'badge-danger',
+            'return_requested' => 'badge-warning',
+            'returned'         => 'badge-dark',
+            default            => 'badge-secondary',
         };
+    }
+
+    /** Allowed forward transitions for the order state machine */
+    public static function allowedTransitions(): array
+    {
+        return [
+            'pending'          => ['confirmed', 'cancelled', 'rejected'],
+            'confirmed'        => ['processing', 'cancelled'],
+            'processing'       => ['shipped', 'cancelled'],
+            'shipped'          => ['delivered'],
+            'delivered'        => ['return_requested'],
+            'return_requested' => ['returned', 'delivered'],
+            'returned'         => [],
+            'cancelled'        => [],
+            'rejected'         => [],
+        ];
+    }
+
+    public function canTransitionTo(string $newStatus): bool
+    {
+        return in_array($newStatus, self::allowedTransitions()[$this->status] ?? []);
     }
 }

@@ -173,9 +173,6 @@
     $.ajax({
         url: '{{ route("api.admin.settings.currency") }}',
         method: 'GET',
-        headers: {
-            'Authorization': 'Bearer ' + getCookie('token')
-        },
         success: function(response) {
             if (response && response.data) {
                 currentCurrency = response.data.symbol;
@@ -192,7 +189,6 @@
                 url: '{{ route("api.admin.users.send-password-reset", ":id") }}'.replace(':id', id),
                 method: 'POST',
                 headers: {
-                    'Authorization': 'Bearer ' + getCookie('token'),
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 },
                 success: function(response) {
@@ -214,9 +210,6 @@
         $.ajax({
             url: '{{ route("api.admin.users.show", ":id") }}'.replace(':id', id),
             method: 'GET',
-            headers: {
-                'Authorization': 'Bearer ' + getCookie('token')
-            },
             success: function(response) {
                 if (response && response.data) {
                     var user = response.data;
@@ -246,9 +239,6 @@
                     $.ajax({
                         url: '{{ route("api.admin.dashboard.user-orders") }}?user_id=' + id,
                         method: 'GET',
-                        headers: {
-                            'Authorization': 'Bearer ' + getCookie('token')
-                        },
                         success: function(orderResponse) {
                             if (orderResponse && orderResponse.data) {
                                 $("#total_orders").text(orderResponse.data.count || 0);
@@ -294,7 +284,6 @@
                     url: '{{ route("api.admin.users.update", ":id") }}'.replace(':id', id),
                     method: 'POST',
                     headers: {
-                        'Authorization': 'Bearer ' + getCookie('token'),
                         'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                     },
                     processData: false,

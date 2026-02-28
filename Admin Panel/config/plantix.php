@@ -17,6 +17,9 @@ return [
     // Low-stock alert threshold (units)
     'low_stock_threshold' => (int) env('PLANTIX_LOW_STOCK_THRESHOLD', 10),
 
+    // Number of days after delivery within which a return request is allowed
+    'return_window_days' => (int) env('PLANTIX_RETURN_WINDOW_DAYS', 7),
+
     // Per-page pagination defaults
     'paginate' => [
         'products'     => 20,

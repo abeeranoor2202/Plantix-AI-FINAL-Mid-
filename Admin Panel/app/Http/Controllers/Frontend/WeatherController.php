@@ -48,8 +48,6 @@ class WeatherController extends Controller
      */
     public function saveLocation(Request $request)
     {
-        // $this->middleware('auth'); // Removed to avoid guard conflicts
-
         $validated = $request->validate([
             'city'      => 'required|string|max:100',
             'label'     => 'nullable|string|max:50',
@@ -58,6 +56,10 @@ class WeatherController extends Controller
         ]);
 
         $user = Auth::user();
+
+        if (! $user) {
+            return response()->json(['error' => 'Authentication required.'], 401);
+        }
 
         // If making this primary, unset previous primary
         if ($request->boolean('is_primary')) {
@@ -85,6 +87,7 @@ class WeatherController extends Controller
         $city = $request->input('city', 'Lahore');
 
         $logs = WeatherLog::forCity($city)
+            ->latest('fetched_at')
             ->take(24)
             ->get(['city', 'temperature_c', 'humidity', 'condition', 'fetched_at']);
 

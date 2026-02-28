@@ -2,12 +2,11 @@
 
 @section('content')
 
-<div id="main-wrapper" class="page-wrapper" style="min-height: 207px;">
+<div class="container-fluid">
 
-    <div class="container-fluid">
-
-        <div id="data-table_processing" class="dataTables_processing panel panel-default"
-             style="display: none;margin-top:20px;">{{trans('lang.processing')}}
+        <div id="data-table_processing" class="card-agri text-center mb-4"
+             style="display: none; padding: 20px; color: var(--agri-primary); font-weight: 600; width: 100%;">
+             <i class="fa fa-spinner fa-spin mr-2"></i> {{trans('lang.processing')}}
         </div>
 
         <!-- Business Analytics -->
@@ -244,8 +243,6 @@
 
     <!-- ============================================================== -->
 
-</div>
-
 @endsection
 
 @section('scripts')
@@ -265,9 +262,6 @@
     $.ajax({
         url: '{{ route("api.admin.settings.currency") }}',
         method: 'GET',
-        headers: {
-            'Authorization': 'Bearer ' + getCookie('token')
-        },
         success: function(response) {
             if (response && response.data) {
                 currentCurrency = response.data.symbol;
@@ -283,9 +277,6 @@
         $.ajax({
             url: '{{ route("api.admin.dashboard.stats") }}',
             method: 'GET',
-            headers: {
-                'Authorization': 'Bearer ' + getCookie('token')
-            },
             success: function(response) {
                 if (response && response.data) {
                     jQuery("#order_count").text(response.data.total_orders || 0);
@@ -308,9 +299,6 @@
         $.ajax({
             url: '{{ route("api.admin.settings.placeholder") }}',
             method: 'GET',
-            headers: {
-                'Authorization': 'Bearer ' + getCookie('token')
-            },
             success: function(response) {
                 if (response && response.data) {
                     placeholderImage = response.data.image;
@@ -324,9 +312,6 @@
         $.ajax({
             url: '{{ route("api.admin.vendors.top") }}?limit=5',
             method: 'GET',
-            headers: {
-                'Authorization': 'Bearer ' + getCookie('token')
-            },
             success: function(response) {
                 var append_listvendors = document.getElementById('append_list');
                 append_listvendors.innerHTML = '';
@@ -354,9 +339,6 @@
         $.ajax({
             url: '{{ route("api.admin.orders.recent") }}?limit=10',
             method: 'GET',
-            headers: {
-                'Authorization': 'Bearer ' + getCookie('token')
-            },
             success: function(response) {
                 var append_listrecent_order = document.getElementById('append_list_recent_order');
                 append_listrecent_order.innerHTML = '';
@@ -381,9 +363,6 @@
         $.ajax({
             url: '{{ route("api.admin.payouts.recent") }}?limit=10',
             method: 'GET',
-            headers: {
-                'Authorization': 'Bearer ' + getCookie('token')
-            },
             success: function(response) {
                 var append_list_recent_payouts = document.getElementById('append_list_recent_payouts');
                 append_list_recent_payouts.innerHTML = '';
@@ -430,9 +409,6 @@
         $.ajax({
             url: '{{ route("api.admin.dashboard.earnings") }}',
             method: 'GET',
-            headers: {
-                'Authorization': 'Bearer ' + getCookie('token')
-            },
             success: function(response) {
                 if (response && response.data) {
                     var totalEarning = response.data.total_earnings || 0;

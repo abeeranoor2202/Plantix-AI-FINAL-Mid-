@@ -158,9 +158,6 @@
                 $.ajax({
                     url: '/api/admin/vendors-list',
                     method: 'GET',
-                    headers: {
-                        'Authorization': 'Bearer ' + getCookie('token')
-                    },
                     data: {
                         type: type,
                         search: searchValue,
@@ -215,7 +212,6 @@
                 url: '/api/admin/vendors/' + id + '/status',
                 method: 'PUT',
                 headers: {
-                    'Authorization': 'Bearer ' + getCookie('token'),
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 },
                 data: { is_active: ischeck },
@@ -236,7 +232,6 @@
                     url: '/api/admin/vendors/' + id,
                     method: 'DELETE',
                     headers: {
-                        'Authorization': 'Bearer ' + getCookie('token'),
                         'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                     },
                     success: function(response) {
@@ -260,7 +255,6 @@
                                 url: '/api/admin/vendors/' + $(this).attr('dataId'),
                                 method: 'DELETE',
                                 headers: {
-                                    'Authorization': 'Bearer ' + getCookie('token'),
                                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                                 }
                             })

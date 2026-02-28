@@ -26,11 +26,23 @@ class CustomerProfileController extends Controller
         $data = $request->validated();
 
         if ($request->hasFile('profile_photo')) {
+            $file     = $request->file('profile_photo');
+            $mimeMap  = ['image/jpeg' => 'jpg', 'image/png' => 'png', 'image/webp' => 'webp'];
+            $ext      = $mimeMap[$file->getMimeType()] ?? null;
+
+            if (! $ext) {
+                return back()->withErrors(['profile_photo' => 'Invalid image type. Only JPEG, PNG, WebP allowed.']);
+            }
+
             if ($user->profile_photo) {
                 Storage::disk('public')->delete($user->profile_photo);
             }
-            $data['profile_photo'] = $request->file('profile_photo')
-                                             ->store('avatars', 'public');
+
+            $data['profile_photo'] = $file->storeAs(
+                'avatars',
+                \Illuminate\Support\Str::uuid() . '.' . $ext,
+                'public'
+            );
         }
 
         $user->update($data);
@@ -53,6 +65,9 @@ class CustomerProfileController extends Controller
         }
 
         $user->update(['password' => Hash::make($request->password)]);
+
+        // Revoke all Sanctum API tokens so stolen tokens cannot be reused
+        $user->tokens()->delete();
 
         return back()->with('success', 'Password changed successfully.');
     }

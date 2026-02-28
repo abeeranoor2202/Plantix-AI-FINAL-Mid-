@@ -447,9 +447,6 @@
             $.ajax({
                 url: '/api/admin/settings/global',
                 method: 'GET',
-                headers: {
-                    'Authorization': 'Bearer ' + getCookie('token')
-                },
                 success: function(response) {
                     if (response.success && response.data) {
                         var globalSettings = response.data;
@@ -625,7 +622,6 @@
                     url: '/api/admin/settings/update',
                     method: 'POST',
                     headers: {
-                        'Authorization': 'Bearer ' + getCookie('token'),
                         'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                     },
                     data: formData,
@@ -657,9 +653,6 @@
                         $.ajax({
                             url: '/api/admin/settings/upload-json',
                             method: 'POST',
-                            headers: {
-                                'Authorization': 'Bearer ' + getCookie('token')
-                            },
                             data: formData,
                             processData: false,
                             contentType: false,
@@ -930,7 +923,6 @@
                     url: '/api/admin/settings/update',
                     method: 'POST',
                     headers: {
-                        'Authorization': 'Bearer ' + getCookie('token'),
                         'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                     },
                     data: formData,

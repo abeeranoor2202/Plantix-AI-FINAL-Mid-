@@ -57,6 +57,20 @@ class StockService
         if ($stock) {
             $stock->decrement('quantity', $qty);
             $this->checkLowStockAlert($product, $stock->fresh());
+        } else {
+            // No ProductStock row — fall back to products.stock_quantity for alert
+            $product->refresh();
+            $threshold = (int) config('plantix.low_stock_threshold', 10);
+            if ($product->stock_quantity >= 0 && $product->stock_quantity <= $threshold) {
+                try {
+                    User::where('role', 'admin')->get()
+                        ->each(fn ($admin) => $admin->notify(
+                            new LowStockAlertNotification($product, $product->stock_quantity)
+                        ));
+                } catch (\Throwable $e) {
+                    Log::warning('Low-stock alert (products table) notification failed: ' . $e->getMessage());
+                }
+            }
         }
     }
 

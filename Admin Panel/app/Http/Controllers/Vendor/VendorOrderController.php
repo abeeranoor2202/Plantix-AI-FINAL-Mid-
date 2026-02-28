@@ -42,7 +42,7 @@ class VendorOrderController extends Controller
 
     public function show(int $id): View
     {
-        $order = Order::with(['user', 'admin.items.product', 'statusHistory', 'driver'])
+        $order = Order::with(['user', 'items.product', 'statusHistory', 'returnRequest'])
                       ->forVendor($this->vendorId())
                       ->findOrFail($id);
 
@@ -52,11 +52,18 @@ class VendorOrderController extends Controller
     public function updateStatus(Request $request, int $id): RedirectResponse
     {
         $request->validate([
-            'status' => 'required|in:accepted,preparing,ready,rejected,cancelled',
+            'status' => 'required|in:confirmed,preparing,ready,rejected,cancelled',
             'notes'  => 'nullable|string|max:500',
         ]);
 
         $order = Order::forVendor($this->vendorId())->findOrFail($id);
+
+        if (! $order->canTransitionTo($request->status)) {
+            return back()->withErrors([
+                'status' => "Cannot transition order from '{$order->status}' to '{$request->status}'.",
+            ]);
+        }
+
         /** @var \App\Models\User $vendor */
         $vendor = auth('vendor')->user();
 

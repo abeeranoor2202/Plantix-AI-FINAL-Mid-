@@ -196,6 +196,60 @@ class AdminUsersController extends Controller
     }
 
     /**
+     * Toggle user active/inactive status
+     */
+    public function toggleActive($id)
+    {
+        try {
+            $user = User::find($id);
+            if (!$user) {
+                return response()->json(['success' => false, 'message' => 'User not found'], 404);
+            }
+
+            $user->active = ! $user->active;
+            $user->save();
+
+            // Revoke all tokens if account is being disabled
+            if (! $user->active) {
+                $user->tokens()->delete();
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => $user->active ? 'User activated.' : 'User deactivated.',
+                'data'    => ['active' => $user->active],
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => 'Error: ' . $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Delete user
+     */
+    public function destroy($id)
+    {
+        try {
+            $user = User::find($id);
+            if (!$user) {
+                return response()->json(['success' => false, 'message' => 'User not found'], 404);
+            }
+
+            // Prevent self-deletion
+            if ((int) $user->id === (int) auth()->id()) {
+                return response()->json(['success' => false, 'message' => 'Cannot delete your own account.'], 422);
+            }
+
+            $user->tokens()->delete();
+            $user->delete();
+
+            return response()->json(['success' => true, 'message' => 'User deleted.']);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => 'Error: ' . $e->getMessage()], 500);
+        }
+    }
+
+    /**
      * Add wallet topup
      */
     public function walletTopup(Request $request, $id)

@@ -37,7 +37,7 @@ Route::get('/contact',   fn () => view('customer.contact'))->name('contact');
 
 Route::middleware('guest:web')->group(function () {
     Route::get('/signin',  [\App\Http\Controllers\Frontend\Auth\CustomerLoginController::class, 'showLoginForm'])->name('signin');
-    Route::post('/signin', [\App\Http\Controllers\Frontend\Auth\CustomerLoginController::class, 'login'])->name('login');
+    Route::post('/signin', [\App\Http\Controllers\Frontend\Auth\CustomerLoginController::class, 'login'])->name('login')->middleware('throttle:5,1');
 
     Route::get('/signup',  [\App\Http\Controllers\Frontend\Auth\CustomerRegisterController::class, 'showRegistrationForm'])->name('signup');
     Route::post('/signup', [\App\Http\Controllers\Frontend\Auth\CustomerRegisterController::class, 'register'])->name('register');
@@ -49,6 +49,13 @@ Route::middleware('guest:web')->group(function () {
 });
 
 Route::post('/signout', [\App\Http\Controllers\Frontend\Auth\CustomerLoginController::class, 'logout'])->name('logout');
+
+// Email verification (requires customer to be logged in, but not yet verified)
+Route::middleware('auth:web')->group(function () {
+    Route::get('/email/verify',                   fn () => view('customer.email-verification'))->name('verification.notice');
+    Route::get('/email/verify/{id}/{hash}',        [\App\Http\Controllers\Frontend\Auth\CustomerVerificationController::class, 'verify'])->middleware('signed')->name('verification.verify');
+    Route::post('/email/verification-notification', [\App\Http\Controllers\Frontend\Auth\CustomerVerificationController::class, 'resend'])->middleware('throttle:6,1')->name('verification.send');
+});
 
 // ══════════════════════════════════════════════════════════════════════════════
 // 3. PUBLIC SHOP & FORUM (read-only, no auth required)
@@ -65,7 +72,7 @@ Route::redirect('/blog',          '/forum')->name('blog');
 // 4. AUTHENTICATED CUSTOMER ROUTES  [EnsureCustomerAuth]
 // ══════════════════════════════════════════════════════════════════════════════
 
-Route::middleware('customer')->group(function () {
+Route::middleware(['customer', 'verified'])->group(function () {
 
     // ── Forum (write operations) ──────────────────────────────────────────────
     Route::get('/forum/new-thread',  [\App\Http\Controllers\Frontend\ForumController::class, 'create'])->name('forum.new');
@@ -124,8 +131,9 @@ Route::middleware('customer')->group(function () {
 
     // ── AI Agriculture: Disease Identification ────────────────────────────────
     Route::get('/disease-identification',   [\App\Http\Controllers\Frontend\DiseaseIdentificationController::class, 'index'])->name('disease.identification');
-    Route::post('/disease-identification',  [\App\Http\Controllers\Frontend\DiseaseIdentificationController::class, 'detect'])->name('disease.detect');
+    Route::post('/disease-identification',  [\App\Http\Controllers\Frontend\DiseaseIdentificationController::class, 'detect'])->name('disease.detect')->middleware('throttle:disease-detect');
     Route::get('/disease/{id}',             [\App\Http\Controllers\Frontend\DiseaseIdentificationController::class, 'show'])->name('disease.show');
+    Route::get('/disease/{id}/status',      [\App\Http\Controllers\Frontend\DiseaseIdentificationController::class, 'pollStatus'])->name('disease.poll');
     Route::get('/disease-history',          [\App\Http\Controllers\Frontend\DiseaseIdentificationController::class, 'history'])->name('disease.history');
 
     // ── AI Agriculture: Fertilizer Recommendation ─────────────────────────────
@@ -145,7 +153,7 @@ Route::middleware('customer')->group(function () {
     Route::post('/notifications/{id}/read',    [\App\Http\Controllers\Frontend\CustomerNotificationController::class, 'markRead'])->name('notifications.read');
     // ── AI Chat (Plantix AI Assistant) ────────────────────────────────────────
     Route::get('/plantix-ai',            [\App\Http\Controllers\Frontend\AiChatController::class, 'index'])->name('ai.chat');
-    Route::post('/plantix-ai/message',   [\App\Http\Controllers\Frontend\AiChatController::class, 'message'])->name('ai.chat.message');
+    Route::post('/plantix-ai/message',   [\App\Http\Controllers\Frontend\AiChatController::class, 'message'])->name('ai.chat.message')->middleware('throttle:ai-chat');
     Route::get('/plantix-ai/history',    [\App\Http\Controllers\Frontend\AiChatController::class, 'history'])->name('ai.chat.history');
     Route::post('/plantix-ai/new',       [\App\Http\Controllers\Frontend\AiChatController::class, 'newSession'])->name('ai.chat.new');
     Route::get('/plantix-ai/sessions',   [\App\Http\Controllers\Frontend\AiChatController::class, 'sessions'])->name('ai.chat.sessions');
@@ -153,20 +161,11 @@ Route::middleware('customer')->group(function () {
 }); // end customer middleware
 
 // ══════════════════════════════════════════════════════════════════════════════
-// 5. SHARED / PAYMENT CALLBACKS  (legacy – no prefix)
+// 5. STRIPE PAYMENT CALLBACKS  (verified by Stripe signature - no CSRF)
 // ══════════════════════════════════════════════════════════════════════════════
 
-Route::get('lang/change', [\App\Http\Controllers\LangController::class, 'change'])->name('changeLang');
+Route::post('payments/stripe/intent',   [\App\Http\Controllers\Frontend\StripePaymentController::class, 'createIntent'])->middleware('auth:sanctum')->name('stripe.intent');
+Route::post('stripe/webhook',           [\App\Http\Controllers\Frontend\StripePaymentController::class, 'webhook'])->name('stripe.webhook');
 
-Route::post('payments/razorpay/createorder',    [\App\Http\Controllers\RazorPayController::class, 'createOrderid']);
-Route::post('payments/getpaytmchecksum',         [\App\Http\Controllers\PaymentController::class, 'getPaytmChecksum']);
-Route::post('payments/validatechecksum',         [\App\Http\Controllers\PaymentController::class, 'validateChecksum']);
-Route::post('payments/initiatepaytmpayment',     [\App\Http\Controllers\PaymentController::class, 'initiatePaytmPayment']);
-Route::get('payments/paytmpaymentcallback',      [\App\Http\Controllers\PaymentController::class, 'paytmPaymentcallback']);
-Route::post('payments/paypalclientid',           [\App\Http\Controllers\PaymentController::class, 'getPaypalClienttoken']);
-Route::post('payments/paypaltransaction',        [\App\Http\Controllers\PaymentController::class, 'createBraintreePayment']);
-Route::post('payments/stripepaymentintent',      [\App\Http\Controllers\PaymentController::class, 'createStripePaymentIntent']);
-
-Route::get('payment/success',  [\App\Http\Controllers\PaymentController::class, 'paymentsuccess'])->name('payment.success');
-Route::get('payment/failed',   [\App\Http\Controllers\PaymentController::class, 'paymentfailed'])->name('payment.failed');
-Route::get('payment/pending',  [\App\Http\Controllers\PaymentController::class, 'paymentpending'])->name('payment.pending');
+Route::get('payment/success',  [\App\Http\Controllers\Frontend\StripePaymentController::class, 'success'])->name('payment.success');
+Route::get('payment/failed',   fn () => view('customer.payment-failed'))->name('payment.failed');

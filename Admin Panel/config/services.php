@@ -33,8 +33,9 @@ return [
     // ─── Payment Gateways ─────────────────────────────────────────────────────
     // Only Stripe (card) and Cash on Delivery are supported.
     'stripe' => [
-        'key'    => env('STRIPE_KEY'),
-        'secret' => env('STRIPE_SECRET'),
+        'key'            => env('STRIPE_KEY'),
+        'secret'         => env('STRIPE_SECRET'),
+        'webhook_secret' => env('STRIPE_WEBHOOK_SECRET'),
     ],
 
 ];

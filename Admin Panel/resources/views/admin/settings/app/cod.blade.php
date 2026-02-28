@@ -99,9 +99,6 @@
         $.ajax({
             url: '{{ route("api.admin.settings.payment-methods") }}',
             method: 'GET',
-            headers: {
-                'Authorization': 'Bearer ' + getCookie('token')
-            },
             success: function(response) {
                 if (response && response.data) {
                     var paymentSettings = response.data;
@@ -135,7 +132,6 @@
                 url: '{{ route("api.admin.settings.update") }}',
                 method: 'POST',
                 headers: {
-                    'Authorization': 'Bearer ' + getCookie('token'),
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 },
                 data: {

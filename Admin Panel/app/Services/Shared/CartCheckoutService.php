@@ -5,6 +5,7 @@ namespace App\Services\Shared;
 use App\Events\OrderStatusUpdated;
 use App\Models\Cart;
 use App\Models\Coupon;
+use App\Models\CouponUserUsage;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\OrderStatusHistory;
@@ -89,8 +90,15 @@ class CartCheckoutService
                 'notes'            => $data['notes'] ?? null,
             ]);
 
-            // ── Persist order items & decrement stock ─────────────────────────
+            // ── Persist order items & decrement stock (pessimistic lock prevents oversell race) ──
             foreach ($cart->items as $item) {
+                $lockedProduct = Product::lockForUpdate()->find($item->product_id);
+                if (! $lockedProduct || ($lockedProduct->stock?->quantity ?? 0) < $item->quantity) {
+                    throw ValidationException::withMessages([
+                        'cart' => "Insufficient stock for '{$item->product->name}'. Please update your cart.",
+                    ]);
+                }
+
                 OrderItem::create([
                     'order_id'     => $order->id,
                     'product_id'   => $item->product_id,
@@ -101,12 +109,17 @@ class CartCheckoutService
                     'addons'       => $item->addons,
                 ]);
 
-                $this->stock->decrementStock($item->product, $item->quantity);
+                $this->stock->decrementStock($lockedProduct, $item->quantity);
             }
 
-            // ── Increment coupon usage ────────────────────────────────────────
+            // ── Increment coupon usage + record per-user usage ───────────────────────
             if ($coupon) {
                 $coupon->increment('used_count');
+                CouponUserUsage::create([
+                    'coupon_id' => $coupon->id,
+                    'user_id'   => $user->id,
+                    'order_id'  => $order->id,
+                ]);
             }
 
             // ── Status history seed ───────────────────────────────────────────
@@ -140,7 +153,14 @@ class CartCheckoutService
      */
     public function updateStatus(Order $order, string $newStatus, ?string $notes, User $changedBy): Order
     {
-        $order->update(['status' => $newStatus]);
+        $updateData = ['status' => $newStatus];
+
+        // Stamp delivered_at when transitioning to delivered
+        if ($newStatus === 'delivered' && is_null($order->delivered_at)) {
+            $updateData['delivered_at'] = now();
+        }
+
+        $order->update($updateData);
 
         OrderStatusHistory::create([
             'order_id'   => $order->id,
@@ -179,6 +199,15 @@ class CartCheckoutService
 
         if ($coupon->usage_limit && $coupon->used_count >= $coupon->usage_limit) {
             throw ValidationException::withMessages(['coupon_code' => 'This coupon has reached its usage limit.']);
+        }
+
+        // Per-user usage check — prevent using the same coupon multiple times
+        $alreadyUsed = CouponUserUsage::where('coupon_id', $coupon->id)
+            ->where('user_id', $user->id)
+            ->exists();
+
+        if ($alreadyUsed) {
+            throw ValidationException::withMessages(['coupon_code' => 'You have already used this coupon.']);
         }
 
         if ($coupon->min_order_value && $cart->subtotal < $coupon->min_order_value) {

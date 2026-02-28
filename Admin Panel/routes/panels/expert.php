@@ -20,7 +20,7 @@ Route::prefix('expert')->name('expert.')->group(function () {
     // ── Expert Auth (guest-only) ──────────────────────────────────────────────
     Route::middleware('guest:expert')->group(function () {
         Route::get('/login',  [\App\Http\Controllers\Expert\Auth\ExpertLoginController::class, 'showLoginForm'])->name('login');
-        Route::post('/login', [\App\Http\Controllers\Expert\Auth\ExpertLoginController::class, 'login']);
+        Route::post('/login', [\App\Http\Controllers\Expert\Auth\ExpertLoginController::class, 'login'])->middleware('throttle:5,1');
 
         Route::get('/password/email',         [\App\Http\Controllers\Expert\Auth\ExpertForgotPasswordController::class, 'showLinkRequestForm'])->name('password.request');
         Route::post('/password/email',        [\App\Http\Controllers\Expert\Auth\ExpertForgotPasswordController::class, 'sendResetLinkEmail'])->name('password.email');

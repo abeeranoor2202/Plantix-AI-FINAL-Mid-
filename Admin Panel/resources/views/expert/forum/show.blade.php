@@ -1,97 +1,114 @@
 @extends('expert.layouts.app')
 @section('title', Str::limit($thread->title, 40))
-@section('page-title', 'Forum Thread')
+@section('page-title', 'Community Thread View')
 
 @section('content')
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+    <div class="d-flex align-items-center gap-3">
+        <a href="{{ route('expert.forum.index') }}" class="btn btn-light border rounded-circle d-flex align-items-center justify-content-center shadow-sm" style="width: 40px; height: 40px; text-decoration: none;">
+            <i class="fas fa-arrow-left text-muted"></i>
+        </a>
+        <h4 class="mb-0 fw-bold text-dark">Discussion Details</h4>
+    </div>
+</div>
+
 <div class="row g-4 mb-4">
-    <div class="col-lg-8">
-        {{-- Thread --}}
-        <div class="card border-0 shadow-sm mb-4 hover-card" style="border-radius:16px;">
-            <div class="card-body p-5">
-                <div class="d-flex align-items-center gap-3 mb-4">
-                    <span class="badge rounded-pill bg-success bg-opacity-10 text-success px-3 py-2 border border-success border-opacity-25 fs-6">
-                        <i class="bi bi-tag me-2"></i>{{ $thread->category?->name }}
+    <div class="col-lg-8 d-flex flex-column gap-4">
+        {{-- Thread Original Post --}}
+        <div class="card-agri p-0 border-0 bg-white">
+            <div class="p-4 p-md-5">
+                <div class="d-flex flex-wrap align-items-center gap-3 mb-4">
+                    <span class="badge-agri border {{ match($thread->category?->name) { 'Crop Diseases' => 'border-danger bg-danger text-danger', 'Pest Control' => 'border-warning bg-warning text-warning', 'Fertilizers' => 'border-info bg-info text-info', default => 'border-success bg-success text-success' } }} bg-opacity-10 border-opacity-25 shadow-sm" style="padding: 0.4em 1em; font-size: 12px;">
+                        <i class="fas fa-hashtag me-1"></i>{{ $thread->category?->name ?? 'General Discussion' }}
                     </span>
-                    <div class="text-muted small text-uppercase fw-bold">
-                        <i class="bi bi-clock me-1"></i>{{ $thread->created_at->diffForHumans() }}
-                    </div>
+                    <span class="text-muted small text-uppercase fw-bold" style="font-size: 11px; letter-spacing: 0.5px;">
+                        <i class="far fa-clock me-1 text-primary"></i>Posted {{ $thread->created_at->diffForHumans() }}
+                    </span>
+                    @if($thread->is_locked)
+                        <span class="badge-agri bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 ms-auto shadow-sm" style="padding: 0.4em 1em; font-size: 12px;">
+                            <i class="fas fa-lock me-1"></i>Locked
+                        </span>
+                    @endif
                 </div>
-                <h3 class="fw-bold text-dark mb-4" style="line-height:1.4;">{{ $thread->title }}</h3>
                 
-                <div class="d-flex align-items-center gap-3 mb-4 p-3 bg-light rounded-4">
-                    <div class="bg-success text-white rounded-circle d-flex align-items-center justify-content-center" style="width:45px; height:45px; font-weight:bold; font-size:1.2rem;">
+                <h3 class="fw-bold text-dark mb-4 pb-4 border-bottom-dashed" style="line-height: 1.4;">{{ $thread->title }}</h3>
+                
+                <div class="d-flex align-items-center gap-3 mb-4 p-3 bg-light rounded text-dark border border-dashed">
+                    <div class="bg-primary text-white rounded d-flex align-items-center justify-content-center shadow-sm" style="width: 48px; height: 48px; font-weight: bold; font-family: var(--font-heading); font-size: 1.4rem;">
                         {{ strtoupper(substr($thread->user->name, 0, 1)) }}
                     </div>
                     <div>
-                        <div class="text-uppercase small text-muted fw-bold mb-1">Posted By</div>
-                        <div class="fw-semibold text-dark fs-6">{{ $thread->user->name }}</div>
+                        <div class="text-uppercase small text-muted fw-bold mb-1" style="font-size: 11px; letter-spacing: 0.5px;">Farmer / Author</div>
+                        <div class="fw-bold fs-6">{{ $thread->user->name }}</div>
                     </div>
-                    <div class="ms-auto text-end">
-                        <div class="badge rounded-pill bg-white text-dark border px-3 py-2 fs-6">
-                            <i class="bi bi-eye text-success me-2"></i>{{ $thread->views }} views
+                    <div class="ms-auto pe-2 text-end">
+                        <div class="badge-agri bg-white text-dark border shadow-sm d-flex align-items-center gap-2 px-3 py-2">
+                            <i class="far fa-eye text-primary"></i> <span class="fw-bold">{{ $thread->views }}</span> Views
                         </div>
                     </div>
                 </div>
                 
-                <p class="mb-0 fs-5 text-secondary" style="line-height:1.8;">{!! nl2br(e($thread->body)) !!}</p>
+                <div class="fs-6 text-dark fw-medium" style="line-height: 1.8;">
+                    {!! nl2br(e($thread->body)) !!}
+                </div>
             </div>
         </div>
 
         {{-- Replies --}}
-        <div class="card border-0 shadow-sm mb-4" style="border-radius:16px; overflow:hidden;">
-            <div class="card-header bg-white border-bottom py-4 d-flex justify-content-between align-items-center">
-                <h5 class="mb-0 fw-bold">
-                    <i class="bi bi-chat-text text-success me-2 fs-4"></i>
-                    Discussion Replies
-                </h5>
-                <span class="badge rounded-pill bg-light text-dark border px-3 py-2 fs-6">{{ $thread->replies->count() }} Responses</span>
-            </div>
-            <div class="list-group list-group-flush">
+        <h5 class="fw-bold text-dark mb-0 mt-2"><i class="far fa-comments text-success me-2"></i>Responses & Insights ({{ $thread->replies->count() }})</h5>
+        
+        <div class="card-agri p-0 border-0 bg-white overflow-hidden shadow-sm">
+            <div class="list-group list-group-flush pt-1">
                 @forelse($thread->replies->sortBy('created_at') as $reply)
-                <div class="list-group-item border-bottom px-4 py-4 hover-bg-light
-                    {{ $reply->is_expert_reply ? 'bg-success bg-opacity-10' : '' }}">
+                <div class="list-group-item border-bottom-dashed p-4 p-md-5 {{ $reply->is_expert_reply ? 'bg-success bg-opacity-10' : '' }}" style="border-left: {{ $reply->is_expert_reply ? '4px solid var(--agri-primary)' : '4px solid transparent' }};">
                     
                     @if($reply->is_expert_reply)
-                        <div class="mb-3 d-inline-block">
-                            <span class="badge rounded-pill bg-success text-white px-3 py-2 fs-6 shadow-sm">
-                                <i class="bi bi-shield-check me-2"></i>Verified Expert Reply
+                        <div class="mb-4">
+                            <span class="badge-agri bg-success text-white px-3 py-2 shadow-sm d-inline-flex align-items-center gap-2 border border-success">
+                                <i class="fas fa-check-circle"></i> Verified Expert Response
                             </span>
                         </div>
                     @endif
 
-                    <div class="d-flex gap-4">
+                    <div class="d-flex align-items-start gap-3 gap-md-4">
                         <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0 shadow-sm
-                            {{ $reply->is_expert_reply ? 'bg-success text-white border border-2 border-white' : 'bg-white text-dark border' }}"
-                             style="width:50px;height:50px;font-size:1.2rem;font-weight:bold;">
+                            {{ $reply->is_expert_reply ? 'bg-success text-white border-2 border-white' : 'bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25' }}"
+                             style="width: 48px; height: 48px; font-size: 1.3rem; font-family: var(--font-heading); font-weight: 700;">
                             {{ strtoupper(substr($reply->user->name ?? '?', 0, 1)) }}
                         </div>
+                        
                         <div class="flex-grow-1">
-                            <div class="d-flex justify-content-between align-items-center mb-2">
+                            <div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
                                 <span class="fw-bold text-dark fs-6">{{ $reply->user->name }}</span>
-                                <span class="text-muted small text-uppercase fw-bold"><i class="bi bi-clock me-1"></i>{{ $reply->created_at->diffForHumans() }}</span>
+                                <span class="text-muted small text-uppercase fw-bold" style="font-size: 11px; letter-spacing: 0.5px;"><i class="far fa-clock me-1 text-primary opacity-50"></i>{{ $reply->created_at->diffForHumans() }}</span>
                             </div>
                             
-                            <p class="mb-0 text-secondary" style="line-height:1.6; font-size:1.05rem;">{!! nl2br(e($reply->body)) !!}</p>
+                            <div class="text-dark fw-medium mb-0" style="line-height: 1.7;">
+                                {!! nl2br(e($reply->body)) !!}
+                            </div>
                             
                             @if($reply->expertResponse?->recommendation)
-                                <div class="mt-4 p-4 rounded-4 shadow-sm bg-white" style="border: 1px solid #c8e6c9; border-left: 4px solid #2e7d32;">
-                                    <div class="d-flex align-items-center gap-2 mb-2 text-success">
-                                        <i class="bi bi-lightbulb-fill fs-5"></i>
-                                        <span class="fw-bold text-uppercase small">Actionable Recommendation</span>
+                                <div class="mt-4 p-4 rounded bg-white shadow-sm position-relative overflow-hidden" style="border: 1px solid var(--agri-primary-light);">
+                                    <div class="position-absolute top-0 start-0 w-100 h-100 bg-success bg-opacity-10" style="z-index: 0;"></div>
+                                    <div class="position-relative" style="z-index: 1;">
+                                        <div class="d-flex align-items-center gap-2 mb-3 text-success">
+                                            <div class="bg-success text-white rounded-circle d-flex justify-content-center align-items-center shadow-sm" style="width: 24px; height: 24px;"><i class="fas fa-lightbulb" style="font-size: 10px;"></i></div>
+                                            <span class="fw-bold text-uppercase small" style="letter-spacing: 0.5px;">Actionable Recommendation</span>
+                                        </div>
+                                        <p class="mb-0 text-dark fw-bold" style="line-height: 1.6;">{{ $reply->expertResponse->recommendation }}</p>
                                     </div>
-                                    <p class="mb-0 text-dark fw-medium" style="line-height:1.6;">{{ $reply->expertResponse->recommendation }}</p>
                                 </div>
                             @endif
                         </div>
                     </div>
                 </div>
                 @empty
-                <div class="p-5 text-center text-muted">
-                    <div class="d-inline-flex align-items-center justify-content-center bg-light rounded-circle mb-3" style="width:80px; height:80px;">
-                        <i class="bi bi-chat-left-dots fs-2 text-success opacity-50"></i>
+                <div class="p-5 text-center my-3">
+                    <div class="d-inline-flex align-items-center justify-content-center bg-light rounded-circle mb-3 border border-dashed" style="width: 80px; height: 80px;">
+                        <i class="far fa-comment-dots fs-2 text-muted opacity-50"></i>
                     </div>
-                    <h5 class="fw-bold text-dark">No replies yet</h5>
-                    <p>Be the first expert to respond and help this farmer out!</p>
+                    <h5 class="fw-bold text-dark">No Responses Yet</h5>
+                    <p class="text-muted small fw-medium mb-0">Be the first expert to respond and provide valuable insights to this farmer.</p>
                 </div>
                 @endforelse
             </div>
@@ -99,85 +116,100 @@
 
         {{-- Reply Form --}}
         @if(!$thread->is_locked)
-        <div class="card border-0 shadow-sm hover-card" style="border-radius:16px;">
-            <div class="card-header bg-success text-white py-3 border-bottom-0" style="border-top-left-radius:16px; border-top-right-radius:16px;">
-                <h6 class="mb-0 fw-bold fs-5">
-                    <i class="bi bi-shield-check me-2"></i>Post Expert Response
-                </h6>
+        <div class="card-agri p-0 border-0 shadow-sm mt-2 mb-4">
+            <div class="p-4 bg-success bg-opacity-10 border-bottom border-success border-opacity-25 d-flex align-items-center gap-3">
+                <div class="bg-success text-white rounded-circle d-flex align-items-center justify-content-center shadow-sm" style="width: 32px; height: 32px;"><i class="fas fa-reply" style="font-size: 12px;"></i></div>
+                <h5 class="mb-0 fw-bold text-success">Post Expert Answer</h5>
             </div>
-            <div class="card-body p-4 bg-light rounded-bottom-4">
+            <div class="p-4 p-md-5 bg-white">
                 <form method="POST" action="{{ route('expert.forum.reply', $thread) }}">
                     @csrf
-                    <div class="mb-4 bg-white p-4 rounded-4 border shadow-sm">
-                        <label class="form-label text-uppercase fw-bold text-dark mb-2">Your Answer <span class="text-danger">*</span></label>
-                        <textarea name="body" rows="6" class="form-control border-0 bg-light p-3 fs-6 rounded-3 @error('body') is-invalid @enderror"
-                                  placeholder="Provide your detailed expert answer here (minimum 20 characters)..."
+                    <div class="mb-4">
+                        <label class="form-label text-dark fw-bold small mb-2">Detailed Response <span class="text-danger">*</span></label>
+                        <textarea name="body" rows="6" class="form-agri @error('body') is-invalid @enderror"
+                                  placeholder="Provide your professional diagnosis or advice here (minimum 20 characters)..."
                                   required minlength="20">{{ old('body') }}</textarea>
                         @error('body')<div class="invalid-feedback">{{ $message }}</div>@enderror
                     </div>
-                    <div class="mb-4 bg-white p-4 rounded-4 border shadow-sm">
-                        <label class="form-label text-uppercase fw-bold text-dark mb-2">Structured Recommendation <span class="text-muted text-lowercase fw-normal ms-2">(optional)</span></label>
-                        <textarea name="recommendation" rows="3" class="form-control border-0 bg-light p-3 fs-6 rounded-3"
-                                  placeholder="Add a formal recommendation or actionable step-by-step advice...">{{ old('recommendation') }}</textarea>
-                        <div class="form-text mt-2 text-success fw-medium">
-                            <i class="bi bi-stars me-1"></i>
-                            This will appear highlighted in a special green recommendation block at the bottom of your post.
+                    
+                    <div class="mb-4">
+                        <label class="form-label text-dark fw-bold small mb-2 d-flex align-items-center gap-2">
+                            Structured Recommendation
+                            <span class="badge bg-light text-muted border fw-normal py-1 px-2">Optional</span>
+                        </label>
+                        <textarea name="recommendation" rows="3" class="form-agri"
+                                  placeholder="If applicable, provide a clear, step-by-step action plan or formal recommendation..."></textarea>
+                        <div class="form-text mt-2 small fw-medium text-success d-flex align-items-center gap-1">
+                            <i class="fas fa-magic"></i> This will be highlighted uniquely as an authoritative recommendation.
                         </div>
                     </div>
-                    <div class="d-flex align-items-center justify-content-between p-3 bg-white rounded-pill border shadow-sm">
-                        <div class="d-flex align-items-center">
-                            <i class="bi bi-patch-check-fill text-success fs-4 me-3 ms-2"></i>
-                            <span class="text-muted fw-bold text-uppercase small">Posted as Verified Expert</span>
+                    
+                    <div class="d-flex flex-wrap align-items-center justify-content-between p-3 bg-light rounded border border-dashed gap-3 pt-3 mt-4 border-top">
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="fas fa-shield-alt text-success fs-5"></i>
+                            <span class="text-dark fw-bold text-uppercase small" style="letter-spacing: 0.5px;">Posting as Verified Expert</span>
                         </div>
-                        <button type="submit" class="btn btn-success rounded-pill px-4 py-2 fw-bold fs-6">
-                            Publish Response <i class="bi bi-send ms-2"></i>
+                        <button type="submit" class="btn-agri btn-agri-primary shadow-sm px-4 py-2 d-flex align-items-center gap-2">
+                            <i class="fas fa-paper-plane m-0"></i> Submit Response
                         </button>
                     </div>
                 </form>
             </div>
         </div>
         @else
-        <div class="alert alert-secondary border-0 text-center p-4 rounded-4 mt-2">
-            <i class="bi bi-lock-fill d-block fs-1 text-muted mb-2 opacity-50"></i>
-            <h5 class="fw-bold text-dark">Thread Locked</h5>
-            <p class="mb-0 text-muted">This discussion is no longer accepting replies.</p>
+        <div class="bg-light border border-dashed text-center p-5 rounded mt-2 mb-4 d-flex flex-column align-items-center justify-content-center">
+            <div class="bg-white rounded-circle shadow-sm d-flex align-items-center justify-content-center mb-3 text-danger" style="width: 60px; height: 60px;">
+                <i class="fas fa-lock fs-3"></i>
+            </div>
+            <h5 class="fw-bold text-dark">Discussion Closed</h5>
+            <p class="mb-0 text-muted small fw-medium">This thread has been locked and is no longer accepting new replies.</p>
         </div>
         @endif
     </div>
 
     <div class="col-lg-4">
-        <div class="card border-0 shadow-sm hover-card mb-4" style="border-radius:16px;">
-            <div class="card-header bg-white border-bottom py-3">
-                <h6 class="fw-bold mb-0 text-dark"><i class="bi bi-info-circle-fill me-2 text-info fs-5"></i>Thread Info</h6>
+        <div class="card-agri p-0 border-0 bg-white position-sticky" style="top: 100px;">
+            <div class="p-4 bg-light border-bottom">
+                <h5 class="fw-bold mb-0 text-dark"><i class="fas fa-info-circle me-2 text-info"></i>Thread Details</h5>
             </div>
-            <div class="card-body p-4">
-                <ul class="list-unstyled mb-0">
-                    <li class="d-flex justify-content-between align-items-center mb-3 pb-3 border-bottom">
-                        <span class="text-muted text-uppercase fw-bold small"><i class="bi bi-hash me-1"></i>Category</span>
-                        <span class="fw-bold text-dark">{{ $thread->category?->name ?? 'General' }}</span>
+            <div class="p-4">
+                <ul class="list-unstyled mb-0 d-grid gap-3">
+                    <li class="d-flex flex-column gap-1 bg-light p-3 rounded border border-dashed">
+                        <span class="text-muted text-uppercase fw-bold" style="font-size: 11px; letter-spacing: 0.5px;">Topic Category</span>
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="fas fa-tags text-primary opacity-50"></i>
+                            <span class="fw-bold text-dark">{{ $thread->category?->name ?? 'General' }}</span>
+                        </div>
                     </li>
-                    <li class="d-flex justify-content-between align-items-center mb-3 pb-3 border-bottom">
-                        <span class="text-muted text-uppercase fw-bold small"><i class="bi bi-person me-1"></i>Author</span>
-                        <span class="fw-bold text-dark">{{ $thread->user->name }}</span>
+                    <li class="d-flex flex-column gap-1 bg-light p-3 rounded border border-dashed">
+                        <span class="text-muted text-uppercase fw-bold" style="font-size: 11px; letter-spacing: 0.5px;">Original Author</span>
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="fas fa-user-circle text-primary opacity-50"></i>
+                            <span class="fw-bold text-dark">{{ $thread->user->name }}</span>
+                        </div>
                     </li>
-                    <li class="d-flex justify-content-between align-items-center mb-3 pb-3 border-bottom">
-                        <span class="text-muted text-uppercase fw-bold small"><i class="bi bi-calendar3 me-1"></i>Date</span>
-                        <span class="fw-bold text-dark">{{ $thread->created_at->format('d M Y') }}</span>
+                    <li class="d-flex flex-column gap-1 bg-light p-3 rounded border border-dashed">
+                        <span class="text-muted text-uppercase fw-bold" style="font-size: 11px; letter-spacing: 0.5px;">Creation Date</span>
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="far fa-calendar-alt text-primary opacity-50"></i>
+                            <span class="fw-bold text-dark">{{ $thread->created_at->format('d M Y, h:i A') }}</span>
+                        </div>
                     </li>
-                    <li class="d-flex justify-content-between align-items-center mb-3 pb-3 border-bottom">
-                        <span class="text-muted text-uppercase fw-bold small"><i class="bi bi-eye me-1"></i>Views</span>
-                        <span class="badge rounded-pill bg-light text-dark border px-3">{{ $thread->views }}</span>
+                    <li class="d-flex justify-content-between align-items-center p-3">
+                        <span class="text-muted text-uppercase fw-bold d-flex align-items-center gap-2" style="font-size: 11px; letter-spacing: 0.5px;">
+                            <i class="far fa-eye text-primary"></i> Total Views
+                        </span>
+                        <span class="badge-agri bg-light text-dark border">{{ $thread->views }}</span>
                     </li>
-                    <li class="d-flex justify-content-between align-items-center">
-                        <span class="text-muted text-uppercase fw-bold small"><i class="bi bi-chat-text me-1"></i>Replies</span>
-                        <span class="badge rounded-pill bg-success text-white px-3">{{ $thread->replies->count() }}</span>
+                    <li class="d-flex justify-content-between align-items-center p-3 border-top-dashed">
+                        <span class="text-muted text-uppercase fw-bold d-flex align-items-center gap-2" style="font-size: 11px; letter-spacing: 0.5px;">
+                            <i class="far fa-comments text-success"></i> Total Replies
+                        </span>
+                        <span class="badge-agri bg-success text-white shadow-sm">{{ $thread->replies->count() }}</span>
                     </li>
                 </ul>
             </div>
         </div>
-        <a href="{{ route('expert.forum.index') }}" class="btn btn-outline-secondary rounded-pill w-100 py-3 fw-bold">
-            <i class="bi bi-arrow-left me-2"></i>Return to Forum List
-        </a>
     </div>
 </div>
 @endsection

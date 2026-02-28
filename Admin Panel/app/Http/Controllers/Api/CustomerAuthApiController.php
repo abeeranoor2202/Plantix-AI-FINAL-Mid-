@@ -130,16 +130,33 @@ class CustomerAuthApiController extends Controller
 
         $user->update(['password' => Hash::make($request->password)]);
 
-        return response()->json(['success' => true, 'message' => 'Password changed successfully.']);
+        // Revoke all tokens so stolen tokens cannot be reused after a password change
+        $user->tokens()->delete();
+        $newToken = $user->createToken('plantix-customer')->plainTextToken;
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Password changed successfully.',
+            'token'   => $newToken,
+        ]);
     }
 
     // ── Forgot password ───────────────────────────────────────────────────────
     public function forgotPassword(Request $request): JsonResponse
     {
         $request->validate(['email' => 'required|email']);
-        // Trigger the same password reset email as the web controller
-        \Illuminate\Support\Facades\Password::broker()
-            ->sendResetLink(['email' => strtolower(trim($request->email))]);
+
+        $email = strtolower(trim($request->email));
+
+        // If the user is inactive, silently skip sending without revealing account status
+        $user = User::where('email', $email)->first();
+        if (! $user || $user->active) {
+            // Only send the link if user exists AND is active
+            if ($user) {
+                \Illuminate\Support\Facades\Password::broker()
+                    ->sendResetLink(['email' => $email]);
+            }
+        }
 
         // Always return success to prevent email enumeration
         return response()->json([

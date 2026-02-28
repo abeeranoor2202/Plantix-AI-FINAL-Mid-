@@ -32,7 +32,13 @@ class CustomerLoginController extends Controller
             'password' => 'required|string',
         ]);
 
-        if (! Auth::attempt($request->only('email', 'password'), $request->boolean('remember'))) {
+        // Normalize email before attempting auth
+        $credentials = [
+            'email'    => strtolower(trim($request->input('email'))),
+            'password' => $request->input('password'),
+        ];
+
+        if (! Auth::attempt($credentials, $request->boolean('remember'))) {
             throw ValidationException::withMessages([
                 'email' => trans('auth.failed'),
             ]);

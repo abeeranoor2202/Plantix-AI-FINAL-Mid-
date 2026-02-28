@@ -63,8 +63,8 @@ class ForumController extends Controller
         $thread = ForumThread::create([
             'user_id'          => auth('web')->id(),
             'forum_category_id'=> $request->forum_category_id,
-            'title'            => $request->title,
-            'body'             => $request->body,
+            'title'            => strip_tags($request->title),
+            'body'             => htmlspecialchars(strip_tags($request->body), ENT_QUOTES, 'UTF-8'),
             'is_approved'      => true, // auto-approve for now; can add moderation toggle
         ]);
 
@@ -87,7 +87,7 @@ class ForumController extends Controller
         ForumReply::create([
             'thread_id'   => $thread->id,
             'user_id'     => auth('web')->id(),
-            'body'        => $request->body,
+            'body'        => htmlspecialchars(strip_tags($request->body), ENT_QUOTES, 'UTF-8'),
             'is_approved' => true,
         ]);
 

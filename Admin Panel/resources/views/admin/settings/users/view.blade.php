@@ -160,9 +160,6 @@
     $.ajax({
         url: '{{ route("api.admin.settings.currency") }}',
         method: 'GET',
-        headers: {
-            'Authorization': 'Bearer ' + getCookie('token')
-        },
         success: function(response) {
             if (response && response.data) {
                 currentCurrency = response.data.symbol;
@@ -179,9 +176,6 @@
         $.ajax({
             url: '{{ route("api.admin.users.show", ":id") }}'.replace(':id', id),
             method: 'GET',
-            headers: {
-                'Authorization': 'Bearer ' + getCookie('token')
-            },
             success: function(response) {
                 if (response && response.data) {
                     var user = response.data;
@@ -240,7 +234,6 @@
                 url: '{{ route("api.admin.users.wallet-topup", ":id") }}'.replace(':id', id),
                 method: 'POST',
                 headers: {
-                    'Authorization': 'Bearer ' + getCookie('token'),
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 },
                 data: {

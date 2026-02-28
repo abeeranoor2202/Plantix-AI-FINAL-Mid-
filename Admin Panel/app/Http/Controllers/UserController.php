@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Mail\DynamicEmail;
 use App\Models\User;
 use App\Models\Role;
+use App\Models\Vendor;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -144,6 +145,63 @@ class UserController extends Controller
         return redirect()->back();
     }
 
+    // ── Vendor Management ─────────────────────────────────────────────────────
+
+    public function vendors(Request $request)
+    {
+        $query = Vendor::with('author', 'category');
+
+        if ($request->filled('search')) {
+            $query->where('title', 'like', '%' . $request->search . '%')
+                  ->orWhere('phone', 'like', '%' . $request->search . '%');
+        }
+
+        if ($request->filled('status')) {
+            $query->where('is_active', $request->status === 'active' ? true : false);
+        }
+
+        if ($request->filled('approval')) {
+            $query->where('is_approved', $request->approval === 'approved' ? true : false);
+        }
+
+        $vendors = $query->latest()->paginate(20);
+
+        return view('admin.vendors.index', compact('vendors'));
+    }
+
+    public function vendorView(int $id)
+    {
+        $vendor = Vendor::with('author', 'category', 'products', 'orders')->findOrFail($id);
+        return view('admin.vendors.view', compact('vendor'));
+    }
+
+    public function vendorEdit(int $id)
+    {
+        $vendor = Vendor::findOrFail($id);
+        return view('admin.vendors.edit', compact('vendor'));
+    }
+
+    public function vendorToggle(Request $request, int $id)
+    {
+        $vendor = Vendor::findOrFail($id);
+
+        $action = $request->input('action'); // 'toggle_active' or 'approve'
+
+        if ($action === 'toggle_active') {
+            $vendor->update(['is_active' => ! $vendor->is_active]);
+            $message = 'Vendor ' . ($vendor->is_active ? 'activated' : 'deactivated') . ' successfully.';
+        } elseif ($action === 'approve') {
+            $vendor->update(['is_approved' => true]);
+            $message = 'Vendor approved successfully.';
+        } elseif ($action === 'reject') {
+            $vendor->update(['is_approved' => false]);
+            $message = 'Vendor approval revoked.';
+        } else {
+            return back()->withErrors(['action' => 'Invalid action.']);
+        }
+
+        return back()->with('success', $message);
+    }
 
     public function profile()
     {

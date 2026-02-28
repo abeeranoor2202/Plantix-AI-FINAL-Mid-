@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Frontend;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\DiseaseReportRequest;
+use App\Jobs\ProcessDiseaseDetection;
 use App\Models\CropDiseaseReport;
 use App\Services\Customer\DiseaseDetectionService;
 use Illuminate\Http\Request;
@@ -33,42 +34,76 @@ class DiseaseIdentificationController extends Controller
 
     /**
      * Process an uploaded crop image for disease detection.
+     *
+     * Creates a pending report immediately and dispatches a queued job for
+     * heavy ML inference, so the user gets an instant response.
      */
     public function detect(DiseaseReportRequest $request)
     {
         $user = Auth::user();
 
-        $report = $this->service->detect($user, $request->file('image'), [
-            'crop_name'        => $request->input('crop_name'),
-            'user_description' => $request->input('description'),
-        ]);
+        // 1. Store image + create pending report (fast, no ML call)
+        $report = $this->service->createPendingReport(
+            $user,
+            $request->file('image'),
+            [
+                'crop_name'        => $request->input('crop_name'),
+                'user_description' => $request->input('description'),
+            ]
+        );
+
+        // 2. Dispatch async job for inference
+        ProcessDiseaseDetection::dispatch($report);
 
         if ($request->ajax() || $request->wantsJson()) {
             return response()->json([
                 'success' => true,
                 'data'    => [
                     'id'               => $report->id,
-                    'detected_disease' => $report->detected_disease,
-                    'confidence_score' => $report->confidence_score,
-                    'confidence_pct'   => $report->confidence_percent,
-                    'all_predictions'  => $report->all_predictions,
+                    'detected_disease' => null,
+                    'confidence_score' => null,
+                    'confidence_pct'   => null,
+                    'all_predictions'  => null,
                     'image_url'        => $report->image_url,
-                    'status'           => $report->status,
-                    'suggestion'       => $report->suggestion ? [
-                        'disease_name'        => $report->suggestion->disease_name,
-                        'description'         => $report->suggestion->description,
-                        'organic_treatment'   => $report->suggestion->organic_treatment,
-                        'chemical_treatment'  => $report->suggestion->chemical_treatment,
-                        'preventive_measures' => $report->suggestion->preventive_measures,
-                    ] : null,
+                    'status'           => $report->status, // 'pending'
+                    'suggestion'       => null,
                 ],
+                'message' => 'Your image has been submitted for analysis. Results will be ready shortly.',
             ]);
         }
 
-        return redirect()->back()->with([
-            'report'  => $report,
-            'success' => 'Disease analysis completed!',
-        ]);
+        return redirect()->back()->with('info', 'Your image has been submitted for analysis. Please check back shortly for results.');
+    }
+
+    /**
+     * Poll the status of a pending disease detection report (AJAX).
+     * Called repeatedly by the frontend after submitting an image
+     * until status transitions from 'pending' to 'completed' or 'failed'.
+     */
+    public function pollStatus(int $id)
+    {
+        $report = CropDiseaseReport::where('user_id', Auth::id())
+            ->findOrFail($id);
+
+        $data = [
+            'id'               => $report->id,
+            'status'           => $report->status,
+            'detected_disease' => $report->detected_disease,
+            'confidence_score' => $report->confidence_score,
+            'confidence_pct'   => $report->confidence_score !== null
+                                    ? round($report->confidence_score * 100, 1)
+                                    : null,
+            'all_predictions'  => null,
+            'suggestion'       => null,
+        ];
+
+        if ($report->status === 'completed') {
+            $report->load('suggestion');
+            $data['all_predictions'] = $report->all_predictions;
+            $data['suggestion']      = $report->suggestion;
+        }
+
+        return response()->json(['success' => true, 'data' => $data]);
     }
 
     /**
@@ -97,4 +132,5 @@ class DiseaseIdentificationController extends Controller
         return response()->json(['success' => true, 'data' => $reports]);
     }
 }
+
 

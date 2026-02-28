@@ -8,60 +8,60 @@
 @endphp
 
 <nav class="sidebar-nav sidebar-agri">
-    <div style="padding: 10px 10px 20px 10px;">
-        <p style="text-transform: uppercase; font-size: 11px; font-weight: 700; color: var(--agri-text-muted); letter-spacing: 1px; margin-bottom: 15px; padding-left: 15px;">Main Menu</p>
-        
-        <ul id="sidebarnav" style="list-style: none; padding: 0;">
-            <li style="margin-bottom: 5px;">
+    <div style="padding: 12px 8px;">
+        <ul id="sidebarnav" style="list-style: none; padding: 0; margin: 0;">
+            
+            <li class="nav-small-cap" style="text-transform: uppercase; font-size: 11px; font-weight: 700; color: var(--agri-text-muted); letter-spacing: 1px; margin-bottom: 8px; padding-left: 10px;">MAIN MENU</li>
+            <li style="margin-bottom: 2px;">
                 <a class="nav-link-agri {{ Request::is('admin/dashboard*') ? 'active' : '' }}" href="{!! route('admin.dashboard') !!}">
                     <i class="mdi mdi-home" style="font-size: 20px;"></i>
-                    <span class="hide-menu">{{trans('lang.dashboard')}}</span>
+                    <span>{{trans('lang.dashboard')}}</span>
                 </a>
             </li>
 
-            <p style="text-transform: uppercase; font-size: 11px; font-weight: 700; color: var(--agri-text-muted); letter-spacing: 1px; margin: 25px 0 15px 0; padding-left: 15px;">Management</p>
+            <li class="nav-small-cap" style="text-transform: uppercase; font-size: 11px; font-weight: 700; color: var(--agri-text-muted); letter-spacing: 1px; margin: 12px 0 8px 0; padding-left: 10px;">MANAGEMENT</li>
 
-            <li style="margin-bottom: 5px;">
+            <li style="margin-bottom: 2px;">
                 <a class="nav-link-agri {{ Request::is('admin/users*') ? 'active' : '' }}" href="{!! route('admin.users') !!}">
                     <i class="mdi mdi-account-multiple" style="font-size: 20px;"></i>
-                    <span class="hide-menu">{{trans('lang.user_customer')}}</span>
+                    <span>{{trans('lang.user_customer')}}</span>
                 </a>
             </li>
 
-            <li style="margin-bottom: 5px;">
+            <li style="margin-bottom: 2px;">
                 <a class="nav-link-agri {{ Request::is('admin/vendors*') ? 'active' : '' }}" href="{!! route('admin.vendors') !!}">
                     <i class="mdi mdi-account-card-details" style="font-size: 20px;"></i>
-                    <span class="hide-menu">{{trans('lang.owner_vendor')}}</span>
+                    <span>{{trans('lang.owner_vendor')}}</span>
                 </a>
             </li>
 
-            <li style="margin-bottom: 5px;">
+            <li style="margin-bottom: 2px;">
                 <a class="nav-link-agri {{ Request::is('admin/products*') ? 'active' : '' }}" href="{!! route('admin.products.index') !!}">
                     <i class="mdi mdi-cart" style="font-size: 20px;"></i>
-                    <span class="hide-menu">{{trans('lang.item_plural')}}</span>
+                    <span>{{trans('lang.item_plural')}}</span>
                 </a>
             </li>
 
-            <li style="margin-bottom: 5px;">
+            <li style="margin-bottom: 2px;">
                 <a class="nav-link-agri {{ Request::is('admin/orders*') ? 'active' : '' }}" href="{!! route('admin.orders.index') !!}">
                     <i class="mdi mdi-library-books" style="font-size: 20px;"></i>
-                    <span class="hide-menu">{{trans('lang.order_plural')}}</span>
+                    <span>{{trans('lang.order_plural')}}</span>
                 </a>
             </li>
 
-            <li style="margin-bottom: 5px;">
+            <li style="margin-bottom: 2px;">
                 <a class="nav-link-agri {{ Request::is('admin/appointments*') ? 'active' : '' }}" href="{!! route('admin.appointments.index') !!}">
                     <i class="mdi mdi-calendar-clock" style="font-size: 20px;"></i>
-                    <span class="hide-menu">Appointments</span>
+                    <span>Appointments</span>
                 </a>
             </li>
 
-            <p style="text-transform: uppercase; font-size: 11px; font-weight: 700; color: var(--agri-text-muted); letter-spacing: 1px; margin: 25px 0 15px 0; padding-left: 15px;">Settings</p>
+            <li class="nav-small-cap" style="text-transform: uppercase; font-size: 11px; font-weight: 700; color: var(--agri-text-muted); letter-spacing: 1px; margin: 12px 0 8px 0; padding-left: 10px;">SETTINGS</li>
 
-            <li style="margin-bottom: 5px;">
+            <li style="margin-bottom: 2px;">
                 <a class="nav-link-agri {{ Request::is('admin/settings*') ? 'active' : '' }}" href="{!! route('admin.settings.app.globals') !!}">
                     <i class="mdi mdi-settings" style="font-size: 20px;"></i>
-                    <span class="hide-menu">{{trans('lang.app_setting')}}</span>
+                    <span>{{trans('lang.app_setting')}}</span>
                 </a>
             </li>
         </ul>

@@ -1,7 +1,6 @@
 @extends('layouts.frontend')
 
-@section('title', 'Plantix-AI')
-
+@section('title', $thread->title . ' | Plantix-AI Forum')
 
 @section('footer')
 @include('partials.footer-alt')
@@ -10,102 +9,168 @@
 @section('page_scripts')@endsection
 
 @section('content')
-<div class="breadcrumb-area text-center shadow dark-hard bg-cover text-light bg-breadcrumb-default">
-    <div class="container">
-      <div class="row">
-        <div class="col-lg-8 offset-lg-2">
-          <h1>Forum</h1>
-          <nav aria-label="breadcrumb">
-            <ol class="breadcrumb">
-              <li><a href="{{ route('home') }}"><i class="fas fa-home"></i> Home</a></li>
-              <li><a href="{{ route('forum') }}">Forum</a></li>
-              <li class="active">Thread</li>
-            </ol>
-          </nav>
+    <!-- Start Breadcrumb -->
+    <div class="py-4 bg-light" style="border-bottom: 1px solid var(--agri-border); background: linear-gradient(to right, rgba(16, 185, 129, 0.05), rgba(16, 185, 129, 0.01));">
+        <div class="container-agri">
+            <h1 class="fw-bold text-dark mb-2" style="font-size: 28px;">Community Forum</h1>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-0" style="background: transparent; padding: 0; font-size: 14px;">
+                    <li class="breadcrumb-item"><a href="{{ route('home') }}" class="text-success text-decoration-none"><i class="fas fa-home me-1"></i> Home</a></li>
+                    <li class="breadcrumb-item"><a href="{{ route('forum') }}" class="text-success text-decoration-none">Forum</a></li>
+                    <li class="breadcrumb-item active text-muted" aria-current="page">Thread Details</li>
+                </ol>
+            </nav>
         </div>
-      </div>
     </div>
-  </div>
+    <!-- End Breadcrumb -->
 
-  <div id="forum-thread-page" class="default-padding">
-    <div class="container">
-      <div class="panel-card p-4">
+    <div id="forum-thread-page" class="py-5" style="background: var(--agri-bg); min-height: 70vh;">
+        <div class="container-agri">
+            <div class="row">
+                <div class="col-lg-9 mx-auto">
+                    
+                    @if(session('success'))
+                        <div class="alert alert-success d-flex align-items-center mb-4 bg-success bg-opacity-10 border-success border-opacity-25" role="alert">
+                            <i class="fas fa-check-circle text-success fs-4 me-3"></i>
+                            <div class="text-dark fw-medium">{{ session('success') }}</div>
+                        </div>
+                    @endif
 
-        @if(session('success'))
-          <div class="alert alert-success">{{ session('success') }}</div>
-        @endif
+                    <div class="card-agri p-4 p-md-5 border-0 shadow-sm mb-4">
+                        {{-- Thread header --}}
+                        <div class="d-flex justify-content-between align-items-start flex-wrap gap-3 mb-4">
+                            <div class="flex-grow-1">
+                                <h2 class="fw-bold text-dark mb-2" style="line-height: 1.3;">
+                                    {{ $thread->title }}
+                                </h2>
+                                <div class="d-flex align-items-center flex-wrap gap-2 text-muted small">
+                                    <span class="d-flex align-items-center fw-medium text-dark">
+                                        <div class="bg-secondary rounded-circle d-inline-flex align-items-center justify-content-center text-white me-2" style="width: 24px; height: 24px; font-size: 10px;">
+                                            <i class="fas fa-user"></i>
+                                        </div>
+                                        {{ $thread->user->name ?? 'Unknown Farmer' }}
+                                    </span>
+                                    <span class="text-muted px-1">&bull;</span>
+                                    <span><i class="far fa-clock me-1"></i> {{ $thread->created_at->format('d M Y H:i') }}</span>
+                                    
+                                    @if($thread->category) 
+                                        <span class="text-muted px-1">&bull;</span>
+                                        <span class="badge bg-light text-secondary border px-2 py-1"><i class="fas fa-folder me-1"></i> {{ $thread->category->name }}</span>
+                                    @endif
 
-        {{-- Thread header --}}
-        <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
-          <div>
-            <h3 class="mb-1">
-              {{ $thread->title }}
-              @if($thread->is_pinned ?? false)
-                <span class="badge bg-warning text-dark ms-2">Pinned</span>
-              @endif
-              @if($thread->is_solved ?? false)
-                <span class="badge bg-success ms-2">Solved</span>
-              @endif
-            </h3>
-            <div class="text-muted small">
-              Posted by {{ $thread->user->name ?? 'Unknown' }} &bull; {{ $thread->created_at->format('d M Y H:i') }}
-              @if($thread->category) &bull; <span class="badge bg-secondary">{{ $thread->category->name }}</span>@endif
+                                    @if($thread->is_pinned ?? false)
+                                        <span class="badge bg-warning bg-opacity-25 text-warning border border-warning px-2 py-1 ms-2"><i class="fas fa-thumbtack me-1"></i> Pinned</span>
+                                    @endif
+                                    
+                                    @if($thread->is_solved ?? false)
+                                        <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-2 py-1 ms-2"><i class="fas fa-check-double me-1"></i> Solved</span>
+                                    @endif
+                                </div>
+                            </div>
+
+                            <div class="d-flex gap-2 shrink-0">
+                                @auth
+                                    @if(auth('web')->id() === $thread->user_id)
+                                    <form method="POST" action="{{ route('forum.delete', $thread->id) }}" onsubmit="return confirm('Are you sure you want to delete this thread? This action cannot be undone.');">
+                                        @csrf @method('DELETE')
+                                        <button class="btn btn-outline-danger btn-sm shadow-none rounded-3 px-3 py-2" title="Delete Thread">
+                                            <i class="fas fa-trash-alt me-1"></i> Delete
+                                        </button>
+                                    </form>
+                                    @endif
+                                @endauth
+                                <a href="{{ route('forum') }}" class="btn-agri btn-agri-outline btn-sm shadow-sm py-2 px-3 text-dark">
+                                    <i class="fas fa-arrow-left me-1"></i> Forum
+                                </a>
+                            </div>
+                        </div>
+
+                        <hr class="mb-4 opacity-10">
+
+                        {{-- Thread body --}}
+                        <div class="thread-content" style="font-size: 16px; line-height: 1.8; color: var(--bs-gray-800);">
+                            {!! nl2br(e($thread->body)) !!}
+                        </div>
+                    </div>
+
+                    {{-- Replies Section --}}
+                    <div class="mb-4 d-flex align-items-center gap-3">
+                        <h4 class="fw-bold text-dark m-0">Responses <span class="badge bg-light text-muted border ms-2 border-pill fs-6">{{ $thread->replies->count() }}</span></h4>
+                        <div class="flex-grow-1 border-top"></div>
+                    </div>
+
+                    <div class="replies-list d-flex flex-column gap-3 mb-5">
+                        @forelse($thread->replies as $reply)
+                            <div class="card-agri p-4 border-0 shadow-sm {{ $reply->is_accepted ? 'border border-success border-opacity-50 border-2' : '' }}" style="{{ $reply->is_accepted ? 'background-color: rgba(16, 185, 129, 0.02);' : '' }}">
+                                @if($reply->is_accepted)
+                                    <div class="badge bg-success text-white position-absolute top-0 end-0 m-3 px-3 py-2 rounded-pill shadow-sm">
+                                        <i class="fas fa-check-circle me-1"></i> Accepted Solution
+                                    </div>
+                                @endif
+                                
+                                <div class="d-flex align-items-start mb-3">
+                                    <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center me-3 shrink-0" style="width: 48px; height: 48px; font-size: 18px;">
+                                        <i class="fas fa-user"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="fw-bold text-dark m-0">{{ $reply->user->name ?? 'Farmer' }}</h6>
+                                        <span class="text-muted small"><i class="far fa-clock me-1"></i> {{ $reply->created_at->diffForHumans() }}</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="reply-content text-dark" style="font-size: 15px; line-height: 1.7; padding-left: 64px;">
+                                    {!! nl2br(e($reply->body)) !!}
+                                </div>
+                            </div>
+                        @empty
+                            <div class="text-center p-5 bg-white rounded-3 border border-dashed">
+                                <div class="mb-3">
+                                    <i class="far fa-comments text-muted fs-1 opacity-50"></i>
+                                </div>
+                                <h5 class="fw-bold text-dark">No responses yet</h5>
+                                <p class="text-muted mb-0">Be the first to share your knowledge and help answer this question.</p>
+                            </div>
+                        @endforelse
+                    </div>
+
+                    {{-- Reply form --}}
+                    @auth
+                        <div class="card-agri p-4 border-0 shadow-sm" style="border-top: 4px solid var(--agri-primary) !important;">
+                            <h5 class="fw-bold text-dark mb-3"><i class="fas fa-reply text-muted me-2"></i> Leave a Reply</h5>
+                            
+                            @if($errors->any())
+                                <div class="alert alert-danger py-2 border-danger border-opacity-25 bg-danger bg-opacity-10 text-danger rounded-3">
+                                    <ul class="mb-0 small fw-medium">
+                                        @foreach($errors->all() as $e)<li>{{ $e }}</li>@endforeach
+                                    </ul>
+                                </div>
+                            @endif
+                            
+                            <form method="POST" action="{{ route('forum.reply', $thread->id) }}">
+                                @csrf
+                                <div class="mb-3">
+                                    <textarea name="body" class="form-agri focus-primary" rows="4" placeholder="Share your experience, solution, or insight..." required>{{ old('body') }}</textarea>
+                                </div>
+                                <div class="text-end">
+                                    <button class="btn-agri btn-agri-primary shadow-sm px-4">
+                                        Post Reply <i class="fas fa-paper-plane ms-2"></i>
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    @else
+                        <div class="card bg-light border-0 p-4 text-center rounded-3">
+                            <i class="fas fa-lock text-muted fs-3 mb-3"></i>
+                            <h5 class="fw-bold text-dark">Join the Conversation</h5>
+                            <p class="text-muted mb-3">You must be logged in to reply to this thread.</p>
+                            <div>
+                                <a href="{{ route('login') }}" class="btn-agri btn-agri-primary px-4 shadow-sm">Sign In</a>
+                            </div>
+                        </div>
+                    @endauth
+
+                </div>
             </div>
-          </div>
-          <div class="d-flex gap-2 flex-wrap">
-            @auth
-            @if(auth('web')->id() === $thread->user_id)
-            <form method="POST" action="{{ route('forum.delete', $thread->id) }}">
-              @csrf @method('DELETE')
-              <button class="btn btn-sm btn-outline-danger" onclick="return confirm('Delete this thread?')"><i class="fas fa-trash"></i></button>
-            </form>
-            @endif
-            @endauth
-            <a href="{{ route('forum') }}" class="btn btn-border btn-sm">Back to Forum</a>
-          </div>
         </div>
-        <hr>
-
-        {{-- Thread body --}}
-        <div class="mb-4">{!! nl2br(e($thread->body)) !!}</div>
-
-        {{-- Replies --}}
-        <h5>Replies ({{ $thread->replies->count() }})</h5>
-        @forelse($thread->replies as $reply)
-        <div class="border rounded p-3 mb-2 {{ $reply->is_accepted ? 'border-success' : '' }}">
-          <div class="d-flex justify-content-between">
-            <strong>{{ $reply->user->name ?? 'User' }}</strong>
-            <small class="text-muted">{{ $reply->created_at->diffForHumans() }}</small>
-          </div>
-          <p class="mb-0 mt-1">{{ $reply->body }}</p>
-        </div>
-        @empty
-        <p class="text-muted">No replies yet. Be the first to reply!</p>
-        @endforelse
-
-        {{-- Reply form --}}
-        @auth
-        <div class="border rounded p-3 bg-light mt-3">
-          <h6>Leave a Reply</h6>
-          @if($errors->any())
-            <div class="alert alert-danger py-2">
-              <ul class="mb-0">@foreach($errors->all() as $e)<li>{{ $e }}</li>@endforeach</ul>
-            </div>
-          @endif
-          <form method="POST" action="{{ route('forum.reply', $thread->id) }}">
-            @csrf
-            <textarea name="body" class="form-control mb-2" rows="4" placeholder="Write a reply..." required>{{ old('body') }}</textarea>
-            <button class="btn btn-theme btn-sm">Reply</button>
-          </form>
-        </div>
-        @else
-        <div class="alert alert-info mt-3">
-          <a href="{{ route('login') }}">Sign in</a> to leave a reply.
-        </div>
-        @endauth
-
-      </div>
     </div>
-  </div>
 @endsection
-

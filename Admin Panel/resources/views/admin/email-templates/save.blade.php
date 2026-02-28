@@ -133,9 +133,6 @@
                         $.ajax({
                             url: '/api/admin/email-templates/' + requestId,
                             method: 'GET',
-                            headers: {
-                                'Authorization': 'Bearer ' + getCookie('token')
-                            },
                             success: function(response) {
                                 if (response.success && response.data) {
                                     var data = response.data;
@@ -202,7 +199,6 @@
                             url: url,
                             method: method,
                             headers: {
-                                'Authorization': 'Bearer ' + getCookie('token'),
                                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                             },
                             data: {

@@ -1,7 +1,6 @@
 @extends('layouts.frontend')
 
-@section('title', 'Plantix-AI')
-
+@section('title', 'Reset Password | Plantix-AI')
 
 @section('footer')
 @include('partials.footer-alt')
@@ -10,63 +9,57 @@
 @section('page_scripts')@endsection
 
 @section('content')
-<div class="breadcrumb-area text-center shadow dark-hard bg-cover text-light bg-breadcrumb-default"
-    style="background-image: url({{ asset('assets/img/banner7.jpg') }});">
-    <div class="container">
-      <div class="row">
-        <div class="col-lg-8 offset-lg-2">
-          <h1>Reset Password</h1>
-          <nav aria-label="breadcrumb">
-            <ol class="breadcrumb">
-              <li><a href="{{ route('home') }}"><i class="fas fa-home"></i> Home</a></li>
-              <li class="active">Reset Password</li>
-            </ol>
-          </nav>
+<div id="password-reset-page" class="d-flex align-items-center justify-content-center" style="min-height: calc(100vh - 80px); background: #f8fafc; padding: 40px 0;">
+    <div class="container-agri w-100">
+        <div class="row justify-content-center">
+            <div class="col-md-8 col-lg-5">
+                <div class="card-agri" style="padding: 40px;">
+                    <div class="text-center mb-4">
+                        <img src="{{ asset('assets/img/plantix-ai-logo.png') }}" alt="Plantix-AI" style="height: 48px; margin-bottom: 24px;">
+                        <h3 class="fw-bold text-dark" style="font-size: 24px;">Choose a new password</h3>
+                        <p class="text-muted" style="font-size: 15px;">Please enter your new password below</p>
+                    </div>
+
+                    @if ($errors->any())
+                        <div class="alert alert-danger mb-4" style="border-radius: var(--agri-radius-sm);">
+                            <ul class="mb-0 ps-3">
+                                @foreach ($errors->all() as $e)
+                                    <li>{{ $e }}</li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    @endif
+
+                    <form method="POST" action="{{ route('password.update') }}">
+                        @csrf
+                        <input type="hidden" name="token" value="{{ $token }}">
+                        
+                        <div class="mb-3">
+                            <label class="form-label fw-bold text-dark" style="font-size: 14px;">Email</label>
+                            <input type="email" name="email" class="form-agri @error('email') is-invalid @enderror" placeholder="Enter your email" value="{{ old('email', request('email')) }}" required>
+                            @error('email')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label fw-bold text-dark" style="font-size: 14px;">New Password</label>
+                            <input type="password" name="password" class="form-agri @error('password') is-invalid @enderror" placeholder="Enter a new password (min 8 char)" required>
+                            @error('password')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-bold text-dark" style="font-size: 14px;">Confirm New Password</label>
+                            <input type="password" name="password_confirmation" class="form-agri" placeholder="Repeat new password" required>
+                        </div>
+
+                        <button class="btn-agri btn-agri-primary w-100 mb-4" type="submit" style="font-size: 16px; padding: 12px;">Reset Password</button>
+                    </form>
+
+                    <p class="text-center text-muted mb-0" style="font-size: 15px;">
+                        Back to <a href="{{ route('signin') }}" class="text-success text-decoration-none fw-bold">Sign In</a>
+                    </p>
+                </div>
+            </div>
         </div>
-      </div>
     </div>
-  </div>
-
-  <div id="password-reset-page" class="default-padding">
-    <div class="container">
-      <div class="row justify-content-center">
-        <div class="col-md-6">
-          <div class="checkout-form panel-card p-4">
-            <h3 class="mb-3">Choose a new password</h3>
-
-            @if ($errors->any())
-              <div class="alert alert-danger">
-                <ul class="mb-0">@foreach ($errors->all() as $e)<li>{{ $e }}</li>@endforeach</ul>
-              </div>
-            @endif
-
-            <form method="POST" action="{{ route('password.update') }}">
-              @csrf
-              <input type="hidden" name="token" value="{{ $token }}">
-              <div class="mb-3">
-                <label>Email</label>
-                <input type="email" name="email" class="form-control @error('email') is-invalid @enderror"
-                  placeholder="Enter your email" value="{{ old('email', request('email')) }}" required>
-                @error('email')<div class="invalid-feedback">{{ $message }}</div>@enderror
-              </div>
-              <div class="mb-3">
-                <label>New Password</label>
-                <input type="password" name="password" class="form-control @error('password') is-invalid @enderror"
-                  placeholder="Enter a new password (min 8 characters)" required>
-                @error('password')<div class="invalid-feedback">{{ $message }}</div>@enderror
-              </div>
-              <div class="mb-3">
-                <label>Confirm New Password</label>
-                <input type="password" name="password_confirmation" class="form-control"
-                  placeholder="Repeat new password" required>
-              </div>
-              <button class="btn btn-theme w-100" type="submit">Reset Password</button>
-            </form>
-            <p class="mt-3 mb-0">Back to <a href="{{ route('signin') }}">Sign In</a></p>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
+</div>
 @endsection
-

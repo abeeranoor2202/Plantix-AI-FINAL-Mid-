@@ -77,5 +77,24 @@ class RouteServiceProvider extends ServiceProvider
                 optional($request->user())->id ?: $request->ip()
             );
         });
+
+        // AI Chat (per-user to prevent token cost abuse)
+        RateLimiter::for('ai-chat', function (Request $request) {
+            return Limit::perMinute(10)->by(
+                optional($request->user())->id ?: $request->ip()
+            );
+        });
+
+        // Disease detection (expensive ML inference)
+        RateLimiter::for('disease-detect', function (Request $request) {
+            return Limit::perHour(20)->by(
+                optional($request->user())->id ?: $request->ip()
+            );
+        });
+
+        // Login endpoints (brute-force protection on web routes)
+        RateLimiter::for('login', function (Request $request) {
+            return Limit::perMinute(5)->by($request->ip());
+        });
     }
 }

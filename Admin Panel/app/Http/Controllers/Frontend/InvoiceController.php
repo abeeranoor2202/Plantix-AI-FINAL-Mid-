@@ -4,23 +4,19 @@ namespace App\Http\Controllers\Frontend;
 
 use App\Http\Controllers\Controller;
 use App\Models\Order;
-use Illuminate\Http\Request;
-use Symfony\Component\HttpFoundation\StreamedResponse;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Http\Response;
 
 /**
  * InvoiceController
  *
- * Generates and streams a downloadable HTML invoice for a customer order.
- * No external PDF library is required – the invoice is a print-friendly
- * HTML document. Users may print-to-PDF from their browser.
+ * Generates a server-side PDF invoice using DomPDF (barryvdh/laravel-dompdf).
+ * The customer cannot tamper with the output.
+ * Route: GET /orders/{id}/invoice
  */
 class InvoiceController extends Controller
 {
-    /**
-     * Stream an HTML invoice as a downloadable file.
-     * Route: GET /orders/{id}/invoice
-     */
-    public function download(int $id): StreamedResponse
+    public function download(int $id): Response
     {
         $user  = auth('web')->user();
         $order = Order::with([
@@ -33,12 +29,14 @@ class InvoiceController extends Controller
                      ->forCustomer($user->id)
                      ->findOrFail($id);
 
-        $html = view('customer.invoice', compact('order'))->render();
+        $pdf = Pdf::loadView('customer.invoice', compact('order'))
+                  ->setPaper('a4', 'portrait')
+                  ->setOptions([
+                      'isHtml5ParserEnabled' => true,
+                      'isRemoteEnabled'      => false, // never fetch remote resources
+                      'defaultFont'          => 'sans-serif',
+                  ]);
 
-        return response()->streamDownload(
-            static function () use ($html) { echo $html; },
-            "invoice-{$order->order_number}.html",
-            ['Content-Type' => 'text/html; charset=UTF-8']
-        );
+        return $pdf->download("invoice-{$order->order_number}.pdf");
     }
 }

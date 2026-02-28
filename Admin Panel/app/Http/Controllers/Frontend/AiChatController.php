@@ -28,21 +28,32 @@ class AiChatController extends Controller
 
     /**
      * Handle a chat message (AJAX POST).
+     * Session key is always taken from the server-side session — never trusted from client body.
      */
     public function message(Request $request)
     {
         $request->validate([
             'message'      => 'required|string|max:1000',
-            'session_key'  => 'nullable|string|max:100',
             'context_type' => 'nullable|string|in:general,crop_help,disease,fertilizer,order',
         ]);
 
-        $sessionKey  = $request->input('session_key')
-            ?? $request->session()->get('ai_chat_session_key')
-            ?? Str::uuid();
+        // Always use server-side session key — reject any client-provided key
+        $sessionKey = $request->session()->get('ai_chat_session_key');
 
-        // Store session key in session
-        $request->session()->put('ai_chat_session_key', $sessionKey);
+        if (! $sessionKey) {
+            $sessionKey = (string) \Illuminate\Support\Str::uuid();
+            $request->session()->put('ai_chat_session_key', $sessionKey);
+        }
+
+        // If authenticated, enforce that the session belongs to this user
+        if (Auth::check()) {
+            $session = \App\Models\AiChatSession::where('session_key', $sessionKey)->first();
+            if ($session && $session->user_id && $session->user_id !== Auth::id()) {
+                // Session belongs to another user — start fresh
+                $sessionKey = (string) \Illuminate\Support\Str::uuid();
+                $request->session()->put('ai_chat_session_key', $sessionKey);
+            }
+        }
 
         $result = $this->chatService->chat(
             $request->input('message'),
@@ -64,11 +75,21 @@ class AiChatController extends Controller
      */
     public function history(Request $request)
     {
-        $sessionKey = $request->input('session_key')
-            ?? $request->session()->get('ai_chat_session_key');
+        // Always use server-side session — never trust a client-supplied session_key.
+        // Accepting it from the request body would let any user read any other user's chat
+        // history by guessing/brute-forcing UUIDs.
+        $sessionKey = $request->session()->get('ai_chat_session_key');
 
-        if (!$sessionKey) {
+        if (! $sessionKey) {
             return response()->json(['success' => true, 'data' => []]);
+        }
+
+        // If authenticated, enforce that the session belongs to this user
+        if (Auth::check()) {
+            $session = AiChatSession::where('session_key', $sessionKey)->first();
+            if ($session && $session->user_id && $session->user_id !== Auth::id()) {
+                return response()->json(['success' => true, 'data' => []]);
+            }
         }
 
         $history = $this->chatService->getHistory($sessionKey);

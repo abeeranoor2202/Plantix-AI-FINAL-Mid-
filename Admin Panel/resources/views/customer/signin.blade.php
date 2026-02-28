@@ -1,7 +1,6 @@
 @extends('layouts.frontend')
 
-@section('title', 'Plantix-AI')
-
+@section('title', 'Sign In | Plantix-AI')
 
 @section('footer')
 @include('partials.footer-alt')
@@ -10,63 +9,60 @@
 @section('page_scripts')@endsection
 
 @section('content')
-<!-- Breadcrumb -->
-  <div class="breadcrumb-area text-center shadow dark-hard bg-cover text-light bg-breadcrumb-default" style="background-image: url({{ asset('assets/img/banner7.jpg') }});">
-    <div class="container">
-      <div class="row">
-        <div class="col-lg-8 offset-lg-2">
-          <h1>Sign In</h1>
-          <nav aria-label="breadcrumb">
-            <ol class="breadcrumb">
-              <li><a href="{{ route('home') }}"><i class="fas fa-home"></i> Home</a></li>
-              <li class="active">Sign In</li>
-            </ol>
-          </nav>
-        </div>
-      </div>
-    </div>
-  </div>
+<div class="d-flex align-items-center justify-content-center" style="min-height: calc(100vh - 80px); background: #f8fafc; padding: 40px 0;">
+    <div class="container-agri w-100">
+        <div class="row justify-content-center">
+            <div class="col-md-8 col-lg-5">
+                <div class="card-agri" style="padding: 40px;">
+                    <div class="text-center mb-4">
+                        <img src="{{ asset('assets/img/plantix-ai-logo.png') }}" alt="Plantix-AI" style="height: 48px; margin-bottom: 24px;">
+                        <h3 class="fw-bold text-dark" style="font-size: 24px;">Welcome Back</h3>
+                        <p class="text-muted" style="font-size: 15px;">Sign in to your Plantix-AI account</p>
+                    </div>
 
-  <!-- Sign In -->
-  <div class="default-padding">
-    <div class="container">
-      <div class="row justify-content-center">
-        <div class="col-md-6">
-          <div class="checkout-form panel-card p-4">
-            <h3 class="mb-3">Welcome back</h3>
-            <div class="mb-3">
-              <label class="form-label me-3">Sign in as</label>
-              <div class="btn-group" role="group" aria-label="Role">
-                <input type="radio" class="btn-check" name="signinRole" id="roleCustomer" value="customer"
-                  autocomplete="off" checked>
-                <label class="btn btn-outline-success" for="roleCustomer">Customer</label>
-                <input type="radio" class="btn-check" name="signinRole" id="roleExpert" value="expert"
-                  autocomplete="off">
-                <label class="btn btn-outline-success" for="roleExpert">Expert</label>
-              </div>
+                    <div class="mb-4">
+                        <label class="form-label fw-bold text-dark mb-2" style="font-size: 14px;">Sign in as</label>
+                        <div class="d-flex gap-3">
+                            <div class="flex-grow-1 position-relative">
+                                <input type="radio" class="btn-check position-absolute opacity-0" name="signinRole" id="roleCustomer" value="customer" checked style="width:0;height:0;">
+                                <label class="btn-agri w-100 text-center" for="roleCustomer" style="border: 2px solid var(--agri-primary); background: transparent; color: var(--agri-primary); cursor: pointer; padding: 10px;">Customer</label>
+                            </div>
+                            <div class="flex-grow-1 position-relative">
+                                <input type="radio" class="btn-check position-absolute opacity-0" name="signinRole" id="roleExpert" value="expert" style="width:0;height:0;">
+                                <label class="btn-agri w-100 text-center" for="roleExpert" style="border: 2px solid var(--agri-border); background: transparent; color: var(--agri-text-muted); cursor: pointer; padding: 10px;">Expert</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <form id="signin-form">
+                        <div class="mb-4">
+                            <label class="form-label fw-bold text-dark" style="font-size: 14px;">Email</label>
+                            <input id="signinEmail" type="email" class="form-agri" placeholder="Enter your email" required data-label="Email address">
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label fw-bold text-dark" style="font-size: 14px;">Password</label>
+                            <input id="signinPassword" type="password" class="form-agri" placeholder="Enter your password" minlength="8" required data-label="Password (min 8 characters)">
+                        </div>
+                        <div class="mb-4 d-flex justify-content-end">
+                            <a id="forgotLink" href="{{ route('password.forgot') }}" class="text-success text-decoration-none" style="font-size: 14px; font-weight: 500;">Forgot password?</a>
+                        </div>
+                        <button class="btn-agri btn-agri-primary w-100 mb-4" type="submit" style="font-size: 16px; padding: 12px;">Sign In</button>
+                    </form>
+
+                    <p class="text-center text-muted mb-0" style="font-size: 15px;">
+                        Don't have an account? <a id="go-to-signup" href="{{ route('signup') }}" class="text-success text-decoration-none fw-bold">Create one</a>
+                    </p>
+                </div>
             </div>
-            <form id="signin-form">
-              <div class="mb-3">
-                <label>Email</label>
-                <input id="signinEmail" type="email" class="form-control" placeholder="Enter your email" required data-label="Email address">
-              </div>
-              <div class="mb-3">
-                <label>Password</label>
-                <input id="signinPassword" type="password" class="form-control" placeholder="Enter your password"
-                  minlength="8" required data-label="Password (min 8 characters)">
-              </div>
-              <div class="mb-3 d-flex justify-content-between">
-                <a id="forgotLink" href="{{ route('password.forgot') }}" class="small">Forgot password?</a>
-              </div>
-              <button class="btn btn-theme w-100" type="submit">Sign In</button>
-            </form>
-            <p class="mt-3 mb-0">Don't have an account? <a id="go-to-signup" href="{{ route('signup') }}">Create one</a></p>
-          </div>
         </div>
-      </div>
     </div>
-  </div>
+</div>
 
-  <!-- Footer -->
+<style>
+    input[type="radio"]:checked + label {
+        background-color: var(--agri-primary-light) !important;
+        border-color: var(--agri-primary) !important;
+        color: var(--agri-primary-dark) !important;
+    }
+</style>
 @endsection
-

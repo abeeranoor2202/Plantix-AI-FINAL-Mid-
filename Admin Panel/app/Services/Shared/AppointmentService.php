@@ -6,26 +6,49 @@ use App\Models\Appointment;
 use App\Models\Expert;
 use App\Models\User;
 use App\Notifications\AppointmentConfirmedNotification;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\ValidationException;
 
 class AppointmentService
 {
     /**
      * Book a new appointment for a customer.
+     * Uses a DB transaction with pessimistic lock to prevent double-booking.
      */
     public function book(User $user, array $data): Appointment
     {
-        $appointment = Appointment::create([
-            'user_id'          => $user->id,
-            'expert_id'        => $data['expert_id'] ?? null,
-            'scheduled_at'     => $data['scheduled_at'],
-            'duration_minutes' => $data['duration_minutes'] ?? 60,
-            'status'           => 'pending',
-            'notes'            => $data['notes'] ?? null,
-            'fee'              => $data['fee'] ?? 0.00,
-        ]);
+        return DB::transaction(function () use ($user, $data) {
+            $expertId    = $data['expert_id'] ?? null;
+            $scheduledAt = $data['scheduled_at'];
 
-        return $appointment->fresh(['user', 'expert']);
+            // Lock any existing appointment at this exact slot for this expert
+            if ($expertId) {
+                $conflict = Appointment::where('expert_id', $expertId)
+                    ->where('scheduled_at', $scheduledAt)
+                    ->whereNotIn('status', ['cancelled'])
+                    ->lockForUpdate()
+                    ->first();
+
+                if ($conflict) {
+                    throw ValidationException::withMessages([
+                        'scheduled_at' => 'This time slot is already booked. Please choose another time.',
+                    ]);
+                }
+            }
+
+            $appointment = Appointment::create([
+                'user_id'          => $user->id,
+                'expert_id'        => $expertId,
+                'scheduled_at'     => $scheduledAt,
+                'duration_minutes' => $data['duration_minutes'] ?? 60,
+                'status'           => 'pending',
+                'notes'            => $data['notes'] ?? null,
+                'fee'              => $data['fee'] ?? 0.00,
+            ]);
+
+            return $appointment->fresh(['user', 'expert']);
+        });
     }
 
     /**

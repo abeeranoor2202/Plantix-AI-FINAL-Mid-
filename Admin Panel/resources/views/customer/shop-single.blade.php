@@ -1,26 +1,12 @@
 @extends('layouts.frontend')
 
-@section('title', 'Plantix-AI')
+@section('title', 'Product Details | Plantix-AI')
 
 @section('footer')
 @include('partials.footer-alt')
 @endsection
 
 @section('page_scripts')
-    <script src="{{ asset('assets/js/jquery.appear.js') }}"></script>
-    <script src="{{ asset('assets/js/swiper-bundle.min.js') }}"></script>
-    <script src="{{ asset('assets/js/progress-bar.min.js') }}"></script>
-    <script src="{{ asset('assets/js/circle-progress.js') }}"></script>
-    <script src="{{ asset('assets/js/isotope.pkgd.min.js') }}"></script>
-    <script src="{{ asset('assets/js/imagesloaded.pkgd.min.js') }}"></script>
-    <script src="{{ asset('assets/js/magnific-popup.min.js') }}"></script>
-    <script src="{{ asset('assets/js/count-to.js') }}"></script>
-    <script src="{{ asset('assets/js/jquery.scrolla.min.js') }}"></script>
-    <script src="{{ asset('assets/js/ScrollOnReveal.js') }}"></script>
-    <script src="{{ asset('assets/js/YTPlayer.min.js') }}"></script>
-    <script src="{{ asset('assets/js/gsap.js') }}"></script>
-    <script src="{{ asset('assets/js/ScrollTrigger.min.js') }}"></script>
-    <script src="{{ asset('assets/js/SplitText.min.js') }}"></script>
     <script src="{{ asset('assets/js/strict-validation.js') }}"></script>
     <script src="{{ asset('assets/js/cart.js') }}"></script>
     <script src="{{ asset('assets/js/dialogs.js') }}"></script>
@@ -29,728 +15,242 @@
 @endsection
 
 @section('content')
-<!-- End Header -->
 
-    <!-- Start Breadcrumb 
-    ============================================= -->
-    <div
-      class="breadcrumb-area text-center shadow dark-hard bg-cover text-light"
-      style="background-image: url({{ asset('assets/img/banner7.jpg') }})"
-    >
-      <div class="container">
-        <div class="row">
-          <div class="col-lg-8 offset-lg-2">
-            <h1>Fertilizer Details</h1>
+    <!-- Start Breadcrumb -->
+    <div class="py-4 bg-light" style="border-bottom: 1px solid var(--agri-border);">
+        <div class="container-agri">
             <nav aria-label="breadcrumb">
-              <ol class="breadcrumb">
-                <li>
-                  <a href="{{ route('home') }}"><i class="fas fa-home"></i> Home</a>
-                </li>
-                <li class="active">Shop Single</li>
-              </ol>
+                <ol class="breadcrumb mb-0" style="background: transparent; padding: 0; font-size: 14px;">
+                    <li class="breadcrumb-item"><a href="{{ route('home') }}" class="text-success text-decoration-none"><i class="fas fa-home me-1"></i> Home</a></li>
+                    <li class="breadcrumb-item"><a href="{{ route('shop') }}" class="text-success text-decoration-none">Shop</a></li>
+                    <li class="breadcrumb-item active text-muted" aria-current="page">Product Details</li>
+                </ol>
             </nav>
-          </div>
         </div>
-      </div>
     </div>
     <!-- End Breadcrumb -->
 
-    <!-- Start Shop 
-    ============================================= -->
-    <div class="validtheme-shop-single-area default-padding">
-      <div class="container">
-        <div class="product-details">
-          <div class="row">
-            <div class="col-lg-6">
-              <div class="product-thumb">
-                <div
-                  id="timeline-carousel"
-                  class="carousel slide"
-                  data-bs-ride="carousel"
-                >
-                  <div class="carousel-inner item-box">
-                    <div class="carousel-item active product-item">
-                      <a
-                        href="{{ asset('assets/img/products/urea_sona.png') }}"
-                        class="item popup-gallery"
-                      >
-                        <img
-                          src="{{ asset('assets/img/products/urea_sona.png') }}"
-                          alt="Thumb"
-                        />
-                      </a>
-                      <span class="onsale theme">-16%</span>
+    <!-- Start Product Single -->
+    <div class="py-5" style="background: var(--agri-bg); min-height: 80vh;">
+        <div class="container-agri pb-5 mb-5">
+            <div class="card-agri border-0 p-lg-5 p-4 mb-5">
+                <div class="row g-5">
+                    
+                    <!-- Product Gallery -->
+                    <div class="col-lg-5">
+                        <div class="position-relative bg-light rounded-4 mb-3 d-flex align-items-center justify-content-center p-4" style="height: 400px; border: 1px solid var(--agri-border);">
+                            <span class="badge position-absolute" style="top: 20px; left: 20px; background: var(--agri-secondary); color: var(--agri-text-main); font-weight: bold; padding: 6px 12px; font-size: 14px;">-16% OFF</span>
+                            <button class="btn btn-light position-absolute rounded-circle bg-white shadow-sm" style="top: 20px; right: 20px; width: 40px; height: 40px; border: none; color: var(--agri-text-muted);" title="Add to Wishlist">
+                                <i class="far fa-heart fs-5"></i>
+                            </button>
+                            <img src="{{ asset('assets/img/products/urea_sona.png') }}" class="img-fluid" alt="Product Image" style="max-height: 100%; object-fit: contain;">
+                        </div>
+                        
+                        <!-- Thumbnail Gallery -->
+                        <div class="d-flex gap-3 overflow-auto pb-2" style="scrollbar-width: none;">
+                            <div class="bg-light rounded-3 d-flex align-items-center justify-content-center p-2" style="width: 80px; height: 80px; border: 2px solid var(--agri-primary); cursor: pointer;">
+                                <img src="{{ asset('assets/img/products/urea_sona.png') }}" class="img-fluid" style="object-fit: contain;">
+                            </div>
+                            <div class="bg-light rounded-3 d-flex align-items-center justify-content-center p-2 opacity-75" style="width: 80px; height: 80px; border: 1px solid var(--agri-border); cursor: pointer; transition: 0.2s;">
+                                <img src="{{ asset('assets/img/products/urea_sona.png') }}" class="img-fluid" style="object-fit: contain;">
+                            </div>
+                        </div>
                     </div>
-                    <div class="carousel-item product-item">
-                      <a
-                        href="{{ asset('assets/img/products/urea_sona.png') }}"
-                        class="item popup-gallery"
-                      >
-                        <img
-                          src="{{ asset('assets/img/products/urea_sona.png') }}"
-                          alt="Thumb"
-                        />
-                      </a>
-                      <span class="onsale theme">-25%</span>
-                    </div>
-                    <div class="carousel-item product-item">
-                      <a
-                        href="{{ asset('assets/img/products/urea_sona.png') }}"
-                        class="item popup-gallery"
-                      >
-                        <img
-                          src="{{ asset('assets/img/products/urea_sona.png') }}"
-                          alt="Thumb"
-                        />
-                      </a>
-                      <span class="onsale theme">-33%</span>
-                    </div>
-                    <div class="carousel-item product-item">
-                      <a
-                        href="{{ asset('assets/img/products/urea_sona.png') }}"
-                        class="item popup-gallery"
-                      >
-                        <img
-                          src="{{ asset('assets/img/products/urea_sona.png') }}"
-                          alt="Thumb"
-                        />
-                      </a>
-                      <span class="onsale theme">-50%</span>
-                    </div>
-                  </div>
 
-                  <!-- Carousel Indicators -->
-                  <div class="carousel-indicators">
-                    <div class="product-gallery-carousel swiper">
-                      <!-- Additional required wrapper -->
-                      <div class="swiper-wrapper">
-                        <div class="swiper-slide">
-                          <div
-                            class="item active"
-                            data-bs-target="#timeline-carousel"
-                            data-bs-slide-to="0"
-                            aria-current="true"
-                          >
-                            <img
-                              src="{{ asset('assets/img/products/urea_sona.png') }}"
-                              alt=""
-                            />
-                          </div>
+                    <!-- Product Info -->
+                    <div class="col-lg-7">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <span class="badge bg-light text-success fw-medium px-3 py-2 border" style="font-size: 12px; letter-spacing: 0.5px; text-transform: uppercase;">Nitrogen Fertilizer</span>
                         </div>
-                        <div class="swiper-slide">
-                          <div
-                            class="item"
-                            data-bs-target="#timeline-carousel"
-                            data-bs-slide-to="1"
-                          >
-                            <img
-                              src="{{ asset('assets/img/products/urea_sona.png') }}"
-                              alt=""
-                            />
-                          </div>
+                        <h2 class="fw-bold mb-3 text-dark display-6">FFC Sona Urea (46% N)</h2>
+                        
+                        <div class="d-flex align-items-center gap-3 mb-4">
+                            <div class="text-warning fs-5">
+                                <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star-half-alt"></i>
+                            </div>
+                            <a href="#reviews" class="text-muted text-decoration-none small">(8 Verified Reviews)</a>
                         </div>
-                        <div class="swiper-slide">
-                          <div
-                            class="item"
-                            data-bs-target="#timeline-carousel"
-                            data-bs-slide-to="2"
-                          >
-                            <img
-                              src="{{ asset('assets/img/products/urea_sona.png') }}"
-                              alt=""
-                            />
-                          </div>
+                        
+                        <div class="d-flex align-items-end gap-3 mb-4">
+                            <h3 class="fw-bold text-success mb-0" style="font-size: 32px;">PKR 3,500</h3>
+                            <span class="text-muted text-decoration-line-through fs-5 mb-1">PKR 3,800</span>
                         </div>
-                        <div class="swiper-slide">
-                          <div
-                            class="item"
-                            data-bs-target="#timeline-carousel"
-                            data-bs-slide-to="3"
-                          >
-                            <img
-                              src="{{ asset('assets/img/products/urea_sona.png') }}"
-                              alt=""
-                            />
-                          </div>
+                        
+                        <div class="d-flex align-items-center gap-2 mb-4">
+                            <i class="fas fa-check-circle text-success fs-5"></i>
+                            <span class="fw-bold text-dark">In Stock</span>
+                            <span class="text-muted ms-2">&mdash; Usually ships within 24 hours</span>
                         </div>
-                      </div>
-                    </div>
-                  </div>
 
-                  <!-- End Carousel Content -->
+                        <p class="text-muted mb-4" style="line-height: 1.8; font-size: 16px;">
+                            FFC Sona Urea is a high-quality nitrogen fertilizer widely used across Pakistan for cereal crops like wheat, maize and rice. Apply as a basal dose or in split applications for better nitrogen-use efficiency.
+                        </p>
+
+                        <hr class="my-4">
+
+                        <!-- Action Controls -->
+                        <div class="d-flex align-items-center gap-3 mb-4 flex-wrap">
+                            <div class="d-flex align-items-center bg-light rounded-3 p-1 border" style="width: 130px;">
+                                <button class="btn btn-sm border-0 text-muted fs-5 px-3 py-2 bg-transparent" onclick="document.getElementById('productQty').stepDown()">-</button>
+                                <input type="number" id="productQty" class="form-control border-0 text-center fw-bold bg-transparent px-0" value="1" min="1" max="99" style="box-shadow: none;">
+                                <button class="btn btn-sm border-0 text-muted fs-5 px-3 py-2 bg-transparent" onclick="document.getElementById('productQty').stepUp()">+</button>
+                            </div>
+                            <button class="btn-agri btn-agri-primary flex-grow-1" style="padding: 14px 24px; font-size: 16px;" onclick="addToCart(1)">
+                                <i class="fas fa-cart-plus me-2 fs-5"></i> Add to Cart
+                            </button>
+                        </div>
+
+                        <div class="bg-light rounded-3 p-4 border mt-4">
+                            <ul class="list-unstyled mb-0 d-flex flex-column gap-3 text-muted text-sm">
+                                <li><i class="fas fa-shield-alt text-success me-2"></i> <strong>100% Genuine</strong> Product Guarantee</li>
+                                <li><i class="fas fa-shipping-fast text-success me-2"></i> <strong>Fast Delivery</strong> via partner couriers</li>
+                                <li><i class="fas fa-undo-alt text-success me-2"></i> <strong>Easy Returns</strong> within 7 days</li>
+                            </ul>
+                        </div>
+                    </div>
                 </div>
-              </div>
             </div>
 
-            <div class="col-lg-6">
-              <div
-                class="single-product-contents"
-                data-product-id="ffc-sona-urea"
-              >
-                <div class="summary-top-box">
-                  <div class="product-tags">
-                    <a href="#">Nitrogen</a>
-                    <a href="#">Urea</a>
-                  </div>
-                  <div class="review-count">
-                    <div class="rating">
-                      <i class="fas fa-star"></i>
-                      <i class="fas fa-star"></i>
-                      <i class="fas fa-star"></i>
-                      <i class="fas fa-star"></i>
-                      <i class="fas fa-star-half-alt"></i>
-                    </div>
-                    <span>(8 Review)</span>
-                  </div>
-                </div>
-                <h2 class="product-title">FFC Sona Urea (46% N)</h2>
-                <div class="price">
-                  <span><del>PKR 3,800</del></span>
-                  <span>PKR 3,500</span>
-                </div>
-                <div class="product-stock validthemes-in-stock">
-                  <span>In Stock</span>
-                </div>
-                <p>
-                  FFC Sona Urea is a high-quality nitrogen fertilizer widely
-                  used across Pakistan for cereal crops like wheat, maize and
-                  rice. Apply as a basal dose or in split applications for
-                  better nitrogen-use efficiency. Avoid application on standing
-                  water and prefer evening application followed by irrigation.
-                </p>
-                <div class="product-purchase-list">
-                  <input
-                    type="number"
-                    id="quantity"
-                    step="1"
-                    name="quantity"
-                    min="0"
-                    placeholder="0"
-                  />
-                  <a
-                    href="#"
-                    class="btn secondary btn-theme btn-sm animation btn-cart-add"
-                  >
-                    <i class="fas fa-shopping-cart"></i>
-                    Add to cart
-                  </a>
-                  <div class="shop-action">
-                    <ul>
-                      <li class="wishlist">
-                        <a href="#"><span>Add to wishlist</span></a>
-                      </li>
-                      <li class="compare">
-                        <a href="#"><span>Compare</span></a>
-                      </li>
+            <!-- Tabs Section -->
+            <div class="card-agri p-0 border-0 overflow-hidden" id="reviews">
+                <div class="border-bottom bg-light px-4 pt-4">
+                    <ul class="nav nav-tabs border-0" id="productTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active bg-white border-bottom-0 fw-bold px-4 py-3 text-dark" style="border-radius: 8px 8px 0 0;" id="desc-tab" data-bs-toggle="tab" data-bs-target="#desc" type="button" role="tab">Description</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link bg-transparent border-0 fw-bold px-4 py-3 text-muted" id="info-tab" data-bs-toggle="tab" data-bs-target="#info" type="button" role="tab">Specifications</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link bg-transparent border-0 fw-bold px-4 py-3 text-muted" id="review-tab" data-bs-toggle="tab" data-bs-target="#review" type="button" role="tab">Reviews (8)</button>
+                        </li>
                     </ul>
-                  </div>
                 </div>
-                <div class="product-estimate-delivary">
-                  <i class="fas fa-box-open"></i>
-                  <strong> 2-day Delivery</strong>
-                  <span>Speedy and reliable parcel delivery!</span>
+                
+                <div class="tab-content p-5 bg-white" id="productTabsContent">
+                    <!-- Description Tab -->
+                    <div class="tab-pane fade show active" id="desc" role="tabpanel">
+                        <h4 class="fw-bold text-dark mb-4">Product Overview</h4>
+                        <p class="text-muted" style="line-height: 1.8;">
+                            Recommended for wheat, rice, sugarcane, maize, and fodder crops. For loamy soils: apply 1–2 bags per acre per split, depending on crop stage and soil tests. Incorporate into moist soil to reduce volatilization losses. Not recommended for saline soils without proper leaching.
+                        </p>
+                        <h5 class="fw-bold text-dark mt-4 mb-3">Key Benefits</h5>
+                        <ul class="text-muted ps-3" style="line-height: 1.8;">
+                            <li class="mb-2">Guaranteed analysis: 46% Nitrogen (N)</li>
+                            <li class="mb-2">Form: Granular prilled urea for easy application</li>
+                            <li class="mb-2">Suggested splits: Basal + tillering + booting (cereals)</li>
+                            <li class="mb-2">Storage: Keep dry and sealed; avoid caking in high humidity</li>
+                        </ul>
+                    </div>
+
+                    <!-- Specifications Tab -->
+                    <div class="tab-pane fade" id="info" role="tabpanel">
+                        <h4 class="fw-bold text-dark mb-4">Technical Specifications</h4>
+                        <div class="table-responsive">
+                            <table class="table table-bordered border-light align-middle">
+                                <tbody>
+                                    <tr>
+                                        <th class="bg-light fw-medium text-muted w-25 px-4 py-3">Bag Size</th>
+                                        <td class="px-4 py-3 fw-medium text-dark">50 kg</td>
+                                    </tr>
+                                    <tr>
+                                        <th class="bg-light fw-medium text-muted w-25 px-4 py-3">Nutrient Composition</th>
+                                        <td class="px-4 py-3 fw-medium text-dark">46% Nitrogen (N) Minimum</td>
+                                    </tr>
+                                    <tr>
+                                        <th class="bg-light fw-medium text-muted w-25 px-4 py-3">Manufacturer</th>
+                                        <td class="px-4 py-3 fw-medium text-dark">Fauji Fertilizer Company (FFC)</td>
+                                    </tr>
+                                    <tr>
+                                        <th class="bg-light fw-medium text-muted w-25 px-4 py-3">Formulation</th>
+                                        <td class="px-4 py-3 fw-medium text-dark">Prilled / Granular</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Reviews Tab -->
+                    <div class="tab-pane fade" id="review" role="tabpanel">
+                        <div class="row g-5">
+                            <div class="col-lg-7 border-end">
+                                <h4 class="fw-bold text-dark mb-4">Customer Reviews</h4>
+                                
+                                <!-- Single Review -->
+                                <div class="mb-4 pb-4 border-bottom">
+                                    <div class="d-flex align-items-center gap-3 mb-2">
+                                        <div class="text-warning fs-6">
+                                            <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
+                                        </div>
+                                        <span class="text-muted small fw-bold">Aleesha Brown</span>
+                                        <span class="text-muted small ms-auto">April 8, 2021</span>
+                                    </div>
+                                    <h6 class="fw-bold text-dark mb-2">Highly recommended</h6>
+                                    <p class="text-muted mb-0">Will purchase more in future. Excellent packing and fast delivery from Plantix-AI.</p>
+                                </div>
+                                
+                                <!-- Single Review -->
+                                <div class="mb-4">
+                                    <div class="d-flex align-items-center gap-3 mb-2">
+                                        <div class="text-warning fs-6">
+                                            <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="far fa-star"></i>
+                                        </div>
+                                        <span class="text-muted small fw-bold">Sarah Albert</span>
+                                        <span class="text-muted small ms-auto">April 8, 2021</span>
+                                    </div>
+                                    <h6 class="fw-bold text-dark mb-2">Great quality</h6>
+                                    <p class="text-muted mb-0">Great product quality! Applied to my wheat crop and saw good results.</p>
+                                </div>
+                            </div>
+                            
+                            <div class="col-lg-5">
+                                <h4 class="fw-bold text-dark mb-4">Write a Review</h4>
+                                <form>
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold text-dark text-sm">Your Rating *</label>
+                                        <div class="text-muted fs-5" style="cursor: pointer;">
+                                            <i class="far fa-star"></i><i class="far fa-star"></i><i class="far fa-star"></i><i class="far fa-star"></i><i class="far fa-star"></i>
+                                        </div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold text-dark text-sm">Your Review *</label>
+                                        <textarea class="form-agri" rows="4" placeholder="Share your experience..." required></textarea>
+                                    </div>
+                                    <div class="row g-3">
+                                        <div class="col-md-6 mb-3">
+                                            <input type="text" class="form-agri" placeholder="Name *" required>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <input type="email" class="form-agri" placeholder="Email *" required>
+                                        </div>
+                                    </div>
+                                    <button type="submit" class="btn-agri btn-agri-primary w-100">Submit Review</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div class="product-meta">
-                  <span class="sku"> <strong>SKU:</strong> BE45VGRT </span>
-                  <span class="posted-in">
-                    <strong>Category:</strong>
-                    <a href="#">Nitrogen</a> ,
-                    <a href="#">Urea</a>
-                  </span>
-                </div>
-              </div>
             </div>
-          </div>
+
         </div>
-
-        <!-- Product Bottom Info  -->
-        <div class="single-product-bottom-info">
-          <div class="row">
-            <div class="col-lg-12">
-              <!-- Tab Nav -->
-              <div class="nav nav-tabs" id="nav-tab" role="tablist">
-                <button
-                  class="nav-link active"
-                  id="description-tab-control"
-                  data-bs-toggle="tab"
-                  data-bs-target="#description-tab"
-                  type="button"
-                  role="tab"
-                  aria-controls="description-tab"
-                  aria-selected="true"
-                >
-                  Description
-                </button>
-
-                <button
-                  class="nav-link"
-                  id="information-tab-control"
-                  data-bs-toggle="tab"
-                  data-bs-target="#information-tab"
-                  type="button"
-                  role="tab"
-                  aria-controls="information-tab"
-                  aria-selected="false"
-                >
-                  Additional Information
-                </button>
-
-                <button
-                  class="nav-link"
-                  id="review-tab-control"
-                  data-bs-toggle="tab"
-                  data-bs-target="#review-tab"
-                  type="button"
-                  role="tab"
-                  aria-controls="review-tab"
-                  aria-selected="false"
-                >
-                  Review
-                </button>
-              </div>
-              <!-- End Tab Nav -->
-              <!-- Start Tab Content -->
-              <div class="tab-content tab-content-info" id="myTabContent">
-                <!-- Tab Single -->
-                <div
-                  class="tab-pane fade show active"
-                  id="description-tab"
-                  role="tabpanel"
-                  aria-labelledby="description-tab-control"
-                >
-                  <p>
-                    Recommended for wheat, rice, sugarcane, maize, and fodder
-                    crops. For loamy soils: apply 1–2 bags per acre per split,
-                    depending on crop stage and soil tests. Incorporate into
-                    moist soil to reduce volatilization losses. Not recommended
-                    for saline soils without proper leaching.
-                  </p>
-                  <ul>
-                    <li>Guaranteed analysis: 46% Nitrogen (N)</li>
-                    <li>Form: Granular prilled urea</li>
-                    <li>
-                      Suggested splits: Basal + tillering + booting (cereals)
-                    </li>
-                    <li>Storage: Keep dry and sealed; avoid caking</li>
-                    <li>
-                      Compatibility: Do not mix with calcium ammonium nitrate
-                      (CAN) before application
-                    </li>
-                  </ul>
-                </div>
-                <!-- End Single -->
-
-                <!-- Tab Single -->
-                <div
-                  class="tab-pane fade"
-                  id="information-tab"
-                  role="tabpanel"
-                  aria-labelledby="information-tab-control"
-                >
-                  <div class="table-responsive">
-                    <table class="table table-bordered">
-                      <tbody>
-                        <tr>
-                          <td>Bag Size</td>
-                          <td>50 kg</td>
-                        </tr>
-                        <tr>
-                          <td>Nutrient</td>
-                          <td>46% Nitrogen (N)</td>
-                        </tr>
-                        <tr>
-                          <td>Manufacturer</td>
-                          <td>Fauji Fertilizer Company (FFC)</td>
-                        </tr>
-                        <tr>
-                          <td>Country</td>
-                          <td>Pakistan</td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-                <!-- End Tab Single -->
-
-                <!-- Tab Single -->
-                <div
-                  class="tab-pane fade"
-                  id="review-tab"
-                  role="tabpanel"
-                  aria-labelledby="review-tab-control"
-                >
-                  <h4>1 review for “FFC Sona Urea (46% N)”</h4>
-                  <div class="review-items">
-                    <div class="item">
-                      <div class="thumb">
-                        <img
-                          src="{{ asset('assets/img/blog/cotton_leaf_curl.png') }}"
-                          alt="Thumb"
-                        />
-                      </div>
-                      <div class="info">
-                        <div class="rating">
-                          <i class="fas fa-star"></i>
-                          <i class="fas fa-star"></i>
-                          <i class="fas fa-star"></i>
-                          <i class="fas fa-star"></i>
-                          <i class="fas fa-star-half-alt"></i>
-                        </div>
-                        <div class="review-date">April 8, 2021</div>
-                        <div class="review-authro">
-                          <h5>Aleesha Brown</h5>
-                        </div>
-                        <p>Highly recommended. Will purchase more in future.</p>
-                      </div>
-                    </div>
-                    <div class="item">
-                      <div class="thumb">
-                        <img src="{{ asset('assets/img/blog/maize_urea.png') }}" alt="Thumb" />
-                      </div>
-                      <div class="info">
-                        <div class="rating">
-                          <i class="fas fa-star"></i>
-                          <i class="fas fa-star"></i>
-                          <i class="fas fa-star"></i>
-                          <i class="fas fa-star"></i>
-                          <i class="fas fa-star-half-alt"></i>
-                        </div>
-                        <div class="review-date">April 8, 2021</div>
-                        <div class="review-authro">
-                          <h5>Sarah Albert</h5>
-                        </div>
-                        <p>Great product quality!</p>
-                      </div>
-                    </div>
-                  </div>
-                  <div class="review-form">
-                    <h4>Add a review</h4>
-                    <div class="rating-select">
-                      <div class="stars">
-                        <span>
-                          <a class="star-1" href="#" aria-label="Rate 1 star"
-                            ><i class="fas fa-star"></i
-                          ></a>
-                          <a class="star-2" href="#" aria-label="Rate 2 stars"
-                            ><i class="fas fa-star"></i
-                          ></a>
-                          <a class="star-3" href="#" aria-label="Rate 3 stars"
-                            ><i class="fas fa-star"></i
-                          ></a>
-                          <a class="star-4" href="#" aria-label="Rate 4 stars"
-                            ><i class="fas fa-star"></i
-                          ></a>
-                          <a class="star-5" href="#" aria-label="Rate 5 stars"
-                            ><i class="fas fa-star"></i
-                          ></a>
-                        </span>
-                      </div>
-                    </div>
-                    <form action="#" class="contact-form">
-                      <div class="row">
-                        <div class="col-lg-12">
-                          <div class="form-group comments">
-                            <textarea
-                              class="form-control"
-                              id="comments"
-                              name="comments"
-                              required
-                              placeholder="Tell Us About Project *"
-                            ></textarea>
-                          </div>
-                        </div>
-                      </div>
-                      <div class="row">
-                        <div class="col-lg-6">
-                          <div class="form-group">
-                            <input
-                              class="form-control"
-                              id="name"
-                              name="name"
-                              placeholder="Name"
-                              type="text"
-                              required
-                            />
-                            <span class="alert-error"></span>
-                          </div>
-                        </div>
-                        <div class="col-lg-6">
-                          <div class="form-group">
-                            <input
-                              class="form-control"
-                              id="email"
-                              name="email"
-                              placeholder="Email*"
-                              type="email"
-                              required
-                            />
-                            <span class="alert-error"></span>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div class="row">
-                        <div class="col-lg-12">
-                          <button type="submit" name="submit" id="submit">
-                            Post Review
-                          </button>
-                        </div>
-                      </div>
-                      <!-- Alert Message -->
-                      <div class="col-md-12 alert-notification">
-                        <div id="message" class="alert-msg"></div>
-                      </div>
-                    </form>
-                  </div>
-                </div>
-                <!-- End Tab Single -->
-              </div>
-              <!-- End Tab Content -->
-            </div>
-          </div>
-        </div>
-        <!-- End Product Bottom Info  -->
-
-        <!-- Related Product  -->
-        <div class="related-products carousel-shadow">
-          <div class="row">
-            <div class="col-md-12">
-              <h3>Related Products</h3>
-              <div
-                class="vt-products text-center related-product-carousel swiper"
-              >
-                <!-- Additional required wrapper -->
-                <div class="swiper-wrapper">
-                  <!-- Single product -->
-                  <div class="swiper-slide">
-                    <div class="product">
-                      <div class="product-contents">
-                        <div class="product-image">
-                          <a href="{{ route('shop.single') }}">
-                            <img
-                              src="{{ asset('assets/img/products/urea_sona.png') }}"
-                              alt="Product"
-                            />
-                          </a>
-                          <div class="shop-action">
-                            <ul>
-                              <li class="cart">
-                                <a href="#"><span>Add to cart</span></a>
-                              </li>
-                              <li class="wishlist">
-                                <a href="#"><span>Add to wishlist</span></a>
-                              </li>
-                              <li class="quick-view">
-                                <a href="#"><span>Quick view</span></a>
-                              </li>
-                            </ul>
-                          </div>
-                        </div>
-                        <div class="product-caption">
-                          <div class="product-tags">
-                            <a href="#">Nitrogen</a>
-                            <a href="#">Urea</a>
-                          </div>
-                          <h4 class="product-title">
-                            <a href="{{ route('shop.single') }}">FFC Sona Urea (46% N)</a>
-                          </h4>
-                          <div class="price">
-                            <span>PKR 3,500</span>
-                          </div>
-                          <a href="#" class="cart-btn"
-                            ><i class="fas fa-shopping-bag"></i> Add to cart</a
-                          >
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <!-- Single product -->
-                  <!-- Single product -->
-                  <div class="swiper-slide">
-                    <div class="product">
-                      <div class="product-contents">
-                        <div class="product-image">
-                          <span class="onsale">Sale!</span>
-                          <a href="{{ route('shop.single') }}">
-                            <img
-                              src="{{ asset('assets/img/products/dap_engro.png') }}"
-                              alt="Product"
-                            />
-                          </a>
-                          <div class="shop-action">
-                            <ul>
-                              <li class="cart">
-                                <a href="#"><span>Add to cart</span></a>
-                              </li>
-                              <li class="wishlist">
-                                <a href="#"><span>Add to wishlist</span></a>
-                              </li>
-                              <li class="quick-view">
-                                <a href="#"><span>Quick view</span></a>
-                              </li>
-                            </ul>
-                          </div>
-                        </div>
-                        <div class="product-caption">
-                          <div class="product-tags">
-                            <a href="#">Phosphorus</a>
-                            <a href="#">DAP</a>
-                          </div>
-                          <h4 class="product-title">
-                            <a href="{{ route('shop.single') }}">Engro DAP (18-46-0)</a>
-                          </h4>
-                          <div class="price">
-                            <span><del>PKR 15,500</del></span>
-                            <span>PKR 14,500</span>
-                          </div>
-                          <a href="#" class="cart-btn"
-                            ><i class="fas fa-shopping-bag"></i> Add to cart</a
-                          >
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <!-- Single product -->
-                  <!-- Single product -->
-                  <div class="swiper-slide">
-                    <div class="product">
-                      <div class="product-contents">
-                        <div class="product-image">
-                          <a href="{{ route('shop.single') }}">
-                            <img
-                              src="{{ asset('assets/img/products/can_sarsabz.png') }}"
-                              alt="Product"
-                            />
-                          </a>
-                          <div class="shop-action">
-                            <ul>
-                              <li class="cart">
-                                <a href="#"><span>Add to cart</span></a>
-                              </li>
-                              <li class="wishlist">
-                                <a href="#"><span>Add to wishlist</span></a>
-                              </li>
-                              <li class="quick-view">
-                                <a href="#"><span>Quick view</span></a>
-                              </li>
-                            </ul>
-                          </div>
-                        </div>
-                        <div class="product-caption">
-                          <div class="product-tags">
-                            <a href="#">Nitrogen</a>
-                            <a href="#">CAN</a>
-                          </div>
-                          <h4 class="product-title">
-                            <a href="{{ route('shop.single') }}">Sarsabz CAN</a>
-                          </h4>
-                          <div class="price">
-                            <span>PKR 3,800</span>
-                          </div>
-                          <a href="#" class="cart-btn"
-                            ><i class="fas fa-shopping-bag"></i> Add to cart</a
-                          >
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <!-- Single product -->
-                  <!-- Single product -->
-                  <div class="swiper-slide">
-                    <div class="product">
-                      <div class="product-contents">
-                        <div class="product-image">
-                          <a href="{{ route('shop.single') }}">
-                            <img
-                              src="{{ asset('assets/img/products/agricultural_gypsum.jpg') }}"
-                              alt="Product"
-                            />
-                          </a>
-                          <div class="shop-action">
-                            <ul>
-                              <li class="cart">
-                                <a href="#"><span>Add to cart</span></a>
-                              </li>
-                              <li class="wishlist">
-                                <a href="#"><span>Add to wishlist</span></a>
-                              </li>
-                              <li class="quick-view">
-                                <a href="#"><span>Quick view</span></a>
-                              </li>
-                            </ul>
-                          </div>
-                        </div>
-                        <div class="product-caption">
-                          <div class="product-tags">
-                            <a href="#">Soil Conditioner</a>
-                            <a href="#">Calcium</a>
-                          </div>
-                          <h4 class="product-title">
-                            <a href="{{ route('shop.single') }}">Agricultural Gypsum</a>
-                          </h4>
-                          <div class="price">
-                            <span>PKR 1,200</span>
-                          </div>
-                          <a href="#" class="cart-btn"
-                            ><i class="fas fa-shopping-bag"></i> Add to cart</a
-                          >
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <!-- Single product -->
-                  <!-- Single product -->
-                  <div class="swiper-slide">
-                    <div class="product">
-                      <div class="product-contents">
-                        <div class="product-image">
-                          <a href="{{ route('shop.single') }}">
-                            <img
-                              src="{{ asset('assets/img/products/mop_potash.jpg') }}"
-                              alt="Product"
-                            />
-                          </a>
-                          <div class="shop-action">
-                            <ul>
-                              <li class="cart">
-                                <a href="#"><span>Add to cart</span></a>
-                              </li>
-                              <li class="wishlist">
-                                <a href="#"><span>Add to wishlist</span></a>
-                              </li>
-                              <li class="quick-view">
-                                <a href="#"><span>Quick view</span></a>
-                              </li>
-                            </ul>
-                          </div>
-                        </div>
-                        <div class="product-caption">
-                          <div class="product-tags">
-                            <a href="#">Potash</a>
-                            <a href="#">MOP</a>
-                          </div>
-                          <h4 class="product-title">
-                            <a href="{{ route('shop.single') }}">MOP (60% K2O)</a>
-                          </h4>
-                          <div class="price">
-                            <span>PKR 12,000</span>
-                          </div>
-                          <a href="#" class="cart-btn"
-                            ><i class="fas fa-shopping-bag"></i> Add to cart</a
-                          >
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <!-- Single product -->
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <!-- End Related Product  -->
-      </div>
     </div>
-    <!-- End Shop -->
-@endsection
+    <!-- End Product Single -->
 
+    <script>
+        // Simple script to handle bootstrap tabs gracefully custom styling
+        document.addEventListener('DOMContentLoaded', function() {
+            var triggerTabList = [].slice.call(document.querySelectorAll('#productTabs button'))
+            triggerTabList.forEach(function (triggerEl) {
+                triggerEl.addEventListener('click', function (event) {
+                    // Update tab styles
+                    document.querySelectorAll('#productTabs button').forEach(b => {
+                        b.classList.remove('bg-white', 'text-dark', 'active');
+                        b.classList.add('bg-transparent', 'text-muted');
+                    });
+                    this.classList.remove('bg-transparent', 'text-muted');
+                    this.classList.add('bg-white', 'text-dark', 'active');
+                })
+            })
+        });
+    </script>
+@endsection

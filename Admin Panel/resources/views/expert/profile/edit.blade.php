@@ -7,64 +7,66 @@
     @csrf
     @method('PUT')
 
-    <div class="row g-4">
+    <div class="row g-4 mb-4">
         {{-- Left column --}}
-        <div class="col-lg-8">
+        <div class="col-lg-8 d-flex flex-column gap-4">
             {{-- Personal Info --}}
-            <div class="card border-0 shadow-sm mb-4 hover-card" style="border-radius:16px;">
-                <div class="card-header bg-white border-bottom py-3">
-                    <h5 class="mb-0 fw-bold"><i class="bi bi-person me-2 text-success fs-4"></i>Personal Information</h5>
+            <div class="card-agri p-0 border-0 bg-white hover-lift">
+                <div class="p-4 bg-light border-bottom">
+                    <h5 class="mb-0 fw-bold text-dark"><i class="fas fa-user me-2 text-primary"></i>Personal Details</h5>
                 </div>
-                <div class="card-body p-4">
+                <div class="p-4">
                     <div class="row g-4">
                         <div class="col-sm-6">
-                            <label class="form-label text-muted text-uppercase fw-bold small mb-1">Full Name</label>
-                            <input type="text" name="name" class="form-control form-control-lg fs-6 rounded-3 bg-light border-0 @error('name') is-invalid @enderror"
+                            <label class="form-label text-dark fw-bold small mb-2">Full Name</label>
+                            <input type="text" name="name" class="form-agri @error('name') is-invalid @enderror"
                                    value="{{ old('name', $expert->user->name) }}" required>
                             @error('name')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         </div>
                         <div class="col-sm-6">
-                            <label class="form-label text-muted text-uppercase fw-bold small mb-1">Email Address</label>
-                            <input type="email" class="form-control form-control-lg fs-6 rounded-3 bg-secondary bg-opacity-10 border-0" value="{{ $expert->user->email }}" disabled>
+                            <label class="form-label text-dark fw-bold small mb-2">Email Address</label>
+                            <input type="email" class="form-agri bg-light text-muted" value="{{ $expert->user->email }}" disabled>
+                            <div class="form-text small mt-1"><i class="fas fa-lock me-1"></i>Email cannot be changed directly.</div>
                         </div>
                         <div class="col-sm-6">
-                            <label class="form-label text-muted text-uppercase fw-bold small mb-1">Phone Number</label>
-                            <input type="tel" name="phone" class="form-control form-control-lg fs-6 rounded-3 bg-light border-0 @error('phone') is-invalid @enderror"
+                            <label class="form-label text-dark fw-bold small mb-2">Phone Number</label>
+                            <input type="tel" name="phone" class="form-agri @error('phone') is-invalid @enderror"
                                    value="{{ old('phone', $profile?->contact_phone ?? $expert->user->phone) }}">
                             @error('phone')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         </div>
                         <div class="col-sm-6">
-                            <label class="form-label text-muted text-uppercase fw-bold small mb-1">Hourly Rate (PKR)</label>
+                            <label class="form-label text-dark fw-bold small mb-2">Consultation Rate (PKR/hr)</label>
                             <div class="input-group">
-                                <span class="input-group-text bg-success bg-opacity-10 text-success border-0 rounded-start-3 fw-bold">PKR</span>
-                                <input type="number" name="hourly_rate" class="form-control form-control-lg fs-6 bg-light border-0 rounded-end-3 @error('hourly_rate') is-invalid @enderror"
+                                <span class="input-group-text bg-light text-muted fw-bold border" style="border-right: none;">PKR</span>
+                                <input type="number" name="hourly_rate" class="form-agri" style="border-top-left-radius: 0; border-bottom-left-radius: 0;"
                                        value="{{ old('hourly_rate', $expert->hourly_rate) }}" min="0">
                             </div>
-                            @error('hourly_rate')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                            @error('hourly_rate')<div class="text-danger small mt-1">{{ $message }}</div>@enderror
                         </div>
                         <div class="col-12">
-                            <label class="form-label text-muted text-uppercase fw-bold small mb-1">Professional Bio</label>
-                            <textarea name="bio" rows="4" class="form-control fs-6 rounded-3 bg-light border-0 @error('bio') is-invalid @enderror"
-                                      placeholder="Describe your expertise, background, and experience...">{{ old('bio', $expert->bio) }}</textarea>
+                            <label class="form-label text-dark fw-bold small mb-2">Professional Summary (Bio)</label>
+                            <textarea name="bio" rows="4" class="form-agri @error('bio') is-invalid @enderror"
+                                      placeholder="Briefly describe your expertise, background, and what you specialize in...">{{ old('bio', $expert->bio) }}</textarea>
                             @error('bio')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         </div>
-                        <div class="col-sm-4">
-                            <label class="form-label text-muted text-uppercase fw-bold small mb-1">City</label>
-                            <input type="text" name="city" class="form-control form-control-lg fs-6 rounded-3 bg-light border-0"
+                        
+                        <div class="col-sm-6 col-md-4">
+                            <label class="form-label text-dark fw-bold small mb-2">City</label>
+                            <input type="text" name="city" class="form-agri"
                                    value="{{ old('city', $profile?->city) }}">
                         </div>
-                        <div class="col-sm-4">
-                            <label class="form-label text-muted text-uppercase fw-bold small mb-1">Country</label>
-                            <input type="text" name="country" class="form-control form-control-lg fs-6 rounded-3 bg-light border-0"
+                        <div class="col-sm-6 col-md-4">
+                            <label class="form-label text-dark fw-bold small mb-2">Country</label>
+                            <input type="text" name="country" class="form-agri"
                                    value="{{ old('country', $profile?->country) }}">
                         </div>
-                        <div class="col-sm-4">
-                            <label class="form-label text-muted text-uppercase fw-bold small mb-1 w-100">Status</label>
-                            <div class="form-check form-switch mt-2">
-                                <input class="form-check-input fs-4 cursor-pointer" type="checkbox" role="switch" id="is_available"
+                        <div class="col-12 col-md-4 px-3 py-2 bg-light rounded border border-dashed d-flex flex-column justify-content-center">
+                            <label class="form-label text-muted text-uppercase fw-bold small mb-2" style="font-size: 11px; letter-spacing: 0.5px;">Booking Status</label>
+                            <div class="form-check form-switch m-0 d-flex align-items-center gap-2">
+                                <input class="form-check-input fs-4 cursor-pointer m-0 mt-1" type="checkbox" role="switch" id="is_available"
                                        name="is_available" value="1"
                                        {{ old('is_available', $expert->is_available) ? 'checked' : '' }}>
-                                <label class="form-check-label fw-bold mt-1 ms-2" for="is_available">Available for Bookings</label>
+                                <label class="form-check-label fw-bold text-dark mt-1" for="is_available">Available</label>
                             </div>
                         </div>
                     </div>
@@ -72,52 +74,52 @@
             </div>
 
             {{-- Professional Info --}}
-            <div class="card border-0 shadow-sm mb-4 hover-card" style="border-radius:16px;">
-                <div class="card-header bg-white border-bottom py-3">
-                    <h5 class="mb-0 fw-bold"><i class="bi bi-briefcase me-2 text-success fs-4"></i>Professional Details</h5>
+            <div class="card-agri p-0 border-0 bg-white hover-lift">
+                <div class="p-4 bg-light border-bottom">
+                    <h5 class="mb-0 fw-bold text-dark"><i class="fas fa-briefcase me-2 text-primary"></i>Professional Identity</h5>
                 </div>
-                <div class="card-body p-4">
+                <div class="p-4">
                     <div class="row g-4">
                         @if($expert->user->role === 'agency_expert')
                         <div class="col-12">
-                            <label class="form-label text-muted text-uppercase fw-bold small mb-1">Agency / Company Name</label>
-                            <input type="text" name="agency_name" class="form-control form-control-lg fs-6 rounded-3 bg-light border-0 @error('agency_name') is-invalid @enderror"
+                            <label class="form-label text-dark fw-bold small mb-2">Agency / Company Name</label>
+                            <input type="text" name="agency_name" class="form-agri @error('agency_name') is-invalid @enderror"
                                    value="{{ old('agency_name', $profile?->agency_name) }}">
                             @error('agency_name')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         </div>
                         @endif
                         <div class="col-sm-6">
-                            <label class="form-label text-muted text-uppercase fw-bold small mb-1">Area of Specialization</label>
-                            <input type="text" name="specialization" class="form-control form-control-lg fs-6 rounded-3 bg-light border-0 @error('specialization') is-invalid @enderror"
+                            <label class="form-label text-dark fw-bold small mb-2">Core Specialization</label>
+                            <input type="text" name="specialization" class="form-agri @error('specialization') is-invalid @enderror"
                                    value="{{ old('specialization', $profile?->specialization ?? $expert->specialty) }}"
                                    placeholder="e.g. Crop Science, Plant Pathology">
                             @error('specialization')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         </div>
                         <div class="col-sm-6">
-                            <label class="form-label text-muted text-uppercase fw-bold small mb-1">Years of Experience</label>
-                            <input type="number" name="experience_years" class="form-control form-control-lg fs-6 rounded-3 bg-light border-0 @error('experience_years') is-invalid @enderror"
+                            <label class="form-label text-dark fw-bold small mb-2">Years of Experience</label>
+                            <input type="number" name="experience_years" class="form-agri @error('experience_years') is-invalid @enderror"
                                    value="{{ old('experience_years', $profile?->experience_years) }}" min="0" max="60">
                             @error('experience_years')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         </div>
                         <div class="col-12">
-                            <label class="form-label text-muted text-uppercase fw-bold small mb-1">Certifications & Qualifications</label>
-                            <textarea name="certifications" rows="3" class="form-control rounded-3 bg-light border-0 @error('certifications') is-invalid @enderror"
-                                      placeholder="List your academic degrees, certifications, or professional memberships...">{{ old('certifications', $profile?->certifications) }}</textarea>
+                            <label class="form-label text-dark fw-bold small mb-2">Certifications & Qualifications</label>
+                            <textarea name="certifications" rows="3" class="form-agri @error('certifications') is-invalid @enderror"
+                                      placeholder="List degrees, certifications, or professional memberships...">{{ old('certifications', $profile?->certifications) }}</textarea>
                             @error('certifications')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         </div>
                         <div class="col-sm-6">
-                            <label class="form-label text-muted text-uppercase fw-bold small mb-1">Website URL</label>
+                            <label class="form-label text-dark fw-bold small mb-2">Professional Website</label>
                             <div class="input-group">
-                                <span class="input-group-text bg-white border-0 text-muted"><i class="bi bi-link-45deg"></i></span>
-                                <input type="url" name="website" class="form-control form-control-lg fs-6 rounded-end-3 bg-light border-0"
+                                <span class="input-group-text bg-light text-muted fw-bold border" style="border-right: none;"><i class="fas fa-link"></i></span>
+                                <input type="url" name="website" class="form-agri" style="border-top-left-radius: 0; border-bottom-left-radius: 0;"
                                        value="{{ old('website', $profile?->website) }}" placeholder="https://...">
                             </div>
                         </div>
                         <div class="col-sm-6">
-                            <label class="form-label text-muted text-uppercase fw-bold small mb-1">LinkedIn Profile</label>
+                            <label class="form-label text-dark fw-bold small mb-2">LinkedIn Profile</label>
                             <div class="input-group">
-                                <span class="input-group-text bg-white border-0 text-primary"><i class="bi bi-linkedin"></i></span>
-                                <input type="url" name="linkedin" class="form-control form-control-lg fs-6 rounded-end-3 bg-light border-0"
+                                <span class="input-group-text bg-light fw-bold border" style="border-right: none; color: #0A66C2;"><i class="fab fa-linkedin-in"></i></span>
+                                <input type="url" name="linkedin" class="form-agri" style="border-top-left-radius: 0; border-bottom-left-radius: 0;"
                                        value="{{ old('linkedin', $profile?->linkedin) }}" placeholder="https://linkedin.com/in/...">
                             </div>
                         </div>
@@ -125,40 +127,42 @@
                 </div>
             </div>
 
-            {{-- Specializations --}}
-            <div class="card border-0 shadow-sm mb-4 hover-card" style="border-radius:16px;">
-                <div class="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0 fw-bold"><i class="bi bi-tags me-2 text-success fs-4"></i>Specialization Tags</h5>
-                    <button type="button" class="btn btn-sm btn-outline-success rounded-pill px-3" id="addSpecBtn">
-                        <i class="bi bi-plus me-1"></i>Add Tag
+            {{-- Specialization Tags --}}
+            <div class="card-agri p-0 border-0 bg-white hover-lift">
+                <div class="p-4 bg-light border-bottom d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 fw-bold text-dark"><i class="fas fa-tags me-2 text-primary"></i>Expertise Tags</h5>
+                    <button type="button" class="btn-agri btn-agri-outline py-1 px-3 d-flex align-items-center gap-2" id="addSpecBtn" style="font-size: 13px;">
+                        <i class="fas fa-plus"></i> Add Tag
                     </button>
                 </div>
-                <div class="card-body p-4">
+                <div class="p-4">
                     <div id="specializationsContainer">
                         @forelse($specializations as $i => $spec)
-                        <div class="row g-3 mb-3 spec-row align-items-center bg-light p-2 rounded-3 border">
-                            <div class="col-7">
+                        <div class="row g-3 mb-3 spec-row align-items-center bg-light p-3 rounded border border-dashed">
+                            <div class="col-md-7">
+                                <label class="form-label fw-bold small text-muted d-md-none">Skill Name</label>
                                 <input type="text" name="specializations[{{ $i }}][name]"
-                                       class="form-control form-control-md border-0 bg-white"
-                                       value="{{ $spec->name }}" placeholder="e.g. Wheat Diseases">
+                                       class="form-agri bg-white"
+                                       value="{{ $spec->name }}" placeholder="e.g. Soil Analysis">
                             </div>
-                            <div class="col-4">
-                                <select name="specializations[{{ $i }}][level]" class="form-select form-select-md border-0 bg-white shadow-sm">
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold small text-muted d-md-none">Proficiency</label>
+                                <select name="specializations[{{ $i }}][level]" class="form-agri bg-white">
                                     <option value="beginner"  {{ $spec->level==='beginner'?'selected':'' }}>Beginner</option>
                                     <option value="intermediate" {{ $spec->level==='intermediate'?'selected':'' }}>Intermediate</option>
                                     <option value="expert"    {{ $spec->level==='expert'?'selected':'' }}>Expert</option>
                                 </select>
                             </div>
-                            <div class="col-1 text-end">
-                                <button type="button" class="btn btn-sm btn-outline-danger remove-spec rounded-circle shadow-sm" style="width:32px; height:32px; padding:0;">
-                                    <i class="bi bi-trash"></i>
+                            <div class="col-md-1 text-end mt-3 mt-md-0 d-flex justify-content-end align-items-center">
+                                <button type="button" class="btn btn-sm btn-outline-danger remove-spec rounded-circle shadow-sm d-flex align-items-center justify-content-center" style="width:36px; height:36px;">
+                                    <i class="fas fa-trash-alt"></i>
                                 </button>
                             </div>
                         </div>
                         @empty
-                        <div id="emptySpecNote" class="text-center text-muted p-4">
-                            <i class="bi bi-tags p-3 fs-3 d-block opacity-50"></i>
-                            <p class="mb-0 text-muted">No expertise tags added. Click "Add Tag" to showcase your skills.</p>
+                        <div id="emptySpecNote" class="text-center text-muted p-4 bg-light rounded border border-dashed">
+                            <i class="fas fa-tags fs-3 mb-2 opacity-50 d-block"></i>
+                            <p class="mb-0 fw-medium small">No expertise tags added. Click "Add Tag" above to showcase your skills.</p>
                         </div>
                         @endforelse
                     </div>
@@ -167,66 +171,65 @@
         </div>
 
         {{-- Right column --}}
-        <div class="col-lg-4">
+        <div class="col-lg-4 d-flex flex-column gap-4">
             {{-- Avatar --}}
-            <div class="card border-0 shadow-sm mb-4 hover-card" style="border-radius:16px;">
-                <div class="card-header bg-white border-bottom py-3">
-                    <h5 class="mb-0 fw-bold"><i class="bi bi-camera me-2 text-success fs-4"></i>Profile Photo</h5>
+            <div class="card-agri p-0 border-0 bg-white">
+                <div class="p-4 bg-light border-bottom">
+                    <h5 class="mb-0 fw-bold text-dark"><i class="fas fa-camera-retro me-2 text-primary"></i>Profile Photo</h5>
                 </div>
-                <div class="card-body p-4 text-center">
+                <div class="p-4 text-center">
                     <div class="mb-4 position-relative d-inline-block">
                         @if($expert->avatar)
                             <img src="{{ Storage::url($expert->avatar) }}" id="avatarPreview"
-                                 class="rounded-circle shadow-sm border border-3 border-white" style="width:120px;height:120px;object-fit:cover">
+                                 class="rounded-circle shadow-sm border border-3 border-light" style="width:140px;height:140px;object-fit:cover;">
                         @else
-                            <div class="rounded-circle d-flex align-items-center justify-content-center bg-success text-white shadow-sm border border-3 border-white mx-auto"
-                                 id="avatarPlaceholder" style="width:120px;height:120px;font-size:3rem;font-weight:700">
+                            <div class="rounded-circle d-flex align-items-center justify-content-center bg-primary text-white shadow-sm border border-3 border-light mx-auto"
+                                 id="avatarPlaceholder" style="width:140px;height:140px;font-size:3.5rem;font-weight:700; font-family: var(--font-heading);">
                                 {{ strtoupper(substr($expert->user->name, 0, 1)) }}
                             </div>
-                            <img id="avatarPreview" class="rounded-circle shadow-sm border border-3 border-white d-none mx-auto"
-                                 style="width:120px;height:120px;object-fit:cover" src="">
+                            <img id="avatarPreview" class="rounded-circle shadow-sm border border-3 border-light mx-auto d-none"
+                                 style="width:140px;height:140px;object-fit:cover" src="">
                         @endif
-                        <label for="avatarInput" class="position-absolute bottom-0 end-0 bg-success text-white rounded-circle d-flex align-items-center justify-content-center shadow" style="width:36px; height:36px; cursor:pointer; transform: translate(10%, 10%);">
-                            <i class="bi bi-pencil-fill small"></i>
+                        <label for="avatarInput" class="position-absolute bottom-0 end-0 bg-white text-primary rounded-circle d-flex align-items-center justify-content-center shadow border" style="width:40px; height:40px; cursor:pointer; transform: translate(10%, 10%); transition: all 0.2s;">
+                            <i class="fas fa-camera"></i>
                         </label>
                     </div>
-                    <input type="file" name="avatar" id="avatarInput" class="d-none @error('avatar') is-invalid @enderror"
-                           accept="image/jpeg,image/png,image/gif">
-                    <div class="text-muted small fw-medium mt-2">Allowed JPG, GIF or PNG. Max size of 2MB</div>
-                    @error('avatar')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+                    <input type="file" name="avatar" id="avatarInput" class="d-none @error('avatar') is-invalid @enderror" accept="image/jpeg,image/png,image/gif">
+                    <div class="text-muted small fw-medium mt-2"><i class="fas fa-info-circle me-1"></i>Allowed JPG, GIF or PNG. Max: 2MB</div>
+                    @error('avatar')<div class="text-danger small fw-bold mt-2">{{ $message }}</div>@enderror
                 </div>
             </div>
 
-            {{-- Change Password --}}
-            <div class="card border-0 shadow-sm mb-4 hover-card" style="border-radius:16px;">
-                <div class="card-header bg-white border-bottom py-3">
-                    <h5 class="mb-0 fw-bold"><i class="bi bi-shield-lock me-2 text-warning fs-4"></i>Security</h5>
+            {{-- Security --}}
+            <div class="card-agri p-0 border-0 bg-white">
+                <div class="p-4 bg-light border-bottom">
+                    <h5 class="mb-0 fw-bold text-dark"><i class="fas fa-shield-alt me-2 text-warning"></i>Change Password</h5>
                 </div>
-                <div class="card-body p-4">
+                <div class="p-4">
                     <div class="mb-3">
-                        <label class="form-label text-muted text-uppercase fw-bold small mb-1">Current Password</label>
-                        <input type="password" name="current_password" class="form-control form-control-lg fs-6 rounded-3 bg-light border-0 @error('current_password') is-invalid @enderror">
+                        <label class="form-label text-dark fw-bold small mb-2">Current Password</label>
+                        <input type="password" name="current_password" class="form-agri @error('current_password') is-invalid @enderror">
                         @error('current_password')<div class="invalid-feedback">{{ $message }}</div>@enderror
                     </div>
                     <div class="mb-3">
-                        <label class="form-label text-muted text-uppercase fw-bold small mb-1">New Password</label>
-                        <input type="password" name="new_password" class="form-control form-control-lg fs-6 rounded-3 bg-light border-0 @error('new_password') is-invalid @enderror">
+                        <label class="form-label text-dark fw-bold small mb-2">New Password</label>
+                        <input type="password" name="new_password" class="form-agri @error('new_password') is-invalid @enderror">
                         @error('new_password')<div class="invalid-feedback">{{ $message }}</div>@enderror
                     </div>
                     <div class="mb-3">
-                        <label class="form-label text-muted text-uppercase fw-bold small mb-1">Confirm New Password</label>
-                        <input type="password" name="new_password_confirmation" class="form-control form-control-lg fs-6 rounded-3 bg-light border-0">
+                        <label class="form-label text-dark fw-bold small mb-2">Confirm New Password</label>
+                        <input type="password" name="new_password_confirmation" class="form-agri">
                     </div>
-                    <div class="form-text mt-2 text-muted fw-medium"><i class="bi bi-info-circle me-1"></i>Leave blank to keep your current password unmodified.</div>
+                    <div class="form-text mt-3 text-muted small px-3 py-2 bg-light rounded border border-dashed"><i class="fas fa-info-circle me-1 text-warning"></i>Leave blank if you do not want to modify your password.</div>
                 </div>
             </div>
 
-            <div class="d-grid gap-3">
-                <button type="submit" class="btn btn-success rounded-pill py-3 fw-bold fs-5 shadow-sm">
-                    <i class="bi bi-check-circle me-2"></i>Save All Changes
+            <div class="d-grid gap-3 pt-2">
+                <button type="submit" class="btn-agri btn-agri-primary py-3 fs-6 shadow-sm">
+                    <i class="fas fa-check-circle me-2"></i> Save Profile Details
                 </button>
-                <a href="{{ route('expert.profile.show') }}" class="btn btn-light text-dark border rounded-pill py-3 fw-bold fs-6">
-                    Cancel Updates
+                <a href="{{ route('expert.profile.show') }}" class="btn-agri btn-agri-outline py-3 fs-6 bg-white">
+                    <i class="fas fa-times me-2 text-muted"></i> Cancel Edit
                 </a>
             </div>
         </div>
@@ -254,18 +257,22 @@ document.getElementById('addSpecBtn').addEventListener('click', function() {
     const empty = document.getElementById('emptySpecNote');
     if (empty) empty.remove();
     const row = document.createElement('div');
-    row.className = 'row g-3 mb-3 spec-row align-items-center bg-light p-2 rounded-3 border';
+    row.className = 'row g-3 mb-3 spec-row align-items-center bg-light p-3 rounded border border-dashed';
     row.innerHTML = `
-        <div class="col-7"><input type="text" name="specializations[${specCount}][name]" class="form-control form-control-md border-0 bg-white" placeholder="e.g. Wheat Diseases"></div>
-        <div class="col-4">
-            <select name="specializations[${specCount}][level]" class="form-select form-select-md border-0 bg-white shadow-sm">
+        <div class="col-md-7">
+            <label class="form-label fw-bold small text-muted d-md-none">Skill Name</label>
+            <input type="text" name="specializations[${specCount}][name]" class="form-agri bg-white" placeholder="e.g. Greenhouse Tech">
+        </div>
+        <div class="col-md-4">
+            <label class="form-label fw-bold small text-muted d-md-none">Proficiency</label>
+            <select name="specializations[${specCount}][level]" class="form-agri bg-white">
                 <option value="beginner">Beginner</option>
-                <option value="intermediate">Intermediate</option>
+                <option value="intermediate" selected>Intermediate</option>
                 <option value="expert">Expert</option>
             </select>
         </div>
-        <div class="col-1 text-end">
-            <button type="button" class="btn btn-sm btn-outline-danger remove-spec rounded-circle shadow-sm" style="width:32px; height:32px; padding:0;"><i class="bi bi-trash"></i></button>
+        <div class="col-md-1 text-end mt-3 mt-md-0 d-flex justify-content-end align-items-center">
+            <button type="button" class="btn btn-sm btn-outline-danger remove-spec rounded-circle shadow-sm d-flex align-items-center justify-content-center" style="width:36px; height:36px;"><i class="fas fa-trash-alt"></i></button>
         </div>`;
     container.appendChild(row);
     specCount++;

@@ -71,7 +71,6 @@
         }
         .page-wrapper {
             background-color: var(--agri-bg) !important;
-            margin-top: 80px;
         }
         .scroll-sidebar {
             background: var(--agri-white);
@@ -133,23 +132,15 @@
 
             <!-- End Sidebar scroll-->
 
-
-
         </aside>
 
+        <main class="page-wrapper pt-4">
 
+            @yield('content')
+
+        </main>
 
     </div>
-
-
-
-
-
-    <main class="py-4">
-
-        @yield('content')
-
-    </main>
 
 </div>
 
@@ -240,12 +231,6 @@
 <script type="text/javascript">
     // Firebase has been removed from the application
     // Global settings, languages, and notifications require backend migration
-
-    var url = "{{ route('changeLang') }}";
-
-    $(".changeLang").change(function () {
-        window.location.href = url + "?lang=" + $(this).val();
-    });
 
     function setCookie(cname, cvalue, exdays) {
         const d = new Date();

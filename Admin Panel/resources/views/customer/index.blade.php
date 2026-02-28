@@ -1,152 +1,99 @@
 @extends('layouts.frontend')
 
-@section('title', 'Plantix-AI')
+@section('title', 'Plantix-AI | Smart Farming')
 
 @section('header')
-<!-- Start Preloader 
-    ============================================= -->
+    <!-- Preloader -->
     <div id="preloader">
         <div id="agrica-preloader" class="agrica-preloader">
-            <div class="animation-preloader">
-                <div class="spinner"></div>
-            </div>
-            <div class="loader">
-                <div class="row">
-                    <div class="col-3 loader-section section-left">
-                        <div class="bg"></div>
-                    </div>
-                    <div class="col-3 loader-section section-left">
-                        <div class="bg"></div>
-                    </div>
-                    <div class="col-3 loader-section section-right">
-                        <div class="bg"></div>
-                    </div>
-                    <div class="col-3 loader-section section-right">
-                        <div class="bg"></div>
-                    </div>
-                </div>
-            </div>
+            <div class="animation-preloader"><div class="spinner"></div></div>
         </div>
     </div>
-    <!-- End Preloader -->
 
-    <!-- Header 
-    ============================================= -->
-    <header>
-        <!-- Start Navigation -->
-        <nav
-            class="navbar mobile-sidenav navbar-style-one navbar-sticky navbar-default validnavs white navbar-fixed no-background">
+    <!-- Header Navigation -->
+    <header class="agri-header bg-white" style="box-shadow: var(--agri-shadow-sm); position: sticky; top: 0; z-index: 1000;">
+        <nav class="navbar navbar-expand-lg py-3">
+            <div class="container-fluid px-4 px-lg-5 d-flex justify-content-between align-items-center">
+                <!-- Logo -->
+                <a class="navbar-brand" href="{{ route('home') }}">
+                    <img src="{{ asset('assets/img/plantix-ai-logo.png') }}" alt="Plantix-AI Logo" style="height: 40px; border-radius: 8px;">
+                </a>
 
-            <div class="container-full d-flex justify-content-between align-items-center">
+                <!-- Mobile Toggle -->
+                <button type="button" class="navbar-toggler border-0 d-lg-none" data-toggle="collapse" data-target="#navbar-menu">
+                    <i class="fas fa-bars text-dark" style="font-size: 24px;"></i>
+                </button>
 
-                <!-- Start Header Navigation -->
-                <div class="navbar-header">
-                    <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar-menu">
-                        <i class="fa fa-bars"></i>
-                    </button>
-                    <a class="navbar-brand" href="{{ route('home') }}">
-                        <img src="{{ asset('assets/img/plantix-ai-logo.png') }}" class="logo desktop" alt="Logo">
-                        <img src="{{ asset('assets/img/plantix-ai-logo.png') }}" class="logo logo-mobile" alt="Logo">
-                    </a>
-                </div>
-                <!-- End Header Navigation -->
-
-                <!-- Collect the nav links, forms, and other content for toggling -->
-                <div class="collapse navbar-collapse" id="navbar-menu">
-
-                    <img src="{{ asset('assets/img/plantix-ai-logo.png') }}" alt="Logo">
-                    <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar-menu">
-                        <i class="fa fa-times"></i>
-                    </button>
-
-                    <ul class="nav navbar-nav navbar-right" data-in="fadeInDown" data-out="fadeOutUp">
-                        <li>
-                            <a href="{{ route('home') }}" class="active">Home</a>
-                        </li>
-                        <li>
-                            <a href="{{ route('about') }}">About</a>
-                        </li>
-                        <li>
-                            <a href="{{ route('contact') }}">Contact</a>
-                        </li>
-                        <li>
-                            <a href="{{ route('ai.chat') }}">Plantix-AI</a>
-                        </li>
-                        <li>
-                            <a href="{{ route('forum') }}">Forum</a>
-                        </li>
-                        <li>
-                            <a href="{{ route('shop') }}">Shop</a>
-                        </li>
-                        <li>
-                            <a href="{{ route('appointments') }}">Appointments</a>
-                        </li>
+                <!-- Navigation Links -->
+                <div class="collapse navbar-collapse justify-content-center" id="navbar-menu">
+                    <ul class="navbar-nav gap-4" style="font-weight: 600; font-size: 15px;">
+                        <li class="nav-item"><a class="nav-link nav-link-agri text-dark" href="{{ route('home') }}">Home</a></li>
+                        <li class="nav-item"><a class="nav-link nav-link-agri text-dark" href="{{ route('about') }}">About</a></li>
+                        <li class="nav-item"><a class="nav-link nav-link-agri text-dark" href="{{ route('contact') }}">Contact</a></li>
+                        <li class="nav-item"><a class="nav-link nav-link-agri text-primary" href="{{ route('ai.chat') }}">Plantix-AI</a></li>
+                        <li class="nav-item"><a class="nav-link nav-link-agri text-dark" href="{{ route('forum') }}">Forum</a></li>
+                        <li class="nav-item"><a class="nav-link nav-link-agri text-dark" href="{{ route('shop') }}">Shop</a></li>
+                        <li class="nav-item"><a class="nav-link nav-link-agri text-dark" href="{{ route('appointments') }}">Appointments</a></li>
                     </ul>
-                </div><!-- /.navbar-collapse -->
+                </div>
 
-                <div class="attr-right">
-                    <!-- Start Atribute Navigation -->
-                    <div class="attr-nav">
-                        <ul>
-@php
-    $cartCount = 0;
-    if (auth('web')->check()) {
-        $cart = \App\Models\Cart::where('user_id', auth('web')->id())->withCount('items')->first();
-        $cartCount = $cart ? $cart->items_count : 0;
-    }
-@endphp
-                            <li class="dropdown">
-                                <a href="#" class="dropdown-toggle" data-toggle="dropdown">
-                                    <i class="far fa-shopping-cart"></i>
-                                    <span class="badge">{{ $cartCount }}</span>
-                                </a>
-                                <ul class="dropdown-menu cart-list">
-                                    @if($cartCount > 0)
-                                    <li class="total">
-                                        <a href="{{ route('cart') }}" class="btn btn-default btn-cart">View Cart</a>
-                                        <a href="{{ route('checkout') }}" class="btn btn-default btn-cart">Checkout</a>
-                                    </li>
-                                    @else
-                                    <li>
-                                        <p class="text-center p-3 text-muted">Your cart is empty.</p>
-                                    </li>
-                                    @endif
-                                </ul>
-                            </li>
-                            @auth('web')
-                            <li class="dropdown user-nav">
-                                <a href="#" class="dropdown-toggle" data-toggle="dropdown">
-                                    <i class="far fa-user"></i> {{ Str::limit(auth('web')->user()->name, 14) }}
-                                </a>
-                                <ul class="dropdown-menu">
-                                    <li><a href="{{ route('account.profile') }}"><i class="fas fa-user fa-fw"></i> Profile</a></li>
-                                    <li><a href="{{ route('orders') }}"><i class="fas fa-box fa-fw"></i> Orders</a></li>
-                                    <li><a href="{{ route('appointments') }}"><i class="fas fa-calendar fa-fw"></i> Appointments</a></li>
-                                    <li>
-                                        <form action="{{ route('logout') }}" method="POST" class="d-inline">
-                                            @csrf
-                                            <button type="submit" class="dropdown-item border-0 bg-transparent"><i class="fas fa-sign-out-alt fa-fw"></i> Logout</button>
-                                        </form>
-                                    </li>
-                                </ul>
+                <!-- Right Actions -->
+                <div class="d-none d-lg-flex align-items-center gap-4">
+                    @php
+                        $cartCount = 0;
+                        if (auth('web')->check()) {
+                            $cart = \App\Models\Cart::where('user_id', auth('web')->id())->withCount('items')->first();
+                            $cartCount = $cart ? $cart->items_count : 0;
+                        }
+                    @endphp
+                    <div class="dropdown">
+                        <a href="#" class="text-dark position-relative dropdown-toggle" data-toggle="dropdown" style="text-decoration: none;">
+                            <i class="far fa-shopping-cart text-dark" style="font-size: 20px;"></i>
+                            @if($cartCount > 0)
+                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-success" style="font-size: 10px; top: -5px !important; right: -10px !important;">
+                                {{ $cartCount }}
+                            </span>
+                            @endif
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end p-3 shadow border-0" style="border-radius: var(--agri-radius-md); min-width: 250px;">
+                            @if($cartCount > 0)
+                            <li class="d-flex flex-column gap-2">
+                                <a href="{{ route('cart') }}" class="btn-agri btn-agri-outline w-100 text-center text-decoration-none">View Cart</a>
+                                <a href="{{ route('checkout') }}" class="btn-agri btn-agri-primary w-100 text-center text-decoration-none">Checkout</a>
                             </li>
                             @else
-                            <li class="button"><a href="{{ route('signin') }}">Sign In</a></li>
-                            @endauth
+                            <li><p class="text-center mb-0 text-muted">Your cart is empty.</p></li>
+                            @endif
                         </ul>
                     </div>
-                    <!-- End Atribute Navigation -->
 
+                    @auth('web')
+                    <div class="dropdown">
+                        <a href="#" class="d-flex align-items-center gap-2 text-dark dropdown-toggle" data-toggle="dropdown" style="text-decoration: none; font-weight: 600;">
+                            <div style="width: 36px; height: 36px; border-radius: 50%; background: var(--agri-primary-light); color: var(--agri-primary); display: flex; align-items: center; justify-content: center;">
+                                <i class="fas fa-user"></i>
+                            </div>
+                            {{ Str::limit(auth('web')->user()->name, 14) }}
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end shadow border-0" style="border-radius: var(--agri-radius-md);">
+                            <li><a class="dropdown-item py-2" href="{{ route('account.profile') }}"><i class="fas fa-user fa-fw text-muted me-2"></i> Profile</a></li>
+                            <li><a class="dropdown-item py-2" href="{{ route('orders') }}"><i class="fas fa-box fa-fw text-muted me-2"></i> Orders</a></li>
+                            <li><a class="dropdown-item py-2" href="{{ route('appointments') }}"><i class="fas fa-calendar fa-fw text-muted me-2"></i> Appointments</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <form action="{{ route('logout') }}" method="POST" class="d-inline">
+                                    @csrf
+                                    <button type="submit" class="dropdown-item text-danger py-2"><i class="fas fa-sign-out-alt fa-fw me-2"></i> Logout</button>
+                                </form>
+                            </li>
+                        </ul>
+                    </div>
+                    @else
+                    <a href="{{ route('signin') }}" class="btn-agri btn-agri-primary text-decoration-none" style="padding: 10px 24px; font-weight: 600;">Sign In</a>
+                    @endauth
                 </div>
-
-                <!-- Main Nav -->
             </div>
-            <!-- Overlay screen for menu -->
-            <div class="overlay-screen"></div>
-            <!-- End Overlay screen for menu -->
-
         </nav>
-        <!-- End Navigation -->
     </header>
 @endsection
 
@@ -154,568 +101,55 @@
 @endsection
 
 @section('content')
-<!-- End Header -->
 
-    <!-- Start Banner Area 
-    ============================================= -->
-    <div class="banner-area banner-style-two text-center navigation-circle zoom-effect overflow-hidden text-light">
-        <!-- Slider main container -->
-        <div class="banner-fade">
-            <!-- Additional required wrapper -->
-            <div class="swiper-wrapper">
-
-                <!-- Single Item -->
-                <div class="swiper-slide banner-style-two">
-                    <div class="banner-thumb bg-cover shadow dark" style="background: url({{ asset('assets/img/field.jpg') }});"></div>
-                    <div class="container">
-                        <div class="row align-center">
-                            <div class="col-lg-8 offset-lg-2">
-                                <div class="content">
-                                    <h2>Smart Farming with <strong>Plantix-AI</strong></h2>
-                                    <p>
-                                        Transform your agricultural practices with AI-powered insights. Get real-time
-                                        crop recommendations, disease detection, and precision farming solutions
-                                        tailored for Pakistani farmers.
-                                    </p>
-                                    <div class="button">
-                                        <a class="animated-btn" href="{{ route('about') }}"><i class="fas fa-angle-right"></i>
-                                            Discover More</a>
-                                    </div>
-                                </div>
-                            </div>
+    <!-- Hero Section -->
+    <section class="position-relative overflow-hidden" style="background: var(--agri-bg); padding: 80px 0 120px 0;">
+        <div class="container-agri position-relative z-1">
+            <div class="row align-items-center">
+                <div class="col-lg-6 mb-5 mb-lg-0 pe-lg-5">
+                    <span class="d-inline-block px-3 py-1 mb-3 rounded-pill" style="background: var(--agri-primary-light); color: var(--agri-primary-dark); font-weight: 700; font-size: 13px; letter-spacing: 0.5px;">SMART FARMING REVOLUTION</span>
+                    <h1 class="display-4 fw-bold mb-4" style="color: var(--agri-text-heading); font-family: 'Outfit', sans-serif; line-height: 1.2;">
+                        Supercharge Your Harvest with <span style="color: var(--agri-primary);">Plantix-AI</span>
+                    </h1>
+                    <p class="lead mb-5" style="color: var(--agri-text-muted); font-size: 18px; line-height: 1.6;">
+                        Transform agricultural practices with AI-powered insights. Real-time disease detection, precise fertilizer advice, and premium local data specifically for Pakistani farmers.
+                    </p>
+                    <div class="d-flex flex-wrap gap-3">
+                        <a href="{{ route('ai.chat') }}" class="btn-agri btn-agri-primary text-decoration-none" style="padding: 14px 32px; font-size: 16px;">
+                            <i class="fas fa-robot me-2"></i> Try AI Assistant
+                        </a>
+                        <a href="{{ route('about') }}" class="btn-agri btn-agri-outline text-decoration-none" style="padding: 14px 32px; font-size: 16px;">
+                            Learn More
+                        </a>
+                    </div>
+                    
+                    <div class="d-flex align-items-center gap-4 mt-5 pt-4 border-top">
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="fas fa-check-circle text-success fs-5"></i>
+                            <span class="fw-bold" style="color: var(--agri-text-main);">+40% Yield</span>
+                        </div>
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="fas fa-check-circle text-success fs-5"></i>
+                            <span class="fw-bold" style="color: var(--agri-text-main);">Instant Results</span>
+                        </div>
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="fas fa-check-circle text-success fs-5"></i>
+                            <span class="fw-bold" style="color: var(--agri-text-main);">38k+ Farmers</span>
                         </div>
                     </div>
                 </div>
-                <!-- End Single Item -->
-
-                <!-- Single Item -->
-                <div class="swiper-slide banner-style-two">
-                    <div class="banner-thumb bg-cover shadow dark" style="background: url({{ asset('assets/img/field.jpg') }});"></div>
-                    <div class="container">
-                        <div class="row align-center">
-                            <div class="col-lg-8 offset-lg-2">
-                                <div class="content">
-                                    <h2>Maximize Your <strong>Harvest</strong></h2>
-                                    <p>
-                                        Leverage data-driven agriculture to increase crop yields by up to 40%. Our AI
-                                        analyzes soil health, weather patterns, and crop conditions to help you make
-                                        smarter farming decisions.
-                                    </p>
-                                    <div class="button">
-                                        <a class="animated-btn" href="{{ route('about') }}"><i class="fas fa-angle-right"></i>
-                                            Discover More</a>
-                                    </div>
+                
+                <div class="col-lg-6 position-relative">
+                    <div class="position-relative ai-pulse" style="border-radius: var(--agri-radius-lg); overflow: hidden; height: 500px; box-shadow: var(--agri-shadow-lg);">
+                        <img src="{{ asset('assets/img/field.jpg') }}" alt="Farmers in field" style="width: 100%; height: 100%; object-fit: cover;">
+                        <div class="position-absolute bottom-0 start-0 w-100 p-4" style="background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);">
+                            <div class="ai-glass px-4 py-3 rounded-3 d-flex align-items-center gap-3">
+                                <div style="width: 48px; height: 48px; background: rgba(16, 185, 129, 0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                                    <i class="fas fa-leaf text-success fs-4"></i>
                                 </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <!-- End Single Item -->
-
-            </div>
-
-            <!-- Navigation -->
-            <div class="swiper-button-prev"></div>
-            <div class="swiper-button-next"></div>
-
-        </div>
-    </div>
-    <!-- End Banner -->
-
-    <!-- Start Feature 
-    ============================================= -->
-    <div class="feature-style-one-area default-padding" style="background-image: url({{ asset('assets/img/shape/18.png') }});">
-        <div class="container">
-            <div class="row align-center">
-                <div class="col-xl-3 col-lg-6">
-                    <div class="feature-style-one-item">
-                        <img src="{{ asset('assets/img/1.jpg') }}" alt="Image Not Found">
-                    </div>
-                </div>
-                <div class="col-xl-6 col-lg-6 pl-50 pr-50 pl-md-15 pr-md-15 pl-xs-15 pr-xs-15">
-                    <div class="feature-style-one-info">
-                        <h2 class="title">AI-Powered Agriculture <br> Solutions for Pakistan</h2>
-                        <p>
-                            Plantix-AI combines cutting-edge artificial intelligence with local agricultural expertise
-                            to revolutionize farming in Pakistan. Our platform provides instant crop diagnostics,
-                            personalized fertilizer recommendations, and data-driven insights that help farmers increase
-                            productivity while reducing costs and environmental impact.
-                        </p>
-                        <ul class="item-list">
-                            <li>AI-Driven Crop Disease Detection</li>
-                            <li>Smart Fertilizer Optimization</li>
-                        </ul>
-                        <a class="btn btn-theme mt-30 btn-md radius animation" href="{{ route('about') }}">Discover More</a>
-                    </div>
-                </div>
-                <div class="col-xl-3 col-lg-12">
-                    <div class="featured-product">
-                        <!-- Single Item -->
-                        <div class="product-list-item">
-                            <a href="{{ route('crop.recommendation') }}">
-                                <img src="{{ asset('assets/img/icon/17.png') }}" alt="Icon">
-                                <h5>Crop Recommendation</h5>
-                            </a>
-                        </div>
-                        <!-- End Single Item -->
-                        <!-- Single Item -->
-                        <div class="product-list-item">
-                            <a href="{{ route('crop.planning') }}">
-                                <img src="{{ asset('assets/img/icon/18.png') }}" alt="Icon">
-                                <h5>Crop Planning</h5>
-                            </a>
-                        </div>
-                        <!-- End Single Item -->
-                        <!-- Single Item -->
-                        <div class="product-list-item">
-                            <a href="{{ route('disease.identification') }}">
-                                <img src="{{ asset('assets/img/icon/19.png') }}" alt="Icon">
-                                <h5>Disease Identification</h5>
-                            </a>
-                        </div>
-                        <!-- End Single Item -->
-                        <!-- Single Item -->
-                        <div class="product-list-item">
-                            <a href="{{ route('fertilizer.recommendation') }}">
-                                <img src="{{ asset('assets/img/icon/20.png') }}" alt="Icon">
-                                <h5>Fertilizer Recommendation</h5>
-                            </a>
-                        </div>
-                        <!-- End Single Item -->
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <!-- End Feature -->
-
-    <!-- Start Choose Us 
-    ============================================= -->
-    <div class="choose-us-style-two-area overflow-hidden default-padding-top">
-        <div class="container">
-            <div class="row">
-                <div class="col-xl-6 col-lg-6 pr-100 pr-md-15 pr-xs-15 pb-120 pb-md-60 pb-xs-60">
-                    <ul class="list-simple text-light">
-                        <li>
-                            <h4>Real-Time Monitoring</h4>
-                            <p>
-                                Monitor your crops 24/7 with AI-powered image analysis. Upload photos of your plants and
-                                receive instant disease identification, pest detection, and treatment recommendations
-                                specific to Pakistani agricultural conditions.
-                            </p>
-                        </li>
-                        <li>
-                            <h4>Precision Agriculture</h4>
-                            <p>
-                                Make data-driven decisions with our advanced analytics platform. Track soil nutrients,
-                                weather forecasts, and crop growth patterns to optimize planting schedules and resource
-                                allocation.
-                            </p>
-                        </li>
-                        <li>
-                            <h4>Sustainable Farming</h4>
-                            <p>
-                                Reduce chemical usage and costs with targeted interventions. Our AI recommends
-                                eco-friendly solutions that improve soil health and increase long-term farm productivity
-                                sustainably.
-                            </p>
-                        </li>
-                    </ul>
-                </div>
-                <div class="col-xl-5 offset-xl-1 col-lg-6">
-                    <div class="choose-us-style-two-content">
-                        <h4 class="sub-title">Why Choose Plantix-AI</h4>
-                        <h2 class="title">Transform Agriculture with Intelligent Technology</h2>
-                        <div class="choose-us-style-two-info">
-                            <div class="content">
-                                <div class="fun-fact">
-                                    <div class="counter">
-                                        <div class="timer" data-to="38" data-speed="2000">38</div>
-                                        <div class="operator">K</div>
-                                    </div>
-                                    <span class="medium">Farmers Using AI Tools</span>
-                                </div>
-                                <div class="fun-fact">
-                                    <div class="counter">
-                                        <div class="timer" data-to="28" data-speed="2000">28</div>
-                                        <div class="operator">%</div>
-                                    </div>
-                                    <span class="medium">Average Yield Improvement</span>
-                                </div>
-                            </div>
-                            <div class="thumb">
-                                <img src="{{ asset('assets/img/4.jpg') }}" alt="Image Not Found">
-                                <a href="https://www.youtube.com/watch?v=3JigXb9KXqI"
-                                    class="popup-youtube video-play-button">
-                                    <i class="fas fa-play"></i>
-                                    <div class="effect"></div>
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <!-- End Choose Us -->
-
-    <!-- Start Service 
-    ============================================= -->
-    <div class="service-style-two-area half-bg-dark-bottom default-padding-top pb-md-120 bg-gray">
-        <div class="container">
-            <div class="row">
-                <div class="col-lg-10 offset-lg-1">
-                    <div class="text-center mb-60 mb-md-40 mb-xs-40">
-                        <h2 class="mask-text large" style="background-image: url({{ asset('assets/img/shape/28.jpg') }});">AI-Powered
-                            Services for Modern Farming</h2>
-                    </div>
-                </div>
-            </div>
-            <div class="row">
-                <div class="col-lg-12">
-                    <div class="service-style-two-carousel swiper mb--30">
-                        <!-- Additional required wrapper -->
-                        <div class="swiper-wrapper">
-
-                            <!-- Single Item -->
-                            <div class="swiper-slide">
-                                <div class="service-style-two">
-                                    <div class="thumb">
-                                        <img src="{{ asset('assets/img/crop.png') }}" alt="Image not Found">
-                                    </div>
-                                    <div class="overlay">
-                                        <div class="icon">
-                                            <img src="{{ asset('assets/img/icon/21.png') }}" alt="Image Not Found">
-                                        </div>
-                                        <div class="info">
-                                            <h4><a href="{{ route('crop.recommendation') }}">Crop Recommendation</a></h4>
-                                            <span>Plantix-AI Module</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <!-- End Single Item -->
-                            <!-- Single Item -->
-                            <div class="swiper-slide">
-                                <div class="service-style-two">
-                                    <div class="thumb">
-                                        <img src="{{ asset('assets/img/soilhealth.png') }}" alt="Image not Found">
-                                    </div>
-                                    <div class="overlay">
-                                        <div class="icon">
-                                            <img src="{{ asset('assets/img/icon/22.png') }}" alt="Image Not Found">
-                                        </div>
-                                        <div class="info">
-                                            <h4><a href="{{ route('crop.planning') }}">Crop Planning</a></h4>
-                                            <span>Plantix-AI Module</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <!-- End Single Item -->
-                            <!-- Single Item -->
-                            <div class="swiper-slide">
-                                <div class="service-style-two">
-                                    <div class="thumb">
-                                        <img src="{{ asset('assets/img/plantdisease.png') }}" alt="Image not Found">
-                                    </div>
-                                    <div class="overlay">
-                                        <div class="icon">
-                                            <img src="{{ asset('assets/img/icon/23.png') }}" alt="Image Not Found">
-                                        </div>
-                                        <div class="info">
-                                            <h4><a href="{{ route('disease.identification') }}">Disease Identification</a></h4>
-                                            <span>Plantix-AI Module</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <!-- End Single Item -->
-                            <!-- Single Item -->
-                            <div class="swiper-slide">
-                                <div class="service-style-two">
-                                    <div class="thumb">
-                                        <img src="{{ asset('assets/img/fertilizer.png') }}" alt="Image not Found">
-                                    </div>
-                                    <div class="overlay">
-                                        <div class="icon">
-                                            <img src="{{ asset('assets/img/icon/24.png') }}" alt="Image Not Found">
-                                        </div>
-                                        <div class="info">
-                                            <h4><a href="{{ route('fertilizer.recommendation') }}">Fertilizer Recommendation</a>
-                                            </h4>
-                                            <span>Plantix-AI Module</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <!-- End Single Item -->
-
-                        </div>
-
-                        <!-- Navigation -->
-                        <div class="swiper-button-prev"></div>
-                        <div class="swiper-button-next"></div>
-
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <!-- End Service -->
-
-
-
-    <!-- Start Team 
-    ============================================= -->
-    <div class="team-style-one-area default-padding-bottom pt-md-120 mt-100">
-        <div class="container">
-            <div class="row align-center">
-                <div class="col-lg-4">
-                    <h4 class="sub-title">Expert Team</h4>
-                    <h2 class="title">Meet Our Agricultural Technology Specialists</h2>
-                    <a class="btn btn-theme secondary mt-10 btn-md radius animation" href="{{ route('about') }}">View All
-                        Experts</a>
-                </div>
-                <div class="col-lg-7 offset-lg-1">
-                    <div class="team-style-one-carousel swiper">
-                        <!-- Additional required wrapper -->
-                        <div class="swiper-wrapper">
-
-                            <!-- Single Item -->
-                            <div class="swiper-slide">
-                                <div class="farmer-style-one-item">
-                                    <div class="thumb">
-                                        <img src="{{ asset('assets/img/farmer2.jpg') }}" alt="Image Not Found">
-                                        <div class="social">
-                                            <i class="fas fa-share-alt"></i>
-                                            <ul>
-                                                <li class="facebook">
-                                                    <a href="#">
-                                                        <i class="fab fa-facebook-f"></i>
-                                                    </a>
-                                                </li>
-                                                <li class="twitter">
-                                                    <a href="#">
-                                                        <i class="fab fa-twitter"></i>
-                                                    </a>
-                                                </li>
-                                                <li class="linkedin">
-                                                    <a href="#">
-                                                        <i class="fab fa-linkedin-in"></i>
-                                                    </a>
-                                                </li>
-                                            </ul>
-                                        </div>
-                                    </div>
-                                    <div class="info">
-                                        <span>Plant Pathologist (Expert)</span>
-                                        <h4><a href="#">Dr. Ayesha Khan</a></h4>
-                                        <p class="small text-muted mb-0">Lahore, Punjab · Wheat, Rice, Fungal diseases
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
-                            <!-- End Single Item -->
-                            <!-- Single Item -->
-                            <div class="swiper-slide">
-                                <div class="farmer-style-one-item">
-                                    <div class="thumb">
-                                        <img src="{{ asset('assets/img/farmer4.jpg') }}" alt="Image Not Found">
-                                        <div class="social">
-                                            <i class="fas fa-share-alt"></i>
-                                            <ul>
-                                                <li class="facebook">
-                                                    <a href="#">
-                                                        <i class="fab fa-facebook-f"></i>
-                                                    </a>
-                                                </li>
-                                                <li class="twitter">
-                                                    <a href="#">
-                                                        <i class="fab fa-twitter"></i>
-                                                    </a>
-                                                </li>
-                                                <li class="linkedin">
-                                                    <a href="#">
-                                                        <i class="fab fa-linkedin-in"></i>
-                                                    </a>
-                                                </li>
-                                            </ul>
-                                        </div>
-                                    </div>
-                                    <div class="info">
-                                        <span>Irrigation Engineer (Expert)</span>
-                                        <h4><a href="#">Engr. Hamid Raza</a></h4>
-                                        <p class="small text-muted mb-0">Multan, Punjab · Drip systems, Water
-                                            scheduling, Cotton</p>
-                                    </div>
-                                </div>
-                            </div>
-                            <!-- End Single Item -->
-                            <!-- Single Item -->
-                            <div class="swiper-slide">
-                                <div class="farmer-style-one-item">
-                                    <div class="thumb">
-                                        <img src="{{ asset('assets/img/farmer2.jpg') }}" alt="Image Not Found">
-                                        <div class="social">
-                                            <i class="fas fa-share-alt"></i>
-                                            <ul>
-                                                <li class="facebook">
-                                                    <a href="#">
-                                                        <i class="fab fa-facebook-f"></i>
-                                                    </a>
-                                                </li>
-                                                <li class="twitter">
-                                                    <a href="#">
-                                                        <i class="fab fa-twitter"></i>
-                                                    </a>
-                                                </li>
-                                                <li class="linkedin">
-                                                    <a href="#">
-                                                        <i class="fab fa-linkedin-in"></i>
-                                                    </a>
-                                                </li>
-                                            </ul>
-                                        </div>
-                                    </div>
-                                    <div class="info">
-                                        <span>Soil & Fertility Specialist (Expert)</span>
-                                        <h4><a href="#">Dr. Sana Baloch</a></h4>
-                                        <p class="small text-muted mb-0">Hyderabad, Sindh · Soil salinity, Fertilizer
-                                            plans, Maize</p>
-                                    </div>
-                                </div>
-                            </div>
-                            <!-- End Single Item -->
-                            <!-- Single Item -->
-                            <div class="swiper-slide">
-                                <div class="farmer-style-one-item">
-                                    <div class="thumb">
-                                        <img src="{{ asset('assets/img/farmer3.jpg') }}" alt="Image Not Found">
-                                        <div class="social">
-                                            <i class="fas fa-share-alt"></i>
-                                            <ul>
-                                                <li class="facebook"><a href="#"><i class="fab fa-facebook-f"></i></a>
-                                                </li>
-                                                <li class="twitter"><a href="#"><i class="fab fa-twitter"></i></a></li>
-                                                <li class="linkedin"><a href="#"><i class="fab fa-linkedin-in"></i></a>
-                                                </li>
-                                            </ul>
-                                        </div>
-                                    </div>
-                                    <div class="info">
-                                        <span>Entomologist (Expert)</span>
-                                        <h4><a href="#">Dr. Imran Qureshi</a></h4>
-                                        <p class="small text-muted mb-0">Faisalabad, Punjab · Pink bollworm, IPM, Traps
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
-                            <!-- End Single Item -->
-                            <!-- Single Item -->
-                            <div class="swiper-slide">
-                                <div class="farmer-style-one-item">
-                                    <div class="thumb">
-                                        <img src="{{ asset('assets/img/farmer2.jpg') }}" alt="Image Not Found">
-                                        <div class="social">
-                                            <i class="fas fa-share-alt"></i>
-                                            <ul>
-                                                <li class="facebook"><a href="#"><i class="fab fa-facebook-f"></i></a>
-                                                </li>
-                                                <li class="twitter"><a href="#"><i class="fab fa-twitter"></i></a></li>
-                                                <li class="linkedin"><a href="#"><i class="fab fa-linkedin-in"></i></a>
-                                                </li>
-                                            </ul>
-                                        </div>
-                                    </div>
-                                    <div class="info">
-                                        <span>Precision Ag Specialist (Expert)</span>
-                                        <h4><a href="#">Engr. Ayesha Siddiqui</a></h4>
-                                        <p class="small text-muted mb-0">Peshawar, KPK · Remote sensing, Yield maps,
-                                            Variable-rate</p>
-                                    </div>
-                                </div>
-                            </div>
-                            <!-- End Single Item -->
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <!-- End Team -->
-
-    <!-- Start Faq 
-    ============================================= -->
-    <div class="feq-style-one-area default-padding bg-gray">
-        <div class="container">
-            <div class="row align-center">
-                <div class="col-lg-5">
-                    <div class="thumb-style-two">
-                        <img src="{{ asset('assets/img/7.jpg') }}" alt="Image Not Found">
-                        <h2><strong>F</strong>AQ</h2>
-                    </div>
-                </div>
-                <div class="col-lg-5 offset-lg-1">
-                    <div class="faq-style-one-info">
-                        <h2 class="title">Learn How Plantix-AI Improves Your Farming</h2>
-                        <div class="accordion accordion-regular mt-35 mt-xs-15" id="faqAccordion">
-                            <div class="faq-style-one">
-                                <h2 class="accordion-header" id="headingOne">
-                                    <button class="accordion-button" type="button" data-bs-toggle="collapse"
-                                        data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
-                                        What do you add to the soil before you plant?
-                                    </button>
-                                </h2>
-                                <div id="collapseOne" class="accordion-collapse collapse show"
-                                    aria-labelledby="headingOne" data-bs-parent="#faqAccordion">
-                                    <div class="accordion-body">
-                                        <p>
-                                            Before planting, it's essential to test your soil to understand its nutrient
-                                            profile. Based on our AI analysis, we recommend incorporating organic
-                                            compost and specific fertilizers to balance pH levels and ensure your crops
-                                            have the necessary nitrogen, phosphorus, and potassium for optimal growth.
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="faq-style-one">
-                                <h2 class="accordion-header" id="headingTwo">
-                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
-                                        data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
-                                        Do you use herbicides?
-                                    </button>
-                                </h2>
-                                <div id="collapseTwo" class="accordion-collapse collapse" aria-labelledby="headingTwo"
-                                    data-bs-parent="#faqAccordion">
-                                    <div class="accordion-body">
-                                        <p>
-                                            We advocate for Integrated Pest Management (IPM). While herbicides can be
-                                            effective, we recommend starting with natural weed control methods and using
-                                            selective herbicides only when necessary, as guided by our precision farming
-                                            module, to minimize environmental impact and resistance.
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="faq-style-one">
-                                <h2 class="accordion-header" id="headingThree">
-                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
-                                        data-bs-target="#collapseThree" aria-expanded="false"
-                                        aria-controls="collapseThree">
-                                        Where does the water come on your crops?
-                                    </button>
-                                </h2>
-                                <div id="collapseThree" class="accordion-collapse collapse"
-                                    aria-labelledby="headingThree" data-bs-parent="#faqAccordion">
-                                    <div class="accordion-body">
-                                        <p>
-                                            Water management is critical. We recommend efficient irrigation systems like
-                                            drip or sprinkler irrigation, scheduled according to our AI-driven weather
-                                            and soil moisture forecasts. This ensures crops receive adequate water
-                                            without wastage, crucial for water-scarce regions.
-                                        </p>
-                                    </div>
+                                <div class="text-white">
+                                    <div class="fw-bold mb-1">Crop Health Status</div>
+                                    <div class="fs-sm opacity-75">Analysis complete: 98% Optimal</div>
                                 </div>
                             </div>
                         </div>
@@ -723,65 +157,261 @@
                 </div>
             </div>
         </div>
-    </div>
-    <!-- End Faq -->
+    </section>
 
-
-
-    <!-- Start Call To Action 
-    ============================================= -->
-    <div class="call-to-action-area overflow-hidden default-padding-top bg-gray"
-        style="background-image: url({{ asset('assets/img/shape/24.png') }});">
-        <div class="shape">
-            <img src="{{ asset('assets/img/illustration/13.png') }}" alt="Image Not Found">
-        </div>
-        <div class="container">
-            <div class="row">
-                <div class="col-xl-6 col-lg-12">
-                    <div class="callto-action text-light">
-                        <h2 class="title">Join the Agricultural Revolution with Plantix-AI</h2>
-                        <p>
-                            Empower your farm with intelligent technology designed for Pakistani agriculture. From wheat
-                            and rice to cotton and sugarcane, our AI-powered platform helps you detect diseases early,
-                            optimize fertilizer usage, and make smarter decisions that increase profitability. Join
-                            thousands of farmers already transforming their yields with data-driven insights.
-                        </p>
-                        <a href="{{ route('ai.chat') }}">Explore AI Features</a>
+    <!-- Services / Core Features -->
+    <section class="py-5" style="background: white;">
+        <div class="container-agri pt-5 pb-5">
+            <div class="text-center mb-5">
+                <span class="text-uppercase fw-bold text-success mb-2 d-block" style="letter-spacing: 1px;">AI Capabilities</span>
+                <h2 class="display-5 fw-bold text-dark">Intelligent Farming Solutions</h2>
+            </div>
+            
+            <div class="row g-4">
+                <!-- Service 1 -->
+                <div class="col-md-6 col-lg-3">
+                    <div class="card-agri text-center h-100 d-flex flex-column align-items-center justify-content-center p-4">
+                        <div style="width: 70px; height: 70px; background: var(--agri-primary-light); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 24px;">
+                            <img src="{{ asset('assets/img/icon/17.png') }}" style="width: 35px;" alt="Crop Prediction">
+                        </div>
+                        <h4 class="fw-bold mb-3" style="font-size: 1.25rem;">Crop Recommendation</h4>
+                        <p class="text-muted mb-4 flex-grow-1" style="font-size: 14px;">Data-driven suggestions for the best crops to plant based on your specific soil and weather.</p>
+                        <a href="{{ route('crop.recommendation') }}" class="btn-agri w-100" style="background: var(--agri-bg); color: var(--agri-primary-dark); font-weight: 600; text-decoration: none;">Try Now <i class="fas fa-arrow-right ms-2"></i></a>
                     </div>
                 </div>
-                <div class="col-xl-6 col-lg-12">
-                    <div class="brand">
-                        <div class="brand-style-one-carousel swiper">
-                            <!-- Additional required wrapper -->
-                            <div class="swiper-wrapper">
-                                <!-- Single Item -->
-                                <div class="swiper-slide">
-                                    <img src="{{ asset('assets/img/brand/1.png') }}" alt="Thumb">
-                                </div>
-                                <!-- End Single Item -->
-                                <!-- Single Item -->
-                                <div class="swiper-slide">
-                                    <img src="{{ asset('assets/img/brand/2.png') }}" alt="Thumb">
-                                </div>
-                                <!-- End Single Item -->
-                                <!-- Single Item -->
-                                <div class="swiper-slide">
-                                    <img src="{{ asset('assets/img/brand/3.png') }}" alt="Thumb">
-                                </div>
-                                <!-- End Single Item -->
-                                <!-- Single Item -->
-                                <div class="swiper-slide">
-                                    <img src="{{ asset('assets/img/brand/4.png') }}" alt="Thumb">
-                                </div>
-                                <!-- End Single Item -->
-                            </div>
+                
+                <!-- Service 2 -->
+                <div class="col-md-6 col-lg-3">
+                    <div class="card-agri text-center h-100 d-flex flex-column align-items-center justify-content-center p-4" style="border-color: rgba(16, 185, 129, 0.3); box-shadow: 0 10px 25px rgba(16, 185, 129, 0.1);">
+                        <div class="position-absolute top-0 end-0 mt-3 me-3 text-success"><i class="fas fa-sparkles"></i> Popular</div>
+                        <div style="width: 70px; height: 70px; background: rgba(59, 130, 246, 0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 24px;">
+                            <img src="{{ asset('assets/img/icon/18.png') }}" style="width: 35px;" alt="Crop Planning">
+                        </div>
+                        <h4 class="fw-bold mb-3" style="font-size: 1.25rem;">Disease Identification</h4>
+                        <p class="text-muted mb-4 flex-grow-1" style="font-size: 14px;">Upload a leaf photo and instantly detect diseases or pests with 96% AI accuracy.</p>
+                        <a href="{{ route('disease.identification') }}" class="btn-agri btn-agri-primary w-100 text-decoration-none">Analyze Plant <i class="fas fa-camera ms-2"></i></a>
+                    </div>
+                </div>
+                
+                <!-- Service 3 -->
+                <div class="col-md-6 col-lg-3">
+                    <div class="card-agri text-center h-100 d-flex flex-column align-items-center justify-content-center p-4">
+                        <div style="width: 70px; height: 70px; background: rgba(245, 158, 11, 0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 24px;">
+                            <img src="{{ asset('assets/img/icon/19.png') }}" style="width: 35px;" alt="Crop Disease">
+                        </div>
+                        <h4 class="fw-bold mb-3" style="font-size: 1.25rem;">Fertilizer Guide</h4>
+                        <p class="text-muted mb-4 flex-grow-1" style="font-size: 14px;">Calculate exact NPK requirements to prevent soil degradation and maximize output.</p>
+                        <a href="{{ route('fertilizer.recommendation') }}" class="btn-agri w-100" style="background: var(--agri-bg); color: var(--agri-primary-dark); font-weight: 600; text-decoration: none;">Calculate <i class="fas fa-arrow-right ms-2"></i></a>
+                    </div>
+                </div>
+                
+                <!-- Service 4 -->
+                <div class="col-md-6 col-lg-3">
+                    <div class="card-agri text-center h-100 d-flex flex-column align-items-center justify-content-center p-4">
+                        <div style="width: 70px; height: 70px; background: rgba(139, 92, 246, 0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 24px;">
+                            <img src="{{ asset('assets/img/icon/20.png') }}" style="width: 35px;" alt="Fertilizer Guide">
+                        </div>
+                        <h4 class="fw-bold mb-3" style="font-size: 1.25rem;">Smart Planning</h4>
+                        <p class="text-muted mb-4 flex-grow-1" style="font-size: 14px;">Establish a comprehensive crop calendar and irrigation schedule for your fields.</p>
+                        <a href="{{ route('crop.planning') }}" class="btn-agri w-100" style="background: var(--agri-bg); color: var(--agri-primary-dark); font-weight: 600; text-decoration: none;">Plan Season <i class="fas fa-arrow-right ms-2"></i></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
 
+    <!-- App / Why Choose Us -->
+    <section class="py-5 bg-light" style="background: var(--agri-bg) !important;">
+        <div class="container-agri py-5">
+            <div class="row align-items-center">
+                <div class="col-lg-5 mb-5 mb-lg-0 pe-lg-5">
+                    <h4 class="text-success text-uppercase fw-bold mb-3" style="letter-spacing: 1px; font-size: 13px;">Why Choose Us</h4>
+                    <h2 class="display-5 fw-bold text-dark mb-4">Precision Agriculture, Simplified.</h2>
+                    
+                    <div class="d-flex flex-column gap-4 mt-5">
+                        <div class="d-flex gap-3">
+                            <div style="min-width: 48px; width: 48px; height: 48px; background: var(--agri-white); border-radius: 12px; display: flex; align-items: center; justify-content: center; box-shadow: var(--agri-shadow-sm);">
+                                <i class="fas fa-seedling text-success fs-5"></i>
+                            </div>
+                            <div>
+                                <h4 class="fw-bold mb-2 h5 text-dark">Real-Time Monitoring</h4>
+                                <p class="text-muted mb-0" style="font-size: 15px;">Monitor crops 24/7. Upload photos and receive instant, personalized disease identification.</p>
+                            </div>
+                        </div>
+                        <div class="d-flex gap-3">
+                            <div style="min-width: 48px; width: 48px; height: 48px; background: var(--agri-white); border-radius: 12px; display: flex; align-items: center; justify-content: center; box-shadow: var(--agri-shadow-sm);">
+                                <i class="fas fa-chart-line text-success fs-5"></i>
+                            </div>
+                            <div>
+                                <h4 class="fw-bold mb-2 h5 text-dark">Data-Driven Analytics</h4>
+                                <p class="text-muted mb-0" style="font-size: 15px;">Track soil nutrients, weather forecasts, and growth patterns to optimize resource allocation.</p>
+                            </div>
+                        </div>
+                        <div class="d-flex gap-3">
+                            <div style="min-width: 48px; width: 48px; height: 48px; background: var(--agri-white); border-radius: 12px; display: flex; align-items: center; justify-content: center; box-shadow: var(--agri-shadow-sm);">
+                                <i class="fas fa-globe-asia text-success fs-5"></i>
+                            </div>
+                            <div>
+                                <h4 class="fw-bold mb-2 h5 text-dark">Sustainable & Local</h4>
+                                <p class="text-muted mb-0" style="font-size: 15px;">Reduce chemical usage with interventions specifically tailored to Pakistani agricultural ecosystems.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-7 position-relative pl-lg-5">
+                    <div style="background: url({{ asset('assets/img/shape/18.png') }}) no-repeat; background-size: contain; padding: 20px;">
+                        <img src="{{ asset('assets/img/1.jpg') }}" class="img-fluid rounded-4 shadow-lg w-100" style="border: 4px solid white;" alt="Farmers Using Tablets">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Expert Team Section -->
+    <section class="py-5" style="background: white;">
+        <div class="container-agri py-5">
+            <div class="d-flex justify-content-between align-items-end mb-5">
+                <div>
+                    <span class="text-uppercase fw-bold text-success mb-2 d-block" style="letter-spacing: 1px;">Expert Panel</span>
+                    <h2 class="display-5 fw-bold text-dark mb-0">Book Consultations with Specialists</h2>
+                </div>
+                <a href="{{ route('appointments') }}" class="btn-agri btn-agri-outline d-none d-md-flex text-decoration-none">View All Experts</a>
+            </div>
+            
+            <div class="row g-4">
+                <!-- Expert 1 -->
+                <div class="col-md-6 col-lg-3">
+                    <div class="card-agri p-0 overflow-hidden h-100 border-0 shadow-sm" style="transition: transform 0.3s; background: var(--agri-bg);">
+                        <div style="height: 250px; overflow: hidden;">
+                            <img src="{{ asset('assets/img/farmer2.jpg') }}" class="w-100 h-100" style="object-fit: cover; transition: transform 0.5s;" alt="Dr. Ayesha Khan" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+                        </div>
+                        <div class="p-4 text-center">
+                            <h4 class="fw-bold mb-1" style="font-size: 18px;">Dr. Ayesha Khan</h4>
+                            <p class="text-success mb-3" style="font-size: 14px; font-weight: 500;">Plant Pathologist</p>
+                            <p class="text-muted small mb-0"><i class="fas fa-map-marker-alt me-1"></i> Lahore, Punjab</p>
+                        </div>
+                    </div>
+                </div>
+                <!-- Expert 2 -->
+                <div class="col-md-6 col-lg-3">
+                    <div class="card-agri p-0 overflow-hidden h-100 border-0 shadow-sm" style="transition: transform 0.3s; background: var(--agri-bg);">
+                        <div style="height: 250px; overflow: hidden;">
+                            <img src="{{ asset('assets/img/farmer4.jpg') }}" class="w-100 h-100" style="object-fit: cover; transition: transform 0.5s;" alt="Engr. Hamid Raza" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+                        </div>
+                        <div class="p-4 text-center">
+                            <h4 class="fw-bold mb-1" style="font-size: 18px;">Engr. Hamid Raza</h4>
+                            <p class="text-success mb-3" style="font-size: 14px; font-weight: 500;">Irrigation Engineer</p>
+                            <p class="text-muted small mb-0"><i class="fas fa-map-marker-alt me-1"></i> Multan, Punjab</p>
+                        </div>
+                    </div>
+                </div>
+                <!-- Expert 3 -->
+                <div class="col-md-6 col-lg-3">
+                    <div class="card-agri p-0 overflow-hidden h-100 border-0 shadow-sm" style="transition: transform 0.3s; background: var(--agri-bg);">
+                        <div style="height: 250px; overflow: hidden;">
+                            <img src="{{ asset('assets/img/farmer3.jpg') }}" class="w-100 h-100" style="object-fit: cover; transition: transform 0.5s;" alt="Dr. Imran Qureshi" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+                        </div>
+                        <div class="p-4 text-center">
+                            <h4 class="fw-bold mb-1" style="font-size: 18px;">Dr. Imran Qureshi</h4>
+                            <p class="text-success mb-3" style="font-size: 14px; font-weight: 500;">Entomologist</p>
+                            <p class="text-muted small mb-0"><i class="fas fa-map-marker-alt me-1"></i> Faisalabad, Punjab</p>
+                        </div>
+                    </div>
+                </div>
+                 <!-- Expert 4 -->
+                 <div class="col-md-6 col-lg-3">
+                    <div class="card-agri p-0 overflow-hidden h-100 border-0 shadow-sm" style="background: var(--agri-primary-light); display: flex; align-items: center; justify-content: center;">
+                        <div class="p-4 text-center">
+                            <div style="width: 60px; height: 60px; background: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px;">
+                                <i class="fas fa-calendar-plus text-success fs-4"></i>
+                            </div>
+                            <h4 class="fw-bold mb-3 text-dark">Need Expert Advice?</h4>
+                            <p class="text-muted mb-4 small">Schedule a 1-on-1 consultation with top agronomists and yield experts.</p>
+                            <a href="{{ route('appointments') }}" class="btn-agri btn-agri-primary w-100 text-decoration-none shadow-sm">Book Appointment <i class="fas fa-arrow-right ms-2"></i></a>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
-    <!-- End Call To Action -->
+    </section>
+
+    <!-- FAQ Section -->
+    <section class="py-5" style="background: var(--agri-bg);">
+        <div class="container-agri py-5">
+            <div class="row align-items-center">
+                <div class="col-lg-5 mb-5 mb-lg-0">
+                    <img src="{{ asset('assets/img/7.jpg') }}" class="img-fluid rounded-4 shadow" alt="FAQ Farming">
+                </div>
+                <div class="col-lg-6 offset-lg-1">
+                    <span class="text-uppercase fw-bold text-success mb-2 d-block" style="letter-spacing: 1px;">FAQ</span>
+                    <h2 class="display-6 fw-bold text-dark mb-4">Learn How Plantix-AI Improves Your Farming</h2>
+                    
+                    <div class="accordion" id="faqAccordion">
+                        <div class="card-agri p-0 mb-3 border-0 shadow-sm overflow-hidden" style="border-radius: 12px;">
+                            <div class="p-3 bg-white" id="headingOne" data-bs-toggle="collapse" data-bs-target="#collapseOne" style="cursor:pointer;">
+                                <h5 class="mb-0 fw-bold d-flex justify-content-between align-items-center" style="font-size: 16px; color: var(--agri-text-heading);">
+                                    What do you add to the soil before planting?
+                                    <i class="fas fa-chevron-down text-muted" style="font-size: 12px;"></i>
+                                </h5>
+                            </div>
+                            <div id="collapseOne" class="collapse show" data-bs-parent="#faqAccordion">
+                                <div class="p-4 border-top" style="background: var(--agri-bg); font-size: 15px; color: var(--agri-text-main);">
+                                    Before planting, test your soil to understand its profile. Based on AI analysis, we recommend incorporating organic compost and specific fertilizers to balance pH levels.
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="card-agri p-0 mb-3 border-0 shadow-sm overflow-hidden" style="border-radius: 12px;">
+                            <div class="p-3 bg-white collapsed" id="headingTwo" data-bs-toggle="collapse" data-bs-target="#collapseTwo" style="cursor:pointer;">
+                                <h5 class="mb-0 fw-bold d-flex justify-content-between align-items-center" style="font-size: 16px; color: var(--agri-text-heading);">
+                                    Do you use herbicides?
+                                    <i class="fas fa-chevron-down text-muted" style="font-size: 12px;"></i>
+                                </h5>
+                            </div>
+                            <div id="collapseTwo" class="collapse" data-bs-parent="#faqAccordion">
+                                <div class="p-4 border-top" style="background: var(--agri-bg); font-size: 15px; color: var(--agri-text-main);">
+                                    We advocate for Integrated Pest Management (IPM). Start with natural weed control methods and use selective herbicides only when necessary.
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card-agri p-0 mb-3 border-0 shadow-sm overflow-hidden" style="border-radius: 12px;">
+                            <div class="p-3 bg-white collapsed" id="headingThree" data-bs-toggle="collapse" data-bs-target="#collapseThree" style="cursor:pointer;">
+                                <h5 class="mb-0 fw-bold d-flex justify-content-between align-items-center" style="font-size: 16px; color: var(--agri-text-heading);">
+                                    How does the Crop Detection AI work?
+                                    <i class="fas fa-chevron-down text-muted" style="font-size: 12px;"></i>
+                                </h5>
+                            </div>
+                            <div id="collapseThree" class="collapse" data-bs-parent="#faqAccordion">
+                                <div class="p-4 border-top" style="background: var(--agri-bg); font-size: 15px; color: var(--agri-text-main);">
+                                    Simply open the Disease Detection camera on your mobile device, snap a picture of a leaf, and our trained neural network will identify the disease and prescribe local remedies within 2 seconds.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CALL TO ACTION -->
+    <section class="py-5" style="background: var(--agri-primary-dark); color: white;">
+        <div class="container-agri py-5 text-center position-relative">
+            <div style="max-width: 800px; margin: 0 auto; position: relative; z-index: 2;">
+                <h2 class="display-4 fw-bold mb-4 text-white">Join the Agricultural Revolution</h2>
+                <p class="lead mb-5 opacity-75" style="font-size: 18px;">
+                    Empower your farm with intelligent technology designed for Pakistani agriculture. From wheat and rice to cotton and sugarcane, start optimizing your fields today.
+                </p>
+                <div class="d-flex justify-content-center gap-3">
+                    <a href="{{ route('signup') }}" class="btn-agri btn-agri-secondary text-decoration-none shadow" style="padding: 14px 32px; font-size: 16px; font-weight: 700;">
+                        Create Free Account
+                    </a>
+                    <a href="{{ route('ai.chat') }}" class="btn-agri btn-agri-outline text-decoration-none text-white border-white" style="padding: 14px 32px; font-size: 16px;">
+                        Try AI First
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
 @endsection
-

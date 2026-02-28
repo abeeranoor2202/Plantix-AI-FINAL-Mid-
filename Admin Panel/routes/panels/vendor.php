@@ -21,7 +21,7 @@ Route::prefix('vendor')->name('vendor.')->group(function () {
     // ── Vendor Auth (guest-only) ──────────────────────────────────────────────
     Route::middleware('guest:vendor')->group(function () {
         Route::get('/login',  [\App\Http\Controllers\Vendor\Auth\VendorLoginController::class, 'showLoginForm'])->name('login');
-        Route::post('/login', [\App\Http\Controllers\Vendor\Auth\VendorLoginController::class, 'login']);
+        Route::post('/login', [\App\Http\Controllers\Vendor\Auth\VendorLoginController::class, 'login'])->middleware('throttle:5,1');
 
         // Password reset
         Route::get('/password/forgot',        [\App\Http\Controllers\Vendor\Auth\VendorForgotPasswordController::class, 'showLinkRequestForm'])->name('password.forgot');

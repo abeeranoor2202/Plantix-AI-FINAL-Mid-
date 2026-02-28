@@ -151,21 +151,37 @@ function renderProductGrid(prods) {
     const latest = (window.Reviews && Reviews.getReviews) ? (Reviews.getReviews(p.id).slice().sort((a,b)=> (b.updatedAt||0)-(a.updatedAt||0))[0]) : null;
     const snippet = latest ? (latest.comment||'').slice(0, 70) + ((latest.comment||'').length>70?'…':'') : '';
     return `
-    <div class="product-card" style="animation-delay:${Math.random()*0.2}s" data-id="${p.id}">
-      <button class="dismiss-btn" title="Dismiss" onclick="dismissProduct(${p.id})"><i class="fas fa-times"></i></button>
-      <button class="wishlist-btn${wishlist.includes(p.id)?' active':''}" title="Wishlist" onclick="toggleWishlist(${p.id})"><i class="fa${wishlist.includes(p.id)?'s':'r'} fa-heart"></i></button>
-      ${p.isOnSale?'<span class="sale-badge">SALE!</span>':''}
-      <img src="${p.imageUrl}" alt="${p.name}">
-      <div class="product-title">${p.name}</div>
-      <div class="product-subtitle">${p.subtitle||''}</div>
-      <div class="product-desc">${p.description||''}</div>
-      <div class="product-rating" title="${sum.avg} average rating">
-        ${stars} <span style="color:#888">(${sum.avg}${sum.count?`, ${sum.count} review${sum.count!==1?'s':''}`:''})</span>
+    <div class="card-agri product-card d-flex flex-column h-100" style="animation-delay:${Math.random()*0.2}s; border: none;" data-id="${p.id}">
+      <div class="position-relative p-4 text-center" style="background: var(--agri-bg); border-radius: var(--agri-radius-md) var(--agri-radius-md) 0 0;">
+          <button class="btn btn-sm btn-light position-absolute rounded-circle" style="top: 10px; right: 10px; width: 32px; height: 32px; z-index: 10;" title="Dismiss" onclick="dismissProduct(${p.id})"><i class="fas fa-times text-muted"></i></button>
+          <button class="btn btn-sm position-absolute rounded-circle bg-white" style="top: 10px; left: 10px; width: 32px; height: 32px; z-index: 10; box-shadow: var(--agri-shadow-sm);" title="Wishlist" onclick="toggleWishlist(${p.id})"><i class="fa${wishlist.includes(p.id)?'s text-danger':'r text-muted'} fa-heart"></i></button>
+          ${p.isOnSale?'<span class="badge position-absolute" style="top: 50px; left: 10px; background: var(--agri-secondary); color: var(--agri-text-main); font-weight: bold; padding: 5px 10px;">SALE!</span>':''}
+          <a href="{{ route('shop.single') }}">
+              <img src="${p.imageUrl}" alt="${p.name}" style="height: 180px; object-fit: contain; margin: 0 auto; transition: transform 0.3s;" class="product-img-hover">
+          </a>
       </div>
-      ${snippet?`<div class="product-review-snippet"><i class=\"fas fa-quote-left\"></i> ${escapeHtml(snippet)}</div>`:''}
-      <div class="product-price">${p.originalPrice?`<span class='original'>PKR ${formatPrice(p.originalPrice)}</span>`:''}<span>PKR ${formatPrice(p.price)}</span></div>
-      <button class="add-to-cart-btn" onclick="addToCart(${p.id})"><i class="fas fa-shopping-cart"></i> Add to Cart</button>
-      <a class="details-btn" href="shop-single.html#review-tab" title="View product details" aria-label="View details for ${p.name}"><i class="far fa-eye"></i> Details</a>
+      <div class="p-4 d-flex flex-column flex-grow-1">
+          <div class="d-flex justify-content-between align-items-start mb-2">
+              <span class="badge bg-light text-success fw-medium px-2 py-1" style="font-size: 11px; letter-spacing: 0.5px; text-transform: uppercase;">${p.category}</span>
+          </div>
+          <h5 class="fw-bold text-dark mb-1"><a href="{{ route('shop.single') }}" class="text-decoration-none text-dark">${p.name}</a></h5>
+          <div class="text-muted small mb-2">${p.subtitle||''}</div>
+          <div class="product-rating mb-3" title="${sum.avg} average rating" style="font-size: 13px;">
+            <span class="text-warning">${stars}</span> <span class="text-muted ms-1">(${sum.avg})</span>
+          </div>
+          <div class="mt-auto">
+              <div class="d-flex justify-content-between align-items-center mb-3">
+                  <div class="product-price">
+                      ${p.originalPrice?`<span class='text-muted text-decoration-line-through small d-block'>PKR ${formatPrice(p.originalPrice)}</span>`:''}
+                      <span class="fw-bold text-success fs-5">PKR ${formatPrice(p.price)}</span>
+                  </div>
+              </div>
+              <div class="d-flex gap-2">
+                  <button class="btn-agri btn-agri-primary flex-grow-1" style="padding: 8px 10px; font-size: 14px;" onclick="addToCart(${p.id})"><i class="fas fa-shopping-cart me-1"></i> Add</button>
+                  <a class="btn-agri btn-agri-outline text-center" style="padding: 8px 12px; font-size: 14px;" href="{{ route('shop.single') }}" title="View details"><i class="far fa-eye"></i></a>
+              </div>
+          </div>
+      </div>
     </div>
   `}).join('');
 }

@@ -64,8 +64,8 @@ class CropRecommendationService
 
         $explanation = $this->buildExplanation($input, $recommendedCrops);
 
-        return CropRecommendation::create([
-            'user_id'           => $user->id,
+        $attributes = [
+            'user_id'           => $user->id ?? null,
             'soil_test_id'      => $soilTestId,
             'nitrogen'          => $input['nitrogen'] ?? null,
             'phosphorus'        => $input['phosphorus'] ?? null,
@@ -78,7 +78,16 @@ class CropRecommendationService
             'explanation'       => $explanation,
             'model_version'     => 'rule-based-v2',
             'status'            => 'completed',
-        ]);
+        ];
+
+        // Only persist to the database for authenticated users.
+        // Guest users (null user_id) get a transient in-memory result to avoid
+        // FK constraint violations and unnecessary DB bloat.
+        if (($user->id ?? null) !== null) {
+            return CropRecommendation::create($attributes);
+        }
+
+        return new CropRecommendation($attributes);
     }
 
     // ── Private helpers ──────────────────────────────────────────────────────

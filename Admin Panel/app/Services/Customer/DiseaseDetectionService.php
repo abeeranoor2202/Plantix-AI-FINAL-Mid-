@@ -93,6 +93,54 @@ class DiseaseDetectionService
     ];
 
     /**
+     * Step 1 — Store image + create a pending report record.
+     * Returns immediately so a queued job can finish step 2.
+     */
+    public function createPendingReport(User $user, UploadedFile $image, array $meta = []): CropDiseaseReport
+    {
+        $imagePath = $this->storeImage($image, $user->id);
+
+        return CropDiseaseReport::create([
+            'user_id'          => $user->id,
+            'crop_name'        => $meta['crop_name'] ?? null,
+            'image_path'       => $imagePath,
+            'model_used'       => 'plantix-ai-v1',
+            'status'           => 'pending',
+            'user_description' => $meta['user_description'] ?? null,
+        ]);
+    }
+
+    /**
+     * Step 2 — Run inference + create suggestion for an existing report.
+     * Called by ProcessDiseaseDetection queued job.
+     */
+    public function processReport(CropDiseaseReport $report): void
+    {
+        try {
+            $predictions = $this->runInference($report->image_path, $report->crop_name ?? '');
+            $top         = $predictions[0] ?? ['disease' => 'unknown', 'confidence' => 0.0];
+
+            if ($top['disease'] === 'unknown') {
+                $report->update(['status' => 'manual_review']);
+            } else {
+                $report->update([
+                    'detected_disease' => $top['disease'],
+                    'confidence_score' => $top['confidence'],
+                    'all_predictions'  => $predictions,
+                    'status'           => 'processed',
+                ]);
+
+                $this->generateSuggestion($report, $top['disease']);
+            }
+        } catch (\Throwable $e) {
+            Log::error('DiseaseDetectionService processReport failed: ' . $e->getMessage(), [
+                'report_id' => $report->id,
+            ]);
+            $report->update(['status' => 'manual_review']);
+        }
+    }
+
+    /**
      * Process an uploaded crop image for disease detection.
      *
      * @param User         $user
@@ -102,39 +150,8 @@ class DiseaseDetectionService
      */
     public function detect(User $user, UploadedFile $image, array $meta = []): CropDiseaseReport
     {
-        // 1. Store image
-        $imagePath = $this->storeImage($image, $user->id);
-
-        // 2. Create pending report
-        $report = CropDiseaseReport::create([
-            'user_id'          => $user->id,
-            'crop_name'        => $meta['crop_name'] ?? null,
-            'image_path'       => $imagePath,
-            'model_used'       => 'plantix-ai-v1',
-            'status'           => 'pending',
-            'user_description' => $meta['user_description'] ?? null,
-        ]);
-
-        // 3. Run inference (external API or rule-based fallback)
-        try {
-            $predictions = $this->runInference($imagePath, $meta['crop_name'] ?? '');
-            $top         = $predictions[0] ?? ['disease' => 'healthy', 'confidence' => 75.0];
-
-            $report->update([
-                'detected_disease' => $top['disease'],
-                'confidence_score' => $top['confidence'],
-                'all_predictions'  => $predictions,
-                'status'           => 'processed',
-            ]);
-
-            // 4. Auto-generate treatment suggestion
-            $this->generateSuggestion($report, $top['disease']);
-
-        } catch (\Throwable $e) {
-            Log::error('DiseaseDetectionService inference failed: ' . $e->getMessage());
-            $report->update(['status' => 'manual_review']);
-        }
-
+        $report = $this->createPendingReport($user, $image, $meta);
+        $this->processReport($report);
         return $report->fresh('suggestion');
     }
 
@@ -158,8 +175,24 @@ class DiseaseDetectionService
 
     private function storeImage(UploadedFile $image, int $userId): string
     {
-        $name = 'disease/' . $userId . '/' . Str::uuid() . '.' . $image->getClientOriginalExtension();
-        Storage::disk('public')->putFileAs(dirname($name), $image, basename($name));
+        // Derive extension from server-side MIME type — never trust client filename
+        $mimeType = $image->getMimeType();
+        $allowedMimes = [
+            'image/jpeg' => 'jpg',
+            'image/png'  => 'png',
+            'image/webp' => 'webp',
+        ];
+
+        if (! isset($allowedMimes[$mimeType])) {
+            throw new \InvalidArgumentException("Unsupported image type: {$mimeType}. Only JPEG, PNG, WebP allowed.");
+        }
+
+        $ext  = $allowedMimes[$mimeType];
+        $name = 'disease/' . $userId . '/' . Str::uuid() . '.' . $ext;
+
+        // Store on the private disk — not publicly accessible
+        Storage::disk('local')->putFileAs(dirname($name), $image, basename($name));
+
         return $name;
     }
 
@@ -172,7 +205,7 @@ class DiseaseDetectionService
 
         if ($apiUrl) {
             try {
-                $fullPath = Storage::disk('public')->path($imagePath);
+                $fullPath = Storage::disk('local')->path($imagePath);
                 $response = Http::timeout(15)
                     ->attach('image', file_get_contents($fullPath), basename($imagePath))
                     ->post($apiUrl, ['crop' => $cropName]);
@@ -191,24 +224,10 @@ class DiseaseDetectionService
 
     private function ruleBasedFallback(string $cropName): array
     {
-        // Crop-disease association map for demo
-        $cropDiseaseMap = [
-            'wheat'  => ['wheat_rust', 'powdery_mildew', 'healthy'],
-            'rice'   => ['rice_blast', 'healthy'],
-            'cotton' => ['cotton_bollworm', 'leaf_curl', 'healthy'],
-            'tomato' => ['tomato_blight', 'powdery_mildew', 'leaf_curl', 'healthy'],
-            'maize'  => ['maize_stalk_rot', 'powdery_mildew', 'healthy'],
-        ];
-
-        $cropKey     = strtolower($cropName);
-        $candidates  = $cropDiseaseMap[$cropKey] ?? array_keys(self::DISEASE_KB);
-        shuffle($candidates);
-        $primary = $candidates[0];
-        $secondary = $candidates[1] ?? 'healthy';
-
+        // No API configured — do NOT guess randomly
+        // Return unknown status so the report goes to manual_review
         return [
-            ['disease' => $primary,   'confidence' => round(65 + mt_rand(0, 30) / 1.0, 1)],
-            ['disease' => $secondary, 'confidence' => round(15 + mt_rand(0, 20) / 1.0, 1)],
+            ['disease' => 'unknown', 'confidence' => 0.0],
         ];
     }
 

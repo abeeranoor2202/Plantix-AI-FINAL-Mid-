@@ -1,125 +1,83 @@
 @extends('layouts.frontend')
 
-@section('title', 'Plantix-AI')
+@section('title', 'Fertilizer Recommendation | Plantix-AI')
 
 @section('footer')
 @include('partials.footer-alt')
 @endsection
 
 @section('page_scripts')
-    <script src="{{ asset('assets/js/jquery.appear.js') }}"></script>
-    <script src="{{ asset('assets/js/swiper-bundle.min.js') }}"></script>
-    <script src="{{ asset('assets/js/progress-bar.min.js') }}"></script>
-    <script src="{{ asset('assets/js/circle-progress.js') }}"></script>
-    <script src="{{ asset('assets/js/isotope.pkgd.min.js') }}"></script>
-    <script src="{{ asset('assets/js/imagesloaded.pkgd.min.js') }}"></script>
-    <script src="{{ asset('assets/js/magnific-popup.min.js') }}"></script>
-    <script src="{{ asset('assets/js/count-to.js') }}"></script>
-    <script src="{{ asset('assets/js/jquery.scrolla.min.js') }}"></script>
-    <script src="{{ asset('assets/js/ScrollOnReveal.js') }}"></script>
-    <script src="{{ asset('assets/js/YTPlayer.min.js') }}"></script>
-    <script src="{{ asset('assets/js/gsap.js') }}"></script>
-    <script src="{{ asset('assets/js/ScrollTrigger.min.js') }}"></script>
-    <script src="{{ asset('assets/js/SplitText.min.js') }}"></script>
     <script src="{{ asset('assets/js/strict-validation.js') }}"></script>
 @endsection
 
 @section('content')
-<!-- End Header -->
 
-    <!-- Start Breadcrumb 
-    ============================================= -->
-    <div class="breadcrumb-area text-center shadow dark-hard bg-cover text-light"
-        style="background-image: url({{ asset('assets/img/banner7.jpg') }});">
-        <div class="container">
-            <div class="row">
-                <div class="col-lg-8 offset-lg-2">
-                    <h1>Fertilizer Recommendation</h1>
-                    <nav aria-label="breadcrumb">
-                        <ol class="breadcrumb">
-                            <li><a href="{{ route('home') }}"><i class="fas fa-home"></i> Home</a></li>
-                            <li class="active">Fertilizer Recommendation</li>
-                        </ol>
-                    </nav>
-                </div>
-            </div>
+    <!-- Start Breadcrumb -->
+    <div class="py-4 bg-light" style="border-bottom: 1px solid var(--agri-border); background: linear-gradient(to right, rgba(16, 185, 129, 0.05), rgba(16, 185, 129, 0.01));">
+        <div class="container-agri">
+            <h1 class="fw-bold text-dark mb-2" style="font-size: 28px;">Fertilizer Recommendation AI</h1>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-0" style="background: transparent; padding: 0; font-size: 14px;">
+                    <li class="breadcrumb-item"><a href="{{ route('home') }}" class="text-success text-decoration-none"><i class="fas fa-home me-1"></i> Home</a></li>
+                    <li class="breadcrumb-item"><a href="#" class="text-success text-decoration-none">AI Tools</a></li>
+                    <li class="breadcrumb-item active text-muted" aria-current="page">Fertilizer Recs</li>
+                </ol>
+            </nav>
         </div>
     </div>
     <!-- End Breadcrumb -->
 
-    <!-- Star Services Details Area
-    ============================================= -->
-    <div class="services-details-area default-padding">
-        <div class="container">
-            <div class="services-details-items">
-                <div class="row">
-
-                    <div class="col-xl-8 col-lg-7 pl-45 pl-md-15 pl-xs-15 services-single-content order-lg-last">
-                        <div class="thumb">
-                            <img src="{{ asset('assets/img/fertilizer 3.png') }}" alt="Thumb">
+    <!-- Start Content -->
+    <div class="py-5" style="background: var(--agri-bg); min-height: 80vh;">
+        <div class="container-agri pb-5 mb-5">
+            <div class="row g-5">
+                
+                <!-- Main Content -->
+                <div class="col-lg-8 order-lg-last">
+                    <div class="card-agri p-lg-5 p-4 border-0 mb-4">
+                        <div class="mb-4">
+                            <span class="badge bg-success bg-opacity-10 text-success mb-2 px-3 py-2 fs-6 border border-success border-opacity-25 rounded-pill"><i class="fas fa-vial me-2"></i> Soil Chemistry</span>
+                            <h2 class="fw-bold text-dark mb-3">Smart Crop Nutrition Engine</h2>
+                            <p class="text-muted" style="line-height: 1.8; font-size: 16px;">
+                                Get practical guidance on what to sow and how to balance nutrients for healthy crops. Enter your field conditions and soil test values (N, P, K) and receive a tailored recommendation for crop suitability and fertilizer dosage to correct deficits.
+                            </p>
                         </div>
-                        <h2>Fertilizer Recommendation & Crop Nutrition</h2>
-                        <p>
-                            Use this quick fertilizer advisor to get practical guidance on what to sow and how to
-                            balance nutrients for healthy crops. Enter your field conditions and soil test values (N, P,
-                            K) and receive a demo recommendation for a suitable crop plus simple fertilizer suggestions
-                            to correct nutrient deficits. This is a client-side planning tool — for production use
-                            connect to a verified soil-lab analysis or agronomic model.
-                        </p>
-                        <div class="features mt-40 mt-xs-30 mb-30 mb-xs-20">
-                            <div class="row">
-                                <div class="col-xl-5 col-lg-12 col-md-6">
-                                    <div class="content">
-                                        <h3>Services offered</h3>
-                                        <ul class="feature-list-item">
-                                            <li>Agriculture Consulting</li>
-                                            <li>Custom farming rules</li>
-                                            <li>Real-time rate shopping</li>
-                                            <li>100 freight shipments / month</li>
-                                        </ul>
-                                    </div>
+
+                        <div class="row g-4 mb-4">
+                            <div class="col-md-6">
+                                <div class="bg-light p-4 rounded-3 h-100 border">
+                                    <h4 class="fw-bold text-dark fs-5 mb-3"><i class="fas fa-bullseye text-primary me-2"></i> Actionable Insights</h4>
+                                    <ul class="list-unstyled mb-0 d-flex flex-column gap-2 text-muted small" style="line-height: 1.6;">
+                                        <li><i class="fas fa-check-circle text-success me-2"></i> Deficit-based N-P-K guidance</li>
+                                        <li><i class="fas fa-check-circle text-success me-2"></i> Suitable crop suggestion</li>
+                                        <li><i class="fas fa-check-circle text-success me-2"></i> Data-driven top-up strategies</li>
+                                    </ul>
                                 </div>
-                                <div class="col-xl-7 col-lg-12 col-md-6 mt-xs-30">
-                                    <div class="content">
-                                        <h3>The Challange</h3>
-                                        <p>
-                                            Temporibus autem quibusdam et aut officiis debitis aut rerum necessitatibus
-                                            saepe eveniet ut et voluptates repudiandae sint et molestiae non recusandae.
-                                            Itaque earum rerum hic tenetur a sapiente delectus, ut aut reiciendis
-                                            voluptatibus maiores.
-                                        </p>
-                                    </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="bg-light p-4 rounded-3 h-100 border text-center d-flex flex-column justify-content-center">
+                                    <i class="fas fa-leaf text-success fs-2 mb-3"></i>
+                                    <p class="text-dark fw-bold mb-0" style="font-size: 15px;">
+                                        "Smart nutrition decisions start with understanding your soil & crop needs."
+                                    </p>
                                 </div>
                             </div>
                         </div>
-                        <blockquote>Smart nutrition decisions start with understanding your soil and crop needs.
-                        </blockquote>
-                        <h2>How our fertilizer recommendation works</h2>
-                        <p>
-                            Enter your field conditions (temperature, humidity, soil moisture), choose soil type and
-                            crop type, and add your soil test values for Nitrogen (N), Phosphorus (P), and Potassium
-                            (K). Our demo engine scores crops that fit your climate and moisture profile, then
-                            highlights nutrient gaps so you can balance N‑P‑K before sowing. You’ll get a suggested crop
-                            to sow, plus simple fertilizer tips to correct deficits.
-                        </p>
-                        <ul class="feature-list-item">
-                            <li>Suggested crop to sow with 2–3 alternatives</li>
-                            <li>Deficit-based N‑P‑K guidance (e.g., Urea, SSP, MOP)</li>
-                            <li>Light vs. heavy top‑up based on distance from targets</li>
-                            <li>Client‑side demo — connect to lab data/models for production</li>
-                        </ul>
 
-                        <div class="common-faq mt-40">
-                            <h2 class="mb-25">Fertilizer & Crop Suggestion</h2>
-                            <p>Enter field and soil parameters below to get a quick recommendation on what to sow and a
-                                simple fertilizer suggestion. This is a demo (client-side) helper — replace with a
-                                server-side model for production.</p>
+                        <!-- Tool Form -->
+                        <div class="mt-5 p-4 rounded-4" style="background: rgba(16, 185, 129, 0.03); border: 2px dashed var(--agri-primary-light);">
+                            <div class="text-center mb-4">
+                                <h3 class="fw-bold text-dark fs-4">Analyze Target Crop & Fertilizer Needs</h3>
+                                <p class="text-muted mb-0 mx-auto" style="max-width: 600px;">
+                                    Fill in the environmental details below to find out how to balance your nutrition.
+                                </p>
+                            </div>
 
-                            <form id="fertilizerForm" class="mt-30">
-                                <div class="row g-3">
+                            <form id="fertilizerForm" class="contact-form">
+                                <div class="row g-4">
                                     <div class="col-md-6">
-                                        <label for="cropType" class="form-label">Crop Type</label>
-                                        <select id="cropType" class="form-control" data-label="Crop type">
+                                        <label for="cropType" class="form-label fw-bold text-dark small">Target Crop Intention</label>
+                                        <select id="cropType" class="form-agri">
                                             <option value="rice">Rice</option>
                                             <option value="wheat">Wheat</option>
                                             <option value="maize">Maize</option>
@@ -129,184 +87,245 @@
                                         </select>
                                     </div>
                                     <div class="col-md-6">
-                                        <label for="soilType" class="form-label">Soil Type</label>
-                                        <select id="soilType" class="form-control" data-label="Soil type">
+                                        <label for="soilType" class="form-label fw-bold text-dark small">Soil Texture</label>
+                                        <select id="soilType" class="form-agri">
                                             <option value="loamy">Loamy</option>
                                             <option value="sandy">Sandy</option>
                                             <option value="clay">Clay</option>
                                             <option value="silty">Silty</option>
                                         </select>
                                     </div>
+                                    
                                     <div class="col-md-4">
-                                        <label for="temperature" class="form-label">Temperature (°C)</label>
-                                        <input type="number" step="0.1" id="temperature" class="form-control"
-                                            placeholder="e.g. 25" data-label="Temperature (°C)">
+                                        <label for="temperature" class="form-label fw-bold text-dark small">Temperature (°C)</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text bg-white text-muted border-end-0"><i class="fas fa-thermometer-half"></i></span>
+                                            <input type="number" step="0.1" id="temperature" class="form-agri border-start-0" placeholder="e.g. 25" required>
+                                        </div>
                                     </div>
                                     <div class="col-md-4">
-                                        <label for="humidity" class="form-label">Humidity (%)</label>
-                                        <input type="number" step="0.1" id="humidity" class="form-control"
-                                            placeholder="e.g. 60" data-label="Humidity (%)">
+                                        <label for="humidity" class="form-label fw-bold text-dark small">Air Humidity (%)</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text bg-white text-muted border-end-0"><i class="fas fa-cloud-rain"></i></span>
+                                            <input type="number" step="0.1" id="humidity" class="form-agri border-start-0" placeholder="e.g. 60" required>
+                                        </div>
                                     </div>
                                     <div class="col-md-4">
-                                        <label for="moisture" class="form-label">Soil Moisture (%)</label>
-                                        <input type="number" step="0.1" id="moisture" class="form-control"
-                                            placeholder="e.g. 30" data-label="Soil moisture (%)">
-                                    </div>
-
-                                    <div class="col-md-4">
-                                        <label for="nitrogen" class="form-label">Nitrogen (N) ppm</label>
-                                        <input type="number" step="1" id="nitrogen" class="form-control"
-                                            placeholder="e.g. 20" data-label="Nitrogen (N) ppm">
-                                    </div>
-                                    <div class="col-md-4">
-                                        <label for="phosphorus" class="form-label">Phosphorus (P) ppm</label>
-                                        <input type="number" step="1" id="phosphorus" class="form-control"
-                                            placeholder="e.g. 15" data-label="Phosphorus (P) ppm">
-                                    </div>
-                                    <div class="col-md-4">
-                                        <label for="potassium" class="form-label">Potassium (K) ppm</label>
-                                        <input type="number" step="1" id="potassium" class="form-control"
-                                            placeholder="e.g. 40" data-label="Potassium (K) ppm">
+                                        <label for="moisture" class="form-label fw-bold text-dark small">Soil Moisture (%)</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text bg-white text-muted border-end-0"><i class="fas fa-water"></i></span>
+                                            <input type="number" step="0.1" id="moisture" class="form-agri border-start-0" placeholder="e.g. 30" required>
+                                        </div>
                                     </div>
 
-                                    <div class="col-12 mt-2">
-                                        <button type="submit" class="btn btn-primary">Get Recommendation</button>
-                                        <button type="button" id="resetBtn" class="btn btn-light ms-2">Reset</button>
+                                    <div class="col-12 mt-2 border-top pt-4">
+                                        <h5 class="fw-bold text-dark fs-6 mb-3">Soil Nutrients Deficit Analysis (ppm)</h5>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label for="nitrogen" class="form-label fw-bold text-muted small">Nitrogen (N)</label>
+                                        <input type="number" step="1" id="nitrogen" class="form-agri" placeholder="e.g. 20" required>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label for="phosphorus" class="form-label fw-bold text-muted small">Phosphorus (P)</label>
+                                        <input type="number" step="1" id="phosphorus" class="form-agri" placeholder="e.g. 15" required>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label for="potassium" class="form-label fw-bold text-muted small">Potassium (K)</label>
+                                        <input type="number" step="1" id="potassium" class="form-agri" placeholder="e.g. 40" required>
                                     </div>
                                 </div>
+
+                                <div class="d-flex align-items-center justify-content-center gap-3 mt-5">
+                                    <button type="submit" class="btn-agri btn-agri-primary px-5 py-3 fs-5 shadow-sm">
+                                        <i class="fas fa-magic me-2"></i> Generate Plan
+                                    </button>
+                                    <button type="button" id="resetBtn" class="btn-agri btn-agri-outline p-3 shadow-sm text-dark">
+                                        <i class="fas fa-undo"></i>
+                                    </button>
+                                </div>
                             </form>
-
-                            <div id="fertResult" class="alert alert-info mt-30" style="display:none;"></div>
-
-                            <script>
-                                (function () {
-                                    function suggestFertilizer(n, p, k, crop) {
-                                        // Simple deficit-based suggestion (demo)
-                                        var rec = [];
-                                        var target = { "rice": { N: 40, P: 20, K: 40 }, "wheat": { N: 50, P: 25, K: 30 }, "maize": { N: 60, P: 30, K: 40 }, "soybean": { N: 20, P: 20, K: 30 }, "cotton": { N: 50, P: 25, K: 40 }, "potato": { N: 80, P: 50, K: 150 } }[crop] || { N: 40, P: 20, K: 40 };
-                                        var dn = target.N - n; var dp = target.P - p; var dk = target.K - k;
-                                        if (dn > 10) rec.push('Apply nitrogen-rich fertilizer (e.g., Urea) approx ' + Math.max(0, Math.round(dn)) + ' kg/ha equivalent');
-                                        else if (dn > 0) rec.push('Light nitrogen dressing (~' + Math.round(dn) + ' kg/ha equivalent)');
-                                        else rec.push('Nitrogen level adequate — avoid extra N');
-
-                                        if (dp > 5) rec.push('Apply phosphorus fertilizer (e.g., Single Super Phosphate) approx ' + Math.max(0, Math.round(dp)) + ' kg/ha equivalent');
-                                        else if (dp > 0) rec.push('Small phosphorus top-up (~' + Math.round(dp) + ' kg/ha equivalent)');
-                                        else rec.push('Phosphorus level adequate');
-
-                                        if (dk > 10) rec.push('Apply potassium fertilizer (e.g., Muriate of Potash) approx ' + Math.max(0, Math.round(dk)) + ' kg/ha equivalent');
-                                        else if (dk > 0) rec.push('Light potassium top-up (~' + Math.round(dk) + ' kg/ha equivalent)');
-                                        else rec.push('Potassium level adequate');
-
-                                        return rec;
-                                    }
-
-                                    function chooseCrop(params) {
-                                        // Very simple scoring demo: prefer crop matching temperature and moisture ranges
-                                        var crops = {
-                                            rice: { t: [20, 35], m: [40, 100], score: 0 },
-                                            wheat: { t: [5, 25], m: [20, 60], score: 0 },
-                                            maize: { t: [18, 30], m: [25, 70], score: 0 },
-                                            soybean: { t: [15, 30], m: [20, 60], score: 0 },
-                                            cotton: { t: [20, 35], m: [15, 50], score: 0 },
-                                            potato: { t: [10, 25], m: [25, 80], score: 0 }
-                                        };
-                                        Object.keys(crops).forEach(function (c) {
-                                            var cfg = crops[c];
-                                            var t = params.temperature; var m = params.moisture; var h = params.humidity;
-                                            // temperature match
-                                            if (t >= cfg.t[0] && t <= cfg.t[1]) cfg.score += 2;
-                                            else cfg.score -= 1;
-                                            // moisture match
-                                            if (m >= cfg.m[0] && m <= cfg.m[1]) cfg.score += 2;
-                                            else cfg.score -= 1;
-                                            // soil type and crop preference (small bonus)
-                                            if (params.soilType === 'loamy') cfg.score += 0.5;
-                                            if (params.cropType && params.cropType === c) cfg.score += 3; // user preference boost
-                                        });
-                                        var list = Object.keys(crops).map(function (k) { return { crop: k, score: crops[k].score }; });
-                                        list.sort(function (a, b) { return b.score - a.score; });
-                                        return list;
-                                    }
-
-                                    var form = document.getElementById('fertilizerForm');
-                                    var result = document.getElementById('fertResult');
-                                    form.addEventListener('submit', function (e) {
-                                        e.preventDefault();
-                                        var params = {
-                                            cropType: document.getElementById('cropType').value,
-                                            soilType: document.getElementById('soilType').value,
-                                            temperature: parseFloat(document.getElementById('temperature').value) || 25,
-                                            humidity: parseFloat(document.getElementById('humidity').value) || 50,
-                                            moisture: parseFloat(document.getElementById('moisture').value) || 30,
-                                            nitrogen: parseFloat(document.getElementById('nitrogen').value) || 20,
-                                            phosphorus: parseFloat(document.getElementById('phosphorus').value) || 15,
-                                            potassium: parseFloat(document.getElementById('potassium').value) || 40
-                                        };
-
-                                        var ranked = chooseCrop(params);
-                                        var primary = ranked[0].crop;
-                                        var alternatives = ranked.slice(1, 4).map(function (r) { return r.crop; });
-
-                                        var fert = suggestFertilizer(params.nitrogen, params.phosphorus, params.potassium, primary);
-
-                                        var html = '<h4>Recommendation</h4>';
-                                        html += '<p><strong>Suggested crop to sow:</strong> ' + primary.charAt(0).toUpperCase() + primary.slice(1) + '.</p>';
-                                        html += '<p><strong>Why:</strong> Matched temperature/moisture profile and your preference.</p>';
-                                        html += '<p><strong>Alternative crops:</strong> ' + alternatives.map(function (a) { return a.charAt(0).toUpperCase() + a.slice(1) }).join(', ') + '.</p>';
-                                        html += '<h5>Fertilizer suggestions</h5><ul>' + fert.map(function (f) { return '<li>' + f + '</li>'; }).join('') + '</ul>';
-
-                                        html += '<p class="small text-muted">Note: this is a demo suggestion for planning purposes only.</p>';
-
-                                        result.innerHTML = html;
-                                        result.style.display = 'block';
-                                        result.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                                        // mark todo 2 completed in the managed list (we'll update outside)
-                                    });
-
-                                    document.getElementById('resetBtn').addEventListener('click', function () {
-                                        form.reset();
-                                        result.style.display = 'none';
-                                        result.innerHTML = '';
-                                    });
-                                })();
-                            </script>
                         </div>
+
+                        <!-- Result Area -->
+                        <div id="fertResult" class="mt-4" style="display:none;"></div>
+
                     </div>
-
-                    <div class="col-xl-4 col-lg-5 mt-md-100 mt-xs-50 services-sidebar">
-                        <!-- Single Widget -->
-                        <div class="single-widget services-list-widget">
-                            <div class="content">
-                                <ul>
-                                    <li><a href="{{ route('crop-recommendation') }}">Crop Recommendation</a></li>
-                                    <li><a href="{{ route('crop-planning') }}">Crop Planning</a></li>
-                                    <li><a href="{{ route('disease-identification') }}">Disease Identification</a></li>
-                                    <li class="current-item"><a href="{{ route('fertilizer-recommendation') }}">Fertilizer
-                                            Recommendation</a></li>
-                                </ul>
-                            </div>
-                        </div>
-                        <!-- End Single Widget -->
-                        <div class="single-widget quick-contact-widget text-light"
-                            style="background-image: url({{ asset('assets/img/800x800.png') }});">
-                            <div class="content">
-                                <h3>Need Help?</h3>
-                                <p>
-                                    Need help using this tool or understanding fertilizer suggestions? Talk to a
-                                    Plantix‑AI agronomy specialist — call our office and we will connect you with an
-                                    expert.
-                                </p>
-                                <h2>+92 330 088123</h2>
-                                <h4><a href="mailto:info@plantixai.com">info@plantixai.com</a></h4>
-                                <a href="{{ route('contact') }}" class="btn btn-light mt-3">Contact Us</a>
-                            </div>
-                        </div>
-                    </div>
-
                 </div>
+                <!-- End Main Content -->
+
+                <!-- Sidebar Settings -->
+                <div class="col-lg-4">
+                    <div class="card-agri p-4 border-0 mb-4 sticky-top" style="top: 20px;">
+                        <h4 class="fw-bold text-dark fs-5 mb-4 border-bottom pb-3">AI Tools</h4>
+                        <ul class="list-unstyled mb-0 d-flex flex-column gap-2">
+                            <li>
+                                <a href="{{ route('crop-recommendation') }}" class="d-flex align-items-center p-3 rounded-3 text-decoration-none text-muted" style="transition: all 0.2s;">
+                                    <div class="bg-light rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 36px; height: 36px;"><i class="fas fa-seedling text-secondary"></i></div>
+                                    <span class="fw-medium">Crop Recommendation</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{{ route('crop-planning') }}" class="d-flex align-items-center p-3 rounded-3 text-decoration-none text-muted" style="transition: all 0.2s;">
+                                    <div class="bg-light rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 36px; height: 36px;"><i class="fas fa-calendar-alt text-secondary"></i></div>
+                                    <span class="fw-medium">Crop Planning</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{{ route('disease-identification') }}" class="d-flex align-items-center p-3 rounded-3 text-decoration-none text-muted" style="transition: all 0.2s;">
+                                    <div class="bg-light rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 36px; height: 36px;"><i class="fas fa-microscope text-secondary"></i></div>
+                                    <span class="fw-medium">Disease Identification</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{{ route('fertilizer-recommendation') }}" class="d-flex align-items-center p-3 rounded-3 text-decoration-none" style="background: var(--agri-primary-light); color: var(--agri-primary);">
+                                    <div class="bg-white rounded-circle d-flex align-items-center justify-content-center me-3 shadow-sm text-primary" style="width: 36px; height: 36px;"><i class="fas fa-flask text-primary"></i></div>
+                                    <span class="fw-bold">Fertilizer Recommendation</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="card-agri p-4 border-0 bg-success text-white position-relative overflow-hidden text-center sticky-top" style="top: 380px;">
+                        <div class="position-absolute" style="top: -20px; right: -20px; font-size: 150px; opacity: 0.1; transform: rotate(-15deg);">
+                            <i class="fas fa-seedling"></i>
+                        </div>
+                        <div class="position-relative z-index-1">
+                            <div class="bg-white text-success rounded-circle d-inline-flex align-items-center justify-content-center mb-3 shadow" style="width: 64px; height: 64px; font-size: 28px;">
+                                <i class="fas fa-shopping-cart"></i>
+                            </div>
+                            <h4 class="fw-bold mb-3 text-white">Need Fertilizers?</h4>
+                            <p class="mb-4 text-white text-opacity-75 small">
+                                Short on Urea or DAP? Visit our marketplace to buy high-quality agricultural inputs.
+                            </p>
+                            <a href="{{ route('shop') }}" class="btn btn-light rounded-pill px-4 py-2 fw-bold text-success shadow-sm">Go to Shop</a>
+                        </div>
+                    </div>
+                </div>
+                <!-- End Sidebar Settings -->
+
             </div>
         </div>
     </div>
-    <!-- End Services Details Area -->
-@endsection
+    <!-- End Content -->
 
+    <script>
+        (function () {
+            function suggestFertilizer(n, p, k, crop) {
+                // Simple deficit-based suggestion (demo)
+                var rec = [];
+                var target = { "rice": { N: 40, P: 20, K: 40 }, "wheat": { N: 50, P: 25, K: 30 }, "maize": { N: 60, P: 30, K: 40 }, "soybean": { N: 20, P: 20, K: 30 }, "cotton": { N: 50, P: 25, K: 40 }, "potato": { N: 80, P: 50, K: 150 } }[crop] || { N: 40, P: 20, K: 40 };
+                var dn = target.N - n; var dp = target.P - p; var dk = target.K - k;
+                
+                if (dn > 10) rec.push({ type: 'danger', icon: 'fas fa-arrow-up', msg: 'Heavy Nitrogen deficit!', detail: 'Apply nitrogen-rich fertilizer (e.g., Urea) approx ' + Math.max(0, Math.round(dn)) + ' kg/ha equivalent to meet target.'});
+                else if (dn > 0) rec.push({ type: 'warning', icon: 'fas fa-arrow-up', msg: 'Slight Nitrogen deficit.', detail: 'Light nitrogen dressing (~' + Math.round(dn) + ' kg/ha equivalent) required.'});
+                else rec.push({ type: 'success', icon: 'fas fa-check-circle', msg: 'Nitrogen levels adequate.', detail: 'Avoid extra N application.'});
+
+                if (dp > 5) rec.push({ type: 'danger', icon: 'fas fa-arrow-up', msg: 'Phosphorus deficit!', detail: 'Apply phosphorus fertilizer (e.g., SSP or DAP) approx ' + Math.max(0, Math.round(dp)) + ' kg/ha equivalent.'});
+                else if (dp > 0) rec.push({ type: 'warning', icon: 'fas fa-arrow-up', msg: 'Slight Phosphorus deficit.', detail: 'Small phosphorus top-up (~' + Math.round(dp) + ' kg/ha equivalent) is recommended.'});
+                else rec.push({ type: 'success', icon: 'fas fa-check-circle', msg: 'Phosphorus levels adequate.', detail: 'Phosphorus is sufficient.'});
+
+                if (dk > 10) rec.push({ type: 'danger', icon: 'fas fa-arrow-up', msg: 'Potassium deficit!', detail: 'Apply potassium fertilizer (e.g., MOP or SOP) approx ' + Math.max(0, Math.round(dk)) + ' kg/ha equivalent.'});
+                else if (dk > 0) rec.push({ type: 'warning', icon: 'fas fa-arrow-up', msg: 'Slight Potassium deficit.', detail: 'Light potassium top-up (~' + Math.round(dk) + ' kg/ha equivalent) would boost yields.'});
+                else rec.push({ type: 'success', icon: 'fas fa-check-circle', msg: 'Potassium levels adequate.', detail: 'Potassium is sufficient.'});
+
+                return rec;
+            }
+
+            function chooseCrop(params) {
+                var crops = {
+                    rice: { t: [20, 35], m: [40, 100], score: 0 },
+                    wheat: { t: [5, 25], m: [20, 60], score: 0 },
+                    maize: { t: [18, 30], m: [25, 70], score: 0 },
+                    soybean: { t: [15, 30], m: [20, 60], score: 0 },
+                    cotton: { t: [20, 35], m: [15, 50], score: 0 },
+                    potato: { t: [10, 25], m: [25, 80], score: 0 }
+                };
+                Object.keys(crops).forEach(function (c) {
+                    var cfg = crops[c];
+                    var t = params.temperature; var m = params.moisture; var h = params.humidity;
+                    if (t >= cfg.t[0] && t <= cfg.t[1]) cfg.score += 2;
+                    else cfg.score -= 1;
+                    if (m >= cfg.m[0] && m <= cfg.m[1]) cfg.score += 2;
+                    else cfg.score -= 1;
+                    if (params.soilType === 'loamy') cfg.score += 0.5;
+                    if (params.cropType && params.cropType === c) cfg.score += 3; // user preference boost
+                });
+                var list = Object.keys(crops).map(function (k) { return { crop: k, score: crops[k].score }; });
+                list.sort(function (a, b) { return b.score - a.score; });
+                return list;
+            }
+
+            var form = document.getElementById('fertilizerForm');
+            var result = document.getElementById('fertResult');
+            
+            form.addEventListener('submit', function (e) {
+                e.preventDefault();
+                var params = {
+                    cropType: document.getElementById('cropType').value,
+                    soilType: document.getElementById('soilType').value,
+                    temperature: parseFloat(document.getElementById('temperature').value) || 25,
+                    humidity: parseFloat(document.getElementById('humidity').value) || 50,
+                    moisture: parseFloat(document.getElementById('moisture').value) || 30,
+                    nitrogen: parseFloat(document.getElementById('nitrogen').value) || 20,
+                    phosphorus: parseFloat(document.getElementById('phosphorus').value) || 15,
+                    potassium: parseFloat(document.getElementById('potassium').value) || 40
+                };
+
+                // Show loading state
+                var btn = form.querySelector('button[type="submit"]');
+                var originalBtnHtml = btn.innerHTML;
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> Generating Plan...';
+                btn.disabled = true;
+
+                setTimeout(function() {
+                    var ranked = chooseCrop(params);
+                    var primary = ranked[0].crop;
+                    var alternatives = ranked.slice(1, 4).map(function (r) { return r.crop; });
+
+                    var fert = suggestFertilizer(params.nitrogen, params.phosphorus, params.potassium, primary);
+
+                    var html = '';
+                    
+                    html += '<div class="card-agri p-4 border-0" style="background: linear-gradient(to right bottom, #ffffff, #f8fcf9); border: 1px solid var(--agri-border) !important;">';
+                    html += '<div class="d-flex align-items-center gap-2 mb-4 pb-3 border-bottom">';
+                    html += '<div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center shadow-sm" style="width: 40px; height: 40px;"><i class="fas fa-clipboard-list"></i></div>';
+                    html += '<h4 class="fw-bold text-dark mb-0 m-0">Recommendations</h4>';
+                    html += '</div>';
+                    
+                    html += '<div class="d-flex align-items-center justify-content-between mb-4 bg-light p-3 rounded-3 border">';
+                    html += '<div><span class="text-muted small d-block mb-1">Target AI Match:</span><h5 class="fw-bold text-dark m-0">' + primary.charAt(0).toUpperCase() + primary.slice(1) + '</h5></div>';
+                    html += '<div class="text-end"><span class="text-muted small d-block mb-1">Alternatives:</span><span class="fw-medium text-dark">' + alternatives.map(function (a) { return a.charAt(0).toUpperCase() + a.slice(1) }).join(', ') + '</span></div>';
+                    html += '</div>';
+
+                    html += '<h5 class="fw-bold text-dark mb-3"><i class="fas fa-prescription-bottle-alt text-muted me-2"></i> Fertility Action Plan</h5>';
+                    html += '<div class="d-flex flex-column gap-3 mb-4">';
+                    
+                    fert.forEach(function(f) {
+                        html += '<div class="border rounded-3 p-3 bg-white border-' + (f.type === 'danger' ? 'danger border-opacity-50' : (f.type === 'success' ? 'success border-opacity-50' : 'warning border-opacity-50')) + '">';
+                        html += '<div class="d-flex gap-3">';
+                        html += '<div class="text-' + f.type + ' mt-1"><i class="' + f.icon + ' fs-5"></i></div>';
+                        html += '<div><h6 class="fw-bold text-dark mb-1">' + f.msg + '</h6><p class="text-muted mb-0 small" style="line-height: 1.5;">' + f.detail + '</p></div>';
+                        html += '</div></div>';
+                    });
+
+                    html += '</div>';
+                    html += '<p class="text-center text-muted small m-0"><i class="fas fa-exclamation-triangle me-1"></i> For planning purposes only.</p>';
+                    html += '</div>';
+
+                    result.innerHTML = html;
+                    result.style.display = 'block';
+                    result.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+                    btn.innerHTML = originalBtnHtml;
+                    btn.disabled = false;
+                }, 1200);
+            });
+
+            document.getElementById('resetBtn').addEventListener('click', function () {
+                form.reset();
+                result.style.display = 'none';
+                result.innerHTML = '';
+            });
+        })();
+    </script>
+@endsection

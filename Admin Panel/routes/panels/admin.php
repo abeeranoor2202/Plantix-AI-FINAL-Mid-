@@ -21,7 +21,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
     // ── Admin Auth (guest-only) ───────────────────────────────────────────────
     Route::middleware('guest:admin')->group(function () {
         Route::get('/login',  [\App\Http\Controllers\Admin\Auth\AdminLoginController::class, 'showLoginForm'])->name('login');
-        Route::post('/login', [\App\Http\Controllers\Admin\Auth\AdminLoginController::class, 'login']);
+        Route::post('/login', [\App\Http\Controllers\Admin\Auth\AdminLoginController::class, 'login'])->middleware('throttle:3,1');
 
         Route::get('/password/email',         [\App\Http\Controllers\Admin\Auth\AdminForgotPasswordController::class, 'showLinkRequestForm'])->name('password.request');
         Route::post('/password/email',        [\App\Http\Controllers\Admin\Auth\AdminForgotPasswordController::class, 'sendResetLinkEmail'])->name('password.email');
