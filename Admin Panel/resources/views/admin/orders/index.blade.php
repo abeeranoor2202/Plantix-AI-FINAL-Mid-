@@ -137,7 +137,7 @@
                                         'accepted'        => ['#1D4ED8', '#DBEAFE'],
                                         'preparing'       => ['#6D28D9', '#EDE9FE'],
                                         'ready'           => ['#4338CA', '#E0E7FF'],
-                                        'driver_assigned' => ['#374151', '#E5E7EB'],
+
                                         'picked_up'       => ['#047857', '#D1FAE5'],
                                         'delivered'       => ['#047857', '#D1FAE5'],
                                         'rejected'        => ['#B91C1C', '#FEE2E2'],

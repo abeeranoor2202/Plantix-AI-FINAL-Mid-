@@ -10,7 +10,7 @@ use Illuminate\Support\Str;
 class Order extends Model
 {
     protected $fillable = [
-        'order_number', 'user_id', 'vendor_id', 'driver_id', 'coupon_id',
+        'order_number', 'user_id', 'vendor_id', 'coupon_id',
         'status', 'subtotal', 'delivery_fee', 'tax_amount', 'discount_amount',
         'total', 'payment_method', 'payment_status',
         'delivery_address', 'delivery_lat', 'delivery_lng',
@@ -49,10 +49,10 @@ class Order extends Model
         return $this->belongsTo(Vendor::class);
     }
 
-    public function driver(): BelongsTo
-    {
-        return $this->belongsTo(User::class, 'driver_id');
-    }
+    // public function driver(): BelongsTo
+    // {
+    //     return $this->belongsTo(User::class, 'driver_id');
+    // }
 
     public function coupon(): BelongsTo
     {

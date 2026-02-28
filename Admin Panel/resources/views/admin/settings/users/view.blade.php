@@ -37,7 +37,7 @@
         <a href="{{route('admin.orders.index')}}?userId={{$id}}" style="text-decoration: none; padding: 12px 4px; color: var(--agri-text-muted); font-weight: 600;">
             {{trans('lang.tab_orders')}}
         </a>
-        <a href="{{route('admin.users.walletstransaction',$id)}}" style="text-decoration: none; padding: 12px 4px; color: var(--agri-text-muted); font-weight: 600;">
+        <a href="#" style="text-decoration: none; padding: 12px 4px; color: var(--agri-text-muted); font-weight: 600;" title="Wallet transactions feature not available">
             {{trans('lang.wallet_transaction')}}
         </a>
     </div>

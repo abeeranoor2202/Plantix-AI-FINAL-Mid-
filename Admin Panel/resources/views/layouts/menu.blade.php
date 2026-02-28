@@ -19,13 +19,6 @@
                 </a>
             </li>
 
-            <li style="margin-bottom: 5px;">
-                <a class="nav-link-agri {{ Request::is('admin/map*') ? 'active' : '' }}" href="{!! route('admin.map') !!}">
-                    <i class="mdi mdi-home-map-marker" style="font-size: 20px;"></i>
-                    <span class="hide-menu">{{trans('lang.god_eye')}}</span>
-                </a>
-            </li>
-
             <p style="text-transform: uppercase; font-size: 11px; font-weight: 700; color: var(--agri-text-muted); letter-spacing: 1px; margin: 25px 0 15px 0; padding-left: 15px;">Management</p>
 
             <li style="margin-bottom: 5px;">

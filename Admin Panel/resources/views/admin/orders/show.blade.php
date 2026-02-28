@@ -248,7 +248,7 @@
                         <div class="mb-3">
                             <label class="agri-label">New Designation Vector</label>
                             <select name="status" class="form-agri" required style="font-weight: 700; font-size: 13px;">
-                                @foreach(['pending','accepted','preparing','ready','driver_assigned','picked_up','delivered','rejected','cancelled'] as $s)
+                                @foreach(['pending','accepted','preparing','ready','picked_up','delivered','rejected','cancelled'] as $s)
                                     <option value="{{ $s }}" {{ $order->status === $s ? 'selected' : '' }}>
                                         {{ strtoupper(str_replace('_', ' ', $s)) }}
                                     </option>
@@ -265,36 +265,6 @@
                     </form>
                 </div>
             </div>
-            @endif
-
-            {{-- Assign Driver --}}
-            @if(in_array($order->status, ['ready','driver_assigned']))
-            <div class="card-agri mb-4" style="padding: 24px; background: white; border: none; box-shadow: 0 10px 30px rgba(0,0,0,0.04);">
-                <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 20px;">
-                    <div style="width: 32px; height: 32px; background: var(--agri-bg); color: var(--agri-text-heading); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
-                        <i class="fas fa-truck"></i>
-                    </div>
-                    <h5 style="margin: 0; font-weight: 800; color: var(--agri-text-heading); font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px;">Allocate Courier Node</h5>
-                </div>
-                <div>
-                    <form action="{{ route('admin.orders.assign-driver', $order->id) }}" method="POST">
-                        @csrf
-                        <div class="mb-4">
-                            <label class="agri-label">Courier Network ID</label>
-                            <div style="position: relative;">
-                                <i class="fas fa-id-badge" style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--agri-text-muted);"></i>
-                                <input type="number" name="driver_id" class="form-agri" style="padding-left: 40px; font-weight: 700;"
-                                       placeholder="Provide User ID (Role: Driver)"
-                                       value="{{ $order->driver_id }}">
-                            </div>
-                        </div>
-                        <button type="submit" class="btn-agri w-100" style="padding: 14px; font-weight: 800; border-radius: 12px; font-size: 14px; letter-spacing: 0.5px; background: var(--agri-bg); color: var(--agri-text-heading); border: 1px solid var(--agri-border);">
-                            <i class="fas fa-link" style="margin-right: 6px;"></i> BIND COURIER
-                        </button>
-                    </form>
-                </div>
-            </div>
-            @endif
 
             {{-- Order Summary --}}
             <div class="card-agri mb-4" style="padding: 24px; background: white; border: none; box-shadow: 0 10px 30px rgba(0,0,0,0.04);">
@@ -318,12 +288,6 @@
                         <span style="font-size: 11px; font-weight: 800; color: var(--agri-text-muted); text-transform: uppercase;">Fulfillment Partner</span>
                         <span style="font-size: 13px; font-weight: 700; color: var(--agri-secondary);">{{ $order->vendor->name ?? 'SYSTEM-DIRECT' }}</span>
                     </div>
-                    @if($order->driver)
-                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <span style="font-size: 11px; font-weight: 800; color: var(--agri-text-muted); text-transform: uppercase;">Courier Node</span>
-                        <span style="font-size: 13px; font-weight: 700; color: var(--agri-text-heading);">{{ $order->driver->name }}</span>
-                    </div>
-                    @endif
                     <div style="height: 1px; background: var(--agri-border); margin: 4px 0;"></div>
                     <div style="display: flex; justify-content: space-between; align-items: center;">
                         <span style="font-size: 11px; font-weight: 800; color: var(--agri-text-muted); text-transform: uppercase;">Capital Channel</span>

@@ -257,7 +257,7 @@
                         var id = childData.id;
                         var editRoute = '{{route("admin.users.edit",":id")}}'.replace(':id', id);
                         var viewRoute = '{{route("admin.users.view",":id")}}'.replace(':id', id);
-                        var walletRoute = '{{route("admin.users.walletstransaction",":id")}}'.replace(':id', id);
+                        var walletRoute = '#'; // Wallet transactions feature not available
 
                         var date = '';
                         var time = '';

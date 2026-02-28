@@ -32,11 +32,11 @@
     {{-- Store Tabs (Visible if $id is present) --}}
     @if($id != '')
     <div style="display: flex; gap: 32px; border-bottom: 1px solid var(--agri-border); margin-bottom: 32px; padding-bottom: 0; overflow-x: auto;">
-        <a href="{{route('admin.stores.view', $id)}}" style="text-decoration: none; padding: 12px 4px; color: var(--agri-text-muted); font-weight: 600; font-size: 14px; white-space: nowrap;">{{trans('lang.tab_basic')}}</a>
+        <a href="{{route('admin.vendors.view', $id)}}" style="text-decoration: none; padding: 12px 4px; color: var(--agri-text-muted); font-weight: 600; font-size: 14px; white-space: nowrap;">{{trans('lang.tab_basic')}}</a>
         <a href="{{route('admin.products.index')}}?storeId={{$id}}" style="text-decoration: none; padding: 12px 4px; color: var(--agri-text-muted); font-weight: 600; font-size: 14px; white-space: nowrap;">{{trans('lang.tab_items')}}</a>
         <a href="{{route('admin.orders.index')}}?storeId={{$id}}" style="text-decoration: none; padding: 12px 4px; color: var(--agri-text-muted); font-weight: 600; font-size: 14px; white-space: nowrap;">{{trans('lang.tab_orders')}}</a>
-        <a href="{{route('admin.stores.coupons', $id)}}" style="text-decoration: none; padding: 12px 4px; position: relative; color: var(--agri-primary); font-weight: 800; font-size: 14px; border-bottom: 3px solid var(--agri-primary); white-space: nowrap;">{{trans('lang.tab_promos')}}</a>
-        <a href="{{route('admin.stores.payout', $id)}}" style="text-decoration: none; padding: 12px 4px; color: var(--agri-text-muted); font-weight: 600; font-size: 14px; white-space: nowrap;">{{trans('lang.tab_payouts')}}</a>
+        <a href="{{route('admin.coupons')}}" style="text-decoration: none; padding: 12px 4px; position: relative; color: var(--agri-primary); font-weight: 800; font-size: 14px; border-bottom: 3px solid var(--agri-primary); white-space: nowrap;">{{trans('lang.tab_promos')}}</a>
+        <a href="{{route('admin.vendors')}}" style="text-decoration: none; padding: 12px 4px; color: var(--agri-text-muted); font-weight: 600; font-size: 14px; white-space: nowrap;">{{trans('lang.tab_payouts')}}</a>
     </div>
     @endif
 

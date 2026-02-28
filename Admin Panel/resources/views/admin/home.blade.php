@@ -24,7 +24,7 @@
             <div class="row g-4">
                 {{-- Total Earnings --}}
                 <div class="col-sm-6 col-lg-3">
-                    <div class="card-agri" style="cursor: pointer;" onclick="location.href='{!! route('admin.payments.index') !!}'">
+                    <div class="card-agri" style="cursor: pointer;" onclick="location.href='{!! route('admin.orders.index') !!}'">
                         <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
                             <div style="background: var(--agri-primary-light); padding: 10px; border-radius: 12px;">
                                 <i class="mdi mdi-cash-usd" style="color: var(--agri-primary); font-size: 24px;"></i>
@@ -37,7 +37,7 @@
 
                 {{-- Total Stores --}}
                 <div class="col-sm-6 col-lg-3">
-                    <div class="card-agri" style="cursor: pointer;" onclick="location.href='{!! route('admin.stores') !!}'">
+                    <div class="card-agri" style="cursor: pointer;" onclick="location.href='{!! route('admin.vendors') !!}'">
                         <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
                             <div style="background: #FFFBEB; padding: 10px; border-radius: 12px;">
                                 <i class="mdi mdi-shopping" style="color: var(--agri-secondary); font-size: 24px;"></i>
@@ -63,7 +63,7 @@
 
                 {{-- Admin Commission --}}
                 <div class="col-sm-6 col-lg-3">
-                    <div class="card-agri" style="cursor: pointer;" onclick="location.href='{!! route('admin.payments') !!}'">
+                    <div class="card-agri" style="cursor: pointer;" onclick="location.href='{!! route('admin.orders.index') !!}'">
                         <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
                             <div style="background: #F0FDF4; padding: 10px; border-radius: 12px;">
                                 <i class="ti-wallet" style="color: var(--agri-primary-hover); font-size: 24px;"></i>
@@ -175,7 +175,7 @@
                 <div class="card-agri" style="padding: 0; overflow: hidden;">
                     <div style="padding: 20px 24px; border-bottom: 1px solid var(--agri-border); display: flex; justify-content: space-between; align-items: center;">
                         <h3 style="font-size: 18px; font-weight: 700; color: var(--agri-text-heading); margin: 0;">Top {{trans('lang.store_plural')}}</h3>
-                        <a href="{{route('admin.stores')}}" style="color: var(--agri-primary); font-size: 14px; font-weight: 600; text-decoration: none;">View All</a>
+                        <a href="{{route('admin.vendors')}}" style="color: var(--agri-primary); font-size: 14px; font-weight: 600; text-decoration: none;">View All</a>
                     </div>
                     <div class="table-responsive">
                         <table class="table" id="storeTable" style="margin: 0;">
@@ -419,38 +419,6 @@
             });
         });
 
-        var offest = 1;
-        var pagesize = 5;
-        var start = null;
-        var end = null;
-        var endarray = [];
-        var inx = parseInt(offest) * parseInt(pagesize);
-        var append_listtop_drivers = document.getElementById('append_list_top_drivers');
-        append_listtop_drivers.innerHTML = '';
-
-        ref = db.collection('users');
-        ref.where('role', '==', 'driver').orderBy('orderCompleted', 'desc').limit(inx).get().then(async (snapshots) => {
-            var html = '';
-            html = await buildDriverHTML(snapshots);
-            if (html != '') {
-                append_listtop_drivers.innerHTML = html;
-                start = snapshots.docs[snapshots.docs.length - 1];
-                endarray.push(snapshots.docs[0]);
-            }
-
-            $('#driverTable').DataTable({
-                order: [],
-                columnDefs: [
-                    {orderable: false, targets: [0, 3]},
-                ],
-                "language": {
-                    "zeroRecords": "{{trans("lang.no_record_found")}}",
-                    "emptyTable": "{{trans("lang.no_record_found")}}"
-                },
-                responsive: true
-            });
-        });
-
         var append_list_recent_payouts = document.getElementById('append_list_recent_payouts');
         append_list_recent_payouts.innerHTML = '';
         db.collection('payouts').where('paymentStatus', '==', 'Success').orderBy('paidDate', 'desc').limit(10).get().then(async (snapshots) => {
@@ -678,10 +646,10 @@
         snapshots.docs.forEach((listval) => {
             val = listval.data();
             val.id = listval.id;
-            var route = '<?php echo route("admin.stores.edit", ":id");?>';
+            var route = '<?php echo route("admin.vendors.edit", ":id");?>';
             route = route.replace(':id', val.id);
 
-            var routeview = '<?php echo route("admin.stores.view", ":id");?>';
+            var routeview = '<?php echo route("admin.vendors.view", ":id");?>';
             routeview = routeview.replace(':id', val.id);
 
             html = html + '<tr>';
@@ -717,34 +685,6 @@
     }
 
 
-    function buildDriverHTML(snapshots) {
-        var html = '';
-        var count = 1;
-        snapshots.docs.forEach((listval) => {
-            val = listval.data();
-            val.id = listval.id;
-            var driverroute = '<?php echo route("admin.drivers.edit", ":id");?>';
-            driverroute = driverroute.replace(':id', val.id);
-
-            var driverviewroute = '<?php echo route("admin.drivers.view", ":id");?>';
-            driverviewroute = driverviewroute.replace(':id', val.id);
-
-            html = html + '<tr>';
-            if (val.profilePictureURL == '' && val.profilePictureURL == null) {
-
-                html = html + '<td class="text-center"><img class="img-circle img-size-32 mr-2" style="width:60px;height:60px;" src="' + placeholderImage + '" alt="image"></td>';
-            } else {
-                html = html + '<td class="text-center"><img onerror="this.onerror=null;this.src=\'' + placeholderImage + '\'" class="img-circle img-size-32 mr-2" style="width:60px;height:60px;" src="' + val.profilePictureURL + '" alt="image"></td>';
-            }
-            html = html + '<td data-url="' + driverviewroute + '" class="redirecttopage">' + val.firstName + ' ' + val.lastName + '</td>';
-            html = html + '<td data-url="' + driverroute + '" class="redirecttopage">' + val.orderCompleted + '</td>';
-            html = html + '<td data-url="' + driverroute + '" class="redirecttopage"><span class="fa fa-edit"></span></td>';
-            html = html + '</tr>';
-            count++;
-        });
-        return html;
-    }
-
     async function buildRecentPayoutsHTML(snapshots) {
         
         var intRegex = /^\d+$/;
@@ -774,7 +714,7 @@
 
             html = html + '<tr class="payout_'+val.id+'">';
             
-            var route = '{{route("admin.stores.view",":id")}}';
+            var route = '{{route("admin.vendors.view",":id")}}';
             route = route.replace(':id', val.vendorID);   
             html = html + '<td data-url="'+route+'" class="redirecttopage restname_'+val.vendorID+'" ></td>';
             
@@ -813,7 +753,7 @@
             var route = '<?php echo route("admin.orders.show", ":id"); ?>';
             route = route.replace(':id', val.id);
 
-            var vendorroute = '<?php echo route("admin.stores.view", ":id");?>';
+            var vendorroute = '<?php echo route("admin.vendors.view", ":id");?>';
             vendorroute = vendorroute.replace(':id', val.vendorID);
 
             html = html + '<tr>';

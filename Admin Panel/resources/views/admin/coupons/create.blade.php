@@ -8,7 +8,7 @@
         <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
             <a href="{{url('/dashboard')}}" style="text-decoration: none; color: var(--agri-text-muted); font-size: 14px; font-weight: 600;">{{trans('lang.dashboard')}}</a>
             <i class="fas fa-chevron-right" style="font-size: 10px; color: var(--agri-text-muted);"></i>
-            <a href="{{ $id != '' ? route('admin.stores.coupons', $id) : route('admin.coupons') }}" style="text-decoration: none; color: var(--agri-text-muted); font-size: 14px; font-weight: 600;">Incentive Registry</a>
+            <a href="{{ route('admin.coupons') }}" style="text-decoration: none; color: var(--agri-text-muted); font-size: 14px; font-weight: 600;">Incentive Registry</a>
             <i class="fas fa-chevron-right" style="font-size: 10px; color: var(--agri-text-muted);"></i>
             <span style="color: var(--agri-primary); font-size: 14px; font-weight: 600;">Generate Campaign</span>
         </div>
@@ -154,7 +154,7 @@
                         <i class="fas fa-satellite-dish" style="margin-right: 8px;"></i> DEPLOY CAMPAIGN
                     </button>
                     @if($id != '')
-                        <a href="{{route('admin.stores.coupons',$id)}}" class="btn-agri" style="width: 100%; height: 52px; display: flex; align-items: center; justify-content: center; text-decoration: none; font-weight: 700; background: var(--agri-bg); color: var(--agri-text-muted); border: 1px solid var(--agri-border);">ABORT OPERATION</a>
+                        <a href="{{route('admin.coupons')}}" class="btn-agri" style="width: 100%; height: 52px; display: flex; align-items: center; justify-content: center; text-decoration: none; font-weight: 700; background: var(--agri-bg); color: var(--agri-text-muted); border: 1px solid var(--agri-border);">ABORT OPERATION</a>
                     @else
                         <a href="{!! route('admin.coupons') !!}" class="btn-agri" style="width: 100%; height: 52px; display: flex; align-items: center; justify-content: center; text-decoration: none; font-weight: 700; background: var(--agri-bg); color: var(--agri-text-muted); border: 1px solid var(--agri-border);">ABORT OPERATION</a>
                     @endif
@@ -240,7 +240,10 @@ $(document).ready(function () {
                         'isEnabled': isEnabled, 'id': id, 'discountType': discountType, 'image': IMG,
                         'resturant_id': resturant_id, 'isPublic': isPublic
                     }).then(function (result) {
-                        window.location.href = resturant ? "{{route('admin.stores.coupons',$id)}}" : "{{ route('admin.coupons')}}";
+                        window.location.href = "{{route('admin.coupons')}}";
+                    } else {
+                        window.location.href = "{{ route('admin.coupons') }}";
+                    }
                     });
                 });
             }

@@ -40,7 +40,7 @@ class User extends Authenticatable
 
     public function isAdmin(): bool         { return $this->role === 'admin'; }
     public function isVendor(): bool        { return $this->role === 'vendor'; }
-    public function isDriver(): bool        { return $this->role === 'driver'; }
+    // public function isDriver(): bool        { return $this->role === 'driver'; }
     public function isUser(): bool          { return $this->role === 'user'; }
     public function isExpert(): bool        { return in_array($this->role, ['expert', 'agency_expert']); }
     public function isAgencyExpert(): bool  { return $this->role === 'agency_expert'; }
@@ -77,11 +77,11 @@ class User extends Authenticatable
         return $this->hasMany(Order::class, 'user_id');
     }
 
-    /** Orders this driver is assigned to */
-    public function drivenOrders(): HasMany
-    {
-        return $this->hasMany(Order::class, 'driver_id');
-    }
+    // /** Orders this driver is assigned to */
+    // public function drivenOrders(): HasMany
+    // {
+    //     return $this->hasMany(Order::class, 'driver_id');
+    // }
 
     public function walletTransactions(): HasMany
     {

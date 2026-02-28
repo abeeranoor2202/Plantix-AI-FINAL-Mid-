@@ -9,7 +9,7 @@
             <a href="{{url('/dashboard')}}" style="text-decoration: none; color: var(--agri-text-muted); font-size: 14px; font-weight: 600;">{{trans('lang.dashboard')}}</a>
             <i class="fas fa-chevron-right" style="font-size: 10px; color: var(--agri-text-muted);"></i>
             <?php if (isset($_GET['eid']) && $_GET['eid'] != '') { ?>
-                <a href="{{route('admin.stores.coupons',$_GET['eid'])}}" style="text-decoration: none; color: var(--agri-text-muted); font-size: 14px; font-weight: 600;">{{trans('lang.coupon_plural')}}</a>
+                <a href="{{route('admin.coupons')}}" style="text-decoration: none; color: var(--agri-text-muted); font-size: 14px; font-weight: 600;">{{trans('lang.coupon_plural')}}</a>
             <?php } else { ?>
                 <a href="{!! route('admin.coupons') !!}" style="text-decoration: none; color: var(--agri-text-muted); font-size: 14px; font-weight: 600;">{{trans('lang.coupon_plural')}}</a>
             <?php } ?>
@@ -145,7 +145,7 @@
                         <i class="fas fa-save" style="margin-right: 8px;"></i> Update Campaign
                     </button>
                     <?php if (isset($_GET['eid']) && $_GET['eid'] != '') { ?>
-                        <a href="{{route('admin.stores.coupons',$_GET['eid'])}}" class="btn-agri btn-agri-outline" style="width: 100%; height: 48px; display: flex; align-items: center; justify-content: center; text-decoration: none; font-weight: 600;">{{trans('lang.cancel')}}</a>
+                        <a href="{{route('admin.coupons')}}" class="btn-agri btn-agri-outline" style="width: 100%; height: 48px; display: flex; align-items: center; justify-content: center; text-decoration: none; font-weight: 600;">{{trans('lang.cancel')}}</a>
                     <?php } else { ?>
                         <a href="{!! route('admin.coupons') !!}" class="btn-agri btn-agri-outline" style="width: 100%; height: 48px; display: flex; align-items: center; justify-content: center; text-decoration: none; font-weight: 600;">{{trans('lang.cancel')}}</a>
                     <?php } ?>
@@ -255,7 +255,9 @@ $(document).ready(function () {
                     'isEnabled': isEnabled, 'discountType': discountType, 'image': IMG,
                     'resturant_id': resturant_id, 'isPublic': isPublic
                 }).then(() => {
-                    window.location.href = "<?php echo (isset($_GET['eid']) && $_GET['eid'] != '') ? route('admin.stores.coupons', $_GET['eid']) : route('admin.coupons'); ?>";
+                    window.location.href = "<?php echo route('admin.coupons'); ?>";
+                } else {
+                    window.location.href = "<?php echo route('admin.coupons'); ?>";
                 });
             });
         });

@@ -30,19 +30,15 @@
                         </div>
                     </div>
                 </div>
-            </a>
-        </div>
 
-        <div class="col-lg-6">
-            <a href="{{route('admin.users.walletstransaction',$id)}}" style="text-decoration: none;">
-                <div class="card-agri" style="padding: 24px; padding-left: 32px; border-left: 6px solid var(--agri-primary); transition: transform 0.2s;">
-                    <div style="display: flex; align-items: center; justify-content: space-between;">
-                        <div>
-                            <p style="font-size: 13px; font-weight: 600; color: var(--agri-text-muted); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">{{trans('lang.wallet_Balance')}}</p>
-                            <h2 style="font-size: 32px; font-weight: 800; color: var(--agri-primary); margin: 0;" id="wallet_amount">0</h2>
-                        </div>
-                        <div style="width: 56px; height: 56px; border-radius: 14px; background: var(--agri-primary-light); color: var(--agri-primary); display: flex; align-items: center; justify-content: center; font-size: 24px;">
-                            <i class="fas fa-wallet"></i>
+            <div class="card-agri" style="padding: 24px; padding-left: 32px; border-left: 6px solid var(--agri-primary); transition: transform 0.2s;">
+                <div style="display: flex; align-items: center; justify-content: space-between;">
+                    <div>
+                        <p style="font-size: 13px; font-weight: 600; color: var(--agri-text-muted); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">{{trans('lang.wallet_Balance')}}</p>
+                        <h2 style="font-size: 32px; font-weight: 800; color: var(--agri-primary); margin: 0;" id="wallet_amount">0</h2>
+                    </div>
+                    <div style="width: 56px; height: 56px; border-radius: 14px; background: var(--agri-primary-light); color: var(--agri-primary); display: flex; align-items: center; justify-content: center; font-size: 24px;">
+                        <i class="fas fa-wallet"></i>
                         </div>
                     </div>
                 </div>
