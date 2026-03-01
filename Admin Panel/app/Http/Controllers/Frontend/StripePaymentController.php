@@ -105,6 +105,8 @@ class StripePaymentController extends Controller
         $clientSecret  = session('stripe_secret') ?? null;
         $publishableKey = config('services.stripe.key');
 
+        $order->loadMissing('items.product');
+
         return view('frontend.checkout.stripe-payment', compact('order', 'clientSecret', 'publishableKey'));
     }
 

@@ -22,12 +22,19 @@
                         <h2 class="fw-bold mb-0 text-dark d-flex align-items-center gap-3">
                             Order #{{ $order->id }}
                             <span class="badge rounded-pill fw-medium fs-6" style="background: {{ $order->status === 'delivered' ? 'rgba(16, 185, 129, 0.1); color: #10B981;' : ($order->status === 'cancelled' ? 'rgba(239, 68, 68, 0.1); color: #EF4444;' : 'rgba(245, 158, 11, 0.1); color: #F59E0B;') }} padding: 6px 12px; font-size: 14px; vertical-align: middle;">
-                                {{ ucfirst($order->status) }}
+                                {{ ucwords(str_replace('_', ' ', $order->status)) }}
                             </span>
                         </h2>
                     </div>
                     
                     <div class="d-flex gap-2 flex-wrap">
+                        @if($order->status === 'pending_payment')
+                        <a href="{{ route('checkout.pay', $order->id) }}"
+                           class="btn-agri btn-agri-primary text-decoration-none d-flex align-items-center gap-2"
+                           style="padding: 8px 20px;">
+                            <i class="fas fa-credit-card"></i> Pay Now
+                        </a>
+                        @endif
                         @if(in_array($order->status, ['pending','confirmed']))
                         <form method="POST" action="{{ route('order.cancel', $order->id) }}">
                             @csrf

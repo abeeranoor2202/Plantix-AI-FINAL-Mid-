@@ -58,7 +58,7 @@
                             <div class="col-sm-6">
                                 <div class="small text-muted mb-1">Consultation Fee</div>
                                 <div class="fw-bold" style="color: var(--agri-primary); font-size: 18px;">
-                                    ${{ number_format((float) $appointment->fee, 2) }}
+                                    PKR {{ number_format((float) $appointment->fee, 2) }}
                                 </div>
                             </div>
                         </div>
@@ -167,7 +167,7 @@
                                          style="background: var(--agri-bg); border: 1px solid var(--agri-border);">
                                         <span class="fw-bold text-dark">Total Due</span>
                                         <span class="fw-bold" style="color: var(--agri-primary); font-size: 20px;">
-                                            ${{ number_format((float) $appointment->fee, 2) }}
+                                            PKR {{ number_format((float) $appointment->fee, 2) }}
                                         </span>
                                     </div>
                                 </div>
@@ -176,7 +176,7 @@
                                 <div class="col-12 d-flex gap-3">
                                     <button type="submit" class="btn-agri btn-agri-primary flex-fill py-3 fw-bold">
                                         <i class="fas fa-lock me-2"></i>
-                                        Pay ${{ number_format((float) $appointment->fee, 2) }}
+                                        Pay PKR {{ number_format((float) $appointment->fee, 2) }}
                                     </button>
                                     <a href="{{ route('appointment.details', $appointment->id) }}"
                                        class="btn-agri btn-agri-outline py-3 px-4">

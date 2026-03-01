@@ -63,14 +63,77 @@
                                     <th class="border-0 py-3 rounded-end" style="font-weight: 600; color: var(--agri-text-muted); font-size: 13px; text-transform: uppercase;">Actions</th>
                                 </tr>
                             </thead>
-                            <tbody id="ordersTableBody">
-                                <!-- Order rows will be populated via JS or backend, currently stubbed -->
+                            <tbody>
+                                @forelse($orders as $order)
                                 <tr>
-                                    <td colspan="6" class="text-center py-4 text-muted">Loading orders...</td>
+                                    <td class="border-bottom-0 py-3 rounded-start fw-bold text-dark">#{{ $order->id }}</td>
+                                    <td class="border-bottom-0 py-3 text-muted" style="font-size: 13px;">{{ $order->created_at->format('d M Y') }}</td>
+                                    <td class="border-bottom-0 py-3 text-muted">{{ $order->items->count() }} item(s)</td>
+                                    <td class="border-bottom-0 py-3 fw-bold text-dark">PKR {{ number_format($order->total ?? 0, 2) }}</td>
+                                    <td class="border-bottom-0 py-3">
+                                        @php
+                                            $statusColors = [
+                                                'pending'          => ['bg' => 'rgba(245,158,11,0.1)',  'color' => '#F59E0B'],
+                                                'pending_payment'  => ['bg' => 'rgba(59,130,246,0.1)',  'color' => '#3B82F6'],
+                                                'confirmed'        => ['bg' => 'rgba(16,185,129,0.1)', 'color' => '#10B981'],
+                                                'processing'       => ['bg' => 'rgba(99,102,241,0.1)', 'color' => '#6366F1'],
+                                                'shipped'          => ['bg' => 'rgba(14,165,233,0.1)', 'color' => '#0EA5E9'],
+                                                'delivered'        => ['bg' => 'rgba(16,185,129,0.1)', 'color' => '#10B981'],
+                                                'cancelled'        => ['bg' => 'rgba(239,68,68,0.1)',  'color' => '#EF4444'],
+                                                'refunded'         => ['bg' => 'rgba(156,163,175,0.1)','color' => '#6B7280'],
+                                                'payment_failed'   => ['bg' => 'rgba(239,68,68,0.1)',  'color' => '#EF4444'],
+                                            ];
+                                            $sc = $statusColors[$order->status] ?? ['bg' => 'rgba(156,163,175,0.1)', 'color' => '#6B7280'];
+                                        @endphp
+                                        <span class="badge rounded-pill fw-medium"
+                                              style="background: {{ $sc['bg'] }}; color: {{ $sc['color'] }}; padding: 6px 12px; font-size: 12px;">
+                                            {{ ucwords(str_replace('_', ' ', $order->status)) }}
+                                        </span>
+                                    </td>
+                                    <td class="border-bottom-0 py-3 rounded-end">
+                                        <div class="d-flex gap-2">
+                                            <a href="{{ route('order.details', $order->id) }}"
+                                               class="btn-agri text-decoration-none"
+                                               style="padding: 6px 12px; font-size: 13px; background: var(--agri-bg); color: var(--agri-text-main);">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            @if($order->status === 'pending_payment')
+                                            <a href="{{ route('checkout.pay', $order->id) }}"
+                                               class="btn-agri btn-agri-primary text-decoration-none"
+                                               style="padding: 6px 14px; font-size: 13px;">
+                                                <i class="fas fa-credit-card me-1"></i> Pay
+                                            </a>
+                                            @endif
+                                            @if(in_array($order->status, ['pending', 'confirmed']))
+                                            <form method="POST" action="{{ route('order.cancel', $order->id) }}">
+                                                @csrf
+                                                <button class="btn-agri text-danger"
+                                                        style="padding: 6px 12px; font-size: 13px; background: rgba(239,68,68,0.1); border: none;"
+                                                        onclick="return confirm('Cancel this order?')">
+                                                    <i class="fas fa-times"></i>
+                                                </button>
+                                            </form>
+                                            @endif
+                                        </div>
+                                    </td>
                                 </tr>
+                                @empty
+                                <tr>
+                                    <td colspan="6" class="text-center py-5 text-muted">
+                                        <i class="fas fa-shopping-bag fs-2 mb-3 opacity-50 d-block"></i>
+                                        You haven't placed any orders yet.
+                                        <a href="{{ route('shop') }}" class="d-block mt-2 text-success text-decoration-none fw-bold">Start Shopping</a>
+                                    </td>
+                                </tr>
+                                @endforelse
                             </tbody>
                         </table>
                     </div>
+                    @if($orders->hasPages())
+                    <div class="mt-4">
+                        {{ $orders->links('pagination::bootstrap-5') }}
+                    </div>
+                    @endif
                 </div>
             </div>
         </div>
