@@ -275,7 +275,7 @@
                     <span class="text-uppercase fw-bold text-success mb-2 d-block" style="letter-spacing: 1px;">Expert Panel</span>
                     <h2 class="display-5 fw-bold text-dark mb-0">Book Consultations with Specialists</h2>
                 </div>
-                <a href="{{ route('appointments') }}" class="btn-agri btn-agri-outline d-none d-md-flex text-decoration-none">View All Experts</a>
+                <a href="{{ route('experts.index') }}" class="btn-agri btn-agri-outline d-none d-md-flex text-decoration-none">View All Experts</a>
             </div>
             
             <div class="row g-4">

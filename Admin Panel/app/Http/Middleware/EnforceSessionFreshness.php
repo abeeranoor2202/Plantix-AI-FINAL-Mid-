@@ -46,8 +46,8 @@ class EnforceSessionFreshness
                 break;
             }
 
-            $sessionTime   = $request->session()->get('session_authenticated_at', 0);
-            $passwordChanged = $user->password_changed_at->timestamp;
+            $sessionTime     = $request->session()->get('session_authenticated_at', 0);
+            $passwordChanged = \Carbon\Carbon::parse($user->password_changed_at)->timestamp;
 
             if ($sessionTime < $passwordChanged) {
                 // Session predates password change — invalidate

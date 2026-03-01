@@ -30,6 +30,7 @@ class User extends Authenticatable implements MustVerifyEmail
 
     protected $casts = [
         'email_verified_at'    => 'datetime',
+        'password_changed_at'  => 'datetime',
         'active'               => 'boolean',
         'is_document_verified' => 'boolean',
         'must_reset_password'  => 'boolean',

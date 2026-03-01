@@ -30,7 +30,7 @@
                             </div>
                         </div>
                         <h5 style="color: var(--agri-text-muted); font-size: 14px; margin-bottom: 4px;">{{trans('lang.dashboard_total_earnings')}}</h5>
-                        <h2 id="earnings_count" style="font-size: 28px; font-weight: 700; color: var(--agri-primary-dark); margin: 0;">--</h2>
+                        <h2 id="earnings_count" style="font-size: 28px; font-weight: 700; color: var(--agri-primary-dark); margin: 0;">{{ $fmt($totalEarnings) }}</h2>
                     </div>
                 </div>
 
@@ -43,7 +43,7 @@
                             </div>
                         </div>
                         <h5 style="color: var(--agri-text-muted); font-size: 14px; margin-bottom: 4px;">{{trans('lang.dashboard_total_stores')}}</h5>
-                        <h2 id="vendor_count" style="font-size: 28px; font-weight: 700; color: var(--agri-text-heading); margin: 0;">--</h2>
+                        <h2 id="vendor_count" style="font-size: 28px; font-weight: 700; color: var(--agri-text-heading); margin: 0;">{{ $totalVendors }}</h2>
                     </div>
                 </div>
 
@@ -56,7 +56,7 @@
                             </div>
                         </div>
                         <h5 style="color: var(--agri-text-muted); font-size: 14px; margin-bottom: 4px;">{{trans('lang.dashboard_total_orders')}}</h5>
-                        <h2 id="order_count" style="font-size: 28px; font-weight: 700; color: var(--agri-text-heading); margin: 0;">--</h2>
+                        <h2 id="order_count" style="font-size: 28px; font-weight: 700; color: var(--agri-text-heading); margin: 0;">{{ $totalOrders }}</h2>
                     </div>
                 </div>
 
@@ -69,7 +69,7 @@
                             </div>
                         </div>
                         <h5 style="color: var(--agri-text-muted); font-size: 14px; margin-bottom: 4px;">{{trans('lang.admin_commission')}}</h5>
-                        <h2 id="admincommission_count" style="font-size: 28px; font-weight: 700; color: var(--agri-text-heading); margin: 0;">--</h2>
+                        <h2 id="admincommission_count" style="font-size: 28px; font-weight: 700; color: var(--agri-text-heading); margin: 0;">{{ $fmt($adminCommission) }}</h2>
                     </div>
                 </div>
             </div>
@@ -82,7 +82,7 @@
                         <a href="{{ route('admin.orders.index','status=order-placed') }}" class="card-agri" style="text-decoration: none; padding: 16px; display: flex; align-items: center; justify-content: space-between;">
                             <div>
                                 <h6 style="font-size: 12px; font-weight: 600; color: var(--agri-text-muted); text-transform: uppercase; margin-bottom: 4px;">Placed</h6>
-                                <h4 id="placed_count" style="margin: 0; font-weight: 700; color: var(--agri-text-heading);">0</h4>
+                                <h4 id="placed_count" style="margin: 0; font-weight: 700; color: var(--agri-text-heading);">{{ $ordersPlaced }}</h4>
                             </div>
                             <div style="background: var(--agri-bg); padding: 8px; border-radius: 10px;">
                                 <i class="mdi mdi-lan-pending" style="color: var(--agri-primary);"></i>
@@ -92,7 +92,7 @@
                         <a href="{{ route('admin.orders.index','status=order-confirmed') }}" class="card-agri" style="text-decoration: none; padding: 16px; display: flex; align-items: center; justify-content: space-between;">
                             <div>
                                 <h6 style="font-size: 12px; font-weight: 600; color: var(--agri-text-muted); text-transform: uppercase; margin-bottom: 4px;">Confirmed</h6>
-                                <h4 id="confirmed_count" style="margin: 0; font-weight: 700; color: var(--agri-text-heading);">0</h4>
+                                <h4 id="confirmed_count" style="margin: 0; font-weight: 700; color: var(--agri-text-heading);">{{ $ordersConfirmed }}</h4>
                             </div>
                             <div style="background: var(--agri-bg); padding: 8px; border-radius: 10px;">
                                 <i class="mdi mdi-check-circle" style="color: #059669;"></i>
@@ -102,7 +102,7 @@
                         <a href="{{ route('admin.orders.index','status=order-shipped') }}" class="card-agri" style="text-decoration: none; padding: 16px; display: flex; align-items: center; justify-content: space-between;">
                             <div>
                                 <h6 style="font-size: 12px; font-weight: 600; color: var(--agri-text-muted); text-transform: uppercase; margin-bottom: 4px;">Shipped</h6>
-                                <h4 id="shipped_count" style="margin: 0; font-weight: 700; color: var(--agri-text-heading);">0</h4>
+                                <h4 id="shipped_count" style="margin: 0; font-weight: 700; color: var(--agri-text-heading);">{{ $ordersShipped }}</h4>
                             </div>
                             <div style="background: var(--agri-bg); padding: 8px; border-radius: 10px;">
                                 <i class="mdi mdi-truck-delivery" style="color: var(--agri-info);"></i>
@@ -112,7 +112,7 @@
                         <a href="{{ route('admin.orders.index','status=order-completed') }}" class="card-agri" style="text-decoration: none; padding: 16px; display: flex; align-items: center; justify-content: space-between;">
                             <div>
                                 <h6 style="font-size: 12px; font-weight: 600; color: var(--agri-text-muted); text-transform: uppercase; margin-bottom: 4px;">Completed</h6>
-                                <h4 id="completed_count" style="margin: 0; font-weight: 700; color: var(--agri-text-heading);">0</h4>
+                                <h4 id="completed_count" style="margin: 0; font-weight: 700; color: var(--agri-text-heading);">{{ $ordersCompleted }}</h4>
                             </div>
                             <div style="background: var(--agri-primary-light); padding: 8px; border-radius: 10px;">
                                 <i class="mdi mdi-check-underline" style="color: var(--agri-primary);"></i>
@@ -122,7 +122,7 @@
                         <a href="{{ route('admin.orders.index','status=order-canceled') }}" class="card-agri" style="text-decoration: none; padding: 16px; display: flex; align-items: center; justify-content: space-between;">
                             <div>
                                 <h6 style="font-size: 12px; font-weight: 600; color: var(--agri-text-muted); text-transform: uppercase; margin-bottom: 4px;">Canceled</h6>
-                                <h4 id="canceled_count" style="margin: 0; font-weight: 700; color: var(--agri-text-heading);">0</h4>
+                                <h4 id="canceled_count" style="margin: 0; font-weight: 700; color: var(--agri-text-heading);">{{ $ordersCanceled }}</h4>
                             </div>
                             <div style="background: #FEF2F2; padding: 8px; border-radius: 10px;">
                                 <i class="mdi mdi-close-circle" style="color: var(--agri-error);"></i>
@@ -250,134 +250,53 @@
 <script src="{{asset('js/chart.js')}}"></script>
 
 <script>
+    // ── Data injected server-side — no API calls needed ───────────────────
+    var currentCurrency  = @json($currencySymbol);
+    var currencyAtRight  = @json($currencyAtRight);
+    var decimal_degits   = @json($decimalDigits);
+    var placeholderImage = @json($placeholderImage);
 
-    jQuery("#data-table_processing").show();
-
-    var currentCurrency = '';
-    var currencyAtRight = false;
-    var decimal_degits = 0;
-    var placeholderImage = '';
-
-    // Fetch currency settings from API
-    $.ajax({
-        url: '{{ route("api.admin.settings.currency") }}',
-        method: 'GET',
-        success: function(response) {
-            if (response && response.data) {
-                currentCurrency = response.data.symbol;
-                currencyAtRight = response.data.symbolAtRight;
-                decimal_degits = response.data.decimal_degits || 0;
-            }
-        }
-    });
+    var dashboardVendors = @json($topVendors);
+    var dashboardOrders  = @json($recentOrders);
+    var dashboardPayouts = @json($recentPayouts);
+    var monthlyData      = @json($monthlyData);
 
     $(document).ready(function () {
 
-        // Fetch dashboard statistics
-        $.ajax({
-            url: '{{ route("api.admin.dashboard.stats") }}',
-            method: 'GET',
-            success: function(response) {
-                if (response && response.data) {
-                    jQuery("#order_count").text(response.data.total_orders || 0);
-                    jQuery("#product_count").text(response.data.total_products || 0);
-                    jQuery("#users_count").text(response.data.total_customers || 0);
-                    jQuery("#vendor_count").text(response.data.total_vendors || 0);
-                    
-                    jQuery("#placed_count").text(response.data.orders_placed || 0);
-                    jQuery("#confirmed_count").text(response.data.orders_confirmed || 0);
-                    jQuery("#shipped_count").text(response.data.orders_shipped || 0);
-                    jQuery("#completed_count").text(response.data.orders_completed || 0);
-                    jQuery("#canceled_count").text(response.data.orders_canceled || 0);
-                    jQuery("#failed_count").text(response.data.orders_failed || 0);
-                    jQuery("#pending_count").text(response.data.orders_pending || 0);
-                }
-            }
+        // ── Top vendors table ─────────────────────────────────────────────
+        var append_listvendors = document.getElementById('append_list');
+        if (append_listvendors) {
+            append_listvendors.innerHTML = buildVendorHTML(dashboardVendors);
+        }
+        $('#storeTable').DataTable({
+            order: [],
+            columnDefs: [{orderable: false, targets: [0, 2, 3]}],
+            language: { zeroRecords: '{{trans("lang.no_record_found")}}', emptyTable: '{{trans("lang.no_record_found")}}' },
+            responsive: true
         });
 
-        // Fetch placeholder image
-        $.ajax({
-            url: '{{ route("api.admin.settings.placeholder") }}',
-            method: 'GET',
-            success: function(response) {
-                if (response && response.data) {
-                    placeholderImage = response.data.image;
-                }
-            }
+        // ── Recent orders table ───────────────────────────────────────────
+        var append_listrecent_order = document.getElementById('append_list_recent_order');
+        if (append_listrecent_order) {
+            append_listrecent_order.innerHTML = buildOrderHTML(dashboardOrders);
+        }
+        $('#orderTable').DataTable({
+            order: [],
+            language: { zeroRecords: '{{trans("lang.no_record_found")}}', emptyTable: '{{trans("lang.no_record_found")}}' },
+            responsive: true
         });
 
-        getTotalEarnings();
-
-        // Fetch top vendors
-        $.ajax({
-            url: '{{ route("api.admin.vendors.top") }}?limit=5',
-            method: 'GET',
-            success: function(response) {
-                var append_listvendors = document.getElementById('append_list');
-                append_listvendors.innerHTML = '';
-                
-                if (response && response.data && response.data.length > 0) {
-                    var html = buildVendorHTML(response.data);
-                    append_listvendors.innerHTML = html;
-                }
-
-                $('#storeTable').DataTable({
-                    order: [],
-                    columnDefs: [
-                        {orderable: false, targets: [0, 2, 3]},
-                    ],
-                    "language": {
-                        "zeroRecords": "{{trans("lang.no_record_found")}}",
-                        "emptyTable": "{{trans("lang.no_record_found")}}"
-                    },
-                    responsive: true
-                });
-            }
-        });
-
-        // Fetch recent orders
-        $.ajax({
-            url: '{{ route("api.admin.orders.recent") }}?limit=10',
-            method: 'GET',
-            success: function(response) {
-                var append_listrecent_order = document.getElementById('append_list_recent_order');
-                append_listrecent_order.innerHTML = '';
-                
-                if (response && response.data && response.data.length > 0) {
-                    var html = buildOrderHTML(response.data);
-                    append_listrecent_order.innerHTML = html;
-                }
-
-                $('#orderTable').DataTable({
-                    order: [],
-                    "language": {
-                        "zeroRecords": "{{trans("lang.no_record_found")}}",
-                        "emptyTable": "{{trans("lang.no_record_found")}}"
-                    },
-                    responsive: true
-                });
-            }
-        });
-
-        // Fetch recent payouts
-        $.ajax({
-            url: '{{ route("api.admin.payouts.recent") }}?limit=10',
-            method: 'GET',
-            success: function(response) {
-                var append_list_recent_payouts = document.getElementById('append_list_recent_payouts');
-                append_list_recent_payouts.innerHTML = '';
-                
-                if (response && response.data && response.data.length > 0) {
-                    var html = buildRecentPayoutsHTML(response.data);
-                    append_list_recent_payouts.innerHTML = html;
-                }
-
-                setTimeout(function(){
-                    $('#recentPayoutsTable').DataTable({
-                        columnDefs: [
-                            {
-                                targets: 2,
-                                type: 'date',
+        // ── Recent payouts table ──────────────────────────────────────────
+        var append_list_recent_payouts = document.getElementById('append_list_recent_payouts');
+        if (append_list_recent_payouts) {
+            append_list_recent_payouts.innerHTML = buildRecentPayoutsHTML(dashboardPayouts);
+        }
+        setTimeout(function(){
+            $('#recentPayoutsTable').DataTable({
+                columnDefs: [
+                    {
+                        targets: 2,
+                        type: 'date',
                                 render: function (data) {
                                     return data;
                                 } 
@@ -400,45 +319,20 @@
                         },
                         responsive: true
                     });
-                },1500);
-            }
+                }, 1500);
+
+        // ── Charts (use server-side data directly) ────────────────────────────
+        var labels = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+        renderChart($('#sales-chart'), monthlyData, labels);
+        setCommision();
+        setVisitors();
+
+        jQuery("#data-table_processing").hide();
+
+        $(document.body).on('click', '.redirecttopage', function () {
+            window.location.href = $(this).attr('data-url');
         });
     });
-
-    async function getTotalEarnings() {
-        $.ajax({
-            url: '{{ route("api.admin.dashboard.earnings") }}',
-            method: 'GET',
-            success: function(response) {
-                if (response && response.data) {
-                    var totalEarning = response.data.total_earnings || 0;
-                    var adminCommission = response.data.admin_commission || 0;
-                    var monthlyData = response.data.monthly_data || [0,0,0,0,0,0,0,0,0,0,0,0];
-
-                    if (currencyAtRight) {
-                        totalEarning = parseFloat(totalEarning).toFixed(decimal_degits) + "" + currentCurrency;
-                        adminCommission = parseFloat(adminCommission).toFixed(decimal_degits) + "" + currentCurrency;
-                    } else {
-                        totalEarning = currentCurrency + "" + parseFloat(totalEarning).toFixed(decimal_degits);
-                        adminCommission = currentCurrency + "" + parseFloat(adminCommission).toFixed(decimal_degits);
-                    }
-
-                    $("#earnings_count").append(totalEarning);
-                    $("#earnings_count_graph").append(totalEarning);
-                    $("#admincommission_count_graph").append(adminCommission);
-                    $("#admincommission_count").append(adminCommission);
-                    $("#total_earnings_header").text(totalEarning);
-                    $(".earnings_over_time").append(totalEarning);
-                    
-                    var labels = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
-                    var $salesChart = $('#sales-chart');
-                    var salesChart = renderChart($salesChart, monthlyData, labels);
-                    setCommision();
-                }
-                jQuery("#data-table_processing").hide();
-            }
-        });
-    }
 
     function buildVendorHTML(vendors) {
         var html = '';
