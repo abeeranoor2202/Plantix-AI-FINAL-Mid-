@@ -321,7 +321,7 @@ document.addEventListener('DOMContentLoaded', function () {
                  RIGHT COLUMN — Booking form
             ══════════════════════════════════════════════════ --}}
             <div class="col-lg-4">
-                <div class="sticky-top" style="top:90px;">
+                <div class="sticky-top" style="top:100px; z-index:99;">
 
                     {{-- Price card --}}
                     <div class="card-agri p-4 mb-4 text-center" style="background:linear-gradient(135deg,var(--agri-primary) 0%,#1a5c3a 100%);color:white;">

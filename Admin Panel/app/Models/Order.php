@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Events\Order\OrderPlaced;
+use App\Events\Order\OrderStatusUpdated;
 use App\Models\Payment;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -56,6 +58,21 @@ class Order extends Model
                 // Collision-resistant: timestamp prefix + 6 random hex chars
                 $order->order_number = 'ORD-' . strtoupper(
                     dechex(time()) . '-' . Str::random(6)
+                );
+            }
+        });
+
+        static::created(function (Order $order) {
+            OrderPlaced::dispatch($order);
+        });
+
+        static::updated(function (Order $order) {
+            if ($order->wasChanged('status')) {
+                OrderStatusUpdated::dispatch(
+                    $order,
+                    $order->getOriginal('status'),
+                    $order->status,
+                    $order->notes ?? null,
                 );
             }
         });

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Events\Expert\ExpertStatusChanged;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -74,6 +75,19 @@ class Expert extends Model
         'verified_at'                   => 'datetime',
         'suspended_at'                  => 'datetime',
     ];
+
+    protected static function booted(): void
+    {
+        static::updated(function (Expert $expert) {
+            if ($expert->wasChanged('status')) {
+                ExpertStatusChanged::dispatch(
+                    $expert,
+                    $expert->status,
+                    $expert->rejection_reason ?? null,
+                );
+            }
+        });
+    }
 
     // ── Relationships ────────────────────────────────────────────────────────
 

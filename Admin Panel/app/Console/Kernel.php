@@ -59,6 +59,21 @@ class Kernel extends ConsoleKernel
                  ->monthly()
                  ->name('prune-system-logs')
                  ->onOneServer();
+
+        // ── Email queue processor ─────────────────────────────────────────────
+        // Drains all queued email jobs every minute then exits cleanly.
+        // --stop-when-empty means the process self-terminates once the queue
+        // is empty, so it never accumulates overlapping processes.
+        // Priority: payment/admin alerts → regular emails → default jobs.
+        $schedule->command(
+                'queue:work database --stop-when-empty --tries=3 --timeout=60'
+                . ' --queue=emails-critical,emails,default'
+            )
+            ->everyMinute()
+            ->withoutOverlapping(5)      // prevent overlap; lock expires after 5 min
+            ->runInBackground()
+            ->name('process-email-queue')
+            ->onOneServer();
     }
 
     /**

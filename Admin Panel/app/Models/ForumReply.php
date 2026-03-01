@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Events\Forum\ForumReplyCreated;
+use App\Events\Forum\OfficialAnswerMarked;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -48,6 +50,25 @@ class ForumReply extends Model
         'is_expert_reply'=> 'boolean',
         'edited_at'      => 'datetime',
     ];
+
+    protected static function booted(): void
+    {
+        static::created(function (ForumReply $reply) {
+            $thread = $reply->thread;
+            if ($thread) {
+                ForumReplyCreated::dispatch($thread, $reply);
+            }
+        });
+
+        static::updated(function (ForumReply $reply) {
+            if ($reply->wasChanged('is_official') && $reply->is_official) {
+                $thread = $reply->thread;
+                if ($thread) {
+                    OfficialAnswerMarked::dispatch($thread, $reply);
+                }
+            }
+        });
+    }
 
     // ── Relationships ─────────────────────────────────────────────────────────
 

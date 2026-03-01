@@ -22,11 +22,18 @@ Route::prefix('expert')->name('expert.')->group(function () {
         Route::get('/login',  [\App\Http\Controllers\Expert\Auth\ExpertLoginController::class, 'showLoginForm'])->name('login');
         Route::post('/login', [\App\Http\Controllers\Expert\Auth\ExpertLoginController::class, 'login'])->middleware('throttle:5,1');
 
+        // Registration
+        Route::get('/register',  [\App\Http\Controllers\Expert\Auth\ExpertRegisterController::class, 'showRegistrationForm'])->name('register');
+        Route::post('/register', [\App\Http\Controllers\Expert\Auth\ExpertRegisterController::class, 'register'])->middleware('throttle:5,10');
+
         Route::get('/password/email',         [\App\Http\Controllers\Expert\Auth\ExpertForgotPasswordController::class, 'showLinkRequestForm'])->name('password.request');
         Route::post('/password/email',        [\App\Http\Controllers\Expert\Auth\ExpertForgotPasswordController::class, 'sendResetLinkEmail'])->name('password.email');
         Route::get('/password/reset/{token}', [\App\Http\Controllers\Expert\Auth\ExpertResetPasswordController::class, 'showResetForm'])->name('password.reset');
         Route::post('/password/reset',        [\App\Http\Controllers\Expert\Auth\ExpertResetPasswordController::class, 'reset'])->name('password.update');
     });
+
+    // Pending-review page — accessible to anyone (shown right after sign-up)
+    Route::get('/register/pending', [\App\Http\Controllers\Expert\Auth\ExpertRegisterController::class, 'pending'])->name('register.pending');
 
     Route::post('/logout', [\App\Http\Controllers\Expert\Auth\ExpertLoginController::class, 'logout'])->name('logout');
 

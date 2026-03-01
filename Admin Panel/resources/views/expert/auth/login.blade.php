@@ -89,6 +89,10 @@
     </form>
 
     <div class="text-center mt-3">
+        <span class="text-muted small">Not registered yet?</span>
+        <a href="{{ route('expert.register') }}" class="text-success small ms-1 fw-semibold">Apply as Expert</a>
+    </div>
+    <div class="text-center mt-2">
         <a href="{{ route('home') }}" class="text-muted small">
             <i class="bi bi-arrow-left me-1"></i>Back to website
         </a>

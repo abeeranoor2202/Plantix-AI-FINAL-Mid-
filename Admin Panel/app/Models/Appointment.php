@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Events\Appointment\AppointmentCreated;
+use App\Events\Appointment\AppointmentStatusChanged;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -85,6 +87,24 @@ class Appointment extends Model
         'duration_minutes'        => 'integer',
         'is_refunded'             => 'boolean',
     ];
+
+    protected static function booted(): void
+    {
+        static::created(function (Appointment $apt) {
+            AppointmentCreated::dispatch($apt);
+        });
+
+        static::updated(function (Appointment $apt) {
+            if ($apt->wasChanged('status')) {
+                AppointmentStatusChanged::dispatch(
+                    $apt,
+                    $apt->getOriginal('status'),
+                    $apt->status,
+                    $apt->cancellation_reason ?? $apt->reject_reason ?? null,
+                );
+            }
+        });
+    }
 
     // ── Relationships ─────────────────────────────────────────────────────────
 

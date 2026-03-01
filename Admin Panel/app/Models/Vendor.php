@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Events\Vendor\VendorStatusChanged;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -24,6 +25,21 @@ class Vendor extends Model
         'delivery_fee' => 'decimal:2',
         'commission_rate' => 'decimal:2',
     ];
+
+    protected static function booted(): void
+    {
+        static::updated(function (Vendor $vendor) {
+            if ($vendor->wasChanged(['is_approved', 'is_active'])) {
+                $status = match (true) {
+                    $vendor->is_approved && $vendor->is_active              => 'approved',
+                    $vendor->is_approved && ! $vendor->is_active            => 'suspended',
+                    ! $vendor->is_approved && $vendor->getOriginal('is_approved') => 'rejected',
+                    default                                                 => 'pending',
+                };
+                VendorStatusChanged::dispatch($vendor, $status);
+            }
+        });
+    }
 
     // -------------------------------------------------------------------------
     // Relationships

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Events\Review\ReviewCreated;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -30,6 +31,14 @@ class Review extends Model
         // On creation, schedule the edit-lock timestamp
         static::creating(function (Review $review) {
             $review->edit_locked_at = now()->addHours(self::EDIT_LOCK_HOURS);
+        });
+
+        static::created(function (Review $review) {
+            $product = $review->product;
+            $vendor  = $review->vendor;
+            if ($vendor) {
+                ReviewCreated::dispatch($review, $product, $vendor);
+            }
         });
 
         // Recalculate both vendor AND product ratings after every approved review save/delete
