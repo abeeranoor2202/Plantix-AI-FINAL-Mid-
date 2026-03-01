@@ -128,44 +128,26 @@
                 });
 
                 $(document).ready(function () {
-                    if (requestId != '') {
-                        jQuery("#data-table_processing").show();
-                        $.ajax({
-                            url: '/api/admin/email-templates/' + requestId,
-                            method: 'GET',
-                            success: function(response) {
-                                if (response.success && response.data) {
-                                    var data = response.data;
-                                    $("#subject").val(data.subject);
-                                    $('#message').summernote("code", data.message);
+                    @if($template)
+                    // ── Template data injected server-side ────────────────
+                    $("#subject").val(@json($template->subject));
+                    $('#message').summernote("code", @json($template->message));
 
-                                    if (data.is_send_to_admin) {
-                                        $("#is_send_to_admin").prop('checked', true);
-                                    }
+                    @if($template->is_send_to_admin)
+                    $("#is_send_to_admin").prop('checked', true);
+                    @endif
 
-                                    var type = '';
-                                    if (data.type == "new_order_placed") {
-                                        type = "{{trans('lang.new_order_placed')}}";
-                                    } else if (data.type == "new_vendor_signup") {
-                                        type = "{{trans('lang.new_vendor_signup')}}";
-                                    } else if (data.type == "payout_request") {
-                                        type = "{{trans('lang.payout_request')}}";
-                                    } else if (data.type == "payout_request_status") {
-                                        type = "{{trans('lang.payout_request_status')}}";
-                                    } else if (data.type == "wallet_topup") {
-                                        type = "{{trans('lang.wallet_topup')}}";
-                                    }
-                                    $('#type').val(type);
-                                }
-                                jQuery("#data-table_processing").hide();
-                            },
-                            error: function(xhr) {
-                                jQuery("#data-table_processing").hide();
-                                $(".error_top").show();
-                                $(".error_top").html("<p>{{trans('lang.please_try_again')}}</p>");
-                            }
-                        });
-                    }
+                    @php
+                        $typeLabels = [
+                            'new_order_placed'      => trans('lang.new_order_placed'),
+                            'new_vendor_signup'     => trans('lang.new_vendor_signup'),
+                            'payout_request'        => trans('lang.payout_request'),
+                            'payout_request_status' => trans('lang.payout_request_status'),
+                            'wallet_topup'          => trans('lang.wallet_topup'),
+                        ];
+                    @endphp
+                    $('#type').val(@json($typeLabels[$template->type] ?? $template->type));
+                    @endif
                 });
 
                 $(".edit-form-btn").click(function () {

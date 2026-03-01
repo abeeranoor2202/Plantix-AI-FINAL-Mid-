@@ -61,7 +61,6 @@
                             <table class="table table-sm table-borderless">
                                 <tr><th class="text-muted" style="width:130px">SKU</th><td>{{ $product->sku ?? '—' }}</td></tr>
                                 <tr><th class="text-muted">Category</th><td>{{ $product->category->name ?? '—' }}</td></tr>
-                                <tr><th class="text-muted">Brand</th><td>{{ $product->brand->name ?? '—' }}</td></tr>
                                 <tr><th class="text-muted">Vendor</th><td>{{ $product->vendor->name ?? '—' }}</td></tr>
                                 <tr><th class="text-muted">Unit</th><td>{{ $product->unit ?? '—' }}</td></tr>
                                 <tr>

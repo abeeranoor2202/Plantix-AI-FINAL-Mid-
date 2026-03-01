@@ -97,7 +97,33 @@
                         <th style="padding: 20px 24px; font-size: 11px; font-weight: 800; color: var(--agri-text-muted); text-transform: uppercase; letter-spacing: 1px; border: none; border-top-right-radius: 12px;" class="text-end">Command</th>
                     </tr>
                 </thead>
-                <tbody id="append_list1"></tbody>
+                <tbody id="append_list1">
+                            @forelse($coupons as $coupon)
+                            <tr>
+                                <td><code style="font-weight:700;">{{ $coupon->code }}</code></td>
+                                <td>{{ ucfirst($coupon->type) }}</td>
+                                <td>{{ $coupon->type === 'percentage' ? $coupon->value.'%' : '$'.number_format($coupon->value,2) }}</td>
+                                <td>{{ $coupon->vendor ? $coupon->vendor->title : 'All' }}</td>
+                                <td>{{ $coupon->expires_at ? \Carbon\Carbon::parse($coupon->expires_at)->format('d M Y') : '—' }}</td>
+                                <td>
+                                    @if($coupon->is_active)
+                                        <span class="badge bg-success">Active</span>
+                                    @else
+                                        <span class="badge bg-secondary">Inactive</span>
+                                    @endif
+                                </td>
+                                <td class="text-end">
+                                    <a href="{{ route('admin.coupons.edit', $coupon->id) }}" class="btn btn-sm btn-outline-success me-1" style="border-radius:8px;font-weight:700;">
+                                        <i class="fas fa-edit me-1"></i>{{ trans('lang.edit') }}
+                                    </a>
+                                    <button class="btn btn-sm btn-outline-danger delete-coupon-btn" data-id="{{ $coupon->id }}" style="border-radius:8px;font-weight:700;">
+                                        <i class="fas fa-trash me-1"></i>{{ trans('lang.delete') }}
+                                    </button>
+                                </td>
+                            </tr>
+                            @empty
+                            <tr><td colspan="7" class="text-center py-4 text-muted">No coupons found.</td></tr>
+                            @endforelse
             </table>
         </div>
     </div>
@@ -108,193 +134,35 @@
     .badge-agri-success { background: #DCFCE7; color: #166534; border-color: #BBF7D0; }
     .badge-agri-error { background: #FEE2E2; color: #991B1B; border-color: #FECACA; }
     .badge-agri-primary { background: var(--agri-primary-light); color: var(--agri-primary); border-color: var(--agri-primary); }
-
-    table.dataTable tbody tr { background-color: white; border-bottom: 1px solid var(--agri-border); transition: 0.2s; }
-    table.dataTable tbody tr:hover { background-color: var(--agri-bg); }
-    table.dataTable.no-footer { border-bottom: none; }
-    .dataTables_wrapper .dataTables_paginate .paginate_button { border-radius: 8px; font-weight: 700; border: none; padding: 6px 14px; }
-    .dataTables_wrapper .dataTables_paginate .paginate_button.current { background: var(--agri-primary) !important; color: white !important; border: none; }
     .form-check-input:checked { background-color: var(--agri-primary); border-color: var(--agri-primary); }
 </style>
 @endsection
 
 @section('scripts')
-<script type="text/javascript">
-    var database = firebase.firestore();
-    var getId = '{{$id}}';
-    var user_permissions = '<?php echo @session("admin_permissions")?>';
-    user_permissions = Object.values(JSON.parse(user_permissions || "[]"));
-    var checkDeletePermission = $.inArray('coupons.delete', user_permissions) >= 0;
-
-    var ref = (getId != '') ? database.collection('coupons').where('resturant_id', '==', getId) : database.collection('coupons');
-    ref = ref.orderBy('expiresAt', 'desc');
-
-    var currentCurrency = '';
-    var currencyAtRight = false;
-    var decimal_degits = 0;
-
-    database.collection('currencies').where('isActive', '==', true).get().then(async function (snapshots) {
-        if(!snapshots.empty){
-            var currencyData = snapshots.docs[0].data();
-            currentCurrency = currencyData.symbol;
-            currencyAtRight = currencyData.symbolAtRight;
-            decimal_degits = currencyData.decimal_degits || 0;
-        }
-    });
+<script>
+    var csrfToken = '{{ csrf_token() }}';
 
     $(document).ready(function () {
-        const table = $('#couponTable').DataTable({
-            pageLength: 10,
-            processing: false,
-            serverSide: true,
-            responsive: true,
-            lengthChange: false,
-            info: false,
-            dom: '<"top">rt<"bottom"p><"clear">',
-            ajax: function (data, callback, settings) {
-                const start = data.start;
-                const length = data.length;
-                const searchValue = data.search.value.toLowerCase();
-                const orderColumnIndex = data.order[0].column;
-                const orderDirection = data.order[0].dir;
-                const orderableColumns = (checkDeletePermission) ? ['','code', 'discount', '', '', 'expiresAt','',''] : ['code', 'discount', '', '', 'expiresAt', '', ''];
-                const orderByField = orderableColumns[orderColumnIndex];
 
-                ref.get().then(async function (querySnapshot) {
-                    if (querySnapshot.empty) {
-                        callback({ draw: data.draw, recordsTotal: 0, recordsFiltered: 0, data: [] });
-                        return;
-                    }
-
-                    let filteredRecords = [];
-                    for (const doc of querySnapshot.docs) {
-                        let childData = doc.data();
-                        childData.id = doc.id;
-                        childData.restaurantName = "System Default";
-                        if(childData.resturant_id){
-                             var storeSnap = await database.collection('vendors').doc(childData.resturant_id).get();
-                             if(storeSnap.exists) childData.restaurantName = storeSnap.data().title;
-                        }
-
-                        if (searchValue) {
-                             var expireStr = childData.expiresAt ? childData.expiresAt.toDate().toLocaleDateString() : '';
-                             if(childData.code.toLowerCase().includes(searchValue) || 
-                                childData.restaurantName.toLowerCase().includes(searchValue) ||
-                                (childData.description && childData.description.toLowerCase().includes(searchValue))) 
-                             {
-                                 filteredRecords.push(childData);
-                             }
-                        } else {
-                            filteredRecords.push(childData);
-                        }
-                    }
-
-                    filteredRecords.sort((a, b) => {
-                        let aVal = a[orderByField] || '';
-                        let bVal = b[orderByField] || '';
-                        if (orderByField === 'expiresAt') {
-                            aVal = a.expiresAt ? a.expiresAt.toDate().getTime() : 0;
-                            bVal = b.expiresAt ? b.expiresAt.toDate().getTime() : 0;
-                        }
-                        return orderDirection === 'asc' ? (aVal > bVal ? 1 : -1) : (aVal < bVal ? 1 : -1);
-                    });
-
-                    const totalRecords = filteredRecords.length;
-                    const paginatedRecords = filteredRecords.slice(start, start + length);
-                    let records = [];
-
-                    paginatedRecords.forEach(function (childData) {
-                        var routeEdit = '{{route("admin.coupons.edit", ":id")}}'.replace(':id', childData.id);
-                        if(getId != '') routeEdit += '?eid=' + getId;
-
-                        var discount_price = '';
-                        if (childData.discountType == 'Percent' || childData.discountType == 'Percentage') {
-                            discount_price = childData.discount + "%";
-                        } else {
-                            discount_price = currencyAtRight ? parseFloat(childData.discount).toFixed(decimal_degits) + currentCurrency : currentCurrency + parseFloat(childData.discount).toFixed(decimal_degits);
-                        }
-
-                        var dateStr = '—';
-                        if (childData.expiresAt) {
-                            var d = childData.expiresAt.toDate();
-                            var diffTime = Math.abs(d - new Date());
-                            var diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
-                            var isUpcoming = d > new Date();
-                            
-                            if (!isUpcoming) {
-                                dateStr = '<div style="font-weight:800; color:var(--agri-error);">' + d.toLocaleDateString() + ' <span style="font-size:10px; opacity:0.8;">(EXPIRED)</span></div>';
-                            } else {
-                                dateStr = '<div style="font-weight:800; color:var(--agri-text-heading);">' + d.toLocaleDateString() + ' <span style="font-size:10px; color:var(--agri-primary);">' + diffDays + 'd left</span></div>';
-                            }
-                        }
-
-                        var privacyHtml = childData.isPublic ? '<span class="badge-agri badge-agri-success"><i class="fas fa-globe"></i> Ecosystem</span>' : '<span class="badge-agri badge-agri-primary"><i class="fas fa-lock"></i> Restricted</span>';
-
-                        records.push([
-                            checkDeletePermission ? '<td style="padding: 24px; text-align: center;"><input type="checkbox" id="is_open_' + childData.id + '" class="is_open form-check-input" dataId="' + childData.id + '" style="margin:0; width:20px; height:20px;"></td>' : '',
-                            '<a href="' + routeEdit + '" style="font-weight:900; color:var(--agri-primary-dark); text-decoration:none; font-family:\'Courier New\', Courier, monospace; font-size:16px; background:var(--agri-bg); padding:6px 14px; border-radius:8px; border:2px dashed var(--agri-primary)60; display:inline-block;">' + childData.code + '</a>',
-                            '<div style="font-weight:900; color:var(--agri-text-heading); font-size:16px;">' + discount_price + ' <span style="font-size:11px; color:var(--agri-text-muted); text-transform:uppercase; font-weight:700;">YIELD</span></div>',
-                            '<div class="text-center">' + privacyHtml + '</div>',
-                            '<div style="font-weight:700; font-size:13px; color:var(--agri-text-muted); display:flex; align-items:center; gap:8px;"><i class="fas fa-server" style="font-size:10px; opacity:0.6;"></i> ' + childData.restaurantName + '</div>',
-                            dateStr,
-                            '<div class="form-check form-switch" style="display:flex; justify-content:center; margin:0;"><input type="checkbox" class="form-check-input" ' + (childData.isEnabled ? 'checked' : '') + ' id="' + childData.id + '" name="isActive" style="width:40px; height:22px; cursor:pointer;" title="Toggle Activity"></div>',
-                            '<div class="text-end" style="display:flex; gap:8px; justify-content:flex-end;">' +
-                            '<a href="' + routeEdit + '" class="btn-agri" style="padding:10px 14px; background:var(--agri-bg); color:var(--agri-text-heading); border-radius:12px; text-decoration:none; border:none;" title="Reconfigure Campaign"><i class="fas fa-cog"></i></a>' + 
-                            (checkDeletePermission ? '<a id="' + childData.id + '" class="btn-agri delete-btn" style="padding:10px 14px; background:#FEF2F2; color:var(--agri-error); border-radius:12px; border:none;" title="Terminate Campaign"><i class="fas fa-trash-alt"></i></a>' : '') + '</div>'
-                        ]);
-                    });
-
-                    callback({ draw: data.draw, recordsTotal: totalRecords, recordsFiltered: totalRecords, data: records });
-                });
-            },
-            order: (checkDeletePermission) ? [[5, 'desc']] : [[4, 'desc']],
-            columnDefs: [{ targets: '_all', orderable: false }, { orderable: true, targets: (checkDeletePermission) ? [1, 2, 5] : [0, 1, 4] }],
-            language: { zeroRecords: "<div style='padding: 60px; text-align: center; color: var(--agri-text-muted);'><i class='fas fa-ticket-alt' style='font-size: 48px; opacity: 0.2; margin-bottom: 16px; display: block;'></i><h5 style='font-weight: 800; color: var(--agri-text-heading); margin: 0;'>NO CAMPAIGNS ACTIVE</h5><p style='margin: 8px 0 0 0; font-size: 14px;'>Adjust your hash filters or initiate a new campaign.</p></div>", emptyTable: "{{trans('lang.no_record_found')}}", processing: "" }
+    $('#search-input').on('keyup', function () {
+        var val = $(this).val().toLowerCase();
+        $('#couponTable tbody tr').filter(function () {
+            $(this).toggle($(this).text().toLowerCase().indexOf(val) > -1);
         });
+    });
 
-        $('#search-input').on('keydown', function (e) {
-            if(e.keyCode == 13) {
-                 table.search($(this).val()).draw();
+        $(document).on('click', '.delete-coupon-btn', function () {
+            var id = $(this).data('id');
+            if (confirm("Delete this coupon?")) {
+                $.ajax({
+                    url: '{{ url("admin/coupons/delete") }}/' + id,
+                    method: 'POST',
+                    data: { _method: 'DELETE', _token: csrfToken },
+                    success: function () { location.reload(); },
+                    error: function () { alert('Delete failed.'); }
+                });
             }
         });
-        
-        // Auto search typing
-        let typingTimer;
-        $('#search-input').on('input', function () {
-            clearTimeout(typingTimer);
-            typingTimer = setTimeout(() => {
-                table.search($(this).val()).draw();
-            }, 600);
-        });
-    });
-
-    $(document).on("click", "input[name='isActive']", function (e) {
-        var ischeck = $(this).is(':checked');
-        database.collection('coupons').doc(this.id).update({'isEnabled': ischeck});
-    });
-
-    $(document).on("click", ".delete-btn", function (e) {
-        if(confirm("CRITICAL: Terminate this campaign and revoke hashes from the ecosystem?")){
-            database.collection('coupons').doc(this.id).delete().then(() => window.location.reload());
-        }
-    });
-
-    $("#is_active").click(function () {
-        $("#couponTable .is_open").prop('checked', $(this).prop('checked'));
-    });
-
-    $("#deleteAll").click(function () {
-        if ($('#couponTable .is_open:checked').length) {
-            if (confirm("CRITICAL: Terminate selected campaigns and revoke hashes?")) {
-                let promises = [];
-                $('#couponTable .is_open:checked').each(function () {
-                    promises.push(database.collection('coupons').doc($(this).attr('dataId')).delete());
-                });
-                Promise.all(promises).then(() => window.location.reload());
-            }
-        } else {
-            alert("No hashes selected for termination.");
-        }
     });
 </script>
 @endsection

@@ -115,6 +115,11 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::middleware(['permission:category,categories.create'])->group(function () {
             Route::get('/categories/create', [\App\Http\Controllers\CategoryController::class, 'create'])->name('categories.create');
         });
+        // Category CRUD (no-Firebase)
+        Route::post('/categories/store',         [\App\Http\Controllers\CategoryController::class, 'store'])->name('categories.store');
+        Route::post('/categories/update/{id}',   [\App\Http\Controllers\CategoryController::class, 'update'])->name('categories.update');
+        Route::post('/categories/toggle/{id}',   [\App\Http\Controllers\CategoryController::class, 'togglePublish'])->name('categories.toggle');
+        Route::delete('/categories/delete/{id}', [\App\Http\Controllers\CategoryController::class, 'destroy'])->name('categories.destroy');
 
         // ── Attributes ────────────────────────────────────────────────────────
         Route::middleware(['permission:item-attribute,attributes'])->group(function () {
@@ -126,6 +131,10 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::middleware(['permission:item-attribute,attributes.create'])->group(function () {
             Route::get('/attributes/create', [\App\Http\Controllers\AttributeController::class, 'create'])->name('attributes.create');
         });
+        // Attribute CRUD (no-Firebase)
+        Route::post('/attributes/store',         [\App\Http\Controllers\AttributeController::class, 'store'])->name('attributes.store');
+        Route::post('/attributes/update/{id}',   [\App\Http\Controllers\AttributeController::class, 'update'])->name('attributes.update');
+        Route::delete('/attributes/delete/{id}', [\App\Http\Controllers\AttributeController::class, 'destroy'])->name('attributes.destroy');
 
         // ── Coupons / Discounts ───────────────────────────────────────────────
         Route::middleware(['permission:coupons,coupons'])->group(function () {
@@ -138,6 +147,10 @@ Route::prefix('admin')->name('admin.')->group(function () {
             Route::get('/coupons/create',      [\App\Http\Controllers\CouponController::class, 'create'])->name('coupons.create');
             Route::get('/coupons/create/{id}', [\App\Http\Controllers\CouponController::class, 'create'])->name('coupons.create.vendor');
         });
+        // Coupon CRUD (no-Firebase)
+        Route::post('/coupons/store',         [\App\Http\Controllers\CouponController::class, 'store'])->name('coupons.store');
+        Route::post('/coupons/update/{id}',   [\App\Http\Controllers\CouponController::class, 'update'])->name('coupons.update');
+        Route::delete('/coupons/delete/{id}', [\App\Http\Controllers\CouponController::class, 'destroy'])->name('coupons.destroy');
 
         // ── Orders ────────────────────────────────────────────────────────────
         Route::prefix('/orders')->name('orders.')->group(function () {
@@ -242,12 +255,15 @@ Route::prefix('admin')->name('admin.')->group(function () {
             Route::middleware(['permission:global-setting,settings.app.globals'])->group(function () {
                 Route::get('/app/globals', [\App\Http\Controllers\SettingsController::class, 'globals'])->name('settings.app.globals');
             });
-            Route::get('/app/notifications', [\App\Http\Controllers\SettingsController::class, 'notifications'])->name('settings.app.notifications');
+            Route::get('/app/notifications',  [\App\Http\Controllers\SettingsController::class, 'notifications'])->name('settings.app.notifications');
+            Route::post('/app/notifications', [\App\Http\Controllers\SettingsController::class, 'notificationsSave'])->name('settings.app.notifications.save');
 
             // Stripe + COD only
             Route::middleware(['permission:payment-method,payment-method'])->group(function () {
-                Route::get('/payment/stripe', [\App\Http\Controllers\SettingsController::class, 'stripe'])->name('payment.stripe');
-                Route::get('/payment/cod',    [\App\Http\Controllers\SettingsController::class, 'cod'])->name('payment.cod');
+                Route::get('/payment/stripe',  [\App\Http\Controllers\SettingsController::class, 'stripe'])->name('payment.stripe');
+                Route::post('/payment/stripe', [\App\Http\Controllers\SettingsController::class, 'stripeSave'])->name('payment.stripe.save');
+                Route::get('/payment/cod',     [\App\Http\Controllers\SettingsController::class, 'cod'])->name('payment.cod');
+                Route::post('/payment/cod',    [\App\Http\Controllers\SettingsController::class, 'codSave'])->name('payment.cod.save');
             });
         });
 
@@ -267,6 +283,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::middleware(['permission:general-notifications,notification'])->group(function () {
             Route::get('/notification', [\App\Http\Controllers\NotificationController::class, 'index'])->name('notification');
         });
+        Route::delete('/notification/delete/{id}', [\App\Http\Controllers\NotificationController::class, 'destroyDynamic'])->name('notification.destroy');
         Route::middleware(['permission:general-notifications,notification.send'])->group(function () {
             Route::get('/notification/send', [\App\Http\Controllers\NotificationController::class, 'send'])->name('notification.send');
             Route::post('/notification/broadcast', [\App\Http\Controllers\NotificationController::class, 'broadcastnotification'])->name('notification.broadcast');

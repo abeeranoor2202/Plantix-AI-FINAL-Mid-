@@ -58,7 +58,7 @@
 
     <link href="{{ asset('assets/plugins/summernote/summernote-bs4.css') }}" rel="stylesheet">
 
-    <link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.4.1/css/responsive.dataTables.min.css">
+    
     
     <!-- AgriTech Redesign: Core Design System -->
     <link href="{{ asset('css/agritech-redesign.css') }}" rel="stylesheet">
@@ -214,11 +214,7 @@
 
 <script src="{{ asset('js/jquery.validate.js') }}"></script>
 
-<script type="text/javascript" src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
 
-<script type="text/javascript"
-
-        src="https://cdn.datatables.net/responsive/2.4.1/js/dataTables.responsive.min.js"></script>
 
 <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-timepicker/0.5.2/js/bootstrap-timepicker.min.js"></script>
 

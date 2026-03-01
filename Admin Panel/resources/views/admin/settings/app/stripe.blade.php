@@ -17,12 +17,12 @@
 
     {{-- Payment Sub-Navigation --}}
     <div style="display: flex; gap: 24px; border-bottom: 2px solid var(--agri-border); margin-bottom: 32px; padding-bottom: 2px;">
-        <a href="{{url('settings/payment/stripe')}}" class="stripe_active_label" style="text-decoration: none; padding: 12px 4px; position: relative; color: var(--agri-primary); font-weight: 700; border-bottom: 3px solid var(--agri-primary); display: flex; align-items: center; gap: 8px;">
+        <a href="{{ route('admin.payment.stripe') }}" class="stripe_active_label" style="text-decoration: none; padding: 12px 4px; position: relative; color: var(--agri-primary); font-weight: 700; border-bottom: 3px solid var(--agri-primary); display: flex; align-items: center; gap: 8px;">
             <i class="fab fa-stripe" style="font-size: 20px;"></i>
             {{trans('lang.app_setting_stripe')}}
             <span class="badge" style="font-size: 10px; padding: 2px 6px; border-radius: 20px;"></span>
         </a>
-        <a href="{{url('settings/payment/cod')}}" class="cod_active_label" style="text-decoration: none; padding: 12px 4px; position: relative; color: var(--agri-text-muted); font-weight: 600; display: flex; align-items: center; gap: 8px;">
+        <a href="{{ route('admin.payment.cod') }}" class="cod_active_label" style="text-decoration: none; padding: 12px 4px; position: relative; color: var(--agri-text-muted); font-weight: 600; display: flex; align-items: center; gap: 8px;">
             <i class="fas fa-hand-holding-usd" style="font-size: 18px;"></i>
             {{trans('lang.app_setting_cod_short')}}
             <span class="badge" style="font-size: 10px; padding: 2px 6px; border-radius: 20px;"></span>
@@ -93,7 +93,7 @@
                     </div>
 
                     <div style="display: flex; gap: 16px; margin-top: 40px; border-top: 1px solid var(--agri-border); padding-top: 32px;">
-                        <button type="button" class="btn-agri btn-agri-primary edit-form-btn" style="flex: 2; height: 48px; font-size: 15px;">
+                        <button type="button" class="btn-agri btn-agri-primary save-form-btn" style="flex: 2; height: 48px; font-size: 15px;">
                             <i class="fas fa-save" style="margin-right: 8px;"></i> {{trans('lang.save')}}
                         </button>
                         <a href="{{url('/dashboard')}}" class="btn-agri btn-agri-outline" style="flex: 1; height: 48px; display: flex; align-items: center; justify-content: center; text-decoration: none; font-size: 15px;">
@@ -139,163 +139,76 @@
 @endsection
 
 @section('scripts')
-
 <script>
-    var database = firebase.firestore();
-    var ref = database.collection('settings').doc('stripeSettings');
-    var codData = database.collection('settings').doc('CODSettings');
-    var razorpayData = database.collection('settings').doc('razorpaySettings');
-    var paypalData = database.collection('settings').doc('paypalSettings');
-    var paytmData = database.collection('settings').doc('PaytmSettings');
-    var walletData = database.collection('settings').doc('walletSettings');
-    var payFastSettings = database.collection('settings').doc('payFastSettings');
-    var payStackSettings = database.collection('settings').doc('payStack');
-    var flutterWaveSettings = database.collection('settings').doc('flutterWave');
-    var MercadopagoSettings = database.collection('settings').doc('MercadoPago');
-    var xenditSettings = database.collection('settings').doc('xendit_settings');
-    var orangePaySettings = database.collection('settings').doc('orange_money_settings');
-    var midtransSettings = database.collection('settings').doc('midtrans_settings');
+    var csrfToken = '{{ csrf_token() }}';
 
     $(document).ready(function () {
-        jQuery("#data-table_processing").show();
-        ref.get().then(async function (snapshots) {
-            var stripe = snapshots.data();
+        // Pre-fill stripe settings from DB
+        @if($settings->has('stripe_enabled'))
+        $("#enable_stripe").prop('checked', {{ $settings->get('stripe_enabled') == '1' ? 'true' : 'false' }});
+        @endif
+        @if($settings->has('stripe_key'))
+        $(".stripe_key").val('{!! addslashes($settings->get("stripe_key", "")) !!}');
+        @endif
+        @if($settings->has('stripe_secret'))
+        $(".stripe_secret").val('{!! addslashes($settings->get("stripe_secret", "")) !!}');
+        @endif
+        @if($settings->has('stripe_withdraw_enabled'))
+        $("#withdraw_enable").prop('checked', {{ $settings->get('stripe_withdraw_enabled') == '1' ? 'true' : 'false' }});
+        @endif
+        @if($settings->has('cod_enabled'))
+        var codEnabled = {{ $settings->get('cod_enabled') == '1' ? 'true' : 'false' }};
+        if (codEnabled) {
+            $(".cod_status_badge").removeClass('bg-danger').addClass('bg-success').text('Active');
+        } else {
+            $(".cod_status_badge").removeClass('bg-success').addClass('bg-danger').text('Inactive');
+        }
+        @endif
 
-            if (stripe == undefined) {
-                database.collection('settings').doc('stripeSettings').set({}).then(function (result) {
-                    location.reload();
-                });
-            }
-
-            try {
-                if (stripe.isEnabled) {
-                    $(".enable_stripe").prop('checked', true);
-                    jQuery(".stripe_active_label span").addClass('badge-success');
-                    jQuery(".stripe_active_label span").text('Active');
+        $(".save-form-btn").click(function () {
+            jQuery("#data-table_processing").show();
+            $.ajax({
+                url: '{{ route("admin.payment.stripe.save") }}',
+                method: 'POST',
+                data: {
+                    _token: csrfToken,
+                    stripe_enabled: $("#enable_stripe").is(":checked") ? 1 : 0,
+                    stripe_key: $(".stripe_key").val(),
+                    stripe_secret: $(".stripe_secret").val(),
+                    stripe_withdraw_enabled: $("#withdraw_enable").is(":checked") ? 1 : 0
+                },
+                success: function (res) {
+                    jQuery("#data-table_processing").hide();
+                    if (res.success) {
+                        toastr.success('Stripe settings saved!');
+                    } else {
+                        toastr.error(res.message || 'Save failed.');
+                    }
+                },
+                error: function (xhr) {
+                    jQuery("#data-table_processing").hide();
+                    toastr.error('Server error.');
                 }
-                if (stripe.isWithdrawEnabled) {
-                    $(".withdraw_enable").prop('checked', true);
-                }
-
-                $(".stripe_key").val(stripe.stripeKey);
-                $(".stripe_secret").val(stripe.stripeSecret);
-
-                codData.get().then(async function (codSnapshots) {
-                    var cod = codSnapshots.data();
-                    if (cod.isEnabled) {
-                        jQuery(".cod_active_label span").addClass('badge-success');
-                        jQuery(".cod_active_label span").text('Active');
-                    }
-                })
-
-                razorpayData.get().then(async function (razorpaySnapshots) {
-                    var razorPay = razorpaySnapshots.data();
-                    if (razorPay.isEnabled) {
-                        jQuery(".razorpay_active_label span").addClass('badge-success');
-                        jQuery(".razorpay_active_label span").text('Active');
-                    }
-                })
-
-                paypalData.get().then(async function (paypalSnapshots) {
-                    var paypal = paypalSnapshots.data();
-                    if (paypal.isEnabled) {
-                        jQuery(".paypal_active_label span").addClass('badge-success');
-                        jQuery(".paypal_active_label span").text('Active');
-                    }
-                })
-
-                paytmData.get().then(async function (codSnapshots) {
-                    var paytm = codSnapshots.data();
-                    if (paytm.isEnabled) {
-                        jQuery(".paytm_active_label span").addClass('badge-success');
-                        jQuery(".paytm_active_label span").text('Active');
-                    }
-                })
-
-                walletData.get().then(async function (walletSnapshots) {
-                    var wallet = walletSnapshots.data();
-                    if (wallet.isEnabled) {
-                        jQuery(".wallet_active_label span").addClass('badge-success');
-                        jQuery(".wallet_active_label span").text('Active');
-                    }
-                })
-
-                payFastSettings.get().then(async function (payFastSnapshots) {
-                    var payFast = payFastSnapshots.data();
-                    if (payFast.isEnable) {
-                        jQuery(".payfast_active_label span").addClass('badge-success');
-                        jQuery(".payfast_active_label span").text('Active');
-                    }
-                })
-
-                payStackSettings.get().then(async function (payStackSnapshots) {
-                    var payStack = payStackSnapshots.data();
-                    if (payStack.isEnable) {
-                        jQuery(".paystack_active_label span").addClass('badge-success');
-                        jQuery(".paystack_active_label span").text('Active');
-                    }
-                })
-
-                flutterWaveSettings.get().then(async function (flutterWaveSnapshots) {
-                    var flutterWave = flutterWaveSnapshots.data();
-                    if (flutterWave.isEnable) {
-                        jQuery(".flutterWave_active_label span").addClass('badge-success');
-                        jQuery(".flutterWave_active_label span").text('Active');
-                    }
-                })
-
-                MercadopagoSettings.get().then(async function (mercadopagoSnapshots) {
-                    var mercadopago = mercadopagoSnapshots.data();
-                    if (mercadopago.isEnabled) {
-                        jQuery(".mercadopago_active_label span").addClass('badge-success');
-                        jQuery(".mercadopago_active_label span").text('Active');
-                    }
-                })
-
-                xenditSettings.get().then(async function (xenditSnapshots) {
-                    var xendit = xenditSnapshots.data();
-                    if (xendit.enable) {
-                        jQuery(".xendit_active_label span").addClass('badge-success');
-                        jQuery(".xendit_active_label span").text('Active');
-                    }
-                })
-
-                orangePaySettings.get().then(async function (orangePaySnapshots) {
-                    var orangePay = orangePaySnapshots.data();
-                    if (orangePay.enable) {
-                        jQuery(".orangepay_active_label span").addClass('badge-success');
-                        jQuery(".orangepay_active_label span").text('Active');
-                    }
-                })
-
-                midtransSettings.get().then(async function (midtransSnapshots) {
-                    var midtrans = midtransSnapshots.data();
-                    if (midtrans.enable) {
-                        jQuery(".midtrans_active_label span").addClass('badge-success');
-                        jQuery(".midtrans_active_label span").text('Active');
-                    }
-                })
-
-            } catch (error) {
-            }
-            jQuery("#data-table_processing").hide();
-        })
-
-        $(".edit-form-btn").click(function () {
-            var stripeKey = $(".stripe_key").val();
-            var stripeSecret = $(".stripe_secret").val();
-            var isStripeEnabled = $(".enable_stripe").is(":checked");
-            var isWithdrawEnabled = $(".withdraw_enable").is(":checked");
-
-            database.collection('settings').doc("stripeSettings").update({
-                'isEnabled': isStripeEnabled,
-                'stripeKey': stripeKey,
-                'stripeSecret': stripeSecret,
-                'isWithdrawEnabled': isWithdrawEnabled
-            }).then(function (result) {
-                window.location.href = '{{ url("settings/payment/stripe")}}';
             });
-        })
-    })
+        });
+
+        // COD toggle (if present)
+        $(document).on('click', '#cod_toggle_btn', function () {
+            var current = $(".cod_status_badge").text() === 'Active' ? 1 : 0;
+            var newVal = current ? 0 : 1;
+            $.ajax({
+                url: '{{ route("admin.payment.stripe.save") }}',
+                method: 'POST',
+                data: { _token: csrfToken, cod_enabled: newVal },
+                success: function () {
+                    if (newVal) {
+                        $(".cod_status_badge").removeClass('bg-danger').addClass('bg-success').text('Active');
+                    } else {
+                        $(".cod_status_badge").removeClass('bg-success').addClass('bg-danger').text('Inactive');
+                    }
+                }
+            });
+        });
+    });
 </script>
 @endsection

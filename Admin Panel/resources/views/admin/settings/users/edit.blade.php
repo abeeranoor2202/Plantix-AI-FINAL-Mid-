@@ -161,26 +161,30 @@
 
 @section('scripts')
 <script>
-    var id = "<?php echo $id; ?>";
-    var currentCurrency = '';
-    var currencyAtRight = false;
-    var decimal_degits = 0;
-    var photoFile = null;
-    var currentImageUrl = '';
-    var placeholderImage = '';
+    var id             = "<?php echo $id; ?>";
+    var currentCurrency  = @json($currencySymbol);
+    var currencyAtRight  = @json($currencyAtRight);
+    var decimal_degits   = @json($decimalDigits);
+    var photoFile        = null;
+    var currentImageUrl  = '';
+    var placeholderImage = @json($placeholderImage);
 
-    // Fetch currency settings from API
-    $.ajax({
-        url: '{{ route("api.admin.settings.currency") }}',
-        method: 'GET',
-        success: function(response) {
-            if (response && response.data) {
-                currentCurrency = response.data.symbol;
-                currencyAtRight = response.data.symbolAtRight;
-                decimal_degits = response.data.decimal_degits || 0;
-            }
-        }
-    });
+    // ── User data injected server-side ────────────────────────────────────
+    @if($user)
+    var userData = @json([
+        'first_name'          => $user->first_name,
+        'last_name'           => $user->last_name,
+        'email'               => $user->email,
+        'phone_number'        => $user->phone_number,
+        'wallet_amount'       => $user->wallet_amount,
+        'profile_picture_url' => $user->profile_photo,
+        'is_active'           => (bool)$user->active,
+    ]);
+    var totalOrders = @json($totalOrders);
+    @else
+    var userData = null;
+    var totalOrders = 0;
+    @endif
 
     $("#send_mail").click(function() {
         if ($("#reset_password").is(":checked")) {
@@ -204,55 +208,31 @@
     });
 
     $(document).ready(function() {
-        jQuery("#data-table_processing").show();
-        
-        // Fetch user data
-        $.ajax({
-            url: '{{ route("api.admin.users.show", ":id") }}'.replace(':id', id),
-            method: 'GET',
-            success: function(response) {
-                if (response && response.data) {
-                    var user = response.data;
-                    $(".user_first_name").val(user.first_name || '');
-                    $(".user_last_name").val(user.last_name || '');
-                    $(".user_email").val(user.email || '');
-                    $(".user_phone").val(user.phone_number || '');
+        if (userData) {
+            var user = userData;
+            $(".user_first_name").val(user.first_name || '');
+            $(".user_last_name").val(user.last_name || '');
+            $(".user_email").val(user.email || '');
+            $(".user_phone").val(user.phone_number || '');
 
-                    if (user.profile_picture_url && user.profile_picture_url != '') {
-                        currentImageUrl = user.profile_picture_url;
-                        $(".user_image").html('<img class="rounded" style="width:100%; height:100%; object-fit:cover;" src="' + user.profile_picture_url + '" alt="image">');
-                    } else {
-                        $(".user_image").html('<img class="rounded" style="width:100%; height:100%; object-fit:cover;" src="' + placeholderImage + '" alt="image">');
-                    }
-
-                    if (user.is_active) $(".user_active").prop('checked', true);
-
-                    var wallet_amount = user.wallet_amount || 0;
-                    if (currencyAtRight) {
-                        wallet_amount = parseFloat(wallet_amount).toFixed(decimal_degits) + currentCurrency;
-                    } else {
-                        wallet_amount = currentCurrency + parseFloat(wallet_amount).toFixed(decimal_degits);
-                    }
-                    $("#wallet_amount").text(wallet_amount);
-
-                    // Fetch user's orders count
-                    $.ajax({
-                        url: '{{ route("api.admin.dashboard.user-orders") }}?user_id=' + id,
-                        method: 'GET',
-                        success: function(orderResponse) {
-                            if (orderResponse && orderResponse.data) {
-                                $("#total_orders").text(orderResponse.data.count || 0);
-                            }
-                        }
-                    });
-                }
-                jQuery("#data-table_processing").hide();
-            },
-            error: function(xhr) {
-                jQuery("#data-table_processing").hide();
-                $(".error_top").show().html("<p>Error loading user data</p>");
+            if (user.profile_picture_url && user.profile_picture_url != '') {
+                currentImageUrl = user.profile_picture_url;
+                $(".user_image").html('<img class="rounded" style="width:100%; height:100%; object-fit:cover;" src="' + user.profile_picture_url + '" alt="image">');
+            } else {
+                $(".user_image").html('<img class="rounded" style="width:100%; height:100%; object-fit:cover;" src="' + placeholderImage + '" alt="image">');
             }
-        });
+
+            if (user.is_active) $(".user_active").prop('checked', true);
+
+            var wallet_amount = user.wallet_amount || 0;
+            if (currencyAtRight) {
+                wallet_amount = parseFloat(wallet_amount).toFixed(decimal_degits) + currentCurrency;
+            } else {
+                wallet_amount = currentCurrency + parseFloat(wallet_amount).toFixed(decimal_degits);
+            }
+            $("#wallet_amount").text(wallet_amount);
+            $("#total_orders").text(totalOrders);
+        }
 
         $(".edit-form-btn").click(function() {
             var userFirstName = $(".user_first_name").val();

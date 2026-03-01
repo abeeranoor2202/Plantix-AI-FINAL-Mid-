@@ -85,17 +85,7 @@
                         @endforeach
                     </select>
                 </div>
-                <div class="col-md-4">
-                    <label class="agri-label">Industry Entity (Brand)</label>
-                    <select name="brand_id" class="form-agri @error('brand_id') is-invalid @enderror" style="font-weight: 700;">
-                        <option value="">— No Brand Alignment —</option>
-                        @foreach($brands as $brand)
-                            <option value="{{ $brand->id }}" @selected(old('brand_id', $product->brand_id ?? '') == $brand->id)>
-                                {{ $brand->name }}
-                            </option>
-                        @endforeach
-                    </select>
-                </div>
+
                 <div class="col-md-4">
                     <label class="agri-label">Fulfillment Node (Vendor) <span class="text-danger">*</span></label>
                     <select name="vendor_id" class="form-agri @error('vendor_id') is-invalid @enderror" required style="font-weight: 700; border-color: var(--agri-secondary);">

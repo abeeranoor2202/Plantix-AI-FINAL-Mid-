@@ -19,7 +19,7 @@ class Product extends Model
     public const STATUS_DRAFT    = 'draft';
 
     protected $fillable = [
-        'vendor_id', 'category_id', 'brand_id', 'name', 'sku', 'slug', 'description',
+        'vendor_id', 'category_id', 'name', 'sku', 'slug', 'description',
         'price', 'discount_price', 'image', 'is_active', 'is_featured',
         'status', 'sort_order', 'stock_quantity', 'track_stock',
         'rating_avg', 'rating_count',
@@ -71,11 +71,6 @@ class Product extends Model
     public function category(): BelongsTo
     {
         return $this->belongsTo(Category::class);
-    }
-
-    public function brand(): BelongsTo
-    {
-        return $this->belongsTo(Brand::class);
     }
 
     public function attributes(): HasMany

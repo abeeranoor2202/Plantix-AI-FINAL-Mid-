@@ -29,15 +29,18 @@ class UserController extends Controller
 
     public function index()
     {
-
-        return view("admin.settings.users.index");
-        
+        $users = User::where('role', 'customer')
+                     ->orderByDesc('created_at')
+                     ->get();
+        return view("admin.settings.users.index", compact('users'));
     }
-
 
     public function edit($id)
     {
-        return view('admin.settings.users.edit')->with('id', $id);
+        $user           = User::with('addresses')->find($id);
+        $totalOrders    = \App\Models\Order::where('user_id', $id)->count();
+        [$currencySymbol, $currencyAtRight, $decimalDigits, $placeholderImage] = $this->getCurrencyData();
+        return view('admin.settings.users.edit', compact('id', 'user', 'totalOrders', 'currencySymbol', 'currencyAtRight', 'decimalDigits', 'placeholderImage'));
     }
 
     public function adminUsers()
@@ -263,7 +266,25 @@ class UserController extends Controller
 
     public function view($id)
     {
-        return view('admin.settings.users.view')->with('id', $id);
+        $user = User::with('addresses')->find($id);
+        [$currencySymbol, $currencyAtRight, $decimalDigits, $placeholderImage] = $this->getCurrencyData();
+        return view('admin.settings.users.view', compact('id', 'user', 'currencySymbol', 'currencyAtRight', 'decimalDigits', 'placeholderImage'));
+    }
+
+    private function getCurrencyData(): array
+    {
+        try {
+            $cur  = \App\Models\Setting::where('key', 'default_currency')->first();
+            $data = $cur ? (is_string($cur->value) ? json_decode($cur->value, true) : (array) $cur->value) : [];
+        } catch (\Throwable) {
+            $data = [];
+        }
+        return [
+            $data['symbol']        ?? '$',
+            (bool)($data['symbolAtRight'] ?? false),
+            (int)($data['decimal_degits'] ?? 2),
+            asset('images/placeholder.png'),
+        ];
     }
 
     public function payToUser(Request $request)

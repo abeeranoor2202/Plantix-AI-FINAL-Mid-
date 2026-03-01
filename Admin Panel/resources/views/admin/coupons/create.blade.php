@@ -87,8 +87,11 @@
                             <div class="col-md-12">
                                 <label class="agri-label">Geospatial Origin / Fulfillment Partner</label>
                                 <select id="vendor_restaurant_select" class="form-agri select2">
-                                    <option value="">System-Wide (All Partners)</option>
-                                </select>
+                                            <option value="">-- Select Vendor --</option>
+                                            @foreach($vendors as $vendor)
+                                            <option value="{{ $vendor->id }}">{{ $vendor->title }}</option>
+                                            @endforeach
+                                        </select>
                                 <div class="form-text mt-2" style="font-size: 11px; color: var(--agri-text-muted); font-weight: 500;">Restrict this incentive to a specific vendor node or leave unselected for global application.</div>
                             </div>
                             @endif
@@ -177,106 +180,68 @@
 @endsection
 
 @section('scripts')
-<script src="{{ asset('js/bootstrap-datepicker.min.js') }}"></script>
-<link href="{{ asset('css/bootstrap-datepicker.min.css') }}" rel="stylesheet">
-
 <script>
-var database = firebase.firestore();
-var photo_coupon = "";
-var fileName = "";
-var resturant = "<?php echo $id; ?>";
-var resturant_id = resturant || '';
-var id = "<?php echo uniqid();?>";
+    var csrfToken = '{{ csrf_token() }}';
 
-$(document).ready(function () {
-    jQuery("#data-table_processing").css('display', 'flex');
+    $(document).ready(function () {
+        $(".save-form-btn").click(function () {
+            var code = $(".coupon_code").val().trim();
+            var discountType = $("#coupon_discount_type").val();
+            var value = $(".coupon_discount").val().trim();
+            var vendorId = $("#vendor_restaurant_select").val();
+            var expiresAt = $(".date_picker").val().trim();
+            var isActive = $(".coupon_enabled").is(":checked") ? 1 : 0;
 
-    database.collection('vendors').orderBy('title', 'asc').get().then(async function (snapshots) {
-        snapshots.docs.forEach((listval) => {
-            var data = listval.data();
-            $('#vendor_restaurant_select').append($("<option></option>").attr("value", data.id).text(data.title));
-        });
-        jQuery("#data-table_processing").hide();
-    });
-
-    $('#datetimepicker1').datepicker({ dateFormat: 'mm/dd/yyyy', autoclose: true, todayHighlight: true });
-
-    if (resturant == '') {
-        $("#vendor_restaurant_select").change(function () {
-            resturant_id = $(this).val();
-        });
-    }
-
-    $(".save-form-btn").click(function () {
-        var code = $(".coupon_code").val();
-        var discount = $(".coupon_discount").val();
-        var description = $(".coupon_description").val();
-        var newdate = new Date($(".date_picker").val());
-        var expiresAt = new Date(newdate.setHours(23, 59, 59, 999));
-        var isEnabled = $(".coupon_enabled").is(":checked");
-        var isPublic = $(".coupon_public").is(":checked");
-        var discountType = $("#coupon_discount_type").val();
-
-        if (discountType === 'Percentage' && (discount < 0 || discount > 100)) {
-            $(".error_top").show().html("<i class='fas fa-exclamation-triangle me-2'></i> Percentage yield must range between 0 and 100.");
-            window.scrollTo(0, 0); return;
-        }
-
-        if (code == '' || discount == '' || newdate == 'Invalid Date') {
-            $(".error_top").show().html("<i class='fas fa-exclamation-triangle me-2'></i> Mandatory parameters missing: Hash, Magnitude, or Expiration Vector.");
-            window.scrollTo(0, 0); return;
-        }
-
-        jQuery("#data-table_processing").css('display', 'flex');
-        database.collection('coupons').where('code', '==', code).get().then(function (snapshot) {
-            if (snapshot.size > 0) {
-                jQuery("#data-table_processing").hide();
-                $(".error_top").show().html("<i class='fas fa-exclamation-triangle me-2'></i> Sequence Collision: This Incentive Hash is already active. Generate a unique hash.");
+            if (!code) {
+                $(".error_top").show().html("<p>Please enter a coupon code.</p>");
                 window.scrollTo(0, 0);
-            } else {
-                storeImageData().then(IMG => {
-                    database.collection('coupons').doc(id).set({
-                        'code': code, 'description': description, 'discount': discount, 'expiresAt': expiresAt,
-                        'isEnabled': isEnabled, 'id': id, 'discountType': discountType, 'image': IMG,
-                        'resturant_id': resturant_id, 'isPublic': isPublic
-                    }).then(function (result) {
-                        window.location.href = "{{route('admin.coupons')}}";
-                    } else {
-                        window.location.href = "{{ route('admin.coupons') }}";
-                    }
-                    });
-                });
+                return;
             }
+            if (!value) {
+                $(".error_top").show().html("<p>Please enter a discount value.</p>");
+                window.scrollTo(0, 0);
+                return;
+            }
+
+            jQuery("#data-table_processing").show();
+
+            // Map display type to DB type
+            var typeMap = { 'Percentage': 'percentage', 'Fix Price': 'fixed', 'percentage': 'percentage', 'fixed': 'fixed' };
+            var dbType = typeMap[discountType] || discountType.toLowerCase();
+
+            $.ajax({
+                url: '{{ route("admin.coupons.store") }}',
+                method: 'POST',
+                data: {
+                    _token: csrfToken,
+                    code: code,
+                    type: dbType,
+                    value: value,
+                    vendor_id: vendorId || null,
+                    expires_at: expiresAt || null,
+                    is_active: isActive
+                },
+                success: function (res) {
+                    jQuery("#data-table_processing").hide();
+                    if (res.success) {
+                        window.location.href = res.redirect || '{{ route("admin.coupons") }}';
+                    } else {
+                        $(".error_top").show().html("<p>" + (res.message || 'Failed') + "</p>");
+                        window.scrollTo(0, 0);
+                    }
+                },
+                error: function (xhr) {
+                    jQuery("#data-table_processing").hide();
+                    var errors = xhr.responseJSON;
+                    var msg = (errors && errors.message) ? errors.message : 'Server error';
+                    if (errors && errors.errors) {
+                        msg = Object.values(errors.errors).flat().join('<br>');
+                    }
+                    $(".error_top").show().html("<p>" + msg + "</p>");
+                    window.scrollTo(0, 0);
+                }
+            });
         });
     });
-});
-
-var storageRef = firebase.storage().ref('images');
-
-async function storeImageData() {
-    var newPhoto = '';
-    if(!photo_coupon) return '';
-    try {
-        var base64 = photo_coupon.replace(/^data:image\/[a-z]+;base64,/, "");
-        var uploadTask = await storageRef.child(fileName).putString(base64, 'base64', {contentType: 'image/jpg'});
-        newPhoto = await uploadTask.ref.getDownloadURL();
-    } catch (error) { console.log("ERR ===", error); }
-    return newPhoto;
-}
-
-function handleFileSelect(evt) {
-    var f = evt.target.files[0];
-    var reader = new FileReader();
-    reader.onload = (function (theFile) {
-        return function (e) {
-            photo_coupon = e.target.result;
-            var timestamp = Number(new Date());
-            fileName = theFile.name.split('.')[0] + "_" + timestamp + '.' + theFile.name.split('.').pop();
-            $(".coupon_image").html('<img style="width:100%; height:160px; object-fit:cover; border-radius:12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);" src="' + photo_coupon + '" alt="Creative Asset">');
-            $(".coupon_image").parent().css('padding', '20px');
-        };
-    })(f);
-    reader.readAsDataURL(f);
-}
 </script>
 @endsection

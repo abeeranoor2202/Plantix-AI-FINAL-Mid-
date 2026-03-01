@@ -47,6 +47,8 @@ class AdminExpertController extends Controller
 
         $experts = $query->latest()->paginate(25)->withQueryString();
 
+        $statuses = ['pending', 'under_review', 'approved', 'rejected', 'suspended', 'inactive'];
+
         $stats = [
             'total'        => Expert::count(),
             'pending'      => Expert::pending()->count(),
@@ -57,7 +59,7 @@ class AdminExpertController extends Controller
             'inactive'     => Expert::inactive()->count(),
         ];
 
-        return view('admin.experts.index', compact('experts', 'stats'));
+        return view('admin.experts.index', compact('experts', 'stats', 'statuses'));
     }
 
     public function show(int $id): View

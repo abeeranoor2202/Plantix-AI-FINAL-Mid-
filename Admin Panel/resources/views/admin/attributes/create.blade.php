@@ -52,29 +52,40 @@
 @endsection
 
 @section('scripts')
-    <script>
-        var database = firebase.firestore();
-        var ref = database.collection('vendor_attributes');
-        var id_attribute = "<?php echo uniqid();?>";
+<script>
+    var csrfToken = '{{ csrf_token() }}';
 
-        $(document).ready(function () {
-            $(".save-form-btn").click(function () {
-                var title = $(".cat-name").val();
-                $(".error_top").hide().html("");
+    $(document).ready(function () {
+        $(".save-form-btn").click(function () {
+            var title = $(".cat-name").val().trim();
+            if (!title) {
+                $(".error_top").show().html("<p>Please enter an attribute title.</p>");
+                window.scrollTo(0, 0);
+                return;
+            }
 
-                if (title == '') {
-                    $(".error_top").show().append("<p>{{trans('lang.enter_itemattribute_title_error')}}</p>");
+            jQuery("#data-table_processing").show();
+            $.ajax({
+                url: '{{ route("admin.attributes.store") }}',
+                method: 'POST',
+                data: { _token: csrfToken, title: title },
+                success: function (res) {
+                    jQuery("#data-table_processing").hide();
+                    if (res.success) {
+                        window.location.href = res.redirect || '{{ route("admin.attributes") }}';
+                    } else {
+                        $(".error_top").show().html("<p>" + (res.message || 'Failed') + "</p>");
+                        window.scrollTo(0, 0);
+                    }
+                },
+                error: function (xhr) {
+                    jQuery("#data-table_processing").hide();
+                    var msg = (xhr.responseJSON && xhr.responseJSON.message) ? xhr.responseJSON.message : 'Server error';
+                    $(".error_top").show().html("<p>" + msg + "</p>");
                     window.scrollTo(0, 0);
-                } else {
-                    jQuery("#data-table_processing").show();
-                    database.collection('vendor_attributes').doc(id_attribute).set({
-                        'id': id_attribute,
-                        'title': title
-                    }).then(function (result) {
-                        window.location.href = '{{ route("admin.attributes")}}';
-                    });
                 }
             });
         });
-    </script>
+    });
+</script>
 @endsection

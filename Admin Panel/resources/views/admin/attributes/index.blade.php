@@ -44,6 +44,21 @@
                                 </tr>
                             </thead>
                             <tbody id="append_list1">
+                            @forelse($attributes as $attribute)
+                            <tr>
+                                <td>{{ $attribute->title }}</td>
+                                <td class="text-end">
+                                    <a href="{{ route('admin.attributes.edit', $attribute->id) }}" class="btn btn-sm btn-outline-success me-1" style="border-radius:8px;font-weight:700;">
+                                        <i class="fas fa-edit me-1"></i>{{ trans('lang.edit') }}
+                                    </a>
+                                    <button class="btn btn-sm btn-outline-danger delete-attr-btn" data-id="{{ $attribute->id }}" style="border-radius:8px;font-weight:700;">
+                                        <i class="fas fa-trash me-1"></i>{{ trans('lang.delete') }}
+                                    </button>
+                                </td>
+                            </tr>
+                            @empty
+                            <tr><td colspan="2" class="text-center py-4 text-muted">No attributes found.</td></tr>
+                            @endforelse
                                 {{-- Loaded via JS --}}
                             </tbody>
                         </table>
@@ -56,132 +71,30 @@
 @endsection
 
 @section('scripts')
-<script type="text/javascript">
-
-    var database = firebase.firestore();
-    var ref = database.collection('vendor_attributes').orderBy('title');
-    var append_list = '';
-
-    var user_permissions = '<?php echo @session("user_permissions") ?>';
-    user_permissions = Object.values(JSON.parse(user_permissions));
-    var checkDeletePermission = false;
-    if ($.inArray('attributes.delete', user_permissions) >= 0) {
-        checkDeletePermission = true;
-    }
+<script>
+    var csrfToken = '{{ csrf_token() }}';
 
     $(document).ready(function () {
-        jQuery("#data-table_processing").show();
 
-        const table = $('#attributeTable').DataTable({
-            pageLength: 10,
-            processing: false,
-            serverSide: true,
-            responsive: true,
-            ajax: function (data, callback, settings) {
-                const start = data.start;
-                const length = data.length;
-                const searchValue = data.search.value.toLowerCase();
-                const orderColumnIndex = data.order[0].column;
-                const orderDirection = data.order[0].dir;
-                const orderableColumns = ['title'];
-                const orderByField = orderableColumns[orderColumnIndex];
-
-                if (searchValue.length >= 3 || searchValue.length === 0) {
-                    $('#data-table_processing').show();
-                }
-
-                ref.get().then(async function (querySnapshot) {
-                    if (querySnapshot.empty) {
-                        $('#data-table_processing').hide();
-                        callback({
-                            draw: data.draw,
-                            recordsTotal: 0,
-                            recordsFiltered: 0,
-                            data: []
-                        });
-                        return;
-                    }
-
-                    let filteredRecords = [];
-                    querySnapshot.forEach(function (doc) {
-                        let childData = doc.data();
-                        childData.id = doc.id;
-                        if (searchValue) {
-                            if (childData.title && childData.title.toLowerCase().toString().includes(searchValue)) {
-                                filteredRecords.push(childData);
-                            }
-                        } else {
-                            filteredRecords.push(childData);
-                        }
-                    });
-
-                    filteredRecords.sort((a, b) => {
-                        let aValue = a[orderByField] ? a[orderByField].toString().toLowerCase() : '';
-                        let bValue = b[orderByField] ? b[orderByField].toString().toLowerCase() : '';
-                        return orderDirection === 'asc' ? (aValue > bValue ? 1 : -1) : (aValue < bValue ? 1 : -1);
-                    });
-
-                    const totalRecords = filteredRecords.length;
-                    const paginatedRecords = filteredRecords.slice(start, start + length);
-                    let records = [];
-
-                    await Promise.all(paginatedRecords.map(async (childData) => {
-                        var getData = await buildHTML(childData);
-                        records.push(getData);
-                    }));
-
-                    $('#data-table_processing').hide();
-                    callback({
-                        draw: data.draw,
-                        recordsTotal: totalRecords,
-                        recordsFiltered: totalRecords,
-                        data: records
-                    });
-                }).catch(function (error) {
-                    console.error("Firestore error:", error);
-                    $('#data-table_processing').hide();
-                    callback({ draw: data.draw, recordsTotal: 0, recordsFiltered: 0, data: [] });
-                });
-            },
-            order: [[0, 'asc']],
-            columnDefs: [{ orderable: false, targets: [1] }],
-            "language": {
-                "zeroRecords": "{{trans("lang.no_record_found")}}",
-                "emptyTable": "{{trans("lang.no_record_found")}}",
-                "processing": ""
-            },
-            dom: '<"d-flex justify-content-between align-items-center pt-3 px-4"f>t<"d-flex justify-content-between align-items-center py-3 px-4"ip>'
+    $('#search-input').on('keyup', function () {
+        var val = $(this).val().toLowerCase();
+        $('#attributeTable tbody tr').filter(function () {
+            $(this).toggle($(this).text().toLowerCase().indexOf(val) > -1);
         });
     });
 
-    function buildHTML(val) {
-        var html = [];
-        var id = val.id;
-        var route1 = '{{route("admin.attributes.edit",":id")}}';
-        route1 = route1.replace(':id', id);
-
-        html.push('<div style="display: flex; align-items: center; gap: 12px;"><div style="width: 36px; height: 36px; background: var(--agri-primary-light); color: var(--agri-primary); border-radius: 8px; display: flex; align-items: center; justify-content: center;"><i class="fas fa-tag"></i></div><a href="' + route1 + '" style="font-weight: 700; color: var(--agri-text-heading); text-decoration: none; font-size: 15px;">' + val.title + '</a></div>');
-        
-        var actionHtml = '<div style="display: flex; justify-content: flex-end; gap: 8px;">';
-        actionHtml += '<a href="' + route1 + '" class="btn-agri" style="padding: 8px; background: var(--agri-bg); color: var(--agri-secondary-dark); border-radius: 10px; border: 1px solid var(--agri-border); text-decoration: none;" title="Edit"><i class="fas fa-edit"></i></a>';
-        if (checkDeletePermission) {
-            actionHtml += '<a id="' + val.id + '" name="attribute-delete" class="btn-agri" style="padding: 8px; background: var(--agri-error-light); color: var(--agri-error); border-radius: 10px; border: none; text-decoration: none;" href="javascript:void(0)" title="Delete"><i class="fas fa-trash"></i></a>';
-        }
-        actionHtml += '</div>';
-        
-        html.push(actionHtml);
-        return html;
-    }
-
-    $(document).on("click", "a[name='attribute-delete']", function (e) {
-        var id = this.id;
-        if(confirm('Are you sure you want to delete this attribute?')) {
-            jQuery("#data-table_processing").show();
-            database.collection('vendor_attributes').doc(id).delete().then(function (result) {
-                window.location.href = '{{ route("admin.attributes")}}';
-            });
-        }
+        $(document).on('click', '.delete-attr-btn', function () {
+            var id = $(this).data('id');
+            if (confirm("Delete this attribute?")) {
+                $.ajax({
+                    url: '{{ url("admin/attributes/delete") }}/' + id,
+                    method: 'POST',
+                    data: { _method: 'DELETE', _token: csrfToken },
+                    success: function () { location.reload(); },
+                    error: function () { alert('Delete failed.'); }
+                });
+            }
+        });
     });
-
 </script>
 @endsection

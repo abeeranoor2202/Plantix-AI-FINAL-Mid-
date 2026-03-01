@@ -47,12 +47,12 @@
                             <div class="row g-4">
                                 <div class="col-md-12">
                                     <label class="agri-label">{{trans('lang.category_name')}} <span class="text-danger">*</span></label>
-                                    <input type="text" class="form-agri cat-name" placeholder="e.g. Organic Fertilizers" required style="height: 52px; font-size: 16px; font-weight: 600;">
+                                    <input type="text" class="form-agri cat-name" placeholder="e.g. Organic Fertilizers" required style="height: 52px; font-size: 16px; font-weight: 600;" value="{{ $category->name }}">
                                 </div>
 
                                 <div class="col-md-12">
                                     <label class="agri-label">{{trans('lang.category_description')}}</label>
-                                    <textarea rows="4" class="category_description form-agri" id="category_description" placeholder="Provide a detailed classification scope..." style="padding: 16px;"></textarea>
+                                    <textarea rows="4" class="category_description form-agri" id="category_description" placeholder="Provide a detailed classification scope..." style="padding: 16px;">{{ $category->description }}</textarea>
                                 </div>
 
                                 <div class="col-md-12">
@@ -155,130 +155,74 @@
 
 @section('scripts')
 <script>
-    var id = "<?php echo $id;?>";
-    var database = firebase.firestore();
-    var ref = database.collection('vendor_categories').where("id", "==", id);
     var photo = "";
-    var fileName="";
-    var catImageFile="";
-    var placeholderImage = '';
-    var ref_review_attributes = database.collection('review_attributes');
-    var category = '';
-    var storageRef = firebase.storage().ref('images');
-    var storage = firebase.storage();
+    var fileName = '';
+    var csrfToken = '{{ csrf_token() }}';
+    var categoryId = '{{ $category->id }}';
+    var existingImage = '{{ $category->image ? (Str::startsWith($category->image, "http") ? $category->image : asset("storage/".$category->image)) : "" }}';
 
     $(document).ready(function () {
-        jQuery("#data-table_processing").show();
-        
-        // Fetch Category Data
-        ref.get().then(async function (snapshots) {
-            category = snapshots.docs[0].data();
-            $(".cat-name").val(category.title);
-            $(".category_description").val(category.description);
+        // Pre-fill existing data
+        if (existingImage) {
+            photo = existingImage;
+            $(".cat_image").html('<img src="' + existingImage + '" style="width:100px;height:100px;border-radius:12px;object-fit:cover;border:2px solid white;box-shadow:0 10px 20px rgba(0,0,0,0.1);">');
+        }
+        $("#item_publish").prop('checked', {{ $category->active ? 'true' : 'false' }});
 
-            if (category.photo) {
-                photo = category.photo;
-                catImageFile = category.photo;
-                $(".cat_image").html('<img src="' + photo + '" style="width:100px; height:100px; border-radius:12px; object-fit:cover; border:2px solid white; box-shadow:0 10px 20px rgba(0,0,0,0.1);">');
-            }
+        $(".edit-form-btn").click(function () {
+            var title = $(".cat-name").val().trim();
+            var description = $(".category_description").val().trim();
+            var active = $("#item_publish").is(":checked") ? 1 : 0;
 
-            $("#item_publish").prop('checked', !!category.publish);
-            $("#show_in_homepage").prop('checked', !!category.show_in_homepage);
-
-            // Load Attributes after category data is available
-            const attrSnap = await ref_review_attributes.get();
-            var ra_html = '';
-            attrSnap.docs.forEach((listval) => {
-                var data = listval.data();
-                var checked = (category.review_attributes && category.review_attributes.includes(data.id)) ? 'checked' : '';
-                ra_html += '<div class="col-md-6 col-lg-4"><label class="attribute-card m-0">' +
-                           '<input type="checkbox" class="form-check-input" value="' + data.id + '" ' + checked + ' style="margin:0; width:18px; height:18px;">' +
-                           '<span class="attr-label" style="font-size:13px; font-weight:600; color:var(--agri-text-heading);">' + data.title + '</span>' +
-                           '</label></div>';
-            });
-            $('#review_attributes_list').html(ra_html);
-
-            jQuery("#data-table_processing").hide();
-        });
-
-        $(".edit-form-btn").click(async function () {
-            var title = $(".cat-name").val();
-            var description = $(".category_description").val();
-            var item_publish = $("#item_publish").is(":checked");
-            var show_in_homepage = $("#show_in_homepage").is(":checked");
-
-            var review_attributes = [];
-            $('#review_attributes_list input:checked').each(function () {
-                review_attributes.push($(this).val());
-            });
-
-            if (title == '') {
-                $(".error_top").show().html("<p>{{trans('lang.enter_cat_title_error')}}</p>");
+            if (!title) {
+                $(".error_top").show().html("<p>{{ trans('lang.enter_cat_title_error') }}</p>");
                 window.scrollTo(0, 0);
                 return;
             }
 
-            if (show_in_homepage) {
-                var homeCount = await database.collection('vendor_categories').where('show_in_homepage', "==", true).where("id", "!=", id).get();
-                if (homeCount.docs.length >= 5) {
-                    alert("Quota limit reached: Already 5 categories are active for homepage featured status.");
-                    return;
-                }
-            }
-
             jQuery("#data-table_processing").show();
 
-            try {
-                var IMG = await storeImageData();
-                await database.collection('vendor_categories').doc(id).update({
-                    'title': title,
-                    'description': description,
-                    'photo': IMG,
-                    'review_attributes': review_attributes,
-                    'publish': item_publish,
-                    'show_in_homepage': show_in_homepage,
-                });
-                window.location.href = '{{ route("admin.categories")}}';
-            } catch (err) {
-                jQuery("#data-table_processing").hide();
-                $(".error_top").show().html("<p>" + err + "</p>");
-                window.scrollTo(0, 0);
+            var postData = {
+                _token: csrfToken,
+                name: title,
+                description: description,
+                active: active,
+                image_base64: (photo && !photo.startsWith('http') && photo !== existingImage) ? photo : ''
+            };
+
+            $.ajax({
+                url: '{{ url("admin/categories/update") }}/' + categoryId,
+                method: 'POST',
+                data: postData,
+                success: function (res) {
+                    jQuery("#data-table_processing").hide();
+                    if (res.success) {
+                        window.location.href = '{{ route("admin.categories") }}';
+                    } else {
+                        $(".error_top").show().html("<p>" + (res.message || 'Update failed') + "</p>");
+                        window.scrollTo(0, 0);
+                    }
+                },
+                error: function (xhr) {
+                    jQuery("#data-table_processing").hide();
+                    var msg = (xhr.responseJSON && xhr.responseJSON.message) ? xhr.responseJSON.message : 'Server error';
+                    $(".error_top").show().html("<p>" + msg + "</p>");
+                    window.scrollTo(0, 0);
+                }
+            });
+        });
+
+        $("#category_image").resizeImg({
+            callback: function(base64str) {
+                var val = $('#category_image').val().toLowerCase();
+                var ext = val.split('.').pop();
+                var timestamp = Number(new Date());
+                fileName = "cat_" + timestamp + "." + ext;
+                photo = base64str;
+                $(".cat_image").html('<img src="' + photo + '" style="width:100px;height:100px;border-radius:12px;object-fit:cover;border:2px solid white;box-shadow:0 10px 20px rgba(0,0,0,0.1);">');
+                $("#uploding_image").text("New image ready");
             }
         });
     });
-
-    async function storeImageData() {
-        if (photo === catImageFile) return photo;
-        
-        try {
-            // Delete old image if it exists in our bucket
-            if (catImageFile) {
-                var oldRef = storage.refFromURL(catImageFile);
-                if (oldRef.bucket === "<?php echo env('FIREBASE_STORAGE_BUCKET'); ?>") {
-                    await oldRef.delete().catch(e => console.log("Old file delete bypassed:", e));
-                }
-            }
-            
-            var p = photo.replace(/^data:image\/[a-z]+;base64,/, "");
-            var uploadTask = await storageRef.child(fileName).putString(p, 'base64', { contentType: 'image/jpg' });
-            return await uploadTask.ref.getDownloadURL();
-        } catch (error) {
-            console.log("Storage Error:", error);
-            return catImageFile;
-        }
-    }  
-
-    $("#category_image").resizeImg({
-        callback: function(base64str) {
-            var val = $('#category_image').val().toLowerCase();
-            var ext = val.split('.').pop();
-            var timestamp = Number(new Date());
-            fileName = "cat_" + timestamp + "." + ext;
-            photo = base64str;
-            $(".cat_image").html('<img src="' + photo + '" style="width:100px; height:100px; border-radius:12px; object-fit:cover; border:2px solid white; box-shadow:0 10px 20px rgba(0,0,0,0.1);">');
-            $("#uploding_image").text("Visual Node Prepared");
-        }
-    });
-
 </script>
 @endsection

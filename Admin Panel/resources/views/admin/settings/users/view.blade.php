@@ -150,76 +150,65 @@
 
 @section('scripts')
 <script>
-    var id = "{{$id}}";
-    var placeholderImage = '';
-    var currentCurrency = '';
-    var currencyAtRight = false;
-    var decimal_degits = 0;
+    var id             = "{{$id}}";
+    var placeholderImage = @json($placeholderImage);
+    var currentCurrency  = @json($currencySymbol);
+    var currencyAtRight  = @json($currencyAtRight);
+    var decimal_degits   = @json($decimalDigits);
 
-    // Fetch currency settings
-    $.ajax({
-        url: '{{ route("api.admin.settings.currency") }}',
-        method: 'GET',
-        success: function(response) {
-            if (response && response.data) {
-                currentCurrency = response.data.symbol;
-                currencyAtRight = response.data.symbolAtRight;
-                decimal_degits = response.data.decimal_degits || 0;
-            }
-        }
-    });
+    // ── User data injected server-side ────────────────────────────────────
+    @if($user)
+    var userData = @json([
+        'first_name'          => $user->first_name,
+        'last_name'           => $user->last_name,
+        'email'               => $user->email,
+        'phone_number'        => $user->phone_number,
+        'wallet_amount'       => $user->wallet_amount,
+        'profile_picture_url' => $user->profile_photo,
+        'is_active'           => $user->is_active,
+        'addresses'           => $user->addresses,
+    ]);
+    @else
+    var userData = null;
+    @endif
 
     $(document).ready(function () {
-        jQuery("#data-table_processing").show();
 
-        // Fetch user data
-        $.ajax({
-            url: '{{ route("api.admin.users.show", ":id") }}'.replace(':id', id),
-            method: 'GET',
-            success: function(response) {
-                if (response && response.data) {
-                    var user = response.data;
-                    $(".user_name").text((user.first_name || '') + ' ' + (user.last_name || ''));
-                    $(".email").text(user.email || '{{trans("lang.not_mentioned")}}');
-                    $(".phone").text(user.phone_number || '{{trans("lang.not_mentioned")}}');
+        if (userData) {
+            var user = userData;
+            $(".user_name").text((user.first_name || '') + ' ' + (user.last_name || ''));
+            $(".email").text(user.email || '{{trans("lang.not_mentioned")}}');
+            $(".phone").text(user.phone_number || '{{trans("lang.not_mentioned")}}');
 
-                    var wallet_balance = user.wallet_amount || 0;
-                    if (currencyAtRight) {
-                        wallet_balance = parseFloat(wallet_balance).toFixed(decimal_degits) + currentCurrency;
-                    } else {
-                        wallet_balance = currentCurrency + parseFloat(wallet_balance).toFixed(decimal_degits);
-                    }
-                    $('.wallet_balance').html(wallet_balance);
-
-                    var profileImg = '<img class="rounded-circle" style="width:100%; height:100%; object-fit:cover;" src="' + (user.profile_picture_url || placeholderImage) + '" onerror="this.src=\'' + placeholderImage + '\'">';
-                    $('.profile_image').html(profileImg);
-
-                    var addressHtml = '';
-                    if (user.addresses && Array.isArray(user.addresses) && user.addresses.length > 0) {
-                        user.addresses.forEach((addr) => {
-                            addressHtml += '<div class="address-card">';
-                            addressHtml += '<div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px;">';
-                            addressHtml += '<span style="font-size:12px; font-weight:800; text-transform:uppercase; letter-spacing:1px; color:var(--agri-primary);">' + (addr.address_as || 'Home') + '</span>';
-                            if(addr.is_default) addressHtml += '<span style="background:var(--agri-primary); color:white; padding:2px 8px; border-radius:4px; font-size:10px; font-weight:700;">DEFAULT</span>';
-                            addressHtml += '</div>';
-                            addressHtml += '<h6 style="font-weight:700; color:var(--agri-text-heading); margin-bottom:4px; line-height:1.4;">' + addr.address + '</h6>';
-                            addressHtml += '<p style="font-size:13px; color:var(--agri-text-muted); margin:0;">' + (addr.locality || '') + ' ' + (addr.landmark || '') + '</p>';
-                            addressHtml += '</div>';
-                        });
-                    } else {
-                        addressHtml = '<div style="background:var(--agri-bg); padding:40px; border-radius:16px; text-align:center; border: 1px dashed var(--agri-border); color:var(--agri-text-muted);">';
-                        addressHtml += '<i class="fas fa-map-marker-alt" style="font-size:32px; margin-bottom:12px; opacity:0.3;"></i><p style="margin:0; font-weight:600;">No shipping address found</p></div>';
-                    }
-                    $('.address').html(addressHtml);
-
-                    jQuery("#data-table_processing").hide();
-                }
-            },
-            error: function(xhr) {
-                jQuery("#data-table_processing").hide();
-                console.log('Error loading user data', xhr);
+            var wallet_balance = user.wallet_amount || 0;
+            if (currencyAtRight) {
+                wallet_balance = parseFloat(wallet_balance).toFixed(decimal_degits) + currentCurrency;
+            } else {
+                wallet_balance = currentCurrency + parseFloat(wallet_balance).toFixed(decimal_degits);
             }
-        });
+            $('.wallet_balance').html(wallet_balance);
+
+            var profileImg = '<img class="rounded-circle" style="width:100%; height:100%; object-fit:cover;" src="' + (user.profile_picture_url || placeholderImage) + '" onerror="this.src=\'' + placeholderImage + '\'">';
+            $('.profile_image').html(profileImg);
+
+            var addressHtml = '';
+            if (user.addresses && Array.isArray(user.addresses) && user.addresses.length > 0) {
+                user.addresses.forEach((addr) => {
+                    addressHtml += '<div class="address-card">';
+                    addressHtml += '<div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px;">';
+                    addressHtml += '<span style="font-size:12px; font-weight:800; text-transform:uppercase; letter-spacing:1px; color:var(--agri-primary);">' + (addr.address_as || 'Home') + '</span>';
+                    if(addr.is_default) addressHtml += '<span style="background:var(--agri-primary); color:white; padding:2px 8px; border-radius:4px; font-size:10px; font-weight:700;">DEFAULT</span>';
+                    addressHtml += '</div>';
+                    addressHtml += '<h6 style="font-weight:700; color:var(--agri-text-heading); margin-bottom:4px; line-height:1.4;">' + addr.address + '</h6>';
+                    addressHtml += '<p style="font-size:13px; color:var(--agri-text-muted); margin:0;">' + (addr.locality || '') + ' ' + (addr.landmark || '') + '</p>';
+                    addressHtml += '</div>';
+                });
+            } else {
+                addressHtml = '<div style="background:var(--agri-bg); padding:40px; border-radius:16px; text-align:center; border: 1px dashed var(--agri-border); color:var(--agri-text-muted);">';
+                addressHtml += '<i class="fas fa-map-marker-alt" style="font-size:32px; margin-bottom:12px; opacity:0.3;"></i><p style="margin:0; font-weight:600;">No shipping address found</p></div>';
+            }
+            $('.address').html(addressHtml);
+        }
 
         $(".save-form-btn").click(function () {
             var amount = $('#amount').val();

@@ -17,12 +17,12 @@
 
     {{-- Payment Sub-Navigation --}}
     <div style="display: flex; gap: 24px; border-bottom: 2px solid var(--agri-border); margin-bottom: 32px; padding-bottom: 2px;">
-        <a href="{{url('settings/payment/stripe')}}" class="stripe_active_label" style="text-decoration: none; padding: 12px 4px; position: relative; color: var(--agri-text-muted); font-weight: 600; display: flex; align-items: center; gap: 8px;">
+        <a href="{{ route('admin.payment.stripe') }}" class="stripe_active_label" style="text-decoration: none; padding: 12px 4px; position: relative; color: var(--agri-text-muted); font-weight: 600; display: flex; align-items: center; gap: 8px;">
             <i class="fab fa-stripe" style="font-size: 20px;"></i>
             {{trans('lang.app_setting_stripe')}}
             <span class="badge" style="font-size: 10px; padding: 2px 6px; border-radius: 20px;"></span>
         </a>
-        <a href="{{url('settings/payment/cod')}}" class="cod_active_label" style="text-decoration: none; padding: 12px 4px; position: relative; color: var(--agri-primary); font-weight: 700; border-bottom: 3px solid var(--agri-primary); display: flex; align-items: center; gap: 8px;">
+        <a href="{{ route('admin.payment.cod') }}" class="cod_active_label" style="text-decoration: none; padding: 12px 4px; position: relative; color: var(--agri-primary); font-weight: 700; border-bottom: 3px solid var(--agri-primary); display: flex; align-items: center; gap: 8px;">
             <i class="fas fa-hand-holding-usd" style="font-size: 18px;"></i>
             {{trans('lang.app_setting_cod_short')}}
             <span class="badge" style="font-size: 10px; padding: 2px 6px; border-radius: 20px;"></span>
@@ -55,7 +55,7 @@
                             <p style="font-size: 13px; color: var(--agri-text-muted); margin: 0;">{!! trans('lang.app_settings_enable_cod_help') !!}</p>
                         </div>
                         <div class="form-check form-switch" style="padding: 0; margin: 0;">
-                            <input type="checkbox" class="enable_cod" id="enable_cod" style="width: 50px; height: 26px; cursor: pointer; accent-color: var(--agri-primary);">
+                            <input type="checkbox" class="enable_cod" id="enable_cod" style="width: 50px; height: 26px; cursor: pointer; accent-color: var(--agri-primary);" @checked($codEnabled)>
                         </div>
                     </div>
 
@@ -92,58 +92,39 @@
 
 @section('scripts')
 <script>
+    var csrfToken = '{{ csrf_token() }}';
+
     $(document).ready(function () {
-        jQuery("#data-table_processing").show();
-
-        // Fetch payment settings from backend API
-        $.ajax({
-            url: '{{ route("api.admin.settings.payment-methods") }}',
-            method: 'GET',
-            success: function(response) {
-                if (response && response.data) {
-                    var paymentSettings = response.data;
-
-                    // Update COD status
-                    if (paymentSettings.cod && paymentSettings.cod.is_enabled) {
-                        $(".enable_cod").prop('checked', true);
-                        jQuery(".cod_active_label span").addClass('badge-success');
-                        jQuery(".cod_active_label span").text('Active');
-                    }
-
-                    // Update Stripe status
-                    if (paymentSettings.stripe && paymentSettings.stripe.is_enabled) {
-                        jQuery(".stripe_active_label span").addClass('badge-success');
-                        jQuery(".stripe_active_label span").text('Active');
-                    }
-                }
-                jQuery("#data-table_processing").hide();
-            },
-            error: function(xhr) {
-                jQuery("#data-table_processing").hide();
-                console.log('Error loading payment settings', xhr);
-            }
-        });
+        // ── Badge labels injected from server ────────────────────────────
+        @if($codEnabled)
+            jQuery(".cod_active_label span").addClass('badge-success').text('Active');
+        @endif
+        @if($stripeEnabled)
+            jQuery(".stripe_active_label span").addClass('badge-success').text('Active');
+        @endif
 
         $(".edit-form-btn").click(function () {
             var isCODEnabled = $(".enable_cod").is(":checked");
             jQuery("#data-table_processing").show();
 
             $.ajax({
-                url: '{{ route("api.admin.settings.update") }}',
+                url: '{{ route("admin.payment.cod.save") }}',
                 method: 'POST',
-                headers: {
-                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                },
                 data: {
-                    'cod_enabled': isCODEnabled
+                    _token: csrfToken,
+                    cod_enabled: isCODEnabled ? 1 : 0
                 },
-                success: function(result) {
-                    window.location.href = '{{ url("settings/payment/cod") }}';
-                },
-                error: function(xhr) {
+                success: function (res) {
                     jQuery("#data-table_processing").hide();
-                    console.log('Error updating settings', xhr);
-                    alert('Failed to save settings. Please try again.');
+                    if (res.success) {
+                        toastr.success('COD settings saved!');
+                    } else {
+                        toastr.error(res.message || 'Save failed.');
+                    }
+                },
+                error: function (xhr) {
+                    jQuery("#data-table_processing").hide();
+                    toastr.error('Server error.');
                 }
             });
         });

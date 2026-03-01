@@ -268,58 +268,18 @@
         if (append_listvendors) {
             append_listvendors.innerHTML = buildVendorHTML(dashboardVendors);
         }
-        $('#storeTable').DataTable({
-            order: [],
-            columnDefs: [{orderable: false, targets: [0, 2, 3]}],
-            language: { zeroRecords: '{{trans("lang.no_record_found")}}', emptyTable: '{{trans("lang.no_record_found")}}' },
-            responsive: true
-        });
-
         // ── Recent orders table ───────────────────────────────────────────
         var append_listrecent_order = document.getElementById('append_list_recent_order');
         if (append_listrecent_order) {
             append_listrecent_order.innerHTML = buildOrderHTML(dashboardOrders);
         }
-        $('#orderTable').DataTable({
-            order: [],
-            language: { zeroRecords: '{{trans("lang.no_record_found")}}', emptyTable: '{{trans("lang.no_record_found")}}' },
-            responsive: true
-        });
-
         // ── Recent payouts table ──────────────────────────────────────────
         var append_list_recent_payouts = document.getElementById('append_list_recent_payouts');
         if (append_list_recent_payouts) {
             append_list_recent_payouts.innerHTML = buildRecentPayoutsHTML(dashboardPayouts);
         }
         setTimeout(function(){
-            $('#recentPayoutsTable').DataTable({
-                columnDefs: [
-                    {
-                        targets: 2,
-                        type: 'date',
-                                render: function (data) {
-                                    return data;
-                                } 
-                            },
-                            {
-                                targets: 1,
-                                type: 'num-fmt',
-                                render: function (data, type, row, meta) {
-                                    if (type === 'display') {
-                                        return data;
-                                    }
-                                    return parseFloat(data.replace(/[^0-9.-]+/g, ""));
-                                }
-                            },
-                        ],
-                        order: [['2', 'desc']],
-                        "language": {
-                            "zeroRecords": "{{trans("lang.no_record_found")}}",
-                            "emptyTable": "{{trans("lang.no_record_found")}}"
-                        },
-                        responsive: true
-                    });
-                }, 1500);
+        }, 1500);
 
         // ── Charts (use server-side data directly) ────────────────────────────
         var labels = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];

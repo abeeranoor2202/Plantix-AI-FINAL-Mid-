@@ -42,6 +42,26 @@
                     </tr>
                 </thead>
                 <tbody id="emailTemplatesTbody">
+                            @forelse($templates as $template)
+                            <tr>
+                                <td style="font-weight:700;">{{ ucwords(str_replace('_',' ', $template->type)) }}</td>
+                                <td>{{ $template->subject ?: '—' }}</td>
+                                <td>
+                                    @if($template->is_active)
+                                        <span class="badge bg-success">Active</span>
+                                    @else
+                                        <span class="badge bg-secondary">Inactive</span>
+                                    @endif
+                                </td>
+                                <td class="text-end">
+                                    <a href="{{ route('admin.email-templates.save', $template->id) }}" class="btn btn-sm btn-outline-success" style="border-radius:8px;font-weight:700;">
+                                        <i class="fas fa-edit me-1"></i>{{ trans('lang.edit') }}
+                                    </a>
+                                </td>
+                            </tr>
+                            @empty
+                            <tr><td colspan="4" class="text-center py-4 text-muted">No email templates found.</td></tr>
+                            @endforelse
                 </tbody>
             </table>
         </div>
@@ -52,248 +72,20 @@
 </div>
 @endsection
 <style>
-    /* DataTable Overrides */
     #emailTemplatesTable tbody tr:hover { background-color: rgba(var(--agri-primary-rgb), 0.02); }
     #emailTemplatesTable tbody td { border-bottom: 1px solid var(--agri-border); padding: 16px 24px; font-size: 14px; font-weight: 500;}
-    .dataTables_wrapper .dataTables_paginate .paginate_button { border-radius: 8px !important; border: 1px solid var(--agri-border) !important; margin: 0 2px; padding: 6px 14px !important; font-weight: 600; font-size: 13px; }
-    .dataTables_wrapper .dataTables_paginate .paginate_button.current { background: var(--agri-primary) !important; color: white !important; border-color: var(--agri-primary) !important; }
-    .dataTables_wrapper .dataTables_info { color: var(--agri-text-muted) !important; font-size: 13px; font-weight: 500; }
-    .dataTables_filter { display: none; } /* Hide default search */
 </style>
 
 @section('scripts')
+<script>
+    $(document).ready(function () {
 
-    <script type="text/javascript">
-
-        var database = firebase.firestore();
-        var refData = database.collection('email_templates').orderBy('createdAt', 'desc');
-        var append_list = '';
-
-        $(document).ready(function () {
-
-            jQuery("#data-table_processing").show();
-
-            const table = $('#emailTemplatesTable').DataTable({
-                pageLength: 10, // Number of rows per page
-                processing: false, // Show processing indicator
-                serverSide: true, // Enable server-side processing
-                responsive: true,
-                ajax: function (data, callback, settings) {
-                    const start = data.start;
-                    const length = data.length;
-                    const searchValue = data.search.value.toLowerCase();
-                    const orderColumnIndex = data.order[0].column;
-                    const orderDirection = data.order[0].dir;
-                    const orderableColumns = ['type','subject']; // Ensure this matches the actual column names
-                    const orderByField = orderableColumns[orderColumnIndex]; // Adjust the index to match your table
-
-                    if (searchValue.length >= 3 || searchValue.length === 0) {
-                        $('#data-table_processing').show();
-                    }
-
-                    refData.get().then(async function (querySnapshot) {
-                        if (querySnapshot.empty) {
-                            console.error("No data found in Firestore.");
-                            $('#data-table_processing').hide(); // Hide loader
-                            callback({
-                                draw: data.draw,
-                                recordsTotal: 0,
-                                recordsFiltered: 0,
-                                data: [] // No data
-                            });
-                            return;
-                        }
-
-                        let records = [];
-                        let filteredRecords = [];
-
-                        await Promise.all(querySnapshot.docs.map(async (doc) => {
-                            let childData = doc.data();
-                            childData.id = doc.id; // Ensure the document ID is included in the data
-                            
-                            if (searchValue) {
-                                if (
-                                    (childData.type && childData.type.toString().toLowerCase().includes(searchValue)) ||
-                                    (childData.subject && childData.subject.toString().toLowerCase().includes(searchValue))
-                                ) {
-                                    filteredRecords.push(childData);
-                                }
-                            } else {
-                                filteredRecords.push(childData);
-                            }
-                        }));
-
-                        filteredRecords.sort((a, b) => {
-                            let aValue = a[orderByField] ? a[orderByField].toString().toLowerCase() : '';
-                            let bValue = b[orderByField] ? b[orderByField].toString().toLowerCase() : '';
-
-                            if (orderDirection === 'asc') {
-                                return (aValue > bValue) ? 1 : -1;
-                            } else {
-                                return (aValue < bValue) ? 1 : -1;
-                            }
-                        });
-
-                        const totalRecords = filteredRecords.length;
-
-                        const paginatedRecords = filteredRecords.slice(start, start + length);
-
-                        paginatedRecords.forEach(function (childData) {
-
-                            var route1 = '{{route("admin.email-templates.save",":id")}}';
-                            route1 = route1.replace(":id", childData.id);
-                            var type = '';
-
-                            if (childData.type == "new_order_placed") {
-                                type = "{{trans('lang.new_order_placed')}}";
-
-                            } else if (childData.type == "new_vendor_signup") {
-                                type = "{{trans('lang.new_vendor_signup')}}";
-                            } else if (childData.type == "payout_request") {
-                                type = "{{trans('lang.payout_request')}}";
-                            } else if (childData.type == "payout_request_status") {
-                                type = "{{trans('lang.payout_request_status')}}";
-
-                            } else if (childData.type == "wallet_topup") {
-                                type = "{{trans('lang.wallet_topup')}}";
-                            }
-                            records.push([
-                                '<div style="font-weight:700; color:var(--agri-text-heading);">' + type + '</div>',
-                                '<div style="font-size:14px; color:var(--agri-text-muted);">' + childData.subject + '</div>',
-                                '<div class="text-end">' +
-                                    '<a href="' + route1 + '" class="btn-agri" style="padding: 8px; background: var(--agri-bg); color: var(--agri-primary); border-radius: 10px;" title="Edit Template"><i class="fas fa-edit"></i></a>' +
-                                '</div>'
-                            ]);
-                        });
-
-                        $('#data-table_processing').hide(); // Hide loader
-                        callback({
-                            draw: data.draw,
-                            recordsTotal: totalRecords, // Total number of records in Firestore
-                            recordsFiltered: totalRecords, // Number of records after filtering (if any)
-                            data: records // The actual data to display in the table
-                        });
-                    }).catch(function (error) {
-                        console.error("Error fetching data from Firestore:", error);
-                        $('#data-table_processing').hide(); // Hide loader
-                        callback({
-                            draw: data.draw,
-                            recordsTotal: 0,
-                            recordsFiltered: 0,
-                            data: [] // No data due to error
-                        });
-                    });
-                },
-                order: [0,'asc'],
-                columnDefs: [
-                    {orderable: false, targets: [2]},
-                ],
-                "language": {
-                    "zeroRecords": "{{trans("lang.no_record_found")}}",
-                    "emptyTable": "{{trans("lang.no_record_found")}}",
-                    "processing": "",
-                },
-
-            });
-
-            function debounce(func, wait) {
-                let timeout;
-                const context = this;
-                return function(...args) {
-                    clearTimeout(timeout);
-                    timeout = setTimeout(() => func.apply(context, args), wait);
-                };
-            }
-
-            $('#custom-search-input').on('input', debounce(function () {
-                const searchValue = $(this).val();
-                if (searchValue.length >= 3) {
-                    $('#data-table_processing').show();
-                    table.search(searchValue).draw();
-                } else if (searchValue.length === 0) {
-                    $('#data-table_processing').show();
-                    table.search('').draw();
-                }
-            }, 300));
-
+    $('#search-input').on('keyup', function () {
+        var val = $(this).val().toLowerCase();
+        $('#emailTemplatesTable tbody tr').filter(function () {
+            $(this).toggle($(this).text().toLowerCase().indexOf(val) > -1);
         });
-
-        $("#is_active").click(function () {
-            $("#emailTemplatesTable .is_open").prop('checked', $(this).prop('checked'));
-        });
-
-        $("#deleteAll").click(function () {
-            if ($('#emailTemplatesTable .is_open:checked').length) {
-                if (confirm("{{trans('lang.selected_delete_alert')}}")) {
-                    jQuery("#data-table_processing").show();
-                    $('#emailTemplatesTable .is_open:checked').each(function () {
-                        var dataId = $(this).attr('dataId');
-
-                        database.collection('email_templates').doc(dataId).delete().then(function () {
-
-                            window.location.reload();
-                        });
-
-                    });
-
-                }
-            } else {
-                alert("{{trans('lang.select_delete_alert')}}");
-            }
-        });
-
-
-        function buildHTML(snapshots) {
-
-            var html = '';
-            var number = [];
-            var count = 0;
-            snapshots.docs.forEach(async (listval) => {
-                var listval = listval.data();
-
-                var data = listval;
-                data.id = listval.id;
-                html = html + '<tr>';
-                newdate = '';
-                var id = data.id;
-                var route1 = '{{route("admin.email-templates.save",":id")}}';
-                route1 = route1.replace(":id", id);
-
-                var type = '';
-
-                if (data.type == "new_order_placed") {
-                    type = "{{trans('lang.new_order_placed')}}";
-
-                } else if (data.type == "new_vendor_signup") {
-                    type = "{{trans('lang.new_vendor_signup')}}";
-                } else if (data.type == "payout_request") {
-                    type = "{{trans('lang.payout_request')}}";
-                } else if (data.type == "payout_request_status") {
-                    type = "{{trans('lang.payout_request_status')}}";
-
-                } else if (data.type == "wallet_topup") {
-                    type = "{{trans('lang.wallet_topup')}}";
-                }
-
-                html = html + '<td>' + type + '</td>';
-                html = html + '<td>' + data.subject + '</td>';
-
-                html = html + '<td class="action-btn">' +
-                    '<a href="' + route1 + '"><i class="fa fa-edit"></i></a></td>';
-
-                html = html + '</tr>';
-                count = count + 1;
-            });
-            return html;
-        }
-
-        $(document).on("click", "a[name='notifications-delete']", function (e) {
-            var id = this.id;
-            database.collection('email_templates').doc(id).delete().then(function () {
-                window.location.reload();
-            });
-        });
-    </script>
-
-
+    });
+    });
+</script>
 @endsection

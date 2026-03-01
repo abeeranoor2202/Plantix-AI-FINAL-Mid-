@@ -1,4 +1,4 @@
-﻿@extends('layouts.app') 
+@extends('layouts.app') 
 
 @section('content')
 <div class="container-fluid" style="padding-top: 24px; padding-bottom: 40px;">
@@ -155,94 +155,60 @@
 
 @section('scripts')
 <script>
-    var database = firebase.firestore();
-    var ref = database.collection('vendor_categories');
     var photo = "";
-    var fileName='';
-    var id_category = "<?php echo uniqid();?>";
-    var placeholderImage = '';
-    var ref_review_attributes = database.collection('review_attributes');
+    var fileName = '';
+    var csrfToken = '{{ csrf_token() }}';
 
-    $(document).ready(function () {
-        // Load attributes
-        ref_review_attributes.get().then(async function (snapshots) {
-            var ra_html = '';
-            snapshots.docs.forEach((listval) => {
-                var data = listval.data();
-                ra_html += '<div class="col-md-6 col-lg-4"><label class="attribute-card m-0">' +
-                           '<input type="checkbox" class="form-check-input" value="' + data.id + '" style="margin:0; width:18px; height:18px;">' +
-                           '<span class="attr-label" style="font-size:13px; font-weight:600; color:var(--agri-text-heading);">' + data.title + '</span>' +
-                           '</label></div>';
-            });
-            $('#review_attributes_list').html(ra_html);
-        });
+    $(".save-form-btn").click(async function () {
+        var title = $(".cat-name").val();
+        var description = $(".category_description").val();
+        var item_publish = $("#item_publish").is(":checked");
+        var review_attributes = [];
+        $('#review_attributes_list input:checked').each(function () { review_attributes.push($(this).val()); });
 
-        $(".save-form-btn").click(async function () {
-            var title = $(".cat-name").val();
-            var description = $(".category_description").val();
-            var item_publish = $("#item_publish").is(":checked");
-            var show_in_homepage = $("#show_in_homepage").is(":checked");
+        if (title == '') {
+            $(".error_top").show().html("<p>{{trans('lang.enter_cat_title_error')}}</p>");
+            window.scrollTo(0, 0); return;
+        }
 
-            var review_attributes = [];
-            $('#review_attributes_list input:checked').each(function () {
-                review_attributes.push($(this).val());
-            });
+        jQuery("#data-table_processing").show();
 
-            if (title == '') {
-                $(".error_top").show().html("<p>{{trans('lang.enter_cat_title_error')}}</p>");
-                window.scrollTo(0, 0);
-                return;
-            }
-
-            if (show_in_homepage) {
-                var homeCount = await database.collection('vendor_categories').where('show_in_homepage', "==", true).get();
-                if (homeCount.docs.length >= 5) {
-                    alert("Quota limit reached: Already 5 categories are active for homepage featured status.");
-                    return;
+        try {
+            $.ajax({
+                url: '{{ route("admin.categories.store") }}',
+                method: 'POST',
+                data: {
+                    _token: csrfToken,
+                    name: title,
+                    description: description,
+                    active: item_publish ? 1 : 0,
+                    image_base64: photo || ''
+                },
+                success: function (res) {
+                    if (res.success) window.location.href = res.redirect;
+                    else { jQuery("#data-table_processing").hide(); $(".error_top").show().html("<p>Error saving category.</p>"); }
+                },
+                error: function (xhr) {
+                    jQuery("#data-table_processing").hide();
+                    var msg = xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : 'An error occurred.';
+                    $(".error_top").show().html("<p>" + msg + "</p>"); window.scrollTo(0, 0);
                 }
-            }
-
-            jQuery("#data-table_processing").show();
-
-            try {
-                var IMG = await storeImageData();
-                await database.collection('vendor_categories').doc(id_category).set({
-                    'id': id_category,
-                    'title': title,
-                    'description': description,
-                    'photo': IMG,
-                    'review_attributes': review_attributes,
-                    'publish': item_publish,
-                    'show_in_homepage': show_in_homepage,
-                });
-                window.location.href = '{{ route("admin.categories")}}';
-            } catch (error) {
-                jQuery("#data-table_processing").hide();
-                $(".error_top").show().html("<p>" + error + "</p>");
-            }
-        });
+            });
+        } catch (error) {
+            jQuery("#data-table_processing").hide();
+            $(".error_top").show().html("<p>" + error + "</p>");
+        }
     });
-
-    // Image logic (simplified for clean code)
-    var storageRef = firebase.storage().ref('images');
-    async function storeImageData() {
-        if (!photo || !photo.includes('base64')) return photo;
-        var p = photo.replace(/^data:image\/[a-z]+;base64,/, "");
-        var uploadTask = await storageRef.child(fileName).putString(p, 'base64', {contentType: 'image/jpg'});
-        return await uploadTask.ref.getDownloadURL();
-    }
 
     $("#category_image").resizeImg({
         callback: function(base64str) {
             var val = $('#category_image').val().toLowerCase();
             var ext = val.split('.').pop();
-            var timestamp = Number(new Date());
-            fileName = "cat_" + timestamp + "." + ext;
+            fileName = "cat_" + Number(new Date()) + "." + ext;
             photo = base64str;
-            $(".cat_image").html('<img src="' + photo + '" style="width:100px; height:100px; border-radius:12px; object-fit:cover; border:2px solid white; box-shadow:0 10px 20px rgba(0,0,0,0.1);">');
+            $(".cat_image").html('<img src="' + photo + '" style="width:100px;height:100px;border-radius:12px;object-fit:cover;border:2px solid white;box-shadow:0 10px 20px rgba(0,0,0,0.1);">');
             $("#uploding_image").text("Visual Node Prepared");
         }
     });
-
 </script>
 @endsection

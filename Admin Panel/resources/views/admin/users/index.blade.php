@@ -119,25 +119,20 @@
 
 @section('scripts')
 <script type="text/javascript">
-    $(document).ready(function() {
-        $('#adminTable').DataTable({
-            order: [],
-            columnDefs: [{ orderable: false, targets: [0, 4] }],
-            "language": {
-                "zeroRecords": "No governance accounts identified",
-                "emptyTable": "Governance registry is currently empty"
-            },
-            responsive: true,
-            dom: '<"p-4 d-flex justify-content-between align-items-center mb-0"f>t<"p-4 d-flex justify-content-between align-items-center mt-0"ip>'
+    $(document).ready(function () {
+
+    $('#search-input').on('keyup', function () {
+        var val = $(this).val().toLowerCase();
+        $('#adminTable tbody tr').filter(function () {
+            $(this).toggle($(this).text().toLowerCase().indexOf(val) > -1);
+        });
+    });
+
+        $('#is_active').on('click', function () {
+            $('#adminTable .is_open').prop('checked', $(this).prop('checked'));
         });
 
-        $('.dataTables_filter input').addClass('form-agri').css({'height':'40px', 'min-width':'250px'});
-
-        $("#is_active").click(function () {
-            $("#adminTable .is_open").prop('checked', $(this).prop('checked'));
-        });
-
-        $("#deleteAll").click(function () {
+        $('#deleteAll').on('click', function () {
             if ($('#adminTable .is_open:checked').length) {
                 if (confirm('Are You Sure want to Delete Selected Data ?')) {
                     var arrayUsers = [];
@@ -145,9 +140,8 @@
                         var dataId = $(this).attr('dataId');
                         arrayUsers.push(dataId);
                     });
-
                     arrayUsers = JSON.stringify(arrayUsers);
-                    var url = "{{url('admin-users/delete', 'id')}}";
+                    var url = "{{ url('admin-users/delete', 'id') }}";
                     url = url.replace('id', arrayUsers);
                     window.location.href = url;
                 }

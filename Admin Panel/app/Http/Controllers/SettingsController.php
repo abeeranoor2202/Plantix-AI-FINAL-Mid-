@@ -2,6 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Support\Facades\DB;
+use Illuminate\Http\Request;
+use App\Models\EmailTemplate;
+use App\Models\Setting;
 
 class SettingsController extends Controller
 {
@@ -18,17 +22,63 @@ class SettingsController extends Controller
 
     public function globals()
     {
-        return view("admin.settings.app.global");
+        $settings = DB::table('settings')->pluck('value', 'key');
+        return view("admin.settings.app.global", compact('settings'));
     }
 
     public function notifications()
     {
-        return view("admin.settings.app.notification");
+        $settings = DB::table('settings')
+            ->whereIn('key', [
+                'push_notification_enabled', 'push_fcm_key', 'push_api_key',
+                'push_database_url', 'push_storage_bucket', 'push_app_id',
+                'push_auth_domain', 'push_project_id', 'push_message_sender_id',
+                'push_measurement_id',
+            ])
+            ->pluck('value', 'key');
+        return view('admin.settings.app.notification', compact('settings'));
+    }
+
+    public function notificationsSave(Request $request)
+    {
+        $keys = [
+            'push_notification_enabled', 'push_fcm_key', 'push_api_key',
+            'push_database_url', 'push_storage_bucket', 'push_app_id',
+            'push_auth_domain', 'push_project_id', 'push_message_sender_id',
+            'push_measurement_id',
+        ];
+        $map = [
+            'push_notification_enabled' => $request->boolean('isEnabled') ? '1' : '0',
+            'push_fcm_key'              => $request->input('fcm_key', ''),
+            'push_api_key'              => $request->input('api_key', ''),
+            'push_database_url'         => $request->input('database_url', ''),
+            'push_storage_bucket'       => $request->input('storage_bucket', ''),
+            'push_app_id'               => $request->input('app_id', ''),
+            'push_auth_domain'          => $request->input('auth_domain', ''),
+            'push_project_id'           => $request->input('project_id', ''),
+            'push_message_sender_id'    => $request->input('message_sender_id', ''),
+            'push_measurement_id'       => $request->input('measurement_id', ''),
+        ];
+        foreach ($map as $key => $value) {
+            DB::table('settings')->updateOrInsert(['key' => $key], ['value' => $value, 'updated_at' => now()]);
+        }
+        return response()->json(['success' => true]);
     }
 
     public function cod()
     {
-        return view('admin.settings.app.cod');
+        $codEnabled    = (bool) DB::table('settings')->where('key', 'cod_enabled')->value('value');
+        $stripeEnabled = (bool) DB::table('settings')->where('key', 'stripe_enabled')->value('value');
+        return view('admin.settings.app.cod', compact('codEnabled', 'stripeEnabled'));
+    }
+
+    public function codSave(Request $request)
+    {
+        DB::table('settings')->updateOrInsert(
+            ['key' => 'cod_enabled'],
+            ['value' => $request->boolean('cod_enabled') ? '1' : '0', 'updated_at' => now()]
+        );
+        return response()->json(['success' => true]);
     }
 
     public function applePay()
@@ -38,7 +88,25 @@ class SettingsController extends Controller
 
     public function stripe()
     {
-        return view('admin.settings.app.stripe');
+        $settings = DB::table('settings')
+            ->whereIn('key', ['stripe_enabled', 'stripe_key', 'stripe_secret', 'stripe_withdraw_enabled',
+                              'cod_enabled'])
+            ->pluck('value', 'key');
+        return view('admin.settings.app.stripe', compact('settings'));
+    }
+
+    public function stripeSave(Request $request)
+    {
+        $map = [
+            'stripe_enabled'           => $request->boolean('stripe_enabled') ? '1' : '0',
+            'stripe_key'               => $request->input('stripe_key', ''),
+            'stripe_secret'            => $request->input('stripe_secret', ''),
+            'stripe_withdraw_enabled'  => $request->boolean('stripe_withdraw_enabled') ? '1' : '0',
+        ];
+        foreach ($map as $key => $value) {
+            DB::table('settings')->updateOrInsert(['key' => $key], ['value' => $value, 'updated_at' => now()]);
+        }
+        return response()->json(['success' => true]);
     }
 
     public function mobileGlobals()
@@ -178,13 +246,14 @@ class SettingsController extends Controller
 
     public function emailTemplatesIndex()
     {
-        return view('admin.email-templates.index');        
+        $templates = EmailTemplate::orderBy('type')->get();
+        return view('admin.email-templates.index', compact('templates'));
     }
 
     public function emailTemplatesSave($id = '')
     {
-
-        return view('admin.email-templates.save')->with('id', $id);
+        $template = ($id !== '') ? EmailTemplate::find($id) : null;
+        return view('admin.email-templates.save', compact('id', 'template'));
     }
     public function documentVerification()
     {

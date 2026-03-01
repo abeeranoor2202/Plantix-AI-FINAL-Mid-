@@ -224,53 +224,35 @@
 
         $(document).ready(function () {
 
-            jQuery("#data-table_processing").show();
+            // ── Settings injected server-side – no AJAX needed ──────────
+            var globalSettings = @json($settings);
 
-            // Fetch all global settings via AJAX
-            $.ajax({
-                url: '/api/admin/settings/global',
-                method: 'GET',
-                success: function(response) {
-                    if (response.success && response.data) {
-                        var globalSettings = response.data;
+            // Basic settings
+            $(".application_name").val(globalSettings.application_name || '');
+            $(".meta_title").val(globalSettings.meta_title || '');
+            $("#website_color").val(globalSettings.website_color || '#2EC7D9');
+            $("#admin_color").val(globalSettings.admin_panel_color || '#2EC7D9');
+            $("#store_color").val(globalSettings.store_panel_color || '#2EC7D9');
+            $("#customer_app_color").val(globalSettings.app_customer_color || '#2EC7D9');
+            $("#driver_app_color").val(globalSettings.app_driver_color || '#2EC7D9');
+            $("#restaurant_app_color").val(globalSettings.app_restaurant_color || '#2EC7D9');
 
-                        // Basic settings
-                        $(".application_name").val(globalSettings.application_name || '');
-                        $(".meta_title").val(globalSettings.meta_title || '');
-                        $("#website_color").val(globalSettings.website_color || '#2EC7D9');
-                        $("#admin_color").val(globalSettings.admin_panel_color || '#2EC7D9');
-                        $("#store_color").val(globalSettings.store_panel_color || '#2EC7D9');
-                        $("#customer_app_color").val(globalSettings.app_customer_color || '#2EC7D9');
-                        $("#driver_app_color").val(globalSettings.app_driver_color || '#2EC7D9');
-                        $("#restaurant_app_color").val(globalSettings.app_restaurant_color || '#2EC7D9');
+            // App Images
+            if (globalSettings.app_logo) {
+                photo = globalSettings.app_logo;
+                appLogoImagePath = globalSettings.app_logo;
+                $(".logo_img_thumb").html('<img class="rounded" style="width:50px" src="' + photo + '" alt="image">');
+            }
+            if (globalSettings.favicon) {
+                favicon = globalSettings.favicon;
+                appFavIconImagePath = globalSettings.favicon;
+                $(".favicon_img_thumb").html('<img class="rounded" style="width:50px" src="' + favicon + '" alt="image">');
+            }
 
-                        // App Images
-                        if(globalSettings.app_logo) {
-                            photo = globalSettings.app_logo;
-                            appLogoImagePath = globalSettings.app_logo;
-                            $(".logo_img_thumb").html('<img class="rounded" style="width:50px" src="' + photo + '" alt="image">');
-                        }
-
-                        if(globalSettings.favicon) {
-                            favicon = globalSettings.favicon;
-                            appFavIconImagePath = globalSettings.favicon;
-                            $(".favicon_img_thumb").html('<img class="rounded" style="width:50px" src="' + favicon + '" alt="image">');
-                        }
-
-                        // Contact Info
-                        $('.contact_us_address').val(globalSettings.contact_us_address || '');
-                        $('.contact_us_email').val(globalSettings.contact_us_email || '');
-                        $('.contact_us_phone').val(globalSettings.contact_us_phone || '');
-
-                        // SMTP Settings
-                    }
-                    jQuery("#data-table_processing").hide();
-                },
-                error: function(xhr) {
-                    jQuery("#data-table_processing").hide();
-                    console.log('Error loading global settings', xhr);
-                }
-            });
+            // Contact Info
+            $('.contact_us_address').val(globalSettings.contact_us_address || '');
+            $('.contact_us_email').val(globalSettings.contact_us_email || '');
+            $('.contact_us_phone').val(globalSettings.contact_us_phone || '');
 
             // Handle file selections
             window.handleFileSelect = function(event) {

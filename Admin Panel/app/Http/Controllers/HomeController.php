@@ -59,10 +59,14 @@ class HomeController extends Controller
         $ordersPending   = $statusCounts->get('processing', 0);
 
         // ── Earnings ─────────────────────────────────────────────────────────
-        $totalEarnings    = Order::whereNotIn('status', ['cancelled', 'refunded', 'payment_failed'])
+        $totalEarnings   = Order::whereNotIn('status', ['cancelled', 'refunded', 'payment_failed'])
                                 ->sum('total');
-        $adminCommission  = Order::whereNotIn('status', ['cancelled', 'refunded', 'payment_failed'])
-                                ->sum(DB::raw('total * commission_rate / 100'));
+
+        // commission_rate lives on vendors, so join to compute it
+        $adminCommission = Order::join('vendors', 'orders.vendor_id', '=', 'vendors.id')
+                                ->whereNotIn('orders.status', ['cancelled', 'refunded', 'payment_failed'])
+                                ->whereNull('orders.deleted_at')
+                                ->sum(DB::raw('orders.total * COALESCE(vendors.commission_rate, 0) / 100'));
 
         // Monthly sales for chart (current year)
         $monthlyData = array_fill(0, 12, 0);

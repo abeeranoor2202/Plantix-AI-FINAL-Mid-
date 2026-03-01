@@ -117,18 +117,13 @@
 @section('scripts')
 <script>
     $(document).ready(function () {
-        $('#roleTable').DataTable({ 
-            responsive: true, 
-            order: [[0, 'asc']],
-            "language": {
-                "zeroRecords": "No matching identities found",
-                "emptyTable": "Role registry is currently empty"
-            },
-            dom: '<"p-4 d-flex justify-content-between align-items-center mb-0"f>t<"p-4 d-flex justify-content-between align-items-center mt-0"ip>'
+
+    $('#search-input').on('keyup', function () {
+        var val = $(this).val().toLowerCase();
+        $('#roleTable tbody tr').filter(function () {
+            $(this).toggle($(this).text().toLowerCase().indexOf(val) > -1);
         });
-        
-        // Custom styling for search input to match system
-        $('.dataTables_filter input').addClass('form-agri').css({'height':'40px', 'min-width':'250px'});
+    });
     });
 </script>
 @endsection

@@ -226,20 +226,6 @@
             <li class="nav-small-cap" style="{{ $cap }}">SETTINGS</li>
 
             <li style="margin-bottom: 2px;">
-                <a class="nav-link-agri {{ Request::is('admin/settings*') ? 'active' : '' }}" href="{!! route('admin.settings.app.globals') !!}">
-                    <i class="mdi mdi-settings" style="font-size: 20px;"></i>
-                    <span>App Settings</span>
-                </a>
-            </li>
-
-            <li style="margin-bottom: 2px;">
-                <a class="nav-link-agri {{ Request::is('admin/settings/app/notifications*') ? 'active' : '' }}" href="{!! route('admin.settings.app.notifications') !!}">
-                    <i class="mdi mdi-bell-settings" style="font-size: 20px;"></i>
-                    <span>Notification Settings</span>
-                </a>
-            </li>
-
-            <li style="margin-bottom: 2px;">
                 <a class="nav-link-agri {{ Request::is('admin/settings/payment/stripe*') ? 'active' : '' }}" href="{!! route('admin.payment.stripe') !!}">
                     <i class="mdi mdi-credit-card" style="font-size: 20px;"></i>
                     <span>Stripe Settings</span>
@@ -250,13 +236,6 @@
                 <a class="nav-link-agri {{ Request::is('admin/settings/payment/cod*') ? 'active' : '' }}" href="{!! route('admin.payment.cod') !!}">
                     <i class="mdi mdi-cash" style="font-size: 20px;"></i>
                     <span>COD Settings</span>
-                </a>
-            </li>
-
-            <li style="margin-bottom: 2px;">
-                <a class="nav-link-agri {{ Request::is('admin/settings/email-templates*') ? 'active' : '' }}" href="{!! route('admin.email-templates.index') !!}">
-                    <i class="mdi mdi-email-edit" style="font-size: 20px;"></i>
-                    <span>Email Templates</span>
                 </a>
             </li>
 

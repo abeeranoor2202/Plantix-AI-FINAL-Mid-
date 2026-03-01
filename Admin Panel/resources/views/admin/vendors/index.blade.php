@@ -61,7 +61,7 @@
             </div>
         </div>
 
-        <div id="data-table_processing" class="dataTables_processing" style="display: none; background: rgba(255,255,255,0.95); position: absolute; top: 0; left: 0; right: 0; bottom: 0; display: flex; align-items: center; justify-content: center; z-index: 100;">
+        <div id="data-table_processing" class="dataTables_processing" style="display: none; background: rgba(255,255,255,0.95); position: absolute; top: 0; left: 0; right: 0; bottom: 0; align-items: center; justify-content: center; z-index: 100;">
             <div style="text-align: center;">
                 <div class="spinner-border text-success" role="status" style="width: 3rem; height: 3rem;"></div>
                 <div style="margin-top: 16px; font-weight: 800; color: var(--agri-primary); letter-spacing: 1px;">SYNCING REGISTRY...</div>

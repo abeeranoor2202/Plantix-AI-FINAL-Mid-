@@ -20,7 +20,17 @@ class NotificationController extends Controller
     // ── Admin notification index view ─────────────────────────────────────────
     public function index(string $id = '')
     {
-        return view('admin.notifications.index', compact('id'));
+        $notifications = \DB::table('dynamic_notifications')
+                             ->orderBy('created_at', 'desc')
+                             ->get();
+        return view('admin.notifications.index', compact('id', 'notifications'));
+    }
+
+    // ── Delete a dynamic notification ─────────────────────────────────────────
+    public function destroyDynamic(string $id)
+    {
+        \DB::table('dynamic_notifications')->where('id', $id)->delete();
+        return response()->json(['success' => true]);
     }
 
     // ── Admin send notification view ──────────────────────────────────────────

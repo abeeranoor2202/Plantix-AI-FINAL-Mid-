@@ -128,9 +128,9 @@ class AdminAiModuleController extends Controller
 
     public function seasonalData(Request $request)
     {
-        $data = SeasonalData::when($request->filled('season'), fn($q) => $q->where('season', $request->season))
+        $seasonalData = SeasonalData::when($request->filled('season'), fn($q) => $q->where('season', $request->season))
             ->paginate(20);
-        return view('admin.ai-modules.seasonal-data', compact('data'));
+        return view('admin.ai-modules.seasonal-data', compact('seasonalData'));
     }
 
     public function storeSeasonalData(Request $request)

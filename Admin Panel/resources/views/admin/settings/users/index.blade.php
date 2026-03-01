@@ -50,13 +50,11 @@
             <table id="userTable" class="table mb-0" style="vertical-align: middle;">
                 <thead style="background: var(--agri-bg);">
                     <tr>
-                        <?php if (in_array('user.delete', json_decode(@session('admin_permissions'),true))) { ?>
                         <th style="padding: 16px 24px; border: none; width: 50px;">
                             <div class="form-check m-0">
                                 <input type="checkbox" id="is_active" class="form-check-input" style="cursor: pointer;">
                             </div>
                         </th>
-                        <?php } ?>
                         <th style="padding: 16px 24px; font-size: 12px; font-weight: 600; color: var(--agri-text-muted); text-transform: uppercase; border: none;">{{trans('lang.extra_image')}}</th>
                         <th style="padding: 16px 24px; font-size: 12px; font-weight: 600; color: var(--agri-text-muted); text-transform: uppercase; border: none;">{{trans('lang.user_name')}}</th>
                         <th style="padding: 16px 24px; font-size: 12px; font-weight: 600; color: var(--agri-text-muted); text-transform: uppercase; border: none;">{{trans('lang.email')}}</th>
@@ -66,15 +64,73 @@
                         <th style="padding: 16px 24px; font-size: 12px; font-weight: 600; color: var(--agri-text-muted); text-transform: uppercase; border: none;" class="text-end">{{trans('lang.actions')}}</th>
                     </tr>
                 </thead>
-                <tbody id="append_list1">
-                    {{-- Data injected via DataTables/Firestore --}}
+                <tbody>
+                    @forelse($users as $user)
+                    @php
+                        $editRoute = route('admin.users.edit', $user->id);
+                        $viewRoute = route('admin.users.view', $user->id);
+                        $deleteRoute = route('admin.users.delete', $user->id);
+                        $canDelete = in_array('user.delete', json_decode(@session('admin_permissions'), true) ?? []);
+                    @endphp
+                    <tr>
+                        <td class="px-4 py-3">
+                            <div class="form-check m-0">
+                                <input type="checkbox" class="is_open form-check-input" data-id="{{ $user->id }}" style="cursor:pointer;">
+                            </div>
+                        </td>
+                        <td class="px-4 py-3">
+                            <div style="width:40px;height:40px;border-radius:8px;overflow:hidden;border:1px solid var(--agri-border);">
+                                <img src="{{ $user->profile_photo ? asset('storage/'.$user->profile_photo) : asset('images/placeholder.png') }}"
+                                     onerror="this.src='{{ asset('images/placeholder.png') }}'"
+                                     style="width:100%;height:100%;object-fit:cover;" alt="">
+                            </div>
+                        </td>
+                        <td class="px-4 py-3">
+                            <div style="font-weight:700;color:var(--agri-text-heading);">
+                                <a href="{{ $viewRoute }}" style="text-decoration:none;color:inherit;">
+                                    {{ trim(($user->first_name ?? '').' '.($user->last_name ?? '')) ?: 'No Name' }}
+                                </a>
+                            </div>
+                        </td>
+                        <td class="px-4 py-3">
+                            <div style="font-size:13px;color:var(--agri-text-muted);">{{ $user->email }}</div>
+                        </td>
+                        <td class="px-4 py-3">
+                            <div style="font-size:13px;font-weight:500;">
+                                {{ $user->created_at->format('M d, Y') }}<br>
+                                <small class="text-muted">{{ $user->created_at->format('h:i A') }}</small>
+                            </div>
+                        </td>
+                        <td class="px-4 py-3">
+                            <label class="switch">
+                                <input type="checkbox" class="toggle-active" data-id="{{ $user->id }}" {{ $user->active ? 'checked' : '' }}>
+                                <span class="slider"></span>
+                            </label>
+                        </td>
+                        <td class="px-4 py-3">
+                            <span style="font-size:13px;font-weight:600;">
+                                {{ number_format($user->wallet_amount ?? 0, 2) }}
+                            </span>
+                        </td>
+                        <td class="px-4 py-3">
+                            <div class="text-end" style="display:flex;justify-content:flex-end;gap:8px;">
+                                <a href="{{ $viewRoute }}" class="btn-agri" style="padding:8px;background:var(--agri-bg);color:var(--agri-primary);border-radius:10px;" title="View"><i class="fas fa-eye"></i></a>
+                                <a href="{{ $editRoute }}" class="btn-agri" style="padding:8px;background:var(--agri-bg);color:var(--agri-primary);border-radius:10px;" title="Edit"><i class="fas fa-edit"></i></a>
+                                @if($canDelete)
+                                <a href="{{ $deleteRoute }}" class="btn-agri" style="padding:8px;background:var(--agri-error-light);color:var(--agri-error);border-radius:10px;"
+                                   onclick="return confirm('Delete this user?')" title="Delete"><i class="fas fa-trash"></i></a>
+                                @endif
+                            </div>
+                        </td>
+                    </tr>
+                    @empty
+                    <tr><td colspan="8" class="text-center py-5" style="color:var(--agri-text-muted);">{{trans('lang.no_record_found')}}</td></tr>
+                    @endforelse
                 </tbody>
             </table>
         </div>
         
-        <div class="card-footer bg-white border-top-0 py-4 px-4">
-             {{-- Pagination handled by DataTables --}}
-        </div>
+
     </div>
 </div>
 
@@ -125,243 +181,45 @@
     #userTable tbody tr:hover {
         background-color: rgba(var(--agri-primary-rgb), 0.02);
     }
-    
-    .dataTables_wrapper .dataTables_paginate .paginate_button {
-        border-radius: 8px !important;
-        border: 1px solid var(--agri-border) !important;
-        margin: 0 2px;
-        padding: 6px 14px !important;
-        font-weight: 600;
-        font-size: 13px;
-    }
-    .dataTables_wrapper .dataTables_paginate .paginate_button.current {
-        background: var(--agri-primary) !important;
-        color: white !important;
-        border-color: var(--agri-primary) !important;
-    }
-    .dataTables_wrapper .dataTables_info {
-        color: var(--agri-text-muted) !important;
-        font-size: 13px;
-        font-weight: 500;
-    }
 </style>
 @endsection
 
 @section('scripts')
 <script type="text/javascript">
-    var database = firebase.firestore();
-    var ref = database.collection('users').where("role", "in", ["customer"]).orderBy('createdAt', 'desc');
-    var placeholderImage = '';
-
-    var user_permissions = '<?php echo @session("admin_permissions")?>';
-    user_permissions = Object.values(JSON.parse(user_permissions));
-    var checkDeletePermission = false;
-    if ($.inArray('user.delete', user_permissions) >= 0) {
-        checkDeletePermission = true;
-    }
-
-    function shortEmail(email) {
-        if (email.length > 20) {
-            return email.substr(0, 20) + '...';
-        }
-        return email;
-    }
 
     $(document).ready(function () {
-        $(document.body).on('click', '.redirecttopage', function () {
-            var url = $(this).attr('data-url');
-            window.location.href = url;
-        });
-        
-        jQuery("#data-table_processing").show();
 
-        var placeholder = database.collection('settings').doc('placeHolderImage');
-        placeholder.get().then(async function (snapshotsimage) {
-            var placeholderImageData = snapshotsimage.data();
-            placeholderImage = placeholderImageData.image;
-        });
-
-        const table = $('#userTable').DataTable({
-            pageLength: 10,
-            processing: false,
-            serverSide: true,
-            responsive: true,
-            dom: "<'row'<'col-sm-12'tr>><'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
-            ajax: function (data, callback, settings) {
-                const start = data.start;
-                const length = data.length;
-                const searchValue = data.search.value.toLowerCase();
-                const orderColumnIndex = data.order[0].column;
-                const orderDirection = data.order[0].dir;
-                
-                // Adjust for Select Column
-                const orderableColumns = (checkDeletePermission) 
-                    ? ['', '', 'fullName', 'email', 'createdAt', '', '', ''] 
-                    : ['', 'fullName', 'email', 'createdAt', '', '', ''];
-                
-                const orderByField = orderableColumns[orderColumnIndex] || 'createdAt';
-
-                ref.get().then(async function (querySnapshot) {
-                    if (querySnapshot.empty) {
-                        $('#data-table_processing').hide();
-                        callback({ draw: data.draw, recordsTotal: 0, recordsFiltered: 0, data: [] });
-                        return;
-                    }
-
-                    let filteredRecords = [];                  
-                    querySnapshot.forEach(function (doc) {                        
-                        let childData = doc.data();
-                        childData.id = doc.id;
-                        childData.fullName = (childData.firstName || '') + ' ' + (childData.lastName || '');
-                        if (!childData.fullName.trim()) childData.fullName = "No Name";
-                        
-                        var date = '';
-                        var time = '';
-                        if (childData.hasOwnProperty("createdAt") && childData.createdAt) {
-                            try {
-                                date = childData.createdAt.toDate().toDateString();
-                                time = childData.createdAt.toDate().toLocaleTimeString('en-US');
-                            } catch (err) {}
-                        }
-                        var createdAt = date + ' ' + time;
-                        
-                        if (searchValue) {                           
-                            if (
-                                (childData.fullName.toLowerCase().includes(searchValue)) ||
-                                (createdAt.toLowerCase().includes(searchValue)) || 
-                                (childData.email && childData.email.toString().toLowerCase().includes(searchValue))
-                            ) {
-                                filteredRecords.push(childData);
-                            }
-                        } else {
-                            filteredRecords.push(childData);
-                        }
-                    });
-
-                    filteredRecords.sort((a, b) => {
-                        let aValue = a[orderByField] ? a[orderByField].toString().toLowerCase() : '';
-                        let bValue = b[orderByField] ? b[orderByField].toString().toLowerCase() : '';
-                        if (orderByField === 'createdAt') {
-                            aValue = a[orderByField] ? new Date(a[orderByField].toDate()).getTime() : 0;
-                            bValue = b[orderByField] ? new Date(b[orderByField].toDate()).getTime() : 0;
-                        }                        
-                        if (orderDirection === 'asc') return (aValue > bValue) ? 1 : -1;
-                        return (aValue < bValue) ? 1 : -1;
-                    });
-
-                    const totalRecords = filteredRecords.length;
-                    const paginatedRecords = filteredRecords.slice(start, start + length);
-                    let records = [];Pag:
-
-                    paginatedRecords.forEach(function (childData) {
-                        var id = childData.id;
-                        var editRoute = '{{route("admin.users.edit",":id")}}'.replace(':id', id);
-                        var viewRoute = '{{route("admin.users.view",":id")}}'.replace(':id', id);
-                        var walletRoute = '#'; // Wallet transactions feature not available
-
-                        var date = '';
-                        var time = '';
-                        if (childData.hasOwnProperty("createdAt") && childData.createdAt) {
-                            try {
-                                date = childData.createdAt.toDate().toDateString();
-                                time = childData.createdAt.toDate().toLocaleTimeString('en-US', {hour: '2-digit', minute:'2-digit'});
-                            } catch (err) {}
-                        }
-
-                        records.push([
-                            checkDeletePermission ? '<div class="form-check m-0"><input type="checkbox" id="is_open_' + id + '" class="is_open form-check-input" dataId="' + id + '"><label class="form-check-label" for="is_open_' + id + '"></label></div>' : '',
-                            '<div style="width:40px; height:40px; border-radius:8px; overflow:hidden; border: 1px solid var(--agri-border);"><img onerror="this.src=\'' + placeholderImage + '\'" style="width:100%; height:100%; object-fit:cover;" src="' + (childData.profilePictureURL || placeholderImage) + '" alt="image"></div>',
-                            '<div style="font-weight:700; color:var(--agri-text-heading);"><a href="' + viewRoute + '" style="text-decoration:none; color:inherit;">' + childData.fullName + '</a></div>',
-                            '<div style="font-size:13px; color:var(--agri-text-muted);">' + (childData.email ? shortEmail(childData.email) : '---') + '</div>',
-                            '<div style="font-size:13px; font-weight:500;">' + date + '<br><small class="text-muted">' + time + '</small></div>',
-                            '<label class="switch"><input type="checkbox" ' + (childData.active ? 'checked' : '') + ' id="' + id + '" name="isActive"><span class="slider"></span></label>',
-                            '<a href="' + walletRoute + '" class="btn-agri btn-agri-outline" style="padding: 4px 10px; font-size:11px; text-decoration:none;"><i class="fas fa-wallet" style="margin-right:4px;"></i> View</a>',
-                            '<div class="text-end" style="display:flex; justify-content:flex-end; gap:8px;">' +
-                                '<a href="' + viewRoute + '" class="btn-agri" style="padding: 8px; background: var(--agri-bg); color: var(--agri-primary); border-radius: 10px;" title="View"><i class="fas fa-eye"></i></a>' +
-                                '<a href="' + editRoute + '" class="btn-agri" style="padding: 8px; background: var(--agri-bg); color: var(--agri-primary); border-radius: 10px;" title="Edit"><i class="fas fa-edit"></i></a>' +
-                                (checkDeletePermission ? '<a id="' + id + '" class="btn-agri delete-btn" name="user-delete" href="javascript:void(0)" style="padding: 8px; background: var(--agri-error-light); color: var(--agri-error); border-radius: 10px;"><i class="fas fa-trash"></i></a>' : '') +
-                            '</div>'
-                        ]);
-                    });
-
-                    $('#data-table_processing').hide();
-                    callback({ draw: data.draw, recordsTotal: totalRecords, recordsFiltered: totalRecords, data: records });
-                }).catch(function (error) {
-                    console.error("Firestore Error:", error);
-                    $('#data-table_processing').hide();
-                    callback({ draw: data.draw, recordsTotal: 0, recordsFiltered: 0, data: [] });
-                });
-            },           
-            order: (checkDeletePermission) ? [4, 'desc'] : [3, 'desc'],
-            columnDefs: [
-                { orderable: false, targets: (checkDeletePermission) ? [0, 1, 5, 6, 7] : [0, 4, 5, 6] },
-                { className: "px-4 py-3", targets: "_all" }
-            ],
-            "language": {
-                "zeroRecords": "{{trans("lang.no_record_found")}}",
-                "emptyTable": "{{trans("lang.no_record_found")}}",
-                "processing": ""
-            }
-        });
-
-        $('#search-input').on('keyup', function () {
-            table.search(this.value).draw();
-        });
-
-        $("#is_active").click(function () {
-            $("#userTable .is_open").prop('checked', $(this).prop('checked'));
-        });
-
-        $("#deleteAll").click(function () {
-            if ($('#userTable .is_open:checked').length) {
-                if (confirm("{{trans('lang.selected_delete_alert')}}")) {
-                    jQuery("#data-table_processing").show();
-                    $('#userTable .is_open:checked').each(function () {
-                        var dataId = $(this).attr('dataId');
-                        database.collection('users').doc(dataId).delete().then(function () {
-                            deleteUserData(dataId);
-                        });
-                    });
-                    setTimeout(() => { window.location.reload(); }, 3000);
-                }
-            } else {
-                alert("{{trans('lang.select_delete_alert')}}");
-            }
+    $('#search-input').on('keyup', function () {
+        var val = $(this).val().toLowerCase();
+        $('#userTable tbody tr').filter(function () {
+            $(this).toggle($(this).text().toLowerCase().indexOf(val) > -1);
         });
     });
 
-    async function deleteUserData(userId) {
-        await database.collection('wallet').where('user_id', '==', userId).get().then(async function (snapshotsItem) {
-            snapshotsItem.docs.forEach((temData) => {
-                database.collection('wallet').doc(temData.data().id).delete();
+        $('#is_active').on('click', function () {
+            $('#userTable .is_open').prop('checked', $(this).prop('checked'));
+        });
+
+        $('#deleteAll').on('click', function () {
+            var ids = $('#userTable .is_open:checked').map(function () {
+                return $(this).data('id');
+            }).get();
+            if (!ids.length) { alert("{{ trans('lang.select_delete_alert') }}"); return; }
+            if (!confirm("{{ trans('lang.selected_delete_alert') }}")) return;
+            $("#data-table_processing").show();
+            window.location.href = '{{ route("admin.users.delete", "__ID__") }}'.replace('__ID__', ids[0]);
+        });
+
+        $(document).on('change', '.toggle-active', function () {
+            var id  = $(this).data('id');
+            var val = $(this).is(':checked') ? 1 : 0;
+            $.ajax({
+                url: '{{ url("api/admin/users") }}/' + id + '/toggle-active',
+                method: 'PATCH',
+                headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
+                data: { is_active: val }
             });
         });
-        
-        var dataObject = {"data": {"uid": userId}};
-        var projectId = '<?php echo env('FIREBASE_PROJECT_ID') ?>';
-        jQuery.ajax({
-            url: 'https://us-central1-' + projectId + '.cloudfunctions.net/deleteUser',
-            method: 'POST',
-            contentType: "application/json; charset=utf-8",
-            data: JSON.stringify(dataObject)
-        });
-    }    
-
-    $(document).on("click", "a[name='user-delete']", function (e) {
-        var id = this.id;
-        if(confirm("Are you sure you want to delete this user?")){
-            jQuery("#data-table_processing").show();
-            database.collection('users').doc(id).delete().then(function () {
-                deleteUserData(id);
-                setTimeout(() => { window.location.reload(); }, 3000);
-            });
-        }
-    });
-
-    $(document).on("click", "input[name='isActive']", function (e) {
-        var ischeck = $(this).is(':checked');
-        var id = this.id;
-        database.collection('users').doc(id).update({'active': ischeck});
     });
 </script>
 @endsection

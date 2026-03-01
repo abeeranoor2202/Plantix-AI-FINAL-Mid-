@@ -1,4 +1,4 @@
-﻿@extends('layouts.app')
+@extends('layouts.app')
 
 @section('content')
 <div class="container-fluid" style="padding-top: 24px; padding-bottom: 40px;">
@@ -38,7 +38,7 @@
             </div>
         </div>
 
-        <div id="data-table_processing" class="dataTables_processing" style="display: none; background: rgba(255,255,255,0.95); position: absolute; top: 0; left: 0; right: 0; bottom: 0; display: flex; align-items: center; justify-content: center; z-index: 100;">
+        <div id="data-table_processing" class="dataTables_processing" style="display: none; background: rgba(255,255,255,0.95); position: absolute; top: 0; left: 0; right: 0; bottom: 0; align-items: center; justify-content: center; z-index: 100;">
             <div style="text-align: center;">
                 <div class="spinner-border text-success" role="status" style="width: 3rem; height: 3rem;"></div>
                 <div style="margin-top: 16px; font-weight: 800; color: var(--agri-primary); letter-spacing: 1px;">SYNCING CATALOG...</div>
@@ -62,159 +62,136 @@
                         <th style="padding: 20px 32px; font-size: 11px; font-weight: 800; color: var(--agri-text-muted); text-transform: uppercase; letter-spacing: 1px; border: none;" class="text-end">Management</th>
                     </tr>
                 </thead>
-                <tbody id="append_list1"></tbody>
+                <tbody id="append_list1">
+                    @forelse($categories as $category)
+                        @php
+                            $editUrl = route('admin.categories.edit', $category->id);
+                            $imgUrl  = $category->image ? (str_starts_with($category->image, 'http') ? $category->image : asset('storage/'.$category->image)) : '';
+                            $canDel  = in_array('category.delete', json_decode(@session('admin_permissions'), true) ?? []);
+                        @endphp
+                        <tr>
+                            @if($canDel)
+                            <td style="padding:24px 32px;">
+                                <div class="form-check"><input type="checkbox" class="is_open form-check-input" style="width:20px;height:20px;" data-id="{{ $category->id }}"></div>
+                            </td>
+                            @endif
+                            <td style="padding:24px 32px;">
+                                <div style="display:flex;align-items:center;gap:16px;">
+                                    <div style="width:52px;height:52px;border-radius:14px;overflow:hidden;border:2px solid var(--agri-bg);background:white;display:flex;align-items:center;justify-content:center;">
+                                        @if($imgUrl)<img src="{{ $imgUrl }}" style="width:100%;height:100%;object-fit:cover;">@else<i class="fas fa-tag" style="color:var(--agri-text-muted);"></i>@endif
+                                    </div>
+                                    <div>
+                                        <div style="font-weight:800;color:var(--agri-text-heading);font-size:15px;">{{ $category->name }}</div>
+                                        <div style="font-size:10px;font-weight:800;color:var(--agri-primary);text-transform:uppercase;margin-top:4px;">{{ str_pad($category->id,8,'0',STR_PAD_LEFT) }} NODE</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td style="padding:24px 32px;" class="text-center">
+                                <span style="background:var(--agri-primary-light);color:var(--agri-primary);padding:6px 16px;border-radius:12px;font-size:12px;font-weight:800;border:1px solid rgba(0,0,0,0.05);">
+                                    <i class="fas fa-layer-group me-2"></i>{{ $category->products_count }} Nodes Registered
+                                </span>
+                            </td>
+                            <td style="padding:24px 32px;" class="text-center">
+                                <div style="display:flex;flex-direction:column;align-items:center;gap:8px;">
+                                    @if($category->active)
+                                        <span style="background:var(--agri-primary-light);color:var(--agri-primary);padding:2px 10px;border-radius:100px;font-size:10px;font-weight:900;border:1px solid rgba(0,128,0,0.2);">LIVE</span>
+                                    @else
+                                        <span style="background:#F3F4F6;color:#6B7280;padding:2px 10px;border-radius:100px;font-size:10px;font-weight:900;border:1px solid #D1D5DB;">DRAFT</span>
+                                    @endif
+                                    <div class="form-check form-switch p-0 m-0">
+                                        <input type="checkbox" class="form-check-input cat-toggle" data-id="{{ $category->id }}" {{ $category->active ? 'checked' : '' }} style="width:40px;height:20px;cursor:pointer;">
+                                    </div>
+                                </div>
+                            </td>
+                            <td style="padding:24px 32px;" class="text-end">
+                                <div style="display:flex;justify-content:flex-end;gap:8px;">
+                                    <a href="{{ $editUrl }}" class="btn-agri" style="padding:8px 12px;background:var(--agri-bg);color:var(--agri-text-heading);border-radius:10px;text-decoration:none;font-size:12px;font-weight:700;"><i class="fas fa-edit"></i></a>
+                                    @if($canDel)
+                                    <button class="btn-agri delete-btn" data-id="{{ $category->id }}" style="padding:8px 12px;background:#FEF2F2;color:var(--agri-error);border:none;border-radius:10px;"><i class="fas fa-trash-alt"></i></button>
+                                    @endif
+                                </div>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr><td colspan="5" class="text-center py-5" style="font-weight:800;color:var(--agri-text-muted);text-transform:uppercase;">TAXONOMIC REGISTRY IS EMPTY</td></tr>
+                    @endforelse
+                </tbody>
             </table>
         </div>
     </div>
 </div>
 
 <style>
-    .dataTables_empty { padding: 80px 0 !important; font-weight: 800; color: var(--agri-text-muted); text-transform: uppercase; font-size: 14px; }
     .form-check-input:checked { background-color: var(--agri-primary); border-color: var(--agri-primary); }
 </style>
 @endsection
-
 @section('scripts')
 <script type="text/javascript">
-    var database = firebase.firestore();
-    var ref = database.collection('vendor_categories').orderBy('title');
-    var placeholderImage = '';
-
-    var user_permissions = '<?php echo @session("admin_permissions")?>';
-    user_permissions = Object.values(JSON.parse(user_permissions || "[]"));
-    var checkDeletePermission = false;
-    if ($.inArray('category.delete', user_permissions) >= 0) {
-        checkDeletePermission = true;
-    }
+    var csrfToken = '{{ csrf_token() }}';
+    var checkDeletePermission = <?php echo json_encode(in_array('category.delete', json_decode(@session('admin_permissions'), true) ?? [])); ?>;
 
     $(document).ready(function () {
-        database.collection('settings').doc('placeHolderImage').get().then(async function (snapshotsimage) {
-            placeholderImage = snapshotsimage.data().image;
-        });
 
-        const table = $('#categoriesTable').DataTable({
-            pageLength: 10,
-            processing: false,
-            serverSide: true,
-            responsive: true,
-            autoWidth: false,
-            ajax: function (data, callback, settings) {
-                const start = data.start;
-                const length = data.length;
-                const searchValue = data.search.value.toLowerCase();
-                const orderColumnIndex = data.order[0].column;
-                const orderDirection = data.order[0].dir;
-                const orderableColumns = (checkDeletePermission) ? ['','','title', 'totalProducts','',''] : ['','title', 'totalProducts','',''];
-                const orderByField = orderableColumns[orderColumnIndex];
-
-                ref.get().then(async function (querySnapshot) {
-                    if (querySnapshot.empty) {
-                        callback({ draw: data.draw, recordsTotal: 0, recordsFiltered: 0, data: [] });
-                        return;
-                    }
-
-                    let filteredRecords = [];                  
-                    await Promise.all(querySnapshot.docs.map(async (doc) => {
-                        let childData = doc.data();
-                        childData.id = doc.id;
-                        childData.totalProducts = childData.id ? await getProductTotal(childData.id) : 0;
-                        
-                        if (!searchValue || childData.title.toLowerCase().includes(searchValue)) {
-                            filteredRecords.push(childData);
-                        }
-                    }));
-
-                    filteredRecords.sort((a, b) => {
-                        let aVal = a[orderByField] || '';
-                        let bVal = b[orderByField] || '';
-                        if (orderByField === 'totalProducts') {
-                            aVal = parseInt(a[orderByField]) || 0;
-                            bVal = parseInt(b[orderByField]) || 0;
-                        }
-                        return orderDirection === 'asc' ? (aVal > bVal ? 1 : -1) : (aVal < bVal ? 1 : -1);
-                    });
-
-                    const paginatedRecords = filteredRecords.slice(start, start + length);
-                    let records = [];
-                    paginatedRecords.forEach(childData => { records.push(buildHTML(childData)); });
-
-                    callback({ draw: data.draw, recordsTotal: filteredRecords.length, recordsFiltered: filteredRecords.length, data: records });
-                });
-            },           
-            order: (checkDeletePermission) ? [[2, 'asc']] : [[1,'asc']],
-            columnDefs: [{ orderable: false, targets: '_all' }],
-            dom: 't<"p-4 d-flex justify-content-between align-items-center"ip>',
-            language: { zeroRecords: "NO CLASSIFICATIONS MATCHING YOUR SEARCH", emptyTable: "TAXONOMIC REGISTRY IS EMPTY", processing: "" }
-        });
-
-        $('#search-input').on('keyup', function () { table.search($(this).val()).draw(); });
-
-        $(document).on("click", ".form-switch input", function (e) {
-            var ischeck = $(this).is(':checked');
-            var id = this.id;
-            database.collection('vendor_categories').doc(id).update({'publish': ischeck});
-        });
-
-        $(document).on("click", ".delete-btn", function (e) {
-            if (confirm("CRITICAL: Excise this category branch? This action will impact all downstream sub-classifications and product alignments.")) {
-                var id = $(this).data('id');
-                database.collection('vendor_categories').doc(id).delete().then(() => window.location.reload());
-            }
-        });
-
-        $("#is_active").click(function () { $("#categoriesTable .is_open").prop('checked', $(this).prop('checked')); });
-
-        $("#deleteAll").click(function () {
-            if ($('#categoriesTable .is_open:checked').length) {
-                if (confirm("CRITICAL: Bulk excise selected classifications? This will decouple all associated product catalog associations.")) {
-                    let promises = [];
-                    $('#categoriesTable .is_open:checked').each(function () { promises.push(database.collection('vendor_categories').doc($(this).attr('dataId')).delete()); });
-                    Promise.all(promises).then(() => window.location.reload());
-                }
-            } else { alert("Select at least one classification node."); }
+    $('#search-input').on('keyup', function () {
+        var val = $(this).val().toLowerCase();
+        $('#categoriesTable tbody tr').filter(function () {
+            $(this).toggle($(this).text().toLowerCase().indexOf(val) > -1);
         });
     });
 
-    function buildHTML(val) {
-        var html = [];
-        var id = val.id;
-        var editUrl = '{{route("admin.categories.edit",":id")}}'.replace(':id', id);
-        var catalogUrl = '{{url("items?categoryID=id")}}'.replace("id", id);
-        var photo = val.photo || placeholderImage;
+        $(document).on('click', '.toggle-publish-btn', function () {
+            var id   = $(this).data('id');
+            var active = $(this).data('active') == 1 ? 0 : 1;
+            var btn  = $(this);
+            $.ajax({
+                url: '{{ url("admin/categories/toggle") }}/' + id,
+                method: 'POST',
+                data: { _token: csrfToken, active: active },
+                success: function (res) {
+                    if (res.success) {
+                        btn.data('active', active);
+                        if (active) {
+                            btn.removeClass('bg-secondary').addClass('bg-success').text('Active');
+                        } else {
+                            btn.removeClass('bg-success').addClass('bg-secondary').text('Inactive');
+                        }
+                    }
+                }
+            });
+        });
+
+        $(document).on('click', '.delete-cat-btn', function () {
+            var id = $(this).data('id');
+            if (confirm("Delete this category?")) {
+                $.ajax({
+                    url: '{{ url("admin/categories/delete") }}/' + id,
+                    method: 'POST',
+                    data: { _method: 'DELETE', _token: csrfToken },
+                    success: function () { location.reload(); },
+                    error: function () { alert('Delete failed.'); }
+                });
+            }
+        });
 
         if (checkDeletePermission) {
-            html.push('<td style="padding: 24px 32px;"><div class="form-check"><input type="checkbox" id="is_open_' + id + '" class="is_open form-check-input" style="width: 20px; height: 20px;" dataId="' + id + '"></div></td>');
+            $('#select-all').on('change', function () {
+                $('.row-check').prop('checked', $(this).prop('checked'));
+            });
+
+            $('#bulk-delete-btn').on('click', function () {
+                var ids = $('.row-check:checked').map(function () { return $(this).data('id'); }).get();
+                if (!ids.length) { alert('Select at least one item.'); return; }
+                if (!confirm('Delete ' + ids.length + ' selected categories?')) return;
+                var reqs = ids.map(function (id) {
+                    return $.ajax({
+                        url: '{{ url("admin/categories/delete") }}/' + id,
+                        method: 'POST',
+                        data: { _method: 'DELETE', _token: csrfToken }
+                    });
+                });
+                $.when.apply($, reqs).then(function () { location.reload(); });
+            });
         }
-
-        html.push('<td style="padding: 24px 32px;"><div style="display: flex; align-items: center; gap: 16px;">' +
-            '<div style="width: 52px; height: 52px; border-radius: 14px; overflow: hidden; border: 2px solid var(--agri-bg); background: white;">' +
-            '<img src="' + photo + '" onerror="this.src=\'' + placeholderImage + '\'" style="width: 100%; height: 100%; object-fit: cover;"></div>' +
-            '<div><div style="font-weight: 800; color: var(--agri-text-heading); font-size: 15px;">' + val.title + '</div>' +
-            '<div style="font-size: 10px; font-weight: 800; color: var(--agri-primary); text-transform: uppercase; margin-top: 4px;">' + (val.id.substring(0,8)) + ' NODE</div></div></div></td>');
-
-        html.push('<td style="padding: 24px 32px;" class="text-center"><a href="' + catalogUrl + '" style="background: var(--agri-primary-light); color: var(--agri-primary); padding: 6px 16px; border-radius: 12px; font-size: 12px; font-weight: 800; text-decoration: none; border: 1px solid var(--agri-primary)30;">' +
-            '<i class="fas fa-layer-group me-2"></i>' + val.totalProducts + ' Nodes Registered</a></td>');
-
-        var statusBadge = val.publish ? 
-            '<span style="background:var(--agri-primary-light); color:var(--agri-primary); padding:2px 10px; border-radius:100px; font-size:10px; font-weight:900; border:1px solid var(--agri-primary)40;">LIVE</span>' :
-            '<span style="background:#F3F4F6; color:#6B7280; padding:2px 10px; border-radius:100px; font-size:10px; font-weight:900; border:1px solid #D1D5DB;">DRAFT</span>';
-
-        html.push('<td style="padding: 24px 32px;" class="text-center"><div style="display:flex; flex-direction:column; align-items:center; gap:8px;">' +
-            statusBadge +
-            '<div class="form-check form-switch p-0 m-0"><input type="checkbox" class="form-check-input" ' + (val.publish ? 'checked' : '') + ' id="' + id + '" style="width:40px; height:20px; cursor:pointer;"></div>' +
-            '</div></td>');
-
-        html.push('<td style="padding: 24px 32px;" class="text-end"><div style="display: flex; justify-content: flex-end; gap: 8px;">' +
-            '<a href="' + editUrl + '" class="btn-agri" style="padding: 8px 12px; background: var(--agri-bg); color: var(--agri-text-heading); border-radius: 10px; text-decoration: none; font-size: 12px; font-weight: 700;"><i class="fas fa-edit"></i></a>' +
-            (checkDeletePermission ? '<button class="btn-agri delete-btn" data-id="' + id + '" style="padding: 8px 12px; background: #FEF2F2; color: var(--agri-error); border: none; border-radius: 10px;"><i class="fas fa-trash-alt"></i></button>' : '') +
-            '</div></td>');
-
-        return html;
-    }
-
-    async function getProductTotal(id) {
-        var snapshot = await database.collection('vendor_products').where('categoryID', '==', id).get();
-        return snapshot.docs.length;
-    }
+    });
 </script>
 @endsection

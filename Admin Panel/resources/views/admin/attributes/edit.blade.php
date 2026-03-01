@@ -52,35 +52,44 @@
 @endsection
 
 @section('scripts')
-    <script>
-        var id = "<?php echo $id;?>";
-        var database = firebase.firestore();
-        var ref = database.collection('vendor_attributes').where("id", "==", id);
+<script>
+    var csrfToken = '{{ csrf_token() }}';
+    var attributeId = '{{ $attribute->id }}';
 
-        $(document).ready(function () {
+    $(document).ready(function () {
+        // Pre-fill existing title
+        $(".attribute-name").val('{{ addslashes($attribute->title) }}');
+
+        $(".save-form-btn").click(function () {
+            var title = $(".attribute-name").val().trim();
+            if (!title) {
+                $(".error_top").show().html("<p>Please enter an attribute title.</p>");
+                window.scrollTo(0, 0);
+                return;
+            }
+
             jQuery("#data-table_processing").show();
-            ref.get().then(async function (snapshots) {
-                if (snapshots.docs.length > 0) {
-                    var attribute = snapshots.docs[0].data();
-                    $(".attribute-name").val(attribute.title);
-                }
-                jQuery("#data-table_processing").hide();
-            });
-
-            $(".edit-form-btn").click(function () {
-                var title = $(".attribute-name").val();
-                $(".error_top").hide().html("");
-
-                if (title == '') {
-                    $(".error_top").show().append("<p>{{trans('lang.enter_itemattribute_title_error')}}</p>");
+            $.ajax({
+                url: '{{ url("admin/attributes/update") }}/' + attributeId,
+                method: 'POST',
+                data: { _token: csrfToken, title: title },
+                success: function (res) {
+                    jQuery("#data-table_processing").hide();
+                    if (res.success) {
+                        window.location.href = '{{ route("admin.attributes") }}';
+                    } else {
+                        $(".error_top").show().html("<p>" + (res.message || 'Failed') + "</p>");
+                        window.scrollTo(0, 0);
+                    }
+                },
+                error: function (xhr) {
+                    jQuery("#data-table_processing").hide();
+                    var msg = (xhr.responseJSON && xhr.responseJSON.message) ? xhr.responseJSON.message : 'Server error';
+                    $(".error_top").show().html("<p>" + msg + "</p>");
                     window.scrollTo(0, 0);
-                } else {
-                    jQuery("#data-table_processing").show();
-                    database.collection('vendor_attributes').doc(id).update({'title': title}).then(function (result) {
-                        window.location.href = '{{ route("admin.attributes")}}';
-                    });
                 }
             });
         });
-    </script>
+    });
+</script>
 @endsection
