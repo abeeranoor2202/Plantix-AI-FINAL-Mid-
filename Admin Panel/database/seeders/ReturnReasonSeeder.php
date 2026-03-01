@@ -4,33 +4,36 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
 
 class ReturnReasonSeeder extends Seeder
 {
     public function run(): void
     {
+        $now = Carbon::now();
+
         $reasons = [
-            ['reason' => 'Wrong product delivered',          'is_active' => true],
-            ['reason' => 'Damaged / defective product',      'is_active' => true],
-            ['reason' => 'Product not as described',         'is_active' => true],
-            ['reason' => 'Missing items in the order',       'is_active' => true],
-            ['reason' => 'Expired product',                  'is_active' => true],
-            ['reason' => 'Changed my mind',                  'is_active' => true],
-            ['reason' => 'Received duplicate order',         'is_active' => true],
-            ['reason' => 'Poor quality',                     'is_active' => true],
-            ['reason' => 'Other (please specify in notes)',  'is_active' => true],
+            'Product received was damaged',
+            'Wrong item delivered',
+            'Product differs from description or images',
+            'Product quality is not as expected',
+            'Expired or near-expiry product delivered',
+            'Duplicate order placed by mistake',
+            'Product did not work as intended',
+            'Changed my mind after ordering',
+            'Incomplete order — items missing',
+            'Counterfeit or fake product received',
+            'Allergic reaction or safety concern',
+            'Better deal found elsewhere',
         ];
 
         foreach ($reasons as $reason) {
-            DB::table('return_reasons')->updateOrInsert(
-                ['reason' => $reason['reason']],
-                array_merge($reason, [
-                    'created_at' => now(),
-                    'updated_at' => now(),
-                ])
-            );
+            DB::table('return_reasons')->insert([
+                'reason'     => $reason,
+                'is_active'  => 1,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ]);
         }
-
-        $this->command->info('Return reasons seeded: ' . count($reasons));
     }
 }

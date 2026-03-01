@@ -12,162 +12,41 @@ class TaxesAndCouponsSeeder extends Seeder
     {
         $now = Carbon::now();
 
-        // ── Taxes ────────────────────────────────────────────────
-        DB::table('taxes')->insert([
-            [
-                'name'       => 'GST Pakistan (17%)',
-                'rate'       => 17.00,
-                'type'       => 'exclusive',
-                'is_active'  => true,
-                'created_at' => $now,
-                'updated_at' => $now,
-            ],
-            [
-                'name'       => 'Sindh Sales Tax (13%)',
-                'rate'       => 13.00,
-                'type'       => 'exclusive',
-                'is_active'  => true,
-                'created_at' => $now,
-                'updated_at' => $now,
-            ],
-            [
-                'name'       => 'Punjab Agri Input Tax (5%)',
-                'rate'       => 5.00,
-                'type'       => 'inclusive',
-                'is_active'  => true,
-                'created_at' => $now,
-                'updated_at' => $now,
-            ],
-            [
-                'name'       => 'Advance Income Tax (0.5%)',
-                'rate'       => 0.50,
-                'type'       => 'exclusive',
-                'is_active'  => true,
-                'created_at' => $now,
-                'updated_at' => $now,
-            ],
-        ]);
+        // ── Taxes ─────────────────────────────────────────────────────────────
+        $taxes = [
+            ['name' => 'General Sales Tax (GST)',      'rate' => 17.00, 'type' => 'exclusive', 'is_active' => 1],
+            ['name' => 'Agriculture Input Exemption',  'rate' =>  0.00, 'type' => 'exclusive', 'is_active' => 1],
+            ['name' => 'Federal Excise Duty (FED)',    'rate' =>  5.00, 'type' => 'inclusive', 'is_active' => 1],
+        ];
+        foreach ($taxes as $t) {
+            DB::table('taxes')->insert(array_merge($t, ['created_at' => $now, 'updated_at' => $now]));
+        }
 
-        // ── Coupons ──────────────────────────────────────────────
+        // ── Coupons ───────────────────────────────────────────────────────────
         $vendors = DB::table('vendors')->pluck('id')->toArray();
+        $v1 = $vendors[0] ?? null;
+        $v2 = $vendors[1] ?? null;
+        $v6 = $vendors[5] ?? null;
 
         $coupons = [
-            [
-                'code'        => 'KISAAN20',
-                'type'        => 'percentage',
-                'value'       => 20.00,
-                'min_order'   => 2000.00,
-                'max_disc'    => 1000.00,
-                'usage_limit' => 200,
-                'vendor_id'   => null,
-                'starts'      => $now->copy()->subDays(5),
-                'expires'     => $now->copy()->addDays(30),
-                'desc'        => '20% off for all farmers on orders above Rs 2,000',
-            ],
-            [
-                'code'        => 'SEEDPK10',
-                'type'        => 'percentage',
-                'value'       => 10.00,
-                'min_order'   => 1000.00,
-                'max_disc'    => 500.00,
-                'usage_limit' => 150,
-                'vendor_id'   => $vendors[0] ?? null,
-                'starts'      => $now->copy()->subDays(2),
-                'expires'     => $now->copy()->addDays(15),
-                'desc'        => '10% off on seeds at Punjab Seeds Centre',
-            ],
-            [
-                'code'        => 'UREA500',
-                'type'        => 'fixed',
-                'value'       => 500.00,
-                'min_order'   => 5000.00,
-                'max_disc'    => null,
-                'usage_limit' => 100,
-                'vendor_id'   => $vendors[1] ?? null,
-                'starts'      => $now->copy()->subDay(),
-                'expires'     => $now->copy()->addDays(20),
-                'desc'        => 'Rs 500 flat discount on fertilizer orders above Rs 5,000',
-            ],
-            [
-                'code'        => 'RABI2026',
-                'type'        => 'percentage',
-                'value'       => 15.00,
-                'min_order'   => 3000.00,
-                'max_disc'    => 1500.00,
-                'usage_limit' => 300,
-                'vendor_id'   => null,
-                'starts'      => $now->copy()->subDays(10),
-                'expires'     => $now->copy()->addDays(45),
-                'desc'        => 'Rabi 2026 seasonal offer – 15% off on all products',
-            ],
-            [
-                'code'        => 'COTTON25',
-                'type'        => 'percentage',
-                'value'       => 25.00,
-                'min_order'   => 4000.00,
-                'max_disc'    => 2000.00,
-                'usage_limit' => 80,
-                'vendor_id'   => $vendors[3] ?? null,
-                'starts'      => $now->copy()->subDays(3),
-                'expires'     => $now->copy()->addDays(25),
-                'desc'        => '25% off insecticide products for cotton belt farmers',
-            ],
-            [
-                'code'        => 'WELCOME200',
-                'type'        => 'fixed',
-                'value'       => 200.00,
-                'min_order'   => 800.00,
-                'max_disc'    => null,
-                'usage_limit' => 500,
-                'vendor_id'   => null,
-                'starts'      => $now->copy()->subDays(30),
-                'expires'     => $now->copy()->addDays(60),
-                'desc'        => 'New user welcome coupon – Rs 200 off on first order',
-            ],
-            [
-                'code'        => 'FUNGIPK12',
-                'type'        => 'percentage',
-                'value'       => 12.00,
-                'min_order'   => 1500.00,
-                'max_disc'    => 800.00,
-                'usage_limit' => 60,
-                'vendor_id'   => $vendors[9] ?? null,
-                'starts'      => $now->copy()->subDays(1),
-                'expires'     => $now->copy()->addDays(20),
-                'desc'        => '12% off on all fungicide products',
-            ],
-            [
-                'code'        => 'ORGANIC30',
-                'type'        => 'percentage',
-                'value'       => 30.00,
-                'min_order'   => 2500.00,
-                'max_disc'    => 2500.00,
-                'usage_limit' => 50,
-                'vendor_id'   => $vendors[7] ?? null,
-                'starts'      => $now->copy(),
-                'expires'     => $now->copy()->addDays(14),
-                'desc'        => '30% off on bio-pesticides this fortnight',
-            ],
+            // Sitewide
+            ['vendor_id' => null, 'code' => 'WELCOME10',  'type' => 'percentage', 'value' => 10, 'min_order' =>  500, 'max_discount' =>  500, 'usage_limit' => 200, 'is_active' => 1, 'starts_at' => $now->copy()->subDays(30), 'expires_at' => $now->copy()->addDays(180)],
+            ['vendor_id' => null, 'code' => 'KISAN20',    'type' => 'percentage', 'value' => 20, 'min_order' => 2000, 'max_discount' => 1000, 'usage_limit' => 100, 'is_active' => 1, 'starts_at' => $now->copy()->subDays(10), 'expires_at' => $now->copy()->addDays(60)],
+            ['vendor_id' => null, 'code' => 'FLAT500',    'type' => 'fixed',      'value' => 500,'min_order' => 5000, 'max_discount' => null,  'usage_limit' =>  50, 'is_active' => 1, 'starts_at' => $now->copy()->subDays(5),  'expires_at' => $now->copy()->addDays(30)],
+            ['vendor_id' => null, 'code' => 'HARVEST15',  'type' => 'percentage', 'value' => 15, 'min_order' => 1000, 'max_discount' =>  800, 'usage_limit' => 300, 'is_active' => 1, 'starts_at' => $now->copy()->subMonths(2), 'expires_at' => $now->copy()->subDays(1)],  // expired
+            ['vendor_id' => null, 'code' => 'SEEDSALE',   'type' => 'percentage', 'value' => 25, 'min_order' => 1500, 'max_discount' => 1200, 'usage_limit' => null,'is_active' => 0, 'starts_at' => $now->copy()->addDays(10), 'expires_at' => $now->copy()->addDays(40)],  // inactive
+            // Vendor-specific
+            ['vendor_id' => $v1,'code' => 'GREENH10',     'type' => 'percentage', 'value' => 10, 'min_order' => 800,  'max_discount' =>  400, 'usage_limit' =>  80, 'is_active' => 1, 'starts_at' => $now->copy()->subDays(15), 'expires_at' => $now->copy()->addDays(45)],
+            ['vendor_id' => $v2,'code' => 'FERT200',      'type' => 'fixed',      'value' => 200,'min_order' => 3000, 'max_discount' => null,  'usage_limit' =>  60, 'is_active' => 1, 'starts_at' => $now->copy()->subDays(20), 'expires_at' => $now->copy()->addDays(40)],
+            ['vendor_id' => $v6,'code' => 'ORGANIC15',    'type' => 'percentage', 'value' => 15, 'min_order' => 1200, 'max_discount' =>  600, 'usage_limit' => null,'is_active' => 1, 'starts_at' => $now->copy()->subDays(7),  'expires_at' => $now->copy()->addDays(90)],
         ];
 
         foreach ($coupons as $c) {
-            DB::table('coupons')->insert([
-                'vendor_id'    => $c['vendor_id'],
-                'code'         => $c['code'],
-                'type'         => $c['type'],
-                'value'        => $c['value'],
-                'min_order'    => $c['min_order'],
-                'max_discount' => $c['max_disc'],
-                'usage_limit'  => $c['usage_limit'],
-                'used_count'   => rand(0, (int) ($c['usage_limit'] * 0.25)),
-                'starts_at'    => $c['starts'],
-                'expires_at'   => $c['expires'],
-                'is_active'    => true,
-                'created_at'   => $now,
-                'updated_at'   => $now,
-            ]);
+            DB::table('coupons')->insert(array_merge($c, [
+                'used_count' => rand(0, min(10, $c['usage_limit'] ?? 10)),
+                'created_at' => $now,
+                'updated_at' => $now,
+            ]));
         }
-
-        $this->command->info('TaxesAndCouponsSeeder: ' . DB::table('taxes')->count() . ' taxes, ' . DB::table('coupons')->count() . ' coupons inserted.');
     }
 }

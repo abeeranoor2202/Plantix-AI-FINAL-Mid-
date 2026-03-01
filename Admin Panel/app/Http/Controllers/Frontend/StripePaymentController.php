@@ -3,29 +3,119 @@
 namespace App\Http\Controllers\Frontend;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Frontend\CheckoutRequest;
+use App\Models\Cart;
 use App\Models\Order;
-use App\Models\Payment;
+use App\Services\Shared\CartCheckoutService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Stripe\Exception\SignatureVerificationException;
-use Stripe\PaymentIntent;
-use Stripe\Stripe;
 use Stripe\Webhook;
 
+/**
+ * StripePaymentController
+ *
+ * Responsibilities:
+ *  - createIntent    POST /payments/stripe/intent  → creates order + PI for new checkout
+ *  - webhook         POST /stripe/webhook          → handles Stripe events (no CSRF)
+ *  - success         GET  /payment/success         → redirect landing page
+ */
 class StripePaymentController extends Controller
 {
-    public function __construct()
+    public function __construct(
+        private readonly CartCheckoutService $checkout,
+    ) {}
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Checkout initiate: create order + PI in one atomic call
+    // ─────────────────────────────────────────────────────────────────────────
+
+    /**
+     * Called by checkout.blade.php via AJAX (or form POST) at payment step.
+     * Creates a pending_payment order + returns client_secret.
+     *
+     * Route: POST /checkout/stripe/initiate
+     */
+    public function initiateCheckout(CheckoutRequest $request): JsonResponse|RedirectResponse
     {
-        Stripe::setApiKey(config('services.stripe.secret'));
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+
+        try {
+            $result = $this->checkout->initiate($user, $request->validated());
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return $request->expectsJson()
+                ? response()->json(['errors' => $e->errors()], 422)
+                : back()->withErrors($e->errors());
+        } catch (\Throwable $e) {
+            Log::error('Checkout initiate error', ['message' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
+            return $request->expectsJson()
+                ? response()->json(['error' => 'Checkout failed. Please try again.'], 500)
+                : back()->withErrors(['checkout' => 'Checkout failed. Please try again.']);
+        }
+
+        /** @var Order $order */
+        $order = $result['order'];
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'client_secret'     => $result['client_secret'],
+                'order_id'          => $order->id,
+                'payment_intent_id' => $order->payment_intent_id,
+            ]);
+        }
+
+        // For blade: store PI in session then redirect to payment page
+        session([
+            'pending_order_id'  => $order->id,
+            'stripe_secret'     => $result['client_secret'],
+        ]);
+
+        return redirect()->route('checkout.pay', ['order' => $order->id]);
     }
 
-    // ──────────────────────────────────────────────────────────────────────────
-    // POST /payments/stripe/intent
-    // Creates a PaymentIntent and returns the client_secret to the frontend.
-    // ──────────────────────────────────────────────────────────────────────────
+    // ─────────────────────────────────────────────────────────────────────────
+    // Stripe payment page (shows Stripe.js payment form)
+    // ─────────────────────────────────────────────────────────────────────────
+
+    /**
+     * Route: GET /checkout/pay/{order}
+     */
+    public function showPaymentPage(Order $order): \Illuminate\View\View|RedirectResponse
+    {
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+
+        if ((int) $order->user_id !== (int) $user->id) {
+            abort(403);
+        }
+
+        // Must still be awaiting payment
+        if (! $order->isPendingPayment()) {
+            if ($order->payment_status === 'paid') {
+                return redirect()->route('order.success', $order->id);
+            }
+            return redirect()->route('checkout')->withErrors(['order' => 'This order cannot be paid.']);
+        }
+
+        $clientSecret  = session('stripe_secret') ?? null;
+        $publishableKey = config('services.stripe.key');
+
+        return view('frontend.checkout.stripe-payment', compact('order', 'clientSecret', 'publishableKey'));
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Legacy createIntent endpoint (kept for backwards-compat with API clients)
+    // Creates a PI for an already-existing pending_payment order
+    // ─────────────────────────────────────────────────────────────────────────
+
+    /**
+     * Route: POST /payments/stripe/intent
+     */
     public function createIntent(Request $request): JsonResponse
     {
         $request->validate(['order_id' => 'required|integer|exists:orders,id']);
@@ -34,7 +124,6 @@ class StripePaymentController extends Controller
         $user  = Auth::user();
         $order = Order::findOrFail($request->order_id);
 
-        // Guard: the order must belong to this user and still be awaiting payment
         if ((int) $order->user_id !== (int) $user->id) {
             return response()->json(['error' => 'Unauthorized.'], 403);
         }
@@ -44,170 +133,169 @@ class StripePaymentController extends Controller
         }
 
         try {
-            // Re-use an existing pending payment record if present
-            $payment = Payment::where('order_id', $order->id)
-                              ->where('status', 'pending')
-                              ->where('gateway', 'stripe')
-                              ->first();
+            \Stripe\Stripe::setApiKey(config('services.stripe.secret'));
 
-            if ($payment && $payment->gateway_transaction_id) {
-                // Retrieve the existing PaymentIntent to avoid creating duplicates
-                $intent = PaymentIntent::retrieve($payment->gateway_transaction_id);
+            if ($order->payment_intent_id) {
+                $intent = \Stripe\PaymentIntent::retrieve($order->payment_intent_id);
             } else {
-                $intent = PaymentIntent::create([
-                    'amount'   => (int) round($order->total * 100), // pence / cents
-                    'currency' => strtolower(config('plantix.currency_code', 'usd')),
-                    'metadata' => [
-                        'order_id'     => $order->id,
-                        'order_number' => $order->order_number,
-                        'user_id'      => $user->id,
-                    ],
-                ], ['idempotency_key' => 'order_intent_' . $order->id]);
-
-                Payment::updateOrCreate(
-                    ['order_id' => $order->id, 'gateway' => 'stripe'],
+                $intent = \Stripe\PaymentIntent::create(
                     [
-                        'user_id'                => $user->id,
-                        'gateway_transaction_id' => $intent->id,
-                        'amount'                 => $order->total,
-                        'currency'               => strtolower(config('plantix.currency_code', 'usd')),
-                        'status'                 => 'pending',
-                    ]
+                        'amount'   => (int) round($order->total * 100),
+                        'currency' => strtolower(config('plantix.currency_code', 'usd')),
+                        'metadata' => [
+                            'order_id'     => $order->id,
+                            'order_number' => $order->order_number,
+                            'user_id'      => $user->id,
+                        ],
+                        'automatic_payment_methods' => ['enabled' => true],
+                    ],
+                    ['idempotency_key' => 'order-intent-' . $order->id]
                 );
+
+                $order->update(['payment_intent_id' => $intent->id]);
             }
 
             return response()->json([
-                'client_secret' => $intent->client_secret,
+                'client_secret'     => $intent->client_secret,
                 'payment_intent_id' => $intent->id,
             ]);
         } catch (\Stripe\Exception\ApiErrorException $e) {
-            Log::error('Stripe createIntent error', [
-                'order_id' => $order->id,
-                'message'  => $e->getMessage(),
-            ]);
-            return response()->json(['error' => 'Payment service unavailable. Please try again.'], 503);
+            Log::error('Stripe createIntent error', ['order_id' => $order->id, 'message' => $e->getMessage()]);
+            return response()->json(['error' => 'Payment service unavailable.'], 503);
         }
     }
 
-    // ──────────────────────────────────────────────────────────────────────────
-    // POST /stripe/webhook  (no CSRF; verified by Stripe signature)
-    // ──────────────────────────────────────────────────────────────────────────
-    public function webhook(Request $request)
+    // ─────────────────────────────────────────────────────────────────────────
+    // Stripe Webhook
+    // Route: POST /stripe/webhook  (excluded from CSRF in Kernel.php)
+    // ─────────────────────────────────────────────────────────────────────────
+
+    public function webhook(Request $request): Response
     {
-        $payload   = $request->getContent();
-        $sigHeader = $request->header('Stripe-Signature');
+        $payload   = $request->getContent(); // MUST use raw content — not parsed input
+        $sigHeader = $request->header('Stripe-Signature', '');
         $secret    = config('services.stripe.webhook_secret');
 
+        if (empty($secret)) {
+            Log::error('STRIPE_WEBHOOK_SECRET not configured.');
+            return response('Server configuration error.', 500);
+        }
+
+        // 1. Verify signature
         try {
             $event = Webhook::constructEvent($payload, $sigHeader, $secret);
         } catch (\UnexpectedValueException $e) {
-            Log::warning('Stripe webhook: invalid payload', ['error' => $e->getMessage()]);
-            return response('Invalid payload', 400);
+            Log::warning('Stripe webhook invalid payload', ['error' => $e->getMessage()]);
+            return response('Invalid payload.', 400);
         } catch (SignatureVerificationException $e) {
-            Log::warning('Stripe webhook: invalid signature', ['error' => $e->getMessage()]);
-            return response('Invalid signature', 400);
+            Log::warning('Stripe webhook signature failed', ['ip' => $request->ip()]);
+            return response('Invalid signature.', 400);
         }
 
-        Log::info('Stripe webhook event received', ['type' => $event->type]);
+        Log::info('Stripe webhook received', ['type' => $event->type, 'id' => $event->id]);
 
-        match ($event->type) {
-            'payment_intent.succeeded'              => $this->handleIntentSucceeded($event->data->object),
-            'payment_intent.payment_failed'         => $this->handleIntentFailed($event->data->object),
-            'charge.refunded'                       => $this->handleChargeRefunded($event->data->object),
-            default                                 => null,
-        };
+        // 2. Route to handler — always return 200 to prevent Stripe retries
+        try {
+            match ($event->type) {
+                'payment_intent.succeeded'      => $this->handleIntentSucceeded($event->data->object),
+                'payment_intent.payment_failed' => $this->handleIntentFailed($event->data->object),
+                'charge.refunded'               => $this->handleChargeRefunded($event->data->object),
+                default                         => Log::debug("Stripe webhook ignored: {$event->type}"),
+            };
+        } catch (\Throwable $e) {
+            Log::error('Stripe webhook handler threw', [
+                'event'   => $event->type,
+                'message' => $e->getMessage(),
+            ]);
+        }
 
         return response('OK', 200);
     }
 
-    // ──────────────────────────────────────────────────────────────────────────
-    // GET /payment/success
-    // Redirect landing page after Stripe confirms payment on the frontend.
-    // ──────────────────────────────────────────────────────────────────────────
+    // ─────────────────────────────────────────────────────────────────────────
+    // Success redirect page
+    // ─────────────────────────────────────────────────────────────────────────
+
     public function success(Request $request)
     {
-        $orderId = $request->query('order_id');
+        $orderId = $request->query('order_id') ?? session('pending_order_id');
         $order   = $orderId ? Order::find($orderId) : null;
 
-        // If order belongs to authenticated user and is now paid, show success view.
         if ($order && (int) $order->user_id === (int) Auth::id() && $order->payment_status === 'paid') {
             return view('customer.payment-success', compact('order'));
         }
 
-        return redirect()->route('customer.orders.index')->with('info', 'Payment is being processed.');
+        return redirect()->route('orders')->with('info', 'Payment is being processed.');
     }
 
-    // ──────────────────────────────────────────────────────────────────────────
-    // Private helpers
-    // ──────────────────────────────────────────────────────────────────────────
+    // ─────────────────────────────────────────────────────────────────────────
+    // Private webhook handlers
+    // ─────────────────────────────────────────────────────────────────────────
 
     private function handleIntentSucceeded(\Stripe\PaymentIntent $intent): void
     {
-        DB::transaction(function () use ($intent) {
-            $payment = Payment::where('gateway_transaction_id', $intent->id)
-                              ->lockForUpdate()
-                              ->first();
+        $order = $this->checkout->confirmPayment($intent->id);
 
-            if (! $payment) {
-                Log::error('Stripe webhook: no Payment record for intent', ['intent_id' => $intent->id]);
-                return;
+        // Queue success notification
+        try {
+            if ($order->payment_status === 'paid') {
+                $order->user->notify(new \App\Notifications\PaymentSuccessNotification($order));
             }
-
-            if ($payment->status === 'completed') {
-                return; // Idempotent — already processed
-            }
-
-            $payment->update([
-                'status'           => 'completed',
-                'gateway_response' => $intent->toArray(),
-                'paid_at'          => now(),
-            ]);
-
-            // Mark order as paid and move status to confirmed
-            $order = Order::lockForUpdate()->find($payment->order_id);
-            if ($order && $order->payment_status !== 'paid') {
-                $order->update([
-                    'payment_status' => 'paid',
-                    'status'         => 'confirmed',
-                ]);
-            }
-        });
+        } catch (\Throwable $e) {
+            Log::error('PaymentSuccessNotification failed', ['order_id' => $order->id]);
+        }
     }
 
     private function handleIntentFailed(\Stripe\PaymentIntent $intent): void
     {
-        $payment = Payment::where('gateway_transaction_id', $intent->id)->first();
-        if (! $payment) {
-            return;
+        $this->checkout->handlePaymentFailed($intent->id);
+
+        // Queue failure notification
+        try {
+            $payment = \App\Models\Payment::where('gateway_transaction_id', $intent->id)->first();
+            if ($payment) {
+                $order = Order::find($payment->order_id);
+                $order?->user?->notify(new \App\Notifications\PaymentFailedNotification($order));
+            }
+        } catch (\Throwable $e) {
+            Log::error('PaymentFailedNotification failed', ['intent_id' => $intent->id]);
         }
-
-        $payment->update([
-            'status'           => 'failed',
-            'gateway_response' => $intent->toArray(),
-        ]);
-
-        Order::where('id', $payment->order_id)
-             ->where('payment_status', 'pending')
-             ->update(['payment_status' => 'failed']);
     }
 
+    /**
+     * charge.refunded — Stripe-initiated refund (from Dashboard or API).
+     * Reconciles our payment/order records.
+     */
     private function handleChargeRefunded(\Stripe\Charge $charge): void
     {
-        if (empty($charge->payment_intent)) {
-            return;
+        if (empty($charge->payment_intent)) return;
+
+        $payment = \App\Models\Payment::where('gateway_transaction_id', $charge->payment_intent)->first();
+        if (! $payment) return;
+
+        if ($payment->status !== 'refunded') {
+            $refunds = $charge->refunds->data ?? [];
+            $latest  = ! empty($refunds) ? end($refunds) : null;
+
+            $payment->update([
+                'status'             => 'refunded',
+                'gateway_refund_id'  => $latest?->id,
+            ]);
+
+            // Move order to refunded status (if not already)
+            $order = Order::find($payment->order_id);
+            if ($order && ! $order->isRefunded()) {
+                $order->update([
+                    'status'         => Order::STATUS_REFUNDED,
+                    'payment_status' => 'refunded',
+                ]);
+
+                \App\Models\OrderStatusHistory::create([
+                    'order_id' => $order->id,
+                    'status'   => Order::STATUS_REFUNDED,
+                    'notes'    => 'Refund reconciled via charge.refunded webhook.',
+                ]);
+            }
         }
-
-        $payment = Payment::where('gateway_transaction_id', $charge->payment_intent)->first();
-        if (! $payment) {
-            return;
-        }
-
-        $payment->update([
-            'status'           => 'refunded',
-            'gateway_response' => $charge->toArray(),
-        ]);
-
-        Order::where('id', $payment->order_id)
-             ->update(['payment_status' => 'refunded']);
     }
 }

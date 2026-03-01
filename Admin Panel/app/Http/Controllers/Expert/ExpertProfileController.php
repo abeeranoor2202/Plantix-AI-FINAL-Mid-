@@ -46,8 +46,8 @@ class ExpertProfileController extends Controller
         $this->service->updateProfile($expert, $request->validated());
 
         // Handle avatar upload if provided
-        if ($request->hasFile('avatar')) {
-            $this->service->uploadAvatar($expert, $request->file('avatar'));
+        if ($request->hasFile('profile_image')) {
+            $this->service->uploadAvatar($expert, $request->file('profile_image'));
         }
 
         // Sync specializations if provided

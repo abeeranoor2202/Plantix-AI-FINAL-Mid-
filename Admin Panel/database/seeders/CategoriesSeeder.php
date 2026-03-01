@@ -13,70 +13,22 @@ class CategoriesSeeder extends Seeder
         $now = Carbon::now();
 
         $categories = [
-            [
-                'name'        => 'Seeds',
-                'description' => 'Certified & hybrid vegetable, cereal, and oilseed seeds for Pakistani farmers',
-                'sort_order'  => 1,
-            ],
-            [
-                'name'        => 'Fertilizers',
-                'description' => 'Urea, DAP, SOP, NP and organic fertilizers for all crops',
-                'sort_order'  => 2,
-            ],
-            [
-                'name'        => 'Pesticides',
-                'description' => 'Broad-spectrum and selective pesticides for crop protection',
-                'sort_order'  => 3,
-            ],
-            [
-                'name'        => 'Insecticides',
-                'description' => 'Chemical and biological insecticides to control insects in crops',
-                'sort_order'  => 4,
-            ],
-            [
-                'name'        => 'Herbicides',
-                'description' => 'Pre and post-emergence weed control chemicals',
-                'sort_order'  => 5,
-            ],
-            [
-                'name'        => 'Fungicides',
-                'description' => 'Systemic and contact fungicides to control fungal diseases',
-                'sort_order'  => 6,
-            ],
-            [
-                'name'        => 'Plant Growth Regulators',
-                'description' => 'Hormones and growth regulators to improve yield and fruit quality',
-                'sort_order'  => 7,
-            ],
-            [
-                'name'        => 'Bio Pesticides',
-                'description' => 'Organic and bio-rationale pest control solutions',
-                'sort_order'  => 8,
-            ],
-            [
-                'name'        => 'Irrigation Equipment',
-                'description' => 'Drip, sprinkler, and furrow irrigation tools and fittings',
-                'sort_order'  => 9,
-            ],
-            [
-                'name'        => 'Farm Tools & Machinery',
-                'description' => 'Hand tools, sprayers, and small machinery for agriculture',
-                'sort_order'  => 10,
-            ],
+            ['name' => 'Seeds & Planting',           'description' => 'High-quality seeds for all major crops — wheat, rice, vegetables, and fruits.', 'active' => 1, 'sort_order' => 1],
+            ['name' => 'Fertilizers & Soil Nutrients','description' => 'Macro and micro nutrient fertilizers to improve crop yield and soil health.',  'active' => 1, 'sort_order' => 2],
+            ['name' => 'Pesticides & Herbicides',     'description' => 'Safe and effective pest control solutions for all field and vegetable crops.',   'active' => 1, 'sort_order' => 3],
+            ['name' => 'Farming Tools & Equipment',   'description' => 'Durable hand tools, soil meters, and manual equipment for the modern farmer.',   'active' => 1, 'sort_order' => 4],
+            ['name' => 'Irrigation & Water Systems',  'description' => 'Drip kits, sprinkler systems, pumps, and pipes for water-efficient farming.',     'active' => 1, 'sort_order' => 5],
+            ['name' => 'Greenhouse Supplies',         'description' => 'UV films, shade nets, hydroponic kits, and grow bags for protected cultivation.',  'active' => 1, 'sort_order' => 6],
+            ['name' => 'Animal Feed & Livestock',     'description' => 'Nutritionally balanced feeds for poultry, dairy cattle, goats, and fish.',        'active' => 1, 'sort_order' => 7],
+            ['name' => 'Organic & Natural Products',  'description' => 'Eco-friendly, chemical-free alternatives for sustainable and organic farming.',    'active' => 1, 'sort_order' => 8],
         ];
 
         foreach ($categories as $cat) {
-            DB::table('categories')->insert([
-                'name'        => $cat['name'],
-                'description' => $cat['description'],
-                'image'       => null,
-                'active'      => true,
-                'sort_order'  => $cat['sort_order'],
-                'created_at'  => $now,
-                'updated_at'  => $now,
-            ]);
+            DB::table('categories')->insert(array_merge($cat, [
+                'image'      => null,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ]));
         }
-
-        $this->command->info('CategoriesSeeder: ' . DB::table('categories')->count() . ' categories inserted.');
     }
 }

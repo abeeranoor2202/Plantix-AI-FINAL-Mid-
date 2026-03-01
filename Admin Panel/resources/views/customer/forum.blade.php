@@ -78,7 +78,7 @@
                 <!-- Forum Threads List -->
                 <div id="forumThreads" class="list-group list-group-flush border rounded-3 overflow-hidden">
                     @forelse($threads->items() as $thread)
-                    <a href="{{ route('forum.thread', $thread->id) }}"
+                    <a href="{{ route('forum.thread', $thread->slug) }}"
                        class="list-group-item list-group-item-action px-4 py-4 position-relative text-decoration-none" style="transition: all 0.2s; border-left: 4px solid transparent; border-bottom: 1px solid var(--agri-border);" onmouseover="this.style.background='#F9FAFB'; this.style.borderLeft='4px solid var(--agri-primary)';" onmouseout="this.style.background='white'; this.style.borderLeft='4px solid transparent';">
                         
                         <div class="d-flex align-items-start gap-4">

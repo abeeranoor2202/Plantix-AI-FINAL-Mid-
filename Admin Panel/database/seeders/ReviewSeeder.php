@@ -6,117 +6,94 @@ use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 
+/**
+ * ReviewSeeder — one review per delivered order (respects UNIQUE user_id+order_id).
+ */
 class ReviewSeeder extends Seeder
 {
     public function run(): void
     {
-        // Only review orders with status "delivered" — matches real usage
-        $orders = DB::table('orders')
-            ->where('status', 'delivered')
-            ->get(['id', 'user_id', 'vendor_id']);
-
-        if ($orders->isEmpty()) {
-            // Fallback: include all orders if no delivered ones exist yet
-            $orders = DB::table('orders')->get(['id', 'user_id', 'vendor_id']);
-        }
-
-        if ($orders->isEmpty()) {
-            $this->command->warn('No orders found. Run OrdersSeeder first.');
-            return;
-        }
-
         $now = Carbon::now();
 
-        // Realistic agricultural product review comments (Urdu/English mix)
-        $positiveComments = [
-            // Seeds reviews
-            'Super Basmati seeds ki germination rate zabardast thi. 95% se zyada sprouting in first week. Very happy with this purchase.',
-            'AARI-2011 wheat variety ne is season excellent yield diya. 60+ mann per acre. Highly recommend for Punjab zone.',
-            'Fauji Hybrid Maize seed quality aur packaging dono behtareen. Dealer delivered on time bhi. 5 stars deservingly.',
-            'Cotton seeds phool bahut achi aaye. Kheti ki shuraat se hi plants healthy dikhay. Koi disease nahi aaya pehle 6 hafton tak.',
-            // Fertilizer reviews
-            'Engro Urea ka quality consistent hai. Granule size uniform aur no caking issue. Delivery condition bhi perfect thi.',
-            'DAP fertilizer applied at sowing stage — wheat plants showed strong root development visible after 2 weeks. Quality product.',
-            'SOP fertilizer ne cotton boll retention improve kiya is saal. Comparison kari thi last year ki same field se — clear difference.',
-            'FFC fertilizer aur Engro ka jo bhi main comparison karta hoon, Engro ki quality superior lagti hai consistently.',
-            // Pesticide reviews
-            'Tilt 250EC spot on for wheat rust control. Applied at first sign and disease stopped within 7 days. Genuine product.',
-            'Confidor 200SL for whitefly worked well in first application. Gave 3-week protection easily.',
-            'Spray machine bhi liya saath mein — both products quality checked and confirmed. Value for money.',
-            'Syngenta products are always consistent. Never had counterfeit issue from this vendor.',
-            // General
-            'Packaging was excellent, bottle sealed properly, no leakage. Delivery was 2 days faster than expected.',
-            'Price is slightly higher than local market but quality is guaranteed original here. Worth the premium.',
-            'Second order already placed. Pehle order ki delivery aur quality dono perfect thi.',
-            'Is vendor se pehli dafa order kiya — impressed with professionalism. Will order again next season.',
+        $comments = [
+            5 => [
+                'Excellent quality! Product exactly as described. Fast delivery.',
+                'Very satisfied with this purchase. Will order again.',
+                'Top-notch product and very professional vendor.',
+                'Great value for money. Highly recommended to all farmers.',
+                'Delivered on time and packaging was perfect. 5 stars!',
+            ],
+            4 => [
+                'Good product, minor delay in delivery but worth it.',
+                'Product quality is decent. A bit expensive but effective.',
+                'Mostly satisfied. Packaging could be better.',
+                'Works as described. Good vendor communication.',
+                'Solid product. Delivery was a day late but acceptable.',
+            ],
+            3 => [
+                'Average quality. Does the job but nothing special.',
+                'Okay product. Expected a bit more for the price.',
+                'Neutral experience. Delivery was fine, product is average.',
+                'It works but I have seen better quality elsewhere.',
+                'Satisfactory but not outstanding.',
+            ],
+            2 => [
+                'Disappointed with the product quality. Expected better.',
+                'Packaging was damaged on arrival. Product still usable.',
+                'Not worth the price. Would not recommend.',
+                'Delivery was very late and product did not match images.',
+            ],
+            1 => [
+                'Very poor quality. Not as described at all.',
+                'Complete waste of money. Will be returning this.',
+                'Terrible experience. Product was damaged and vendor unresponsive.',
+            ],
         ];
 
-        $moderateComments = [
-            'Product quality theek thi but delivery mein 2 din zyada lage. Overall kaam aya.',
-            'Seed germination good thi but packaging thori damaged aayi. Product itself genuine laga.',
-            'Fertilizer ka quality okay hai but price thora ziada lagta hai compared to local dealer.',
-            'Acha product hai. Delivery on time thi. Bas quantity wali bag thori choti lagi.',
-            'First time order kiya. Quality theek rahi. Aagla experience ka wait karunga before 5 stars.',
-            'Pesticide ne kaam kiya but 2 sprays lagay ek mein problem solve karne ke liye.',
-        ];
+        // Only review delivered orders — enforces unique(user_id, order_id)
+        $deliveredOrders = DB::table('orders as o')
+            ->join('order_items as oi', 'oi.order_id', '=', 'o.id')
+            ->where('o.status', 'delivered')
+            ->select('o.id as order_id', 'o.user_id', 'o.vendor_id', 'oi.product_id', 'o.created_at')
+            ->groupBy('o.id', 'o.user_id', 'o.vendor_id', 'oi.product_id', 'o.created_at')
+            ->limit(55)
+            ->get();
 
-        $negativeComments = [
-            'Seed germination rate sirf 60% rahi. Expected much better quality from premium brand.',
-            'Fertilizer bag partially wet when received. Quality might have been compromised.',
-            'Wrong product delivered initially. After complaint, correct item came after 5 days. Inconvenienced.',
-        ];
+        $reviewed = []; // track user_id+order_id to avoid duplicates
 
-        // Realistic rating distribution (positively skewed — satisfied farmers review more)
-        $ratingPool = [5, 5, 5, 5, 4, 4, 4, 4, 3, 3, 2, 1]; // weighted
-
-        $reviews = [];
-        $seenPairs = []; // Track unique (user_id, order_id) to respect constraint
-
-        foreach ($orders as $order) {
-            $pairKey = $order->user_id . '_' . $order->id;
-            if (isset($seenPairs[$pairKey])) {
-                continue; // Skip duplicate
-            }
-            $seenPairs[$pairKey] = true;
-
-            // ~80% of delivered orders get reviewed
-            if (rand(1, 10) > 8) {
+        foreach ($deliveredOrders as $o) {
+            $key = $o->user_id . '_' . $o->order_id;
+            if (isset($reviewed[$key])) {
                 continue;
             }
+            $reviewed[$key] = true;
 
-            $rating = $ratingPool[array_rand($ratingPool)];
-            $comment = match (true) {
-                $rating >= 4 => $positiveComments[array_rand($positiveComments)],
-                $rating == 3 => $moderateComments[array_rand($moderateComments)],
-                default      => $negativeComments[array_rand($negativeComments)],
-            };
+            // Weighted rating — most reviews are positive
+            $rating = $this->weightedRating();
+            $pool   = $comments[$rating];
 
-            // Try to get a product from this order for product-specific review
-            $orderItem = DB::table('order_items')->where('order_id', $order->id)->first(['product_id']);
-            $productId = $orderItem ? $orderItem->product_id : null;
-
-            $reviews[] = [
-                'user_id'    => $order->user_id,
-                'vendor_id'  => $order->vendor_id,
-                'product_id' => $productId,
-                'order_id'   => $order->id,
+            DB::table('reviews')->insert([
+                'user_id'    => $o->user_id,
+                'vendor_id'  => $o->vendor_id,
+                'product_id' => $o->product_id,
+                'order_id'   => $o->order_id,
                 'rating'     => $rating,
-                'comment'    => $comment,
-                'is_active'  => true,
-                'created_at' => Carbon::now()->subDays(rand(1, 60)),
+                'comment'    => $pool[array_rand($pool)],
+                'is_active'  => 1,
+                'created_at' => Carbon::parse($o->created_at)->addDays(rand(3, 10)),
                 'updated_at' => $now,
-            ];
+            ]);
         }
+    }
 
-        if (empty($reviews)) {
-            $this->command->warn('No reviews to insert (no eligible orders found).');
-            return;
-        }
-
-        foreach (array_chunk($reviews, 100) as $chunk) {
-            DB::table('reviews')->insertOrIgnore($chunk);
-        }
-
-        $this->command->info('ReviewSeeder: ' . count($reviews) . ' reviews seeded across ' . $orders->count() . ' eligible orders.');
+    /** Weighted: 5★ 40%, 4★ 30%, 3★ 15%, 2★ 10%, 1★ 5% */
+    private function weightedRating(): int
+    {
+        $r = rand(1, 100);
+        if ($r <= 40) return 5;
+        if ($r <= 70) return 4;
+        if ($r <= 85) return 3;
+        if ($r <= 95) return 2;
+        return 1;
     }
 }

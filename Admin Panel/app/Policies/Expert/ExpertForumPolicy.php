@@ -17,6 +17,7 @@ class ExpertForumPolicy
 
     /**
      * Experts can reply to open, approved threads.
+     * Uses Expert::isApproved() to avoid N+1 JOIN to expert_profiles.
      */
     public function reply(User $user, ForumThread $thread): bool
     {
@@ -24,6 +25,15 @@ class ExpertForumPolicy
             && $user->expert->isApproved()
             && $thread->is_approved
             && ! $thread->is_locked;
+    }
+
+    /**
+     * Experts can mark an answer as official only when their account is approved.
+     * Previously missing — this was not enforced at policy level.
+     */
+    public function markOfficial(User $user): bool
+    {
+        return $user->expert !== null && $user->expert->canPostOfficialAnswer();
     }
 
     /**

@@ -5,6 +5,13 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+/**
+ * ExpertProfile — Extended profile fields only.
+ *
+ * NOTE: approval_status here is SECONDARY — it mirrors Expert.status for
+ * historical reasons and admin notes. The Expert model is the authoritative
+ * source of truth for lifecycle state.
+ */
 class ExpertProfile extends Model
 {
     protected $fillable = [
@@ -50,14 +57,26 @@ class ExpertProfile extends Model
         return $this->approval_status === 'suspended';
     }
 
+    public function isUnderReview(): bool
+    {
+        return $this->approval_status === 'under_review';
+    }
+
+    public function isInactive(): bool
+    {
+        return $this->approval_status === 'inactive';
+    }
+
     public function getStatusBadgeAttribute(): string
     {
         return match ($this->approval_status) {
-            'approved'  => 'success',
-            'pending'   => 'warning',
-            'rejected'  => 'danger',
-            'suspended' => 'secondary',
-            default     => 'light',
+            'approved'     => 'success',
+            'pending'      => 'warning',
+            'under_review' => 'info',
+            'rejected'     => 'danger',
+            'suspended'    => 'secondary',
+            'inactive'     => 'dark',
+            default        => 'light',
         };
     }
 
@@ -71,5 +90,10 @@ class ExpertProfile extends Model
     public function scopeApproved($query)
     {
         return $query->where('approval_status', 'approved');
+    }
+
+    public function scopeUnderReview($query)
+    {
+        return $query->where('approval_status', 'under_review');
     }
 }

@@ -65,12 +65,12 @@ class ExpertProfileService
      */
     public function uploadAvatar(Expert $expert, UploadedFile $file): string
     {
-        if ($expert->avatar && Storage::disk('public')->exists($expert->avatar)) {
-            Storage::disk('public')->delete($expert->avatar);
+        if ($expert->profile_image && Storage::disk('public')->exists($expert->profile_image)) {
+            Storage::disk('public')->delete($expert->profile_image);
         }
 
         $path = $file->store('experts/avatars', 'public');
-        $expert->update(['avatar' => $path]);
+        $expert->update(['profile_image' => $path]);
 
         return $path;
     }

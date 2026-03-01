@@ -12,43 +12,78 @@ class Appointment extends Model
 {
     use SoftDeletes;
 
-    // Full lifecycle statuses
-    public const STATUS_REQUESTED    = 'requested';
-    public const STATUS_PENDING      = 'pending';
-    public const STATUS_ACCEPTED     = 'accepted';
-    public const STATUS_CONFIRMED    = 'confirmed';
-    public const STATUS_REJECTED     = 'rejected';
-    public const STATUS_RESCHEDULED  = 'rescheduled';
-    public const STATUS_COMPLETED    = 'completed';
-    public const STATUS_CANCELLED    = 'cancelled';
+    // ── Status constants — must match DB ENUM from migration ──────────────────
+    // Spec state machine:
+    //   draft → pending_payment → payment_failed
+    //                           → pending_expert_approval → confirmed → completed
+    //                                                    → rejected
+    //                              confirmed → cancelled / reschedule_requested
+    //                              reschedule_requested → confirmed
+    //   ANY  → cancelled (admin only)
+    public const STATUS_DRAFT                   = 'draft';
+    public const STATUS_PENDING_PAYMENT         = 'pending_payment';
+    public const STATUS_PAYMENT_FAILED          = 'payment_failed';
+    public const STATUS_PENDING_EXPERT_APPROVAL = 'pending_expert_approval';
+    public const STATUS_CONFIRMED               = 'confirmed';
+    public const STATUS_REJECTED                = 'rejected';
+    public const STATUS_COMPLETED               = 'completed';
+    public const STATUS_CANCELLED               = 'cancelled';
+    public const STATUS_RESCHEDULE_REQUESTED    = 'reschedule_requested';
 
-    public const VALID_STATUSES = [
-        self::STATUS_REQUESTED,
-        self::STATUS_PENDING,
-        self::STATUS_ACCEPTED,
-        self::STATUS_CONFIRMED,
-        self::STATUS_REJECTED,
-        self::STATUS_RESCHEDULED,
-        self::STATUS_COMPLETED,
-        self::STATUS_CANCELLED,
+    // Legacy aliases — kept for backwards compat with existing service code
+    public const STATUS_REQUESTED   = 'requested';
+    public const STATUS_PENDING     = 'pending';
+    public const STATUS_ACCEPTED    = 'accepted';
+    public const STATUS_RESCHEDULED = 'rescheduled';
+
+    /**
+     * Allowed status → [next statuses] map (strict state machine).
+     * Admin can always force-cancel; enforced by service, not this map.
+     */
+    public const TRANSITIONS = [
+        self::STATUS_DRAFT                   => [self::STATUS_PENDING_PAYMENT],
+        self::STATUS_PENDING_PAYMENT         => [self::STATUS_PENDING_EXPERT_APPROVAL, self::STATUS_PAYMENT_FAILED],
+        self::STATUS_PAYMENT_FAILED          => [self::STATUS_PENDING_PAYMENT],
+        self::STATUS_PENDING_EXPERT_APPROVAL => [self::STATUS_CONFIRMED, self::STATUS_REJECTED],
+        self::STATUS_CONFIRMED               => [self::STATUS_COMPLETED, self::STATUS_CANCELLED, self::STATUS_RESCHEDULE_REQUESTED],
+        self::STATUS_RESCHEDULE_REQUESTED    => [self::STATUS_CONFIRMED, self::STATUS_CANCELLED],
+        self::STATUS_REJECTED                => [],
+        self::STATUS_COMPLETED               => [],
+        self::STATUS_CANCELLED               => [],
+        // Legacy
+        self::STATUS_REQUESTED               => [self::STATUS_PENDING_EXPERT_APPROVAL, self::STATUS_CANCELLED],
+        self::STATUS_PENDING                 => [self::STATUS_PENDING_PAYMENT, self::STATUS_CANCELLED],
+        self::STATUS_ACCEPTED                => [self::STATUS_CONFIRMED, self::STATUS_CANCELLED, self::STATUS_COMPLETED],
+        self::STATUS_RESCHEDULED             => [self::STATUS_CONFIRMED, self::STATUS_CANCELLED],
     ];
 
     protected $fillable = [
-        'user_id', 'expert_id', 'scheduled_at', 'duration_minutes',
-        'status', 'notes', 'admin_notes', 'fee', 'payment_status',
+        'user_id', 'expert_id', 'admin_id',
+        'scheduled_at', 'scheduled_date', 'start_time', 'end_time', 'duration_minutes',
+        'status', 'notes', 'admin_notes', 'expert_response_notes', 'cancellation_reason',
+        'fee', 'payment_status',
+        'stripe_payment_intent_id', 'stripe_payment_status',
+        'is_refunded', 'refunded_at', 'stripe_refund_id', 'refund_amount',
         'topic', 'meeting_link',
         'reschedule_requested_at', 'accepted_at', 'rejected_at',
-        'completed_at', 'reject_reason',
+        'cancelled_at', 'completed_at', 'reject_reason',
+        'reminder_sent_at', 'payment_idempotency_key',
     ];
 
     protected $casts = [
-        'scheduled_at'              => 'datetime',
-        'reschedule_requested_at'   => 'datetime',
-        'accepted_at'               => 'datetime',
-        'rejected_at'               => 'datetime',
-        'completed_at'              => 'datetime',
-        'fee'                       => 'decimal:2',
-        'duration_minutes'          => 'integer',
+        'scheduled_at'            => 'datetime',
+        'scheduled_date'          => 'date',
+        'reschedule_requested_at' => 'datetime',
+        'accepted_at'             => 'datetime',
+        'rejected_at'             => 'datetime',
+        'cancelled_at'            => 'datetime',
+        'completed_at'            => 'datetime',
+        'refunded_at'             => 'datetime',
+        'reminder_sent_at'        => 'datetime',
+        'fee'                     => 'decimal:2',
+        'refund_amount'           => 'decimal:2',
+        'duration_minutes'        => 'integer',
+        'is_refunded'             => 'boolean',
     ];
 
     // ── Relationships ─────────────────────────────────────────────────────────
@@ -63,9 +98,19 @@ class Appointment extends Model
         return $this->belongsTo(Expert::class);
     }
 
+    public function admin(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'admin_id');
+    }
+
     public function statusHistory(): HasMany
     {
         return $this->hasMany(AppointmentStatusHistory::class)->orderBy('changed_at', 'asc');
+    }
+
+    public function logs(): HasMany
+    {
+        return $this->hasMany(AppointmentLog::class)->orderBy('occurred_at', 'asc');
     }
 
     public function reschedules(): HasMany
@@ -78,70 +123,125 @@ class Appointment extends Model
         return $this->hasOne(AppointmentReschedule::class)->latestOfMany();
     }
 
+    public function slot(): HasOne
+    {
+        return $this->hasOne(AppointmentSlot::class);
+    }
+
     // ── Scopes ────────────────────────────────────────────────────────────────
 
-    public function scopePending($query)       { return $query->where('status', self::STATUS_PENDING); }
-    public function scopeRequested($query)     { return $query->where('status', self::STATUS_REQUESTED); }
-    public function scopeAccepted($query)      { return $query->where('status', self::STATUS_ACCEPTED); }
+    public function scopePendingPayment($q)    { return $q->where('status', self::STATUS_PENDING_PAYMENT); }
+    public function scopePendingApproval($q)   { return $q->where('status', self::STATUS_PENDING_EXPERT_APPROVAL); }
     public function scopeConfirmed($query)     { return $query->where('status', self::STATUS_CONFIRMED); }
     public function scopeRejected($query)      { return $query->where('status', self::STATUS_REJECTED); }
-    public function scopeRescheduled($query)   { return $query->where('status', self::STATUS_RESCHEDULED); }
     public function scopeCompleted($query)     { return $query->where('status', self::STATUS_COMPLETED); }
     public function scopeCancelled($query)     { return $query->where('status', self::STATUS_CANCELLED); }
     public function scopeUpcoming($query)      { return $query->where('scheduled_at', '>=', now()); }
-    public function scopeForExpert($query, int $expertId) { return $query->where('expert_id', $expertId); }
+    public function scopeForExpert($q, int $id){ return $q->where('expert_id', $id); }
+    // Legacy
+    public function scopePending($query)       { return $query->where('status', self::STATUS_PENDING); }
+    public function scopeRequested($query)     { return $query->where('status', self::STATUS_REQUESTED); }
+    public function scopeAccepted($query)      { return $query->where('status', self::STATUS_ACCEPTED); }
+    public function scopeRescheduled($query)   { return $query->where('status', self::STATUS_RESCHEDULED); }
 
-    // ── Helpers ───────────────────────────────────────────────────────────────
+    // ── State machine ─────────────────────────────────────────────────────────
 
-    public function getStatusBadgeAttribute(): string
+    /**
+     * Assert a status transition is valid; throw DomainException if not.
+     * Pass $isAdmin = true to allow force-cancel from any status.
+     *
+     * @throws \DomainException
+     */
+    public function assertCanTransitionTo(string $targetStatus, bool $isAdmin = false): void
     {
-        return match ($this->status) {
-            self::STATUS_REQUESTED   => 'primary',
-            self::STATUS_PENDING     => 'warning',
-            self::STATUS_ACCEPTED    => 'info',
-            self::STATUS_CONFIRMED   => 'info',
-            self::STATUS_REJECTED    => 'danger',
-            self::STATUS_RESCHEDULED => 'secondary',
-            self::STATUS_COMPLETED   => 'success',
-            self::STATUS_CANCELLED   => 'dark',
-            default                  => 'light',
-        };
-    }
-
-    public function isActive(): bool
-    {
-        return in_array($this->status, [
-            self::STATUS_REQUESTED,
-            self::STATUS_PENDING,
-            self::STATUS_ACCEPTED,
-            self::STATUS_CONFIRMED,
-            self::STATUS_RESCHEDULED,
-        ]);
+        if ($isAdmin && $targetStatus === self::STATUS_CANCELLED) {
+            return; // admin can always cancel
+        }
+        $allowed = self::TRANSITIONS[$this->status] ?? [];
+        if (! in_array($targetStatus, $allowed, true)) {
+            throw new \DomainException(
+                "Cannot transition appointment #{$this->id} from '{$this->status}' to '{$targetStatus}'."
+            );
+        }
     }
 
     public function canBeAccepted(): bool
     {
-        return in_array($this->status, [self::STATUS_REQUESTED, self::STATUS_PENDING]);
+        return in_array($this->status, [
+            self::STATUS_PENDING_EXPERT_APPROVAL,
+            self::STATUS_REQUESTED,
+            self::STATUS_PENDING,
+        ]);
     }
 
-    public function canBeRejected(): bool
-    {
-        return $this->canBeAccepted();
-    }
+    public function canBeRejected(): bool   { return $this->canBeAccepted(); }
 
     public function canBeRescheduled(): bool
     {
         return in_array($this->status, [
-            self::STATUS_ACCEPTED,
             self::STATUS_CONFIRMED,
+            self::STATUS_ACCEPTED,
         ]);
     }
 
     public function canBeCompleted(): bool
     {
         return in_array($this->status, [
-            self::STATUS_ACCEPTED,
             self::STATUS_CONFIRMED,
+            self::STATUS_ACCEPTED,
         ]);
+    }
+
+    public function canBeCancelledByCustomer(): bool
+    {
+        return in_array($this->status, [
+            self::STATUS_DRAFT,
+            self::STATUS_PENDING_PAYMENT,
+            self::STATUS_PAYMENT_FAILED,
+            self::STATUS_PENDING_EXPERT_APPROVAL,
+            self::STATUS_CONFIRMED,
+            self::STATUS_RESCHEDULE_REQUESTED,
+        ]);
+    }
+
+    public function isPaid(): bool
+    {
+        return $this->stripe_payment_status === 'succeeded'
+            && $this->payment_status === 'paid';
+    }
+
+    public function isActive(): bool
+    {
+        return in_array($this->status, [
+            self::STATUS_PENDING_EXPERT_APPROVAL,
+            self::STATUS_CONFIRMED,
+            self::STATUS_RESCHEDULE_REQUESTED,
+            self::STATUS_REQUESTED,
+            self::STATUS_PENDING,
+            self::STATUS_ACCEPTED,
+            self::STATUS_RESCHEDULED,
+        ]);
+    }
+
+    // ── Presentation ──────────────────────────────────────────────────────────
+
+    public function getStatusBadgeAttribute(): string
+    {
+        return match ($this->status) {
+            self::STATUS_DRAFT                   => 'secondary',
+            self::STATUS_PENDING_PAYMENT         => 'warning',
+            self::STATUS_PAYMENT_FAILED          => 'danger',
+            self::STATUS_PENDING_EXPERT_APPROVAL => 'primary',
+            self::STATUS_CONFIRMED               => 'info',
+            self::STATUS_REJECTED                => 'danger',
+            self::STATUS_RESCHEDULE_REQUESTED    => 'secondary',
+            self::STATUS_COMPLETED               => 'success',
+            self::STATUS_CANCELLED               => 'dark',
+            self::STATUS_REQUESTED               => 'primary',
+            self::STATUS_PENDING                 => 'warning',
+            self::STATUS_ACCEPTED                => 'info',
+            self::STATUS_RESCHEDULED             => 'secondary',
+            default                              => 'light',
+        };
     }
 }

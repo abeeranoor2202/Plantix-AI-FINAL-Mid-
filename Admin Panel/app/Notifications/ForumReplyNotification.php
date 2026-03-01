@@ -29,7 +29,7 @@ class ForumReplyNotification extends Notification implements ShouldQueue
     public function via(object $notifiable): array
     {
         // Expert replies → email + in-app; regular replies → in-app only
-        return $this->reply->is_expert_answer
+        return $this->reply->is_expert_reply
             ? ['database', 'mail']
             : ['database'];
     }
@@ -54,14 +54,14 @@ class ForumReplyNotification extends Notification implements ShouldQueue
 
         return [
             'type'        => 'forum_reply',
-            'title'       => $this->reply->is_expert_answer
+            'title'       => $this->reply->is_expert_reply
                 ? "Expert replied to your thread"
                 : "{$author} replied to your thread",
             'body'        => "\"{$this->thread->title}\"",
             'action_url'  => '/forum/' . $this->thread->id,
             'thread_id'   => $this->thread->id,
             'reply_id'    => $this->reply->id,
-            'is_expert'   => $this->reply->is_expert_answer,
+            'is_expert'   => $this->reply->is_expert_reply,
         ];
     }
 }

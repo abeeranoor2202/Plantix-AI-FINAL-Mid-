@@ -69,16 +69,7 @@
                             </div>
 
                             <div class="d-flex gap-2 shrink-0">
-                                @auth
-                                    @if(auth('web')->id() === $thread->user_id)
-                                    <form method="POST" action="{{ route('forum.delete', $thread->id) }}" onsubmit="return confirm('Are you sure you want to delete this thread? This action cannot be undone.');">
-                                        @csrf @method('DELETE')
-                                        <button class="btn btn-outline-danger btn-sm shadow-none rounded-3 px-3 py-2" title="Delete Thread">
-                                            <i class="fas fa-trash-alt me-1"></i> Delete
-                                        </button>
-                                    </form>
-                                    @endif
-                                @endauth
+                                
                                 <a href="{{ route('forum') }}" class="btn-agri btn-agri-outline btn-sm shadow-sm py-2 px-3 text-dark">
                                     <i class="fas fa-arrow-left me-1"></i> Forum
                                 </a>
@@ -95,16 +86,16 @@
 
                     {{-- Replies Section --}}
                     <div class="mb-4 d-flex align-items-center gap-3">
-                        <h4 class="fw-bold text-dark m-0">Responses <span class="badge bg-light text-muted border ms-2 border-pill fs-6">{{ $thread->replies->count() }}</span></h4>
+                        <h4 class="fw-bold text-dark m-0">Responses <span class="badge bg-light text-muted border ms-2 border-pill fs-6">{{ $replies->total() }}</span></h4>
                         <div class="flex-grow-1 border-top"></div>
                     </div>
 
                     <div class="replies-list d-flex flex-column gap-3 mb-5">
-                        @forelse($thread->replies as $reply)
-                            <div class="card-agri p-4 border-0 shadow-sm {{ $reply->is_accepted ? 'border border-success border-opacity-50 border-2' : '' }}" style="{{ $reply->is_accepted ? 'background-color: rgba(16, 185, 129, 0.02);' : '' }}">
-                                @if($reply->is_accepted)
+                        @forelse($replies as $reply)
+                            <div class="card-agri p-4 border-0 shadow-sm {{ $reply->is_official ? 'border border-success border-opacity-50 border-2' : '' }}" style="{{ $reply->is_official ? 'background-color: rgba(16, 185, 129, 0.02);' : '' }}">
+                                @if($reply->is_official)
                                     <div class="badge bg-success text-white position-absolute top-0 end-0 m-3 px-3 py-2 rounded-pill shadow-sm">
-                                        <i class="fas fa-check-circle me-1"></i> Accepted Solution
+                                        <i class="fas fa-check-circle me-1"></i> Official Answer
                                     </div>
                                 @endif
                                 
@@ -132,6 +123,12 @@
                             </div>
                         @endforelse
                     </div>
+
+                    @if($replies->hasPages())
+                        <div class="d-flex justify-content-center mt-2 mb-4">
+                            {{ $replies->links('pagination::bootstrap-5') }}
+                        </div>
+                    @endif
 
                     {{-- Reply form --}}
                     @auth

@@ -3,6 +3,7 @@
 namespace App\Services\Shared;
 
 use App\Models\Order;
+use App\Models\Payment;
 use App\Models\Refund;
 use App\Models\ReturnRequest;
 use App\Models\User;
@@ -14,6 +15,8 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
+use Stripe\Refund as StripeRefund;
+use Stripe\Stripe;
 
 class ReturnRefundService
 {
@@ -150,29 +153,117 @@ class ReturnRefundService
 
     /**
      * Process a refund for an approved return.
+     *
+     * Handles:
+     *  - Stripe refund (full or partial via Stripe API with idempotency key)
+     *  - Wallet credit
+     *  - Order/return status update
+     *  - Stock already restored in approve() — do NOT restore again here
+     *
+     * @throws \DomainException if return is not in approved status
+     * @throws \Stripe\Exception\ApiErrorException on Stripe API failure
+     * @throws \Throwable
      */
     public function processRefund(ReturnRequest $return, array $data, User $processedBy): Refund
     {
-        return DB::transaction(function () use ($return, $data, $processedBy) {
+        if ($return->status !== 'approved') {
+            throw new \DomainException('Return must be approved before a refund can be issued.');
+        }
 
+        // Prevent duplicate refund
+        if ($return->status === 'refunded') {
+            throw new \DomainException('A refund has already been issued for this return.');
+        }
+
+        $amount = (float) $data['amount'];
+        $method = $data['method']; // 'original_payment' | 'wallet' | 'bank_transfer'
+
+        $stripeRefundId  = null;
+        $transactionRef  = $data['transaction_ref'] ?? null;
+
+        // ── Stripe API refund ─────────────────────────────────────────────────
+        if ($method === 'original_payment') {
+            $order = $return->order;
+
+            $payment = Payment::where('order_id', $order->id)
+                               ->where('gateway', 'stripe')
+                               ->where('status', 'completed')
+                               ->first();
+
+            if (! $payment || ! $payment->gateway_transaction_id) {
+                throw new \DomainException(
+                    'No completed Stripe payment found for this order. Use wallet or bank transfer.'
+                );
+            }
+
+            Stripe::setApiKey(config('services.stripe.secret'));
+
+            $stripeRefund = StripeRefund::create(
+                [
+                    'payment_intent' => $payment->gateway_transaction_id,
+                    'amount'         => (int) round($amount * 100), // cents
+                    'reason'         => 'requested_by_customer',
+                    'metadata'       => [
+                        'return_id' => $return->id,
+                        'order_id'  => $order->id,
+                        'admin_id'  => $processedBy->id,
+                    ],
+                ],
+                ['idempotency_key' => 'refund-return-' . $return->id]
+            );
+
+            $stripeRefundId = $stripeRefund->id;
+            $transactionRef = $stripeRefundId;
+
+            // Update the payment record
+            $payment->update([
+                'status'            => 'refunded',
+                'gateway_refund_id' => $stripeRefundId,
+            ]);
+        }
+
+        // ── Persist refund + update statuses inside a transaction ─────────────
+        return DB::transaction(function () use (
+            $return, $data, $amount, $method, $stripeRefundId, $transactionRef, $processedBy
+        ) {
             $refund = Refund::create([
                 'return_id'       => $return->id,
                 'order_id'        => $return->order_id,
-                'amount'          => $data['amount'],
-                'method'          => $data['method'],
+                'amount'          => $amount,
+                'method'          => $method,
                 'status'          => 'processed',
-                'transaction_ref' => $data['transaction_ref'] ?? null,
+                'transaction_ref' => $transactionRef,
                 'notes'           => $data['notes'] ?? null,
                 'processed_at'    => now(),
                 'processed_by'    => $processedBy->id,
             ]);
 
+            // Move return → refunded
             $return->update(['status' => 'refunded']);
-            $return->order->update(['payment_status' => 'refunded']);
 
-            // Wallet refund
-            if ($data['method'] === 'wallet') {
-                $return->user->increment('wallet_amount', $data['amount']);
+            // Move order → refunded
+            $return->order->update([
+                'status'         => Order::STATUS_REFUNDED,
+                'payment_status' => 'refunded',
+            ]);
+
+            \App\Models\OrderStatusHistory::create([
+                'order_id'   => $return->order_id,
+                'status'     => Order::STATUS_REFUNDED,
+                'notes'      => "Refund issued ({$method}): {$amount}. Ref: {$transactionRef}",
+                'changed_by' => $processedBy->id,
+            ]);
+
+            // Wallet credit
+            if ($method === 'wallet') {
+                $return->user->increment('wallet_amount', $amount);
+            }
+
+            // Notify customer
+            try {
+                $return->user->notify(new ReturnStatusNotification($return->fresh()));
+            } catch (\Throwable $e) {
+                Log::error('Refund notification failed', ['return_id' => $return->id]);
             }
 
             return $refund;

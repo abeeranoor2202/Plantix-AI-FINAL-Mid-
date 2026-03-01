@@ -11,90 +11,95 @@ class WalletAndPayoutsSeeder extends Seeder
     public function run(): void
     {
         $now      = Carbon::now();
-        $customers = DB::table('users')->where('role', 'user')->get();
-        $vendors  = DB::table('vendors')->get();
-        $orders   = DB::table('orders')->where('payment_status', 'paid')->get();
-        $adminId  = DB::table('users')->where('role', 'admin')->value('id');
+        $adminId  = DB::table('users')->where('email', 'admin@plantix.com')->value('id') ?? 1;
+        $vendors  = DB::table('vendors')->select('id')->pluck('id')->toArray();
+        $customers = DB::table('users')->where('role', 'user')->limit(20)->pluck('id')->toArray();
 
-        // ── Wallet Transactions ──────────────────────────────────
-        foreach ($customers as $user) {
-            $balance = (float) $user->wallet_amount;
-
-            // 2 credit transactions per customer (top-up / refund)
-            for ($i = 0; $i < 2; $i++) {
-                $credit  = round(rand(200, 2000) / 10) * 10;
-                $balance += $credit;
-                DB::table('wallet_transactions')->insert([
-                    'user_id'     => $user->id,
-                    'order_id'    => null,
-                    'type'        => 'credit',
-                    'amount'      => $credit,
-                    'balance'     => $balance,
-                    'description' => 'Wallet top-up via EasyPaisa/JazzCash',
-                    'created_at'  => $now->copy()->subDays(rand(1, 45)),
-                    'updated_at'  => $now->copy()->subDays(rand(1, 45)),
-                ]);
-            }
-
-            // 1 debit transaction per customer (order payment)
-            if ($balance > 500) {
-                $debit   = round(rand(200, (int)min($balance * 0.5, 3000)) / 10) * 10;
-                $balance -= $debit;
-
-                $userOrder = $orders->where('user_id', $user->id)->first();
-
-                DB::table('wallet_transactions')->insert([
-                    'user_id'     => $user->id,
-                    'order_id'    => $userOrder ? $userOrder->id : null,
-                    'type'        => 'debit',
-                    'amount'      => $debit,
-                    'balance'     => $balance,
-                    'description' => 'Payment for agri-input order',
-                    'created_at'  => $now->copy()->subDays(rand(0, 20)),
-                    'updated_at'  => $now->copy()->subDays(rand(0, 20)),
-                ]);
-            }
+        // ── Wallet Transactions ───────────────────────────────────────────────
+        $balance = [];
+        foreach ($customers as $userId) {
+            $balance[$userId] = 0;
         }
 
-        // ── Payouts ──────────────────────────────────────────────
-        $payoutMethods = ['bank_transfer', 'easypaisa', 'jazzcash'];
-        $payoutStatuses = ['pending', 'success', 'success', 'failed']; // weighted towards success
-
-        foreach ($vendors as $vendor) {
-            $numPayouts = rand(1, 3);
-            for ($p = 0; $p < $numPayouts; $p++) {
-                $status = $payoutStatuses[array_rand($payoutStatuses)];
-                DB::table('payouts')->insert([
-                    'vendor_id'       => $vendor->id,
-                    'admin_id'        => $adminId,
-                    'amount'          => round(rand(5000, 50000) / 100) * 100,
-                    'method'          => $payoutMethods[array_rand($payoutMethods)],
-                    'payment_status'  => $status,
-                    'transaction_ref' => $status === 'success' ? 'TXN-' . strtoupper(substr(md5(uniqid()), 0, 10)) : null,
-                    'notes'           => $status === 'failed' ? 'Bank account number mismatch – please reverify.' : null,
-                    'created_at'      => $now->copy()->subDays(rand(1, 30)),
-                    'updated_at'      => $now,
-                ]);
-            }
-        }
-
-        // ── Payout Requests ──────────────────────────────────────
-        $prStatuses = ['pending', 'approved', 'rejected'];
-        foreach ($vendors as $vendor) {
-            $prStatus = $prStatuses[array_rand($prStatuses)];
-            DB::table('payout_requests')->insert([
-                'vendor_id'    => $vendor->id,
-                'amount'       => round(rand(10000, 80000) / 100) * 100,
-                'method'       => $payoutMethods[array_rand($payoutMethods)],
-                'status'       => $prStatus,
-                'admin_note'   => $prStatus === 'rejected' ? 'Insufficient balance or documentation issue.' : null,
-                'reviewed_by'  => in_array($prStatus, ['approved', 'rejected']) ? $adminId : null,
-                'reviewed_at'  => in_array($prStatus, ['approved', 'rejected']) ? $now->copy()->subDays(rand(0, 5)) : null,
-                'created_at'   => $now->copy()->subDays(rand(1, 15)),
-                'updated_at'   => $now,
+        // Seed credits
+        foreach ($customers as $idx => $userId) {
+            $amount          = [500, 1000, 2000, 300, 750][$idx % 5];
+            $balance[$userId] += $amount;
+            DB::table('wallet_transactions')->insert([
+                'user_id'     => $userId,
+                'order_id'    => null,
+                'type'        => 'credit',
+                'amount'      => $amount,
+                'balance'     => $balance[$userId],
+                'description' => 'Welcome bonus credited to your wallet.',
+                'created_at'  => $now->copy()->subDays(rand(30, 200)),
+                'updated_at'  => $now,
             ]);
         }
 
-        $this->command->info('WalletAndPayoutsSeeder: ' . DB::table('wallet_transactions')->count() . ' wallet transactions, ' . DB::table('payouts')->count() . ' payouts, ' . DB::table('payout_requests')->count() . ' payout requests inserted.');
+        // Seed debits from delivered orders
+        $deliveredOrders = DB::table('orders')
+            ->where('payment_method', 'wallet')
+            ->whereIn('status', ['delivered'])
+            ->select('id', 'user_id', 'total')
+            ->limit(10)
+            ->get();
+
+        foreach ($deliveredOrders as $order) {
+            if (! isset($balance[$order->user_id])) {
+                $balance[$order->user_id] = 0;
+            }
+            $debit = min($order->total, $balance[$order->user_id]);
+            if ($debit <= 0) {
+                continue;
+            }
+            $balance[$order->user_id] -= $debit;
+            DB::table('wallet_transactions')->insert([
+                'user_id'     => $order->user_id,
+                'order_id'    => $order->id,
+                'type'        => 'debit',
+                'amount'      => $debit,
+                'balance'     => max(0, $balance[$order->user_id]),
+                'description' => 'Order #' . $order->id . ' payment deducted.',
+                'created_at'  => $now->copy()->subDays(rand(1, 60)),
+                'updated_at'  => $now,
+            ]);
+        }
+
+        // ── Vendor Payouts ────────────────────────────────────────────────────
+        $methods = ['stripe', 'bank_transfer'];
+        foreach ($vendors as $idx => $vendorId) {
+            // 2 payouts each
+            foreach ([1, 2] as $n) {
+                $amount = rand(5000, 80000);
+                $paid   = $n === 1;
+                DB::table('payouts')->insert([
+                    'vendor_id'      => $vendorId,
+                    'admin_id'       => $adminId,
+                    'amount'         => $amount,
+                    'method'         => $methods[$idx % count($methods)],
+                    'payment_status' => $paid ? 'success' : 'pending',
+                    'transaction_ref'=> $paid ? 'TXN' . strtoupper(substr(md5(uniqid()), 0, 10)) : null,
+                    'notes'          => $paid ? 'Monthly settlement processed.' : 'Pending settlement.',
+                    'created_at'     => $now->copy()->subDays(rand(10, 90)),
+                    'updated_at'     => $now,
+                ]);
+            }
+        }
+
+        // ── Payout Requests ───────────────────────────────────────────────────
+        foreach ($vendors as $idx => $vendorId) {
+            DB::table('payout_requests')->insert([
+                'vendor_id'   => $vendorId,
+                'amount'      => rand(10000, 50000),
+                'method'      => $methods[$idx % count($methods)],
+                'status'      => ['pending', 'approved', 'rejected'][$idx % 3],
+                'admin_note'  => 'Reviewed on schedule.',
+                'reviewed_by' => $adminId,
+                'reviewed_at' => $now->copy()->subDays(rand(1, 30)),
+                'created_at'  => $now->copy()->subDays(rand(5, 40)),
+                'updated_at'  => $now,
+            ]);
+        }
     }
 }

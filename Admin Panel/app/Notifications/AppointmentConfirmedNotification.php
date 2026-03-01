@@ -8,6 +8,13 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
+/**
+ * Sent to customer when appointment is confirmed by expert or admin.
+ *
+ * FIX: Previous version referenced non-existent fields
+ *   $appt->appointment_date / $appt->appointment_time
+ * Corrected to use $appt->scheduled_at (the actual model field).
+ */
 class AppointmentConfirmedNotification extends Notification implements ShouldQueue
 {
     use Queueable;
@@ -22,10 +29,9 @@ class AppointmentConfirmedNotification extends Notification implements ShouldQue
     public function toMail(object $notifiable): MailMessage
     {
         $appt    = $this->appointment;
-        $dateStr = \Carbon\Carbon::parse($appt->appointment_date)->format('l, F j, Y');
-        $time    = $appt->appointment_time
-            ? \Carbon\Carbon::parse($appt->appointment_time)->format('g:i A')
-            : 'TBD';
+        $dateStr = $appt->scheduled_at?->format('l, F j, Y') ?? 'TBD';
+        $time    = $appt->scheduled_at?->format('g:i A') ?? 'TBD';
+        $expert  = optional(optional($appt->expert)->user)->name ?? 'Your Expert';
 
         return (new MailMessage())
             ->subject("Appointment Confirmed — {$dateStr}")
@@ -33,8 +39,9 @@ class AppointmentConfirmedNotification extends Notification implements ShouldQue
             ->line("Your appointment has been **confirmed**!")
             ->line("**Date:** {$dateStr}")
             ->line("**Time:** {$time}")
-            ->when($appt->expert, fn ($m) => $m->line("**Expert:** {$appt->expert->name}"))
-            ->action('View Appointment', route('appointment.details', $appt->id))
+            ->line("**Expert:** {$expert}")
+            ->when($appt->meeting_link, fn ($m) => $m->line("**Meeting Link:** {$appt->meeting_link}"))
+            ->action('View Appointment', url('/appointment/' . $appt->id))
             ->line('Please be available at the scheduled time. You may cancel up to 24 hours before.');
     }
 
@@ -43,8 +50,9 @@ class AppointmentConfirmedNotification extends Notification implements ShouldQue
         return [
             'type'           => 'appointment_confirmed',
             'appointment_id' => $this->appointment->id,
-            'message'        => "Your appointment on {$this->appointment->appointment_date} is confirmed.",
-            'date'           => $this->appointment->appointment_date,
+            'message'        => "Your appointment on {$this->appointment->scheduled_at?->format('M j, Y g:i A')} is confirmed.",
+            'scheduled_at'   => $this->appointment->scheduled_at?->toISOString(),
         ];
     }
 }
+

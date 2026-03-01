@@ -64,9 +64,9 @@ Route::middleware('auth:web')->group(function () {
 Route::get('/shop',      [\App\Http\Controllers\Frontend\ShopController::class, 'index'])->name('shop');
 Route::get('/shop/{id}', [\App\Http\Controllers\Frontend\ShopController::class, 'show'])->name('shop.single');
 
-Route::get('/forum',              [\App\Http\Controllers\Frontend\ForumController::class, 'index'])->name('forum');
-Route::get('/forum/{id}',         [\App\Http\Controllers\Frontend\ForumController::class, 'show'])->name('forum.thread');
-Route::redirect('/blog',          '/forum')->name('blog');
+Route::get('/forum',                  [\App\Http\Controllers\Frontend\ForumController::class, 'index'])->name('forum');
+Route::get('/forum/{slug}',           [\App\Http\Controllers\Frontend\ForumController::class, 'show'])->name('forum.thread');
+Route::redirect('/blog',              '/forum')->name('blog');
 
 // ══════════════════════════════════════════════════════════════════════════════
 // 4. AUTHENTICATED CUSTOMER ROUTES  [EnsureCustomerAuth]
@@ -75,9 +75,16 @@ Route::redirect('/blog',          '/forum')->name('blog');
 Route::middleware(['customer', 'verified'])->group(function () {
 
     // ── Forum (write operations) ──────────────────────────────────────────────
-    Route::get('/forum/new-thread',  [\App\Http\Controllers\Frontend\ForumController::class, 'create'])->name('forum.new');
-    Route::post('/forum',            [\App\Http\Controllers\Frontend\ForumController::class, 'store'])->name('forum.store');
-    Route::post('/forum/{id}/reply', [\App\Http\Controllers\Frontend\ForumController::class, 'reply'])->name('forum.reply');
+    // Rate limits: thread creation (5/min), replies (10/min), flags (3/min)
+    Route::get('/forum/new-thread',              [\App\Http\Controllers\Frontend\ForumController::class, 'create'])->name('forum.new');
+    Route::post('/forum',                        [\App\Http\Controllers\Frontend\ForumController::class, 'store'])->name('forum.store')
+        ->middleware('throttle:5,1');
+    Route::post('/forum/{thread}/reply',         [\App\Http\Controllers\Frontend\ForumController::class, 'reply'])->name('forum.reply')
+        ->middleware('throttle:10,1');
+    Route::patch('/forum/replies/{reply}',       [\App\Http\Controllers\Frontend\ForumController::class, 'editReply'])->name('forum.reply.edit');
+    Route::delete('/forum/replies/{reply}',      [\App\Http\Controllers\Frontend\ForumController::class, 'destroyReply'])->name('forum.reply.destroy');
+    Route::post('/forum/replies/{reply}/flag',   [\App\Http\Controllers\Frontend\ForumController::class, 'flagReply'])->name('forum.reply.flag')
+        ->middleware('throttle:3,1');
 
     // ── Cart ──────────────────────────────────────────────────────────────────
     Route::get('/cart',             [\App\Http\Controllers\Frontend\CartController::class, 'index'])->name('cart');
@@ -89,8 +96,10 @@ Route::middleware(['customer', 'verified'])->group(function () {
     Route::delete('/cart/coupon',   [\App\Http\Controllers\Frontend\CartController::class, 'removeCoupon'])->name('cart.coupon.remove');
 
     // ── Checkout ──────────────────────────────────────────────────────────────
-    Route::get('/checkout',   [\App\Http\Controllers\Frontend\CartController::class, 'checkout'])->name('checkout');
-    Route::post('/checkout',  [\App\Http\Controllers\Frontend\CartController::class, 'placeOrder'])->name('checkout.place');
+    Route::get('/checkout',                    [\App\Http\Controllers\Frontend\CartController::class, 'checkout'])->name('checkout');
+    Route::post('/checkout',                   [\App\Http\Controllers\Frontend\CartController::class, 'placeOrder'])->name('checkout.place');
+    Route::post('/checkout/stripe/initiate',   [\App\Http\Controllers\Frontend\StripePaymentController::class, 'initiateCheckout'])->name('checkout.stripe.initiate');
+    Route::get('/checkout/pay/{order}',        [\App\Http\Controllers\Frontend\StripePaymentController::class, 'showPaymentPage'])->name('checkout.pay');
 
     // ── Orders ────────────────────────────────────────────────────────────────
     Route::get('/orders',                  [\App\Http\Controllers\Frontend\CustomerOrderController::class, 'index'])->name('orders');
@@ -159,6 +168,13 @@ Route::middleware(['customer', 'verified'])->group(function () {
     Route::get('/plantix-ai/history',    [\App\Http\Controllers\Frontend\AiChatController::class, 'history'])->name('ai.chat.history');
     Route::post('/plantix-ai/new',       [\App\Http\Controllers\Frontend\AiChatController::class, 'newSession'])->name('ai.chat.new');
     Route::get('/plantix-ai/sessions',   [\App\Http\Controllers\Frontend\AiChatController::class, 'sessions'])->name('ai.chat.sessions');
+
+    // ── Expert Application ────────────────────────────────────────────────────
+    Route::prefix('/expert-application')->name('expert-application.')->group(function () {
+        Route::get('/',        [\App\Http\Controllers\Customer\CustomerExpertApplicationController::class, 'create'])->name('create');
+        Route::post('/',       [\App\Http\Controllers\Customer\CustomerExpertApplicationController::class, 'store'])->name('store');
+        Route::get('/status',  [\App\Http\Controllers\Customer\CustomerExpertApplicationController::class, 'status'])->name('status');
+    });
 
 }); // end customer middleware
 

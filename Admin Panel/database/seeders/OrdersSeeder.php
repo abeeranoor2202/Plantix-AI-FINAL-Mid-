@@ -6,126 +6,257 @@ use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 
+/**
+ * OrdersSeeder — 55 orders with items, payments, and status history.
+ *
+ * Status distribution:
+ *   30 delivered  (payment: paid)
+ *    8 cancelled  (payment: pending or failed)
+ *    5 pending    (payment: pending)
+ *    5 preparing / accepted
+ *    4 rejected
+ *    3 refunded
+ */
 class OrdersSeeder extends Seeder
 {
     public function run(): void
     {
-        $now      = Carbon::now();
-        $customers = DB::table('users')->where('role', 'user')->pluck('id')->toArray();
-        $drivers  = DB::table('users')->where('role', 'driver')->pluck('id')->toArray();
-        $vendors  = DB::table('vendors')->get();
-        $coupons  = DB::table('coupons')->pluck('id')->toArray();
+        $now        = Carbon::now();
+        $customers  = DB::table('users')->where('role', 'user')->pluck('id')->toArray();
+        $vendors    = DB::table('vendors')->select('id')->orderBy('id')->get()->toArray();
+        $products   = DB::table('products')->select('id', 'vendor_id', 'name', 'price', 'discount_price')->get()->groupBy('vendor_id');
+        $coupons    = DB::table('coupons')->where('is_active', 1)->pluck('id')->toArray();
 
-        $statuses   = ['pending', 'accepted', 'preparing', 'ready', 'driver_assigned', 'picked_up', 'delivered', 'rejected', 'cancelled'];
-        $payMethods = ['cash_on_delivery', 'easypaisa', 'jazzcash', 'bank_transfer', 'wallet'];
-        $payStatuses = ['pending', 'paid', 'refunded', 'failed'];
+        $adminId = DB::table('users')->where('role', 'admin')->orderBy('id')->value('id') ?? 1;
 
-        $addresses = [
-            'House 12, Street 4, Model Town, Lahore',
-            'Flat 3B, Al-Habib Apartments, Gulshan-e-Iqbal, Karachi',
-            'Chak 45/RB, District Faisalabad',
-            'Near Grain Market, Gujranwala',
-            'Village Alipur, Tehsil Mailsi, Vehari',
-            'Mohallah Hussain Agahi, Multan',
-            'House 88, Satellite Town, Rawalpindi',
-            'Chak 120/9-R, Sahiwal',
-            'Near Cantt Board Office, Peshawar',
-            'Khasra No. 456, Mouza Khanpur, Bahawalpur',
-            'Ibrahim Hydari Colony, Karachi',
-            'Qasimabad, Hyderabad, Sindh',
-        ];
+        // Pre-build order scenarios
+        $scenarios = $this->buildScenarios($customers, $vendors, $products, $coupons, $now);
 
-        $orderCount = 0;
+        $orderNumber = 10001;
+        foreach ($scenarios as $s) {
+            // Calculate totals
+            $subtotal  = 0;
+            foreach ($s['items'] as &$item) {
+                $item['total_price'] = $item['unit_price'] * $item['quantity'];
+                $subtotal           += $item['total_price'];
+            }
+            unset($item);
 
-        foreach ($vendors as $vendor) {
-            $products = DB::table('products')
-                ->where('vendor_id', $vendor->id)
-                ->get()
-                ->toArray();
+            $deliveryFee     = $s['payment_method'] === 'cod' ? 200 : 150;
+            $discountAmount  = $s['coupon_id'] ? min(round($subtotal * 0.10), 800) : 0;
+            $taxAmount       = round($subtotal * 0.05, 2);
+            $total           = $subtotal + $deliveryFee + $taxAmount - $discountAmount;
+            $total           = max($total, 100);
 
-            if (count($products) === 0) continue;
+            $orderId = DB::table('orders')->insertGetId([
+                'order_number'      => 'ORD-' . $orderNumber++,
+                'user_id'           => $s['user_id'],
+                'vendor_id'         => $s['vendor_id'],
+                'driver_id'         => null,
+                'coupon_id'         => $s['coupon_id'],
+                'status'            => $s['status'],
+                'subtotal'          => $subtotal,
+                'delivery_fee'      => $deliveryFee,
+                'tax_amount'        => $taxAmount,
+                'discount_amount'   => $discountAmount,
+                'total'             => $total,
+                'payment_method'    => $s['payment_method'],
+                'payment_status'    => $s['payment_status'],
+                'delivery_address'  => $s['address'],
+                'notes'             => $s['notes'],
+                'delivered_at'      => $s['status'] === 'delivered' ? $s['created_at']->copy()->addDays(3) : null,
+                'created_at'        => $s['created_at'],
+                'updated_at'        => $now,
+            ]);
 
-            // Generate 3–5 orders per vendor
-            $numOrders = rand(3, 5);
-            for ($i = 0; $i < $numOrders; $i++) {
-                $status      = $statuses[array_rand($statuses)];
-                $payMethod   = $payMethods[array_rand($payMethods)];
-                $payStatus   = in_array($status, ['delivered', 'picked_up']) ? 'paid' : $payStatuses[array_rand($payStatuses)];
-                $customerId  = $customers[array_rand($customers)];
-                $driverId    = in_array($status, ['driver_assigned', 'picked_up', 'delivered']) ? $drivers[array_rand($drivers)] : null;
-                $couponId    = rand(0, 3) === 0 ? $coupons[array_rand($coupons)] : null;
-                $address     = $addresses[array_rand($addresses)];
-                $orderDate   = $now->copy()->subDays(rand(0, 60))->subHours(rand(0, 23));
-
-                // Pick 1–3 random products for this order
-                $pickedProducts = collect($products)->shuffle()->take(rand(1, min(3, count($products))))->toArray();
-
-                $subtotal      = 0.0;
-                $itemsPayload  = [];
-
-                foreach ($pickedProducts as $prod) {
-                    $qty       = rand(1, 5);
-                    $unitPrice = (float) $prod->price;
-                    $lineTotal = $unitPrice * $qty;
-                    $subtotal += $lineTotal;
-
-                    $itemsPayload[] = [
-                        'product_id'   => $prod->id,
-                        'product_name' => $prod->name,
-                        'quantity'     => $qty,
-                        'unit_price'   => $unitPrice,
-                        'total_price'  => $lineTotal,
-                    ];
-                }
-
-                $deliveryFee    = (float) $vendor->delivery_fee;
-                $taxAmount      = round($subtotal * 0.05, 2);         // 5% agri tax
-                $discountAmount = $couponId ? round($subtotal * 0.10, 2) : 0.00;
-                $total          = round($subtotal + $deliveryFee + $taxAmount - $discountAmount, 2);
-
-                $orderNumber = 'ORD-' . strtoupper(substr(md5(uniqid()), 0, 8));
-
-                $orderId = DB::table('orders')->insertGetId([
-                    'order_number'      => $orderNumber,
-                    'user_id'           => $customerId,
-                    'vendor_id'         => $vendor->id,
-                    'driver_id'         => $driverId,
-                    'coupon_id'         => $couponId,
-                    'status'            => $status,
-                    'subtotal'          => $subtotal,
-                    'delivery_fee'      => $deliveryFee,
-                    'tax_amount'        => $taxAmount,
-                    'discount_amount'   => $discountAmount,
-                    'total'             => $total,
-                    'payment_method'    => $payMethod,
-                    'payment_status'    => $payStatus,
-                    'delivery_address'  => $address,
-                    'delivery_lat'      => (float) $vendor->latitude + (rand(-100, 100) / 10000),
-                    'delivery_lng'      => (float) $vendor->longitude + (rand(-100, 100) / 10000),
-                    'notes'             => rand(0, 2) === 0 ? 'Please deliver before noon.' : null,
-                    'estimated_delivery'=> $orderDate->copy()->addHours(rand(1, 48)),
-                    'created_at'        => $orderDate,
-                    'updated_at'        => $orderDate,
+            // Order items
+            foreach ($s['items'] as $item) {
+                DB::table('order_items')->insert([
+                    'order_id'     => $orderId,
+                    'product_id'   => $item['product_id'],
+                    'product_name' => $item['product_name'],
+                    'quantity'     => $item['quantity'],
+                    'unit_price'   => $item['unit_price'],
+                    'total_price'  => $item['total_price'],
+                    'addons'       => null,
+                    'created_at'   => $s['created_at'],
+                    'updated_at'   => $now,
                 ]);
+            }
 
-                foreach ($itemsPayload as $item) {
-                    DB::table('order_items')->insert([
-                        'order_id'     => $orderId,
-                        'product_id'   => $item['product_id'],
-                        'product_name' => $item['product_name'],
-                        'quantity'     => $item['quantity'],
-                        'unit_price'   => $item['unit_price'],
-                        'total_price'  => $item['total_price'],
-                        'addons'       => null,
-                        'created_at'   => $orderDate,
-                        'updated_at'   => $orderDate,
-                    ]);
+            // Payment
+            $gatewayTxnId = null;
+            $gatewayRefundId = null;
+            if ($s['payment_method'] === 'stripe' && in_array($s['payment_status'], ['paid', 'refunded'])) {
+                $gatewayTxnId = 'pi_3' . strtoupper(substr(md5(uniqid()), 0, 20));
+                if ($s['payment_status'] === 'refunded') {
+                    $gatewayRefundId = 're_' . strtoupper(substr(md5(uniqid()), 0, 20));
                 }
+            }
 
-                $orderCount++;
+            DB::table('payments')->insert([
+                'order_id'               => $orderId,
+                'user_id'                => $s['user_id'],
+                'gateway'                => $s['payment_method'],
+                'gateway_transaction_id' => $gatewayTxnId,
+                'gateway_refund_id'      => $gatewayRefundId,
+                'amount'                 => $total,
+                'currency'               => 'PKR',
+                'status'                 => match($s['payment_status']) {
+                    'paid'     => 'completed',
+                    'refunded' => 'refunded',
+                    'failed'   => 'failed',
+                    default    => 'pending',
+                },
+                'gateway_response'       => null,
+                'paid_at'                => in_array($s['payment_status'], ['paid', 'refunded'])
+                    ? $s['created_at']->copy()->addMinutes(5) : null,
+                'created_at'             => $s['created_at'],
+                'updated_at'             => $now,
+            ]);
+
+            // Status history
+            DB::table('order_status_history')->insert([
+                'order_id'   => $orderId,
+                'status'     => 'pending',
+                'notes'      => 'Order placed.',
+                'changed_by' => $s['user_id'],
+                'created_at' => $s['created_at'],
+                'updated_at' => $s['created_at'],
+            ]);
+
+            if (in_array($s['status'], ['accepted', 'preparing', 'ready', 'delivered'])) {
+                DB::table('order_status_history')->insert([
+                    'order_id'   => $orderId,
+                    'status'     => 'accepted',
+                    'notes'      => 'Order accepted by vendor.',
+                    'changed_by' => $adminId,
+                    'created_at' => $s['created_at']->copy()->addMinutes(30),
+                    'updated_at' => $s['created_at']->copy()->addMinutes(30),
+                ]);
+            }
+
+            if (in_array($s['status'], ['preparing', 'ready', 'delivered'])) {
+                DB::table('order_status_history')->insert([
+                    'order_id'   => $orderId,
+                    'status'     => 'preparing',
+                    'notes'      => 'Vendor is preparing your order.',
+                    'changed_by' => $adminId,
+                    'created_at' => $s['created_at']->copy()->addHours(2),
+                    'updated_at' => $s['created_at']->copy()->addHours(2),
+                ]);
+            }
+
+            if ($s['status'] === 'delivered') {
+                DB::table('order_status_history')->insert([
+                    'order_id'   => $orderId,
+                    'status'     => 'delivered',
+                    'notes'      => 'Order delivered successfully.',
+                    'changed_by' => $adminId,
+                    'created_at' => $s['created_at']->copy()->addDays(3),
+                    'updated_at' => $s['created_at']->copy()->addDays(3),
+                ]);
+            }
+
+            if (in_array($s['status'], ['cancelled', 'rejected'])) {
+                DB::table('order_status_history')->insert([
+                    'order_id'   => $orderId,
+                    'status'     => $s['status'],
+                    'notes'      => $s['status'] === 'cancelled' ? 'Order cancelled by customer.' : 'Order rejected by vendor — out of stock.',
+                    'changed_by' => $s['status'] === 'cancelled' ? $s['user_id'] : $adminId,
+                    'created_at' => $s['created_at']->copy()->addHours(1),
+                    'updated_at' => $s['created_at']->copy()->addHours(1),
+                ]);
             }
         }
+    }
 
-        $this->command->info('OrdersSeeder: ' . $orderCount . ' orders with ' . DB::table('order_items')->count() . ' items inserted.');
+    private function buildScenarios(array $customers, array $vendors, $products, array $coupons, Carbon $now): array
+    {
+        $scenarios   = [];
+        $statusPlan  = array_merge(
+            array_fill(0, 30, 'delivered'),
+            array_fill(0,  8, 'cancelled'),
+            array_fill(0,  5, 'pending'),
+            array_fill(0,  3, 'accepted'),
+            array_fill(0,  2, 'preparing'),
+            array_fill(0,  4, 'rejected'),
+            array_fill(0,  3, 'refunded')   // mapped as delivered + payment refunded
+        );
+
+        $paymentMethods = ['stripe', 'cod', 'wallet'];
+        $addresses = [
+            'House 12, Street 5, Gulberg III, Lahore',
+            'Flat 3B, Block 9, Clifton, Karachi',
+            'Plot 45, Sector F-8, Islamabad',
+            'Gali 7, Mohalla Hussain Pura, Faisalabad',
+            'Village Chak 60 JB, Sahiwal District',
+            'Near Qila Kohna Qasim, Multan',
+            'Hayatabad Phase 4, Peshawar',
+            'Cantt Road, Rawalpindi',
+            'Satellite Town, Quetta',
+            'Johar Town, Lahore',
+        ];
+
+        shuffle($customers);
+
+        foreach ($statusPlan as $i => $status) {
+            $vendor  = $vendors[$i % count($vendors)];
+            $userId  = $customers[$i % count($customers)];
+            $vendorProds = isset($products[$vendor->id]) ? $products[$vendor->id]->values()->toArray() : [];
+
+            if (empty($vendorProds)) {
+                // fallback — pick any products
+                $vendorProds = DB::table('products')->limit(5)->get()->toArray();
+            }
+
+            // Pick 1-3 products
+            shuffle($vendorProds);
+            $picked = array_slice($vendorProds, 0, rand(1, min(3, count($vendorProds))));
+
+            $items = [];
+            foreach ($picked as $prod) {
+                $unitPrice = (float) ($prod->discount_price ?? $prod->price);
+                $items[] = [
+                    'product_id'   => $prod->id,
+                    'product_name' => $prod->name,
+                    'quantity'     => rand(1, 4),
+                    'unit_price'   => $unitPrice,
+                ];
+            }
+
+            // High-value edge case: every 10th order
+            if ($i % 10 === 9) {
+                $firstItem         = &$items[0];
+                $firstItem['quantity'] = rand(10, 25);
+            }
+
+            $payMethod    = $paymentMethods[$i % count($paymentMethods)];
+            $payStatus    = match($status) {
+                'delivered'                => 'paid',
+                'cancelled', 'rejected'    => ($payMethod === 'stripe' && rand(0, 1)) ? 'failed' : 'pending',
+                'pending', 'accepted', 'preparing' => 'pending',
+                'refunded'                 => 'refunded',
+                default                    => 'pending',
+            };
+
+            // 'refunded' is a payment state, not an order status…
+            $orderStatus = $status === 'refunded' ? 'delivered' : $status;
+
+            $scenarios[] = [
+                'user_id'        => $userId,
+                'vendor_id'      => $vendor->id,
+                'coupon_id'      => ($i % 7 === 0 && ! empty($coupons)) ? $coupons[$i % count($coupons)] : null,
+                'status'         => $orderStatus,
+                'payment_method' => $payMethod,
+                'payment_status' => $payStatus,
+                'address'        => $addresses[$i % count($addresses)],
+                'notes'          => $i % 5 === 0 ? 'Please deliver before noon.' : null,
+                'items'          => $items,
+                'created_at'     => $now->copy()->subDays(rand(1, 180)),
+            ];
+        }
+
+        return $scenarios;
     }
 }

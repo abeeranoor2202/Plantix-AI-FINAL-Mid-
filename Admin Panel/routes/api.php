@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\CustomerAiApiController;
 use App\Http\Controllers\Api\CustomerCartApiController;
 use App\Http\Controllers\Api\CustomerOrderApiController;
 use App\Http\Controllers\Api\CustomerAppointmentApiController;
+use App\Http\Controllers\Api\StripeWebhookController;
 use App\Http\Controllers\Api\AdminDashboardController;
 use App\Http\Controllers\Api\AdminSettingsController;
 use App\Http\Controllers\Api\AdminUsersController;
@@ -28,6 +29,13 @@ use App\Http\Controllers\Api\AdminEmailTemplatesController;
 | Auth:  Laravel Sanctum (Bearer token)
 |
 */
+
+// =============================================================================
+// Stripe Webhooks  — NO auth, NO CSRF (api group is already CSRF-exempt)
+// Stripe signs every request; signature is verified inside the controller.
+// =============================================================================
+Route::post('/stripe/webhook', [StripeWebhookController::class, 'handle'])
+    ->name('api.stripe.webhook');
 
 // =============================================================================
 // Customer API  (prefix: /api/customer)
@@ -71,7 +79,9 @@ Route::prefix('customer')->group(function () {
         // Appointments
         Route::get('/appointments',                              [CustomerAppointmentApiController::class, 'index']);
         Route::post('/appointments',                             [CustomerAppointmentApiController::class, 'store']);
+        Route::get('/appointments/slots',                        [CustomerAppointmentApiController::class, 'slots']);
         Route::get('/appointments/{id}',                         [CustomerAppointmentApiController::class, 'show']);
+        Route::get('/appointments/{id}/check-payment',           [CustomerAppointmentApiController::class, 'checkPayment']);
         Route::post('/appointments/{id}/cancel',                 [CustomerAppointmentApiController::class, 'cancel']);
         Route::patch('/appointments/{id}/reschedule',            [CustomerAppointmentApiController::class, 'reschedule']);
         Route::post('/appointments/{id}/reschedule-response',    [CustomerAppointmentApiController::class, 'rescheduleResponse']);

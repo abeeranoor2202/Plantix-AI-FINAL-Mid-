@@ -10,127 +10,73 @@ class FertilizerRecommendationSeeder extends Seeder
 {
     public function run(): void
     {
-        $soilTests = DB::table('soil_tests')->get();
+        $now   = Carbon::now();
+        $tests = DB::table('soil_tests')->limit(20)->get();
 
-        if ($soilTests->isEmpty()) {
-            $this->command->warn('No soil tests found. Run FarmProfileSeeder first.');
-            return;
-        }
-
-        $now = Carbon::now();
-
-        // Crop-to-fertilizer plans — realistic Pakistani fertilizer programs
-        $fertilizerPlans = [
-            'Wheat' => [
-                'growth_stages' => ['Sowing', 'Tillering', 'Jointing', 'Booting'],
-                'basal_plan' => [
-                    ['product' => 'DAP (Di-Ammonium Phosphate)',  'quantity_kg_acre' => 50,  'timing' => 'At sowing',          'method' => 'Broadcast + incorporate'],
-                    ['product' => 'Urea (46% N)',                  'quantity_kg_acre' => 25,  'timing' => '3rd week (tillering)', 'method' => 'Topdress + irrigate'],
-                    ['product' => 'Urea (46% N)',                  'quantity_kg_acre' => 25,  'timing' => '6th week (jointing)', 'method' => 'Topdress'],
-                    ['product' => 'Zinc Sulfate 33%',              'quantity_kg_acre' => 2.5, 'timing' => 'Foliar at booting',   'method' => '500g in 100L water'],
+        $plans = [
+            'wheat' => [
+                'vegetative' => [
+                    ['name' => 'Urea',             'type' => 'nitrogen',   'dose_kg_per_acre' => 50, 'timing' => '2 weeks after sowing',      'notes' => 'Top-dress when soil is moist.'],
+                    ['name' => 'DAP',               'type' => 'phosphorus', 'dose_kg_per_acre' => 25, 'timing' => 'Basal at sowing',           'notes' => 'Incorporate into seed row.'],
+                    ['name' => 'Micronutrient Mix', 'type' => 'micro',      'dose_kg_per_acre' =>  2, 'timing' => '30 days after sowing',      'notes' => 'Foliar spray to correct zinc.'],
                 ],
-                'application_instructions' => 'Apply DAP at sowing for P+N base. Split urea in two doses (tillering + jointing) for efficient N use. Zinc sulfate foliar spray at booting prevents lodging and improves grain weight.',
             ],
-            'Cotton' => [
-                'growth_stages' => ['Seedling', 'Squaring', 'Flowering', 'Boll Setting'],
-                'basal_plan' => [
-                    ['product' => 'DAP',                           'quantity_kg_acre' => 25,  'timing' => 'At sowing',            'method' => 'Band placement in furrow'],
-                    ['product' => 'Urea',                          'quantity_kg_acre' => 30,  'timing' => 'Squaring (45 DAE)',     'method' => 'Side dress + irrigate'],
-                    ['product' => 'SOP (Sulfate of Potash)',       'quantity_kg_acre' => 25,  'timing' => 'Boll formation stage', 'method' => 'Topdress before irrigation'],
-                    ['product' => 'Boron (Borax)',                 'quantity_kg_acre' => 1,   'timing' => 'Flower initiation',    'method' => 'Foliar 1g/L water'],
+            'tomato' => [
+                'flowering' => [
+                    ['name' => 'NPK 15-15-15',       'type' => 'compound',   'dose_kg_per_acre' => 20, 'timing' => 'At transplanting',          'notes' => 'Mix into planting hole soil.'],
+                    ['name' => 'Calcium Nitrate',     'type' => 'calcium',    'dose_kg_per_acre' => 15, 'timing' => '3 weeks after transplant',  'notes' => 'Prevents blossom-end rot.'],
+                    ['name' => 'Potassium Sulphate',  'type' => 'potassium',  'dose_kg_per_acre' => 10, 'timing' => 'At flower initiation',     'notes' => 'Improves fruit quality.'],
                 ],
-                'application_instructions' => 'Reduce N during vegetative stage to prevent excess growth. Increase K and B at reproductive stage for better boll retention and fiber quality.',
             ],
-            'Rice' => [
-                'growth_stages' => ['Transplanting', 'Tillering', 'Panicle Initiation', 'Heading'],
-                'basal_plan' => [
-                    ['product' => 'DAP',                           'quantity_kg_acre' => 30,  'timing' => '1 week after transplant', 'method' => 'Broadcast in standing water'],
-                    ['product' => 'Urea',                          'quantity_kg_acre' => 20,  'timing' => 'Tillering (3 WAT)',    'method' => 'Broadcast'],
-                    ['product' => 'Urea',                          'quantity_kg_acre' => 20,  'timing' => 'Panicle initiation',   'method' => 'Topdress'],
-                    ['product' => 'Zinc Sulfate',                  'quantity_kg_acre' => 5,   'timing' => 'At transplant',        'method' => 'Soil application or seedling dip'],
+            'rice' => [
+                'seedling' => [
+                    ['name' => 'DAP',  'type' => 'phosphorus', 'dose_kg_per_acre' => 30, 'timing' => 'Basal',                     'notes' => 'Broadcast before transplanting.'],
+                    ['name' => 'Urea', 'type' => 'nitrogen',   'dose_kg_per_acre' => 25, 'timing' => '10–14 DAS',                 'notes' => 'First top-dress at tillering initiation.'],
+                    ['name' => 'Urea', 'type' => 'nitrogen',   'dose_kg_per_acre' => 25, 'timing' => '35–40 DAS',                 'notes' => 'Second top-dress at panicle initiation.'],
                 ],
-                'application_instructions' => 'Zinc deficiency is common in rice in Punjab — always apply Zn. Drain field before urea application to avoid N loss via denitrification.',
             ],
-            'Sugarcane' => [
-                'growth_stages' => ['Germination', 'Tillering', 'Grand Growth', 'Maturation'],
-                'basal_plan' => [
-                    ['product' => 'DAP',                           'quantity_kg_acre' => 50,  'timing' => 'At planting',          'method' => 'In-furrow band'],
-                    ['product' => 'Ammonium Nitrate or Urea',      'quantity_kg_acre' => 40,  'timing' => 'Tillering (60 DAP)',   'method' => 'Broadcast + irrigate'],
-                    ['product' => 'SOP',                           'quantity_kg_acre' => 30,  'timing' => 'Grand growth phase',   'method' => 'Topdress'],
-                    ['product' => 'Calcium Ammonium Nitrate (CAN)','quantity_kg_acre' => 25,  'timing' => '4 months after plant', 'method' => 'Split application'],
+            'cotton' => [
+                'vegetative' => [
+                    ['name' => 'Urea',             'type' => 'nitrogen',   'dose_kg_per_acre' => 40, 'timing' => '3 weeks after emergence', 'notes' => 'Avoid contact with stem.'],
+                    ['name' => 'Potassium Sulphate','type' => 'potassium', 'dose_kg_per_acre' => 20, 'timing' => '40 DAS',                 'notes' => 'Side dress cotton rows.'],
+                    ['name' => 'Boron Supplement', 'type' => 'micro',      'dose_kg_per_acre' =>  1, 'timing' => '50 DAS',                 'notes' => 'Foliar spray to improve boll retention.'],
                 ],
-                'application_instructions' => 'Sugarcane is a heavy feeder. Apply FYM 4 ton/acre before planting. Potassium critical for sucrose accumulation — do not skip SOP at grand growth.',
-            ],
-            'Maize' => [
-                'growth_stages' => ['Sowing', 'V6 (6-leaf)', 'Tassel', 'Grain Fill'],
-                'basal_plan' => [
-                    ['product' => 'DAP',                           'quantity_kg_acre' => 35,  'timing' => 'At sowing',            'method' => 'Band placement'],
-                    ['product' => 'Urea',                          'quantity_kg_acre' => 40,  'timing' => '6-leaf stage',         'method' => 'Side-dress in furrow'],
-                    ['product' => 'Urea',                          'quantity_kg_acre' => 25,  'timing' => 'Tasseling stage',      'method' => 'Topdress before irrigation'],
-                    ['product' => 'Potassium Chloride (MOP)',      'quantity_kg_acre' => 15,  'timing' => 'Grain fill start',     'method' => 'Broadcast'],
-                ],
-                'application_instructions' => 'Maize requires high N. Split urea in 2 doses. First irrigation critical within 3 days of sowing. Deficiency of Zn common — apply 2.5kg Zinc Sulfate if soil Zn < 0.5 mg/kg.',
             ],
         ];
 
-        $cropTypes   = array_keys($fertilizerPlans);
-        $modelVersion = 'plantix-fertilizer-v1.';
+        $cropTypes    = array_keys($plans);
+        $stageOptions = ['seedling', 'vegetative', 'flowering', 'fruiting'];
 
-        $rows = [];
+        foreach ($tests as $idx => $test) {
+            $crop  = $cropTypes[$idx % count($cropTypes)];
+            $stage = $stageOptions[$idx % count($stageOptions)];
 
-        foreach ($soilTests as $i => $soilTest) {
-            $cropType   = $cropTypes[$i % count($cropTypes)];
-            $plan       = $fertilizerPlans[$cropType];
-            $growStages = $plan['growth_stages'];
-            $growStage  = $growStages[array_rand($growStages)];
+            // Pick plan if exact crop+stage exists, otherwise fall back to first stage
+            $cropPlans  = $plans[$crop];
+            $planStages = array_keys($cropPlans);
+            $useStage   = in_array($stage, $planStages) ? $stage : $planStages[0];
+            $plan       = $cropPlans[$useStage];
 
-            // Estimate cost based on products and quantity
-            $unitCosts = [
-                'DAP (Di-Ammonium Phosphate)'  => 4200,  // PKR/50kg bag
-                'DAP'                           => 4200,
-                'Urea (46% N)'                 => 2200,
-                'Urea'                          => 2200,
-                'SOP (Sulfate of Potash)'       => 6500,
-                'SOP'                           => 6500,
-                'Zinc Sulfate 33%'             => 120,   // per kg
-                'Zinc Sulfate'                 => 120,
-                'Boron (Borax)'                => 250,
-                'Ammonium Nitrate or Urea'     => 2200,
-                'Calcium Ammonium Nitrate (CAN)' => 3200,
-                'Potassium Chloride (MOP)'     => 5500,
-            ];
+            $estimatedCost = collect($plan)->sum(fn ($p) => $p['dose_kg_per_acre'] * 100);
 
-            $estimatedCost = 0;
-            foreach ($plan['basal_plan'] as $item) {
-                $unit  = $unitCosts[$item['product']] ?? 2000;
-                $estimatedCost += $item['quantity_kg_acre'] * ($unit / 50);
-            }
-            $estimatedCost = round($estimatedCost);
-
-            $rows[] = [
-                'user_id'                    => $soilTest->user_id,
-                'soil_test_id'               => $soilTest->id,
-                'crop_type'                  => $cropType,
-                'growth_stage'               => $growStage,
-                'nitrogen'                   => $soilTest->nitrogen,
-                'phosphorus'                 => $soilTest->phosphorus,
-                'potassium'                  => $soilTest->potassium,
-                'ph_level'                   => $soilTest->ph_level,
-                'temperature'                => $soilTest->temperature,
-                'humidity'                   => $soilTest->humidity,
-                'fertilizer_plan'            => json_encode($plan['basal_plan']),
-                'application_instructions'   => $plan['application_instructions'],
-                'estimated_cost_pkr'         => $estimatedCost,
-                'model_version'              => $modelVersion . rand(1, 5),
-                'created_at'                 => Carbon::now()->subDays(rand(5, 150)),
-                'updated_at'                 => $now,
-            ];
+            DB::table('fertilizer_recommendations')->insert([
+                'user_id'                   => $test->user_id,
+                'soil_test_id'              => $test->id,
+                'crop_type'                 => $crop,
+                'growth_stage'              => $stage,
+                'nitrogen'                  => $test->nitrogen,
+                'phosphorus'                => $test->phosphorus,
+                'potassium'                 => $test->potassium,
+                'ph_level'                  => $test->ph_level,
+                'temperature'               => $test->temperature,
+                'humidity'                  => $test->humidity,
+                'fertilizer_plan'           => json_encode($plan),
+                'application_instructions'  => 'Apply fertiliser when soil moisture is adequate. Avoid application before heavy rain. Re-test soil after one full crop cycle.',
+                'estimated_cost_pkr'        => $estimatedCost,
+                'model_version'             => 'rule-based-v1',
+                'created_at'                => $now->copy()->subDays(rand(5, 80)),
+                'updated_at'                => $now,
+            ]);
         }
-
-        foreach (array_chunk($rows, 50) as $chunk) {
-            DB::table('fertilizer_recommendations')->insert($chunk);
-        }
-
-        $this->command->info('FertilizerRecommendationSeeder: ' . count($rows) . ' fertilizer recommendations seeded.');
     }
 }

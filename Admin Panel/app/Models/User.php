@@ -21,6 +21,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'active', 'is_document_verified', 'vendor_id',
         'wallet_amount', 'fcm_token', 'profile_photo',
         'must_reset_password', 'role_id',
+        'is_banned', 'banned_until', 'banned_reason', 'is_shadow_banned',
     ];
 
     protected $hidden = [
@@ -33,6 +34,9 @@ class User extends Authenticatable implements MustVerifyEmail
         'is_document_verified' => 'boolean',
         'must_reset_password'  => 'boolean',
         'wallet_amount'        => 'decimal:2',
+        'is_banned'            => 'boolean',
+        'is_shadow_banned'     => 'boolean',
+        'banned_until'         => 'datetime',
     ];
 
     // -------------------------------------------------------------------------
@@ -41,10 +45,41 @@ class User extends Authenticatable implements MustVerifyEmail
 
     public function isAdmin(): bool         { return $this->role === 'admin'; }
     public function isVendor(): bool        { return $this->role === 'vendor'; }
-    // public function isDriver(): bool        { return $this->role === 'driver'; }
     public function isUser(): bool          { return $this->role === 'user'; }
     public function isExpert(): bool        { return in_array($this->role, ['expert', 'agency_expert']); }
     public function isAgencyExpert(): bool  { return $this->role === 'agency_expert'; }
+
+    /**
+     * True when the user is actively banned.
+     * A permanent ban has null banned_until; a temporary ban checks the expiry.
+     */
+    public function isCurrentlyBanned(): bool
+    {
+        if (! $this->is_banned) {
+            return false;
+        }
+        // Permanent ban
+        if ($this->banned_until === null) {
+            return true;
+        }
+        // Temporary ban — check expiry
+        return $this->banned_until->isFuture();
+    }
+
+    /** True for shadow-banned users: they can post but content is hidden. */
+    public function isShadowBanned(): bool
+    {
+        return (bool) $this->is_shadow_banned;
+    }
+
+    /**
+     * True when the user role can create forum threads.
+     * Vendors are explicitly excluded.
+     */
+    public function canCreateForumThread(): bool
+    {
+        return in_array($this->role, ['user', 'expert', 'agency_expert', 'admin'], true);
+    }
 
     /** Check a named permission from the admin-panel role system */
     public function hasPermission(string $permission): bool
@@ -144,6 +179,11 @@ class User extends Authenticatable implements MustVerifyEmail
     public function forumThreads(): HasMany
     {
         return $this->hasMany(ForumThread::class, 'user_id');
+    }
+
+    public function forumReplies(): HasMany
+    {
+        return $this->hasMany(ForumReply::class, 'user_id');
     }
 
     // ── AI / Agriculture Relationships ──────────────────────────────────────

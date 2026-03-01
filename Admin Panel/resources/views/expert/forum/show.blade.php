@@ -55,11 +55,11 @@
         </div>
 
         {{-- Replies --}}
-        <h5 class="fw-bold text-dark mb-0 mt-2"><i class="far fa-comments text-success me-2"></i>Responses & Insights ({{ $thread->replies->count() }})</h5>
+        <h5 class="fw-bold text-dark mb-0 mt-2"><i class="far fa-comments text-success me-2"></i>Responses & Insights ({{ $replies->total() }})</h5>
         
         <div class="card-agri p-0 border-0 bg-white overflow-hidden shadow-sm">
             <div class="list-group list-group-flush pt-1">
-                @forelse($thread->replies->sortBy('created_at') as $reply)
+                @forelse($replies as $reply)
                 <div class="list-group-item border-bottom-dashed p-4 p-md-5 {{ $reply->is_expert_reply ? 'bg-success bg-opacity-10' : '' }}" style="border-left: {{ $reply->is_expert_reply ? '4px solid var(--agri-primary)' : '4px solid transparent' }};">
                     
                     @if($reply->is_expert_reply)
@@ -86,17 +86,12 @@
                             <div class="text-dark fw-medium mb-0" style="line-height: 1.7;">
                                 {!! nl2br(e($reply->body)) !!}
                             </div>
-                            
-                            @if($reply->expertResponse?->recommendation)
-                                <div class="mt-4 p-4 rounded bg-white shadow-sm position-relative overflow-hidden" style="border: 1px solid var(--agri-primary-light);">
-                                    <div class="position-absolute top-0 start-0 w-100 h-100 bg-success bg-opacity-10" style="z-index: 0;"></div>
-                                    <div class="position-relative" style="z-index: 1;">
-                                        <div class="d-flex align-items-center gap-2 mb-3 text-success">
-                                            <div class="bg-success text-white rounded-circle d-flex justify-content-center align-items-center shadow-sm" style="width: 24px; height: 24px;"><i class="fas fa-lightbulb" style="font-size: 10px;"></i></div>
-                                            <span class="fw-bold text-uppercase small" style="letter-spacing: 0.5px;">Actionable Recommendation</span>
-                                        </div>
-                                        <p class="mb-0 text-dark fw-bold" style="line-height: 1.6;">{{ $reply->expertResponse->recommendation }}</p>
-                                    </div>
+
+                            @if($reply->is_official)
+                                <div class="mt-3">
+                                    <span class="badge-agri bg-warning text-dark px-3 py-2 shadow-sm d-inline-flex align-items-center gap-2 border border-warning">
+                                        <i class="fas fa-star"></i> Official Answer
+                                    </span>
                                 </div>
                             @endif
                         </div>
@@ -113,6 +108,12 @@
                 @endforelse
             </div>
         </div>
+
+        @if($replies->hasPages())
+        <div class="card-agri p-3 border-0 bg-white text-center shadow-sm">
+            {{ $replies->links('pagination::bootstrap-5') }}
+        </div>
+        @endif
 
         {{-- Reply Form --}}
         @if(!$thread->is_locked)
@@ -205,7 +206,7 @@
                         <span class="text-muted text-uppercase fw-bold d-flex align-items-center gap-2" style="font-size: 11px; letter-spacing: 0.5px;">
                             <i class="far fa-comments text-success"></i> Total Replies
                         </span>
-                        <span class="badge-agri bg-success text-white shadow-sm">{{ $thread->replies->count() }}</span>
+                        <span class="badge-agri bg-success text-white shadow-sm">{{ $replies->total() }}</span>
                     </li>
                 </ul>
             </div>

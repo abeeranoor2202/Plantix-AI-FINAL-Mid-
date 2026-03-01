@@ -2,207 +2,215 @@
 
 namespace Database\Seeders;
 
-use App\Models\Expert;
-use App\Models\ExpertProfile;
-use App\Models\ExpertSpecialization;
-use App\Models\User;
-use Carbon\Carbon;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Hash;
+use Carbon\Carbon;
 
-/**
- * ExpertsSeeder
- *
- * Seeds demo expert & agency users into the shared `users` table,
- * with corresponding `experts`, `expert_profiles`, and
- * `expert_specializations` records.
- *
- * Login credentials:
- *   Expert users  → password: Expert@1234
- *   Agency users  → password: Agency@1234
- */
 class ExpertsSeeder extends Seeder
 {
     public function run(): void
     {
         $now = Carbon::now();
 
-        // ── Demo Experts ──────────────────────────────────────────────────────
-        $expertsData = [
+        $expertUsers = DB::table('users')->where('role', 'expert')->orderBy('id')->get();
+
+        $definitions = [
             [
-                'name'          => 'Dr. Arif Ullah',
-                'email'         => 'arif.expert@plantixai.com',
-                'phone'         => '+92-321-9990001',
-                'specialty'     => 'Crop Diseases & Pathology',
-                'bio'           => 'Senior plant pathologist with 15 years of field experience across Punjab.',
-                'hourly_rate'   => 1500.00,
-                'account_type'  => 'individual',
-                'agency_name'   => null,
-                'specialization'=> 'Plant Pathology',
-                'experience'    => 15,
-                'city'          => 'Lahore',
-                'certifications'=> 'PhD Plant Pathology (UAF), CABI Certified Consultant',
-                'specs'         => [
-                    ['name' => 'Crop Diseases',  'level' => 'expert'],
-                    ['name' => 'Soil Science',   'level' => 'intermediate'],
+                'email'   => 'ahmed.raza@plantix.com',
+                'status'  => 'approved',
+                'specialty' => 'Soil Science & Nutrition',
+                'bio'     => 'Dr. Ahmed Raza is a PhD soil scientist with 15 years of field and laboratory expertise. He has developed fertiliser recommendation models for Punjab\'s major crops.',
+                'hourly_rate'         => 2000,
+                'consultation_price'  => 2500,
+                'is_available'        => 1,
+                'rating_avg'          => 4.80,
+                'total_appointments'  => 120,
+                'total_completed'     => 112,
+                'total_cancelled'     => 8,
+                'verified_at'         => $now->copy()->subMonths(6),
+                'profile'             => [
+                    'agency_name'       => null,
+                    'specialization'    => 'Soil Fertility & Plant Nutrition',
+                    'experience_years'  => 15,
+                    'certifications'    => 'PhD Soil Science (UAF), FAO Certified Nutrient Management',
+                    'city'              => 'Lahore',
+                    'account_type'      => 'individual',
+                    'approval_status'   => 'approved',
+                    'approved_at'       => $now->copy()->subMonths(6),
+                ],
+                'specializations' => [
+                    ['name' => 'Soil Fertility', 'level' => 'expert'],
+                    ['name' => 'Crop Nutrition', 'level' => 'expert'],
+                    ['name' => 'Fertilizer Management', 'level' => 'expert'],
                 ],
             ],
             [
-                'name'          => 'Dr. Sadia Noor',
-                'email'         => 'sadia.expert@plantixai.com',
-                'phone'         => '+92-321-9990002',
-                'specialty'     => 'Soil Science & Fertility',
-                'bio'           => 'Soil fertility specialist, former NARC researcher.',
-                'hourly_rate'   => 1200.00,
-                'account_type'  => 'individual',
-                'agency_name'   => null,
-                'specialization'=> 'Soil Fertility',
-                'experience'    => 12,
-                'city'          => 'Islamabad',
-                'certifications'=> 'MSc Soil Science (PARC), Certified Agronomist',
-                'specs'         => [
-                    ['name' => 'Soil Fertility',     'level' => 'expert'],
-                    ['name' => 'Fertilizer Planning','level' => 'expert'],
-                    ['name' => 'Crop Nutrition',     'level' => 'intermediate'],
+                'email'   => 'amina.malik@plantix.com',
+                'status'  => 'approved',
+                'specialty' => 'Crop Disease Management',
+                'bio'     => 'Professor Amina Malik specialises in plant pathology and integrated pest management. She has published 30+ research papers on fungal and bacterial diseases in Pakistan.',
+                'hourly_rate'         => 2200,
+                'consultation_price'  => 2800,
+                'is_available'        => 1,
+                'rating_avg'          => 4.65,
+                'total_appointments'  => 95,
+                'total_completed'     => 90,
+                'total_cancelled'     => 5,
+                'verified_at'         => $now->copy()->subMonths(8),
+                'profile'             => [
+                    'agency_name'       => 'Agri Diagnostics Lab',
+                    'specialization'    => 'Plant Disease & IPM',
+                    'experience_years'  => 18,
+                    'certifications'    => 'MSc Plant Pathology, PhD IPM (UAAR)',
+                    'city'              => 'Rawalpindi',
+                    'account_type'      => 'agency',
+                    'approval_status'   => 'approved',
+                    'approved_at'       => $now->copy()->subMonths(8),
                 ],
-            ],
-            [
-                'name'          => 'Engr. Tariq Bashir',
-                'email'         => 'tariq.expert@plantixai.com',
-                'phone'         => '+92-321-9990003',
-                'specialty'     => 'Agricultural Water Management',
-                'bio'           => 'Irrigation engineer specializing in drip and sprinkler systems.',
-                'hourly_rate'   => 1000.00,
-                'account_type'  => 'individual',
-                'agency_name'   => null,
-                'specialization'=> 'Irrigation Engineering',
-                'experience'    => 10,
-                'city'          => 'Multan',
-                'certifications'=> 'BE Agricultural Engineering, WUA Certified Trainer',
-                'specs'         => [
-                    ['name' => 'Drip Irrigation',   'level' => 'expert'],
-                    ['name' => 'Water Conservation', 'level' => 'expert'],
-                ],
-            ],
-            [
-                'name'          => 'Bilal Agro Consultants',
-                'email'         => 'bilal.agency@plantixai.com',
-                'phone'         => '+92-322-8880001',
-                'specialty'     => 'Full-Spectrum Agricultural Consulting',
-                'bio'           => 'Leading agri-consultancy firm serving 500+ farms across Pakistan.',
-                'hourly_rate'   => 2500.00,
-                'account_type'  => 'agency',
-                'agency_name'   => 'Bilal Agro Consultants Pvt. Ltd.',
-                'specialization'=> 'General Farm Management',
-                'experience'    => 20,
-                'city'          => 'Faisalabad',
-                'certifications'=> 'ISO 9001:2015 Certified, PSQCA Registered',
-                'specs'         => [
-                    ['name' => 'Farm Management',   'level' => 'expert'],
-                    ['name' => 'Pest Control',      'level' => 'expert'],
-                    ['name' => 'Crop Planning',     'level' => 'expert'],
-                    ['name' => 'Soil Science',      'level' => 'intermediate'],
-                ],
-            ],
-            [
-                'name'          => 'Dr. Zara Khan',
-                'email'         => 'zara.expert@plantixai.com',
-                'phone'         => '+92-321-9990004',
-                'specialty'     => 'Integrated Pest Management',
-                'bio'           => 'IPM specialist with extensive research in biological control.',
-                'hourly_rate'   => 1300.00,
-                'account_type'  => 'individual',
-                'agency_name'   => null,
-                'specialization'=> 'Pest Management',
-                'experience'    => 8,
-                'city'          => 'Peshawar',
-                'certifications'=> 'MSc Entomology (AUP), FAO-IPM Certified',
-                'specs'         => [
+                'specializations' => [
+                    ['name' => 'Fungal Disease Control', 'level' => 'expert'],
                     ['name' => 'Integrated Pest Management', 'level' => 'expert'],
-                    ['name' => 'Biological Control',         'level' => 'expert'],
+                    ['name' => 'Pesticide Evaluation', 'level' => 'intermediate'],
+                ],
+            ],
+            [
+                'email'   => 'usman.tariq@plantix.com',
+                'status'  => 'approved',
+                'specialty' => 'Irrigation Systems',
+                'bio'     => 'Engr. Usman Tariq is an irrigation engineer with 12 years of project experience in drip, sprinkler, and surface irrigation systems across Pakistan.',
+                'hourly_rate'         => 1800,
+                'consultation_price'  => 2200,
+                'is_available'        => 1,
+                'rating_avg'          => 4.45,
+                'total_appointments'  => 75,
+                'total_completed'     => 70,
+                'total_cancelled'     => 5,
+                'verified_at'         => $now->copy()->subMonths(4),
+                'profile'             => [
+                    'agency_name'       => null,
+                    'specialization'    => 'Water Management & Irrigation',
+                    'experience_years'  => 12,
+                    'certifications'    => 'BSc Agricultural Engineering (UAF), PEC Registered',
+                    'city'              => 'Faisalabad',
+                    'account_type'      => 'individual',
+                    'approval_status'   => 'approved',
+                    'approved_at'       => $now->copy()->subMonths(4),
+                ],
+                'specializations' => [
+                    ['name' => 'Drip Irrigation Design', 'level' => 'expert'],
+                    ['name' => 'Water Resource Management', 'level' => 'expert'],
+                    ['name' => 'Sprinkler Systems', 'level' => 'intermediate'],
+                ],
+            ],
+            [
+                'email'   => 'fatima.nawaz@plantix.com',
+                'status'  => 'under_review',
+                'specialty' => 'Organic Farming',
+                'bio'     => 'Dr. Fatima Nawaz is an organic farming advocate with a focus on sustainable agriculture practices, biofertilisers, and soil biology.',
+                'hourly_rate'         => 1500,
+                'consultation_price'  => 1800,
+                'is_available'        => 0,
+                'rating_avg'          => 0,
+                'total_appointments'  => 0,
+                'total_completed'     => 0,
+                'total_cancelled'     => 0,
+                'verified_at'         => null,
+                'profile'             => [
+                    'agency_name'       => null,
+                    'specialization'    => 'Organic Certification & Soil Health',
+                    'experience_years'  => 7,
+                    'certifications'    => 'MSc Organic Agriculture (SAU), USDA Organic Certified Advisor',
+                    'city'              => 'Islamabad',
+                    'account_type'      => 'individual',
+                    'approval_status'   => 'pending',
+                    'approved_at'       => null,
+                ],
+                'specializations' => [
+                    ['name' => 'Organic Crop Production', 'level' => 'expert'],
+                    ['name' => 'Biofertilizers', 'level' => 'intermediate'],
+                ],
+            ],
+            [
+                'email'   => 'hassan.iqbal@plantix.com',
+                'status'  => 'rejected',
+                'specialty' => 'Pest & Weed Management',
+                'bio'     => 'Dr. Hassan Iqbal applied as a pest management specialist. Application was rejected due to incomplete credential documentation.',
+                'hourly_rate'         => 1400,
+                'consultation_price'  => 1600,
+                'is_available'        => 0,
+                'rating_avg'          => 0,
+                'total_appointments'  => 0,
+                'total_completed'     => 0,
+                'total_cancelled'     => 0,
+                'verified_at'         => null,
+                'profile'             => [
+                    'agency_name'       => null,
+                    'specialization'    => 'Weed Science & Herbicide Use',
+                    'experience_years'  => 5,
+                    'certifications'    => 'MSc Agronomy (Incomplete submission)',
+                    'city'              => 'Multan',
+                    'account_type'      => 'individual',
+                    'approval_status'   => 'rejected',
+                    'approved_at'       => null,
+                ],
+                'specializations' => [
+                    ['name' => 'Weed Control', 'level' => 'intermediate'],
                 ],
             ],
         ];
 
-        foreach ($expertsData as $idx => $data) {
-            $role     = $data['account_type'] === 'agency' ? 'agency_expert' : 'expert';
-            $password = $data['account_type'] === 'agency' ? 'Agency@1234' : 'Expert@1234';
+        foreach ($definitions as $def) {
+            // Find user
+            $user = DB::table('users')->where('email', $def['email'])->first();
+            if (! $user) {
+                continue;
+            }
 
-            // 1) Create / find user
-            $user = User::firstOrCreate(
-                ['email' => $data['email']],
-                [
-                    'name'                 => $data['name'],
-                    'password'             => Hash::make($password),
-                    'phone'                => $data['phone'],
-                    'role'                 => $role,
-                    'active'               => true,
-                    'is_document_verified' => true,
-                    'wallet_amount'        => 0,
-                    'created_at'           => $now,
-                    'updated_at'           => $now,
-                ]
-            );
+            // Insert expert
+            $expertId = DB::table('experts')->insertGetId([
+                'user_id'                      => $user->id,
+                'status'                       => $def['status'],
+                'specialty'                    => $def['specialty'],
+                'bio'                          => $def['bio'],
+                'profile_image'                => null,
+                'is_available'                 => $def['is_available'],
+                'hourly_rate'                  => $def['hourly_rate'],
+                'consultation_price'           => $def['consultation_price'],
+                'consultation_duration_minutes'=> 60,
+                'rating_avg'                   => $def['rating_avg'],
+                'total_appointments'           => $def['total_appointments'],
+                'total_completed'              => $def['total_completed'],
+                'total_cancelled'              => $def['total_cancelled'],
+                'verified_at'                  => $def['verified_at'],
+                'suspended_at'                 => null,
+                'rejection_reason'             => $def['status'] === 'rejected'
+                    ? 'Incomplete credential documentation provided.' : null,
+                'created_at'                   =>  $now->copy()->subMonths(rand(3, 12)),
+                'updated_at'                   =>  $now,
+            ]);
 
-            // 2) Create expert record
-            $expert = Expert::firstOrCreate(
-                ['user_id' => $user->id],
-                [
-                    'specialty'    => $data['specialty'],
-                    'bio'          => $data['bio'],
-                    'is_available' => true,
-                    'hourly_rate'  => $data['hourly_rate'],
-                    'created_at'   => $now,
-                    'updated_at'   => $now,
-                ]
-            );
+            // Insert expert profile
+            DB::table('expert_profiles')->insert(array_merge($def['profile'], [
+                'expert_id'  => $expertId,
+                'website'    => null,
+                'linkedin'   => null,
+                'contact_phone' => $user->phone ?? null,
+                'country'    => 'Pakistan',
+                'admin_notes' => null,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ]));
 
-            // 3) Create extended profile (approved so demo can log in)
-            ExpertProfile::firstOrCreate(
-                ['expert_id' => $expert->id],
-                [
-                    'agency_name'           => $data['agency_name'],
-                    'specialization'        => $data['specialization'],
-                    'experience_years'      => $data['experience'],
-                    'certifications'        => $data['certifications'],
-                    'availability_schedule' => json_encode([
-                        'monday'    => ['09:00', '17:00'],
-                        'tuesday'   => ['09:00', '17:00'],
-                        'wednesday' => ['09:00', '17:00'],
-                        'thursday'  => ['09:00', '17:00'],
-                        'friday'    => ['09:00', '13:00'],
-                    ]),
-                    'city'            => $data['city'],
-                    'country'         => 'Pakistan',
-                    'account_type'    => $data['account_type'],
-                    'approval_status' => 'approved',       // pre-approved for demo
-                    'approved_at'     => $now,
-                    'created_at'      => $now,
-                    'updated_at'      => $now,
-                ]
-            );
-
-            // 4) Seed specializations
-            foreach ($data['specs'] as $spec) {
-                ExpertSpecialization::firstOrCreate(
-                    ['expert_id' => $expert->id, 'name' => $spec['name']],
-                    ['level' => $spec['level'], 'created_at' => $now, 'updated_at' => $now]
-                );
+            // Insert specialisations
+            foreach ($def['specializations'] as $spec) {
+                DB::table('expert_specializations')->insert([
+                    'expert_id'  => $expertId,
+                    'name'       => $spec['name'],
+                    'level'      => $spec['level'],
+                    'created_at' => $now,
+                    'updated_at' => $now,
+                ]);
             }
         }
-
-        $this->command->info(
-            'ExpertsSeeder: ' . Expert::count() . ' experts seeded successfully.'
-        );
-        $this->command->table(
-            ['Name', 'Email', 'Password', 'Type'],
-            collect($expertsData)->map(fn ($e) => [
-                $e['name'],
-                $e['email'],
-                $e['account_type'] === 'agency' ? 'Agency@1234' : 'Expert@1234',
-                $e['account_type'],
-            ])->toArray()
-        );
     }
 }

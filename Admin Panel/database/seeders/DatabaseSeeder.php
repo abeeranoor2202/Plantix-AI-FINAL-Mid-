@@ -7,132 +7,64 @@ use Illuminate\Support\Facades\DB;
 
 class DatabaseSeeder extends Seeder
 {
-    /**
-     * Seed the application's database.
-     *
-     * Each seeder is called in dependency order:
-     *  1. Users            – required by all other seeders
-     *  2. Zones            – required by vendors
-     *  3. Categories       – required by vendors & products
-     *  4. Roles/Perms      – assigns role_id to admin users
-     *  5. Vendors          – required by products, coupons, orders
-     *  6. Products         – required by orders
-     *  7. Taxes & Coupons  – coupons reference vendors
-     *  8. Orders           – references users, vendors, products, coupons
-     *  9. Wallet/Payouts   – references users, vendors, orders
-     * 10. Misc             – gift cards, on-board slides, store filters, currencies, CMS
-     *
-     * @return void
-     */
     public function run(): void
     {
-        // Disable FK checks so truncation order doesn't matter
         DB::statement('SET FOREIGN_KEY_CHECKS=0');
 
-        // Truncate all seeded tables in reverse-dependency order (children first)
         $tables = [
-            // New Plantix modules (children first)
-            'reviews',
-            'favourite_products',
-            'favourite_vendors',
-            'forum_ai_suggestions',
-            'ai_chat_messages',
-            'ai_chat_sessions',
-            'weather_alert_logs',
-            'weather_logs',
-            'user_locations',
-            'disease_suggestions',
-            'crop_disease_reports',
-            'fertilizer_recommendations',
-            'seasonal_data',
-            'crop_plans',
-            'crop_recommendations',
-            'soil_tests',
-            'farm_profiles',
-            'forum_replies',
-            'forum_threads',
-            'forum_categories',
-            'wishlists',
-            'user_addresses',
-            'refunds',
-            'returns',
-            'return_reasons',
-            'appointments',
-            'appointment_status_history',
-            'appointment_reschedules',
-            'experts',
-            'expert_profiles',
-            'expert_specializations',
-            'expert_notification_logs',
-            'forum_expert_responses',
-            'order_status_history',
-            'cart_items',
-            'carts',
-            'product_images',
-            'product_stocks',
-            'brands',
-            // Existing tables
-            'payout_requests',
-            'payouts',
-            'wallet_transactions',
-            'order_items',
-            'orders',
-            'coupons',
-            'taxes',
-            'product_attributes',
-            'products',
-            'vendors',
-            'role_permissions',
-            'permissions',
-            'role',
-            'categories',
-            'zone_points',
-            'zones',
-            'vendor_store_filters',
-            'store_filters',
-            'gift_cards',
-            'on_board_slides',
-            'cms_pages',
-            'currencies',
-            'users',
+            'ai_chat_messages','ai_chat_sessions','weather_alert_logs','weather_logs',
+            'user_locations','fertilizer_recommendations','disease_suggestions',
+            'crop_disease_reports','crop_plans','crop_recommendations','soil_tests',
+            'farm_profiles','seasonal_data','forum_logs','forum_flags','forum_replies',
+            'forum_threads','forum_categories','expert_logs','expert_unavailable_dates',
+            'expert_availability','expert_applications','expert_specializations',
+            'expert_profiles','expert_notification_logs','appointment_status_history',
+            'appointment_status_histories','appointment_reschedules','appointment_logs',
+            'appointment_slots','appointments','auth_logs','role_logs','system_logs',
+            'files','favourite_products','favourite_vendors','reviews','refunds',
+            'returns','inventory_logs','coupon_user_usage','payments',
+            'order_status_history','cart_items','carts','order_items','orders',
+            'product_images','product_stocks','product_attributes','products','brands',
+            'coupons','taxes','payout_requests','payouts','wallet_transactions',
+            'vendors','experts','role_permissions','permissions','roles','categories',
+            'user_addresses','zone_points','zone_areas','zones','vendor_store_filters',
+            'store_filters','return_reasons','gift_cards','on_board_slides',
+            'cms_pages','currencies','users',
         ];
 
-        foreach ($tables as $table) {
-            DB::table($table)->truncate();
+        foreach ($tables as $t) {
+            if (DB::getSchemaBuilder()->hasTable($t)) {
+                DB::table($t)->truncate();
+            }
         }
 
         DB::statement('SET FOREIGN_KEY_CHECKS=1');
 
         $this->call([
+            AdminRbacSeeder::class,
             UsersSeeder::class,
             ZonesSeeder::class,
             CategoriesSeeder::class,
-            RolesPermissionsSeeder::class,
-            AdminRbacSeeder::class,          // Admin panel RBAC: all permissions + default staff roles
+            BrandSeeder::class,
             VendorsSeeder::class,
             ProductsSeeder::class,
+            ProductStockSeeder::class,
             TaxesAndCouponsSeeder::class,
             OrdersSeeder::class,
             WalletAndPayoutsSeeder::class,
             MiscSeeder::class,
-            // ── New Plantix modules ──────────────────────
-            BrandSeeder::class,
-            ForumCategorySeeder::class,
             ReturnReasonSeeder::class,
-            // ExpertSeeder::class,     // DISABLED: legacy seeder superseded by ExpertsSeeder
-            ExpertsSeeder::class,       // Extended expert panel seeder (new architecture)
+            ExpertsSeeder::class,
+            AppointmentSeeder::class,
+            ForumCategorySeeder::class,
+            ForumSeeder::class,
+            ReviewSeeder::class,
+            UserLocationSeeder::class,
+            FarmProfileSeeder::class,
+            CropActivitySeeder::class,
+            DiseaseReportSeeder::class,
+            FertilizerRecommendationSeeder::class,
             SeasonalDataSeeder::class,
-            // ── New agriculture ecosystem seeders ────────
-            ProductStockSeeder::class,          // product_stocks + product_images
-            UserLocationSeeder::class,          // user_locations
-            FarmProfileSeeder::class,           // farm_profiles + soil_tests
-            CropActivitySeeder::class,          // crop_recommendations + crop_plans
-            DiseaseReportSeeder::class,         // crop_disease_reports + disease_suggestions
-            FertilizerRecommendationSeeder::class, // fertilizer_recommendations
-            AppointmentSeeder::class,           // appointments + status_history + notifications
-            ForumSeeder::class,                 // forum_threads + replies + expert_responses
-            ReviewSeeder::class,                // reviews (respects UNIQUE user+order)
-            // ── Must be LAST: resets admin role_id=NULL and seeds all permissions ──
             AdminSuperUserSeeder::class,
         ]);
     }

@@ -148,11 +148,38 @@ Route::prefix('admin')->name('admin.')->group(function () {
 
         // ── Appointments ──────────────────────────────────────────────────────
         Route::prefix('/appointments')->name('appointments.')->group(function () {
-            Route::get('/',               [\App\Http\Controllers\Admin\AdminAppointmentController::class, 'index'])->name('index');
-            Route::get('/{id}',           [\App\Http\Controllers\Admin\AdminAppointmentController::class, 'show'])->name('show');
-            Route::post('/{id}/confirm',  [\App\Http\Controllers\Admin\AdminAppointmentController::class, 'confirm'])->name('confirm');
-            Route::post('/{id}/cancel',   [\App\Http\Controllers\Admin\AdminAppointmentController::class, 'cancel'])->name('cancel');
-            Route::post('/{id}/complete', [\App\Http\Controllers\Admin\AdminAppointmentController::class, 'complete'])->name('complete');
+            Route::get('/',                [\App\Http\Controllers\Admin\AdminAppointmentController::class, 'index'])->name('index');
+            Route::get('/{id}',            [\App\Http\Controllers\Admin\AdminAppointmentController::class, 'show'])->name('show');
+            Route::post('/{id}/confirm',   [\App\Http\Controllers\Admin\AdminAppointmentController::class, 'confirm'])->name('confirm');
+            Route::post('/{id}/cancel',    [\App\Http\Controllers\Admin\AdminAppointmentController::class, 'cancel'])->name('cancel');
+            Route::post('/{id}/complete',  [\App\Http\Controllers\Admin\AdminAppointmentController::class, 'complete'])->name('complete');
+            Route::post('/{id}/refund',    [\App\Http\Controllers\Admin\AdminAppointmentController::class, 'refund'])->name('refund');
+            Route::post('/{id}/reassign',  [\App\Http\Controllers\Admin\AdminAppointmentController::class, 'reassign'])->name('reassign');
+        });
+
+        // ── Expert Management ─────────────────────────────────────────────────
+        Route::prefix('/experts')->name('experts.')->group(function () {
+            Route::get('/',                  [\App\Http\Controllers\Admin\AdminExpertController::class, 'index'])->name('index');
+            Route::get('/export',            [\App\Http\Controllers\Admin\AdminExpertController::class, 'export'])->name('export');
+
+            // ── Applications sub-group ────────────────────────────────────
+            Route::prefix('/applications')->name('applications.')->group(function () {
+                Route::get('/',            [\App\Http\Controllers\Admin\AdminExpertController::class, 'applications'])->name('index');
+                Route::post('/{id}/under-review', [\App\Http\Controllers\Admin\AdminExpertController::class, 'applicationUnderReview'])->name('under-review');
+                Route::post('/{id}/approve',      [\App\Http\Controllers\Admin\AdminExpertController::class, 'applicationApprove'])->name('approve');
+                Route::post('/{id}/reject',       [\App\Http\Controllers\Admin\AdminExpertController::class, 'applicationReject'])->name('reject');
+            });
+
+            // ── Individual expert actions ─────────────────────────────────
+            Route::get('/{id}',              [\App\Http\Controllers\Admin\AdminExpertController::class, 'show'])->name('show');
+            Route::get('/{id}/logs',         [\App\Http\Controllers\Admin\AdminExpertController::class, 'logs'])->name('logs');
+            Route::post('/{id}/under-review',[\App\Http\Controllers\Admin\AdminExpertController::class, 'markUnderReview'])->name('under-review');
+            Route::post('/{id}/approve',     [\App\Http\Controllers\Admin\AdminExpertController::class, 'approve'])->name('approve');
+            Route::post('/{id}/reject',      [\App\Http\Controllers\Admin\AdminExpertController::class, 'reject'])->name('reject');
+            Route::post('/{id}/suspend',     [\App\Http\Controllers\Admin\AdminExpertController::class, 'suspend'])->name('suspend');
+            Route::post('/{id}/restore',     [\App\Http\Controllers\Admin\AdminExpertController::class, 'restore'])->name('restore');
+            Route::post('/{id}/deactivate',  [\App\Http\Controllers\Admin\AdminExpertController::class, 'deactivate'])->name('deactivate');
+            Route::post('/{id}/toggle',      [\App\Http\Controllers\Admin\AdminExpertController::class, 'toggleAvailability'])->name('toggle');
         });
 
         // ── Returns & Refunds ─────────────────────────────────────────────────
@@ -242,6 +269,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         });
         Route::middleware(['permission:general-notifications,notification.send'])->group(function () {
             Route::get('/notification/send', [\App\Http\Controllers\NotificationController::class, 'send'])->name('notification.send');
+            Route::post('/notification/broadcast', [\App\Http\Controllers\NotificationController::class, 'broadcastnotification'])->name('notification.broadcast');
         });
 
         // ── AI Agriculture Module (Admin Oversight) ───────────────────────────
@@ -265,20 +293,44 @@ Route::prefix('admin')->name('admin.')->group(function () {
             Route::delete('/seasonal-data/{id}',        [\App\Http\Controllers\Admin\AdminAiModuleController::class, 'deleteSeasonalData'])->name('seasonal-data.destroy');
         });
 
-        // ── Forum Moderation (Section 5 – Admin Flow) ────────────────────────
+        // ── Forum Moderation ─────────────────────────────────────────────────
         Route::prefix('forum')->name('forum.')->group(function () {
-            Route::get('/',                              [\App\Http\Controllers\Admin\AdminForumController::class, 'index'])->name('index');
-            Route::get('/threads',                       [\App\Http\Controllers\Admin\AdminForumController::class, 'threads'])->name('threads');
-            Route::get('/threads/{id}',                  [\App\Http\Controllers\Admin\AdminForumController::class, 'showThread'])->name('threads.show');
-            Route::put('/threads/{id}/moderate',         [\App\Http\Controllers\Admin\AdminForumController::class, 'moderateThread'])->name('threads.moderate');
-            Route::delete('/threads/{id}',               [\App\Http\Controllers\Admin\AdminForumController::class, 'destroyThread'])->name('threads.destroy');
-            Route::post('/threads/{id}/pin',             [\App\Http\Controllers\Admin\AdminForumController::class, 'pinThread'])->name('threads.pin');
-            Route::delete('/replies/{id}',               [\App\Http\Controllers\Admin\AdminForumController::class, 'destroyReply'])->name('replies.destroy');
-            Route::put('/replies/{id}/approve',          [\App\Http\Controllers\Admin\AdminForumController::class, 'approveReply'])->name('replies.approve');
-            Route::get('/categories',                    [\App\Http\Controllers\Admin\AdminForumController::class, 'categories'])->name('categories.index');
-            Route::post('/categories',                   [\App\Http\Controllers\Admin\AdminForumController::class, 'storeCategory'])->name('categories.store');
-            Route::put('/categories/{id}',               [\App\Http\Controllers\Admin\AdminForumController::class, 'updateCategory'])->name('categories.update');
-            Route::delete('/categories/{id}',            [\App\Http\Controllers\Admin\AdminForumController::class, 'destroyCategory'])->name('categories.destroy');
+            // Dashboard + list
+            Route::get('/',                                  [\App\Http\Controllers\Admin\AdminForumController::class, 'index'])->name('index');
+            Route::get('/threads',                           [\App\Http\Controllers\Admin\AdminForumController::class, 'threads'])->name('threads');
+            Route::get('/threads/{id}',                      [\App\Http\Controllers\Admin\AdminForumController::class, 'showThread'])->name('threads.show');
+
+            // Thread lifecycle: approve / lock / unlock / resolve / archive / pin / delete / category
+            Route::post('/threads/{id}/approve',             [\App\Http\Controllers\Admin\AdminForumController::class, 'approveThread'])->name('threads.approve');
+            Route::post('/threads/{id}/lock',                [\App\Http\Controllers\Admin\AdminForumController::class, 'lockThread'])->name('threads.lock');
+            Route::post('/threads/{id}/unlock',              [\App\Http\Controllers\Admin\AdminForumController::class, 'unlockThread'])->name('threads.unlock');
+            Route::post('/threads/{id}/resolve',             [\App\Http\Controllers\Admin\AdminForumController::class, 'resolveThread'])->name('threads.resolve');
+            Route::post('/threads/{id}/archive',             [\App\Http\Controllers\Admin\AdminForumController::class, 'archiveThread'])->name('threads.archive');
+            Route::post('/threads/{id}/pin',                 [\App\Http\Controllers\Admin\AdminForumController::class, 'pinThread'])->name('threads.pin');
+            Route::delete('/threads/{id}',                   [\App\Http\Controllers\Admin\AdminForumController::class, 'destroyThread'])->name('threads.destroy');
+            Route::post('/threads/{id}/category',            [\App\Http\Controllers\Admin\AdminForumController::class, 'changeCategory'])->name('threads.category');
+
+            // Reply management
+            Route::delete('/replies/{id}',                   [\App\Http\Controllers\Admin\AdminForumController::class, 'destroyReply'])->name('replies.destroy');
+            Route::delete('/replies/{id}/official',          [\App\Http\Controllers\Admin\AdminForumController::class, 'removeOfficialAnswer'])->name('replies.official.remove');
+
+            // Flag review
+            Route::get('/flags',                             [\App\Http\Controllers\Admin\AdminForumController::class, 'flags'])->name('flags.index');
+            Route::post('/flags/{id}/dismiss',               [\App\Http\Controllers\Admin\AdminForumController::class, 'dismissFlag'])->name('flags.dismiss');
+            Route::post('/flags/{id}/confirm',               [\App\Http\Controllers\Admin\AdminForumController::class, 'confirmFlag'])->name('flags.confirm');
+
+            // User banning
+            Route::post('/users/{userId}/ban',               [\App\Http\Controllers\Admin\AdminForumController::class, 'banUser'])->name('users.ban');
+            Route::post('/users/{userId}/unban',             [\App\Http\Controllers\Admin\AdminForumController::class, 'unbanUser'])->name('users.unban');
+
+            // Categories
+            Route::get('/categories',                        [\App\Http\Controllers\Admin\AdminForumController::class, 'categories'])->name('categories.index');
+            Route::post('/categories',                       [\App\Http\Controllers\Admin\AdminForumController::class, 'storeCategory'])->name('categories.store');
+            Route::put('/categories/{id}',                   [\App\Http\Controllers\Admin\AdminForumController::class, 'updateCategory'])->name('categories.update');
+            Route::delete('/categories/{id}',                [\App\Http\Controllers\Admin\AdminForumController::class, 'destroyCategory'])->name('categories.destroy');
+
+            // Audit log
+            Route::get('/audit-log',                         [\App\Http\Controllers\Admin\AdminForumController::class, 'auditLog'])->name('audit-log');
         });
 
         // ── Notification Broadcast (Section 5 – Admin Broadcast) ─────────────
@@ -286,6 +338,18 @@ Route::prefix('admin')->name('admin.')->group(function () {
             Route::get('/broadcast',                     [\App\Http\Controllers\Admin\AdminNotificationBroadcastController::class, 'index'])->name('index');
             Route::post('/broadcast',                    [\App\Http\Controllers\Admin\AdminNotificationBroadcastController::class, 'send'])->name('send');
             Route::get('/broadcast/history',             [\App\Http\Controllers\Admin\AdminNotificationBroadcastController::class, 'history'])->name('history');
+        });
+
+        // ── Reporting & Analytics ─────────────────────────────────────────────
+        Route::prefix('reports')->name('reports.')->group(function () {
+            Route::get('/',                [\App\Http\Controllers\Admin\AdminReportController::class, 'index'])->name('index');
+            Route::get('/sales',           [\App\Http\Controllers\Admin\AdminReportController::class, 'sales'])->name('sales');
+            Route::get('/top-products',    [\App\Http\Controllers\Admin\AdminReportController::class, 'topProducts'])->name('top-products');
+            Route::get('/top-vendors',     [\App\Http\Controllers\Admin\AdminReportController::class, 'topVendors'])->name('top-vendors');
+            Route::get('/order-statuses',  [\App\Http\Controllers\Admin\AdminReportController::class, 'orderStatuses'])->name('order-statuses');
+            Route::get('/refunds',         [\App\Http\Controllers\Admin\AdminReportController::class, 'refunds'])->name('refunds');
+            Route::get('/monthly-growth',  [\App\Http\Controllers\Admin\AdminReportController::class, 'monthlyGrowth'])->name('monthly-growth');
+            Route::get('/export',          [\App\Http\Controllers\Admin\AdminReportController::class, 'export'])->name('export');
         });
 
     }); // end 'admin' middleware group

@@ -56,4 +56,16 @@ return [
     'ai_chat_model'       => env('OPENAI_CHAT_MODEL', 'gpt-4o-mini'),
     'ai_chat_max_history' => (int) env('AI_CHAT_MAX_HISTORY', 10),
 
+    // ── Security ─────────────────────────────────────────────────────────────
+    // Admin IP whitelist: comma-separated IPs / CIDR ranges.
+    // Empty = no restriction (all IPs allowed).
+    // Example: ADMIN_IP_WHITELIST=192.168.1.100,10.0.0.0/24
+    'admin_ip_whitelist' => array_filter(
+        explode(',', env('ADMIN_IP_WHITELIST', ''))
+    ),
+
+    // Auth hardening
+    'auth_max_attempts'    => (int) env('AUTH_MAX_ATTEMPTS', 5),
+    'auth_lockout_minutes' => (int) env('AUTH_LOCKOUT_MINUTES', 30),
+
 ];

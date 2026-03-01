@@ -38,7 +38,7 @@ class UpdateExpertProfileRequest extends FormRequest
             'account_type'          => ['nullable', 'in:individual,agency'],
 
             // Avatar
-            'avatar' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
+            'profile_image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
 
             // Specializations
             'specializations'         => ['nullable', 'array', 'max:10'],

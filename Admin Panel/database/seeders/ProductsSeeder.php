@@ -4,321 +4,131 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Carbon\Carbon;
 
+/**
+ * ProductsSeeder — 55 agriculture products across 8 categories.
+ */
 class ProductsSeeder extends Seeder
 {
     public function run(): void
     {
-        $now     = Carbon::now();
-        $vendors = DB::table('vendors')->get()->keyBy('title');
-        $cats    = DB::table('categories')->pluck('id', 'name');
+        $now = Carbon::now();
 
-        // ────────────────────────────────────────────────────────
-        //  Helper: insert product + optional attribute variants
-        // ────────────────────────────────────────────────────────
-        $insert = function (
-            string $vendor, string $category, string $name,
-            string $desc, float $price, ?float $discountPrice,
-            bool $featured, array $variants = []
-        ) use ($now, $vendors, $cats, &$insert) {
-            $v = $vendors[$vendor] ?? null;
-            if (! $v) return;
+        // Resolve IDs dynamically so the seeder works in isolation
+        $vendors  = DB::table('vendors')->orderBy('id')->pluck('id')->toArray();
+        $brands   = DB::table('brands')->pluck('id', 'name');
+        $cats     = DB::table('categories')->pluck('id', 'name');
 
-            $productId = DB::table('products')->insertGetId([
-                'vendor_id'      => $v->id,
-                'category_id'    => $cats[$category] ?? null,
-                'name'           => $name,
-                'description'    => $desc,
-                'price'          => $price,
-                'discount_price' => $discountPrice,
-                'is_active'      => true,
-                'is_featured'    => $featured,
-                'sort_order'     => 0,
-                'created_at'     => $now,
-                'updated_at'     => $now,
-            ]);
+        $v1 = $vendors[0] ?? 1; // GreenHarvest
+        $v2 = $vendors[1] ?? 2; // PakiAgroPro
+        $v3 = $vendors[2] ?? 3; // FarmTech
+        $v4 = $vendors[3] ?? 4; // KisanMart
+        $v5 = $vendors[4] ?? 5; // AgroShield
+        $v6 = $vendors[5] ?? 6; // NatureCrop
 
-            foreach ($variants as $var) {
-                DB::table('product_attributes')->insert([
-                    'product_id' => $productId,
-                    'name'       => $var['name'],
-                    'price'      => $var['price'],
-                    'type'       => $var['type'] ?? 'single',
-                    'created_at' => $now,
-                    'updated_at' => $now,
-                ]);
-            }
-        };
+        $cSeeds     = $cats['Seeds & Planting']            ?? 1;
+        $cFert      = $cats['Fertilizers & Soil Nutrients'] ?? 2;
+        $cPest      = $cats['Pesticides & Herbicides']      ?? 3;
+        $cTools     = $cats['Farming Tools & Equipment']    ?? 4;
+        $cIrr       = $cats['Irrigation & Water Systems']   ?? 5;
+        $cGreen     = $cats['Greenhouse Supplies']          ?? 6;
+        $cFeed      = $cats['Animal Feed & Livestock']      ?? 7;
+        $cOrg       = $cats['Organic & Natural Products']   ?? 8;
 
-        // ────────────────────────────────────────────────────────
-        //  SEEDS — Punjab Seeds Centre (Lahore)
-        // ────────────────────────────────────────────────────────
-        $insert('Punjab Seeds Centre', 'Seeds',
-            'Fauji Hybrid Maize Seed (FH-1046)',
-            'High-yielding hybrid maize seed certified by PARC. Yield potential 8–10 tonnes/acre. Suitable for Canal irrigated areas of Punjab.',
-            2800.00, 2500.00, true,
-            [['name' => '1 kg bag', 'price' => 2800], ['name' => '5 kg bag', 'price' => 13000], ['name' => '10 kg bag', 'price' => 24000]]
-        );
+        $bGG  = $brands['GreenGrow']   ?? null;
+        $bPS  = $brands['PakSeed']     ?? null;
+        $bAS  = $brands['AgroShield']  ?? null;
+        $bKP  = $brands['KisanPro']    ?? null;
+        $bHF  = $brands['HydroFarm']   ?? null;
+        $bNC  = $brands['NatureCraft'] ?? null;
+        $bFM  = $brands['FieldMaster'] ?? null;
+        $bCS  = $brands['CropSure']    ?? null;
+        $bBP  = $brands['BioPak']      ?? null;
+        $bTS  = $brands['TerraSol']    ?? null;
 
-        $insert('Punjab Seeds Centre', 'Seeds',
-            'NIBGE Bt Cotton Seed (CIM-598)',
-            'Bollworm-resistant Bt cotton seed variety developed by NIBGE. High ginning percentage and fibre strength for Punjab cotton belt.',
-            3500.00, 3200.00, true,
-            [['name' => '2.5 kg bag', 'price' => 3500], ['name' => '5 kg bag', 'price' => 6800]]
-        );
+        $products = [
+            // ── Seeds (8) ──────────────────────────────────────────────────────
+            ['name' => 'Wheat Seed Galaxy-2013',        'category_id' => $cSeeds, 'vendor_id' => $v1, 'brand_id' => $bPS, 'price' => 2200, 'discount_price' => 1980, 'stock_quantity' => 500, 'is_featured' => 1, 'description' => 'High-yielding wheat variety suited for irrigated plains of Punjab. Matures in 130 days with 3.5–4.0 t/acre potential.'],
+            ['name' => 'Hybrid Tomato F1 Seed (10g)',   'category_id' => $cSeeds, 'vendor_id' => $v1, 'brand_id' => $bGG, 'price' =>  850, 'discount_price' =>  750, 'stock_quantity' => 300, 'is_featured' => 0, 'description' => 'Determinate hybrid tomato with disease resistance. Produces firm, medium-sized fruits ideal for fresh market.'],
+            ['name' => 'Basmati Rice Seed 1121 (5kg)',  'category_id' => $cSeeds, 'vendor_id' => $v1, 'brand_id' => $bPS, 'price' => 1800, 'discount_price' => null, 'stock_quantity' => 250, 'is_featured' => 1, 'description' => 'Aromatic long-grain Basmati 1121 for Kharif season. Ideal for Punjab and upper Sindh paddy fields.'],
+            ['name' => 'Corn Hybrid DK-6142 (5kg)',     'category_id' => $cSeeds, 'vendor_id' => $v1, 'brand_id' => $bGG, 'price' => 3500, 'discount_price' => 3200, 'stock_quantity' => 180, 'is_featured' => 0, 'description' => 'Triple-cross hybrid maize with high yield potential and good stalk strength. Suitable for silage and grain.'],
+            ['name' => 'Cotton BT-121 Seed (500g)',     'category_id' => $cSeeds, 'vendor_id' => $v1, 'brand_id' => $bPS, 'price' => 4200, 'discount_price' => null, 'stock_quantity' => 120, 'is_featured' => 1, 'description' => 'Bt-transgenic cotton seed with built-in bollworm resistance. Ideal for Punjab cotton belt.'],
+            ['name' => 'Sunflower Hybrid Seed (1kg)',   'category_id' => $cSeeds, 'vendor_id' => $v1, 'brand_id' => $bGG, 'price' => 2800, 'discount_price' => 2500, 'stock_quantity' => 90,  'is_featured' => 0, 'description' => 'High-oil hybrid sunflower for oilseed production. Short duration of 100 days, drought tolerant.'],
+            ['name' => 'Onion Seed (50g)',              'category_id' => $cSeeds, 'vendor_id' => $v1, 'brand_id' => $bPS, 'price' =>  650, 'discount_price' =>  580, 'stock_quantity' => 400, 'is_featured' => 0, 'description' => 'Red onion variety with high pungency and excellent storage life. Suitable for Rabi season.'],
+            ['name' => 'Spinach Seed Palak (100g)',     'category_id' => $cSeeds, 'vendor_id' => $v1, 'brand_id' => $bGG, 'price' =>  320, 'discount_price' => null, 'stock_quantity' => 600, 'is_featured' => 0, 'description' => 'Fast-growing leafy spinach ideal for home gardens and commercial cultivation. Ready in 40–50 days.'],
 
-        $insert('Punjab Seeds Centre', 'Seeds',
-            'PARC Wheat Seed (AARI-2011)',
-            'Rust-resistant, high-yielding wheat variety. Recommended for irrigated conditions of Punjab and Sindh. Yield 50–60 mounds/acre.',
-            1200.00, 1050.00, false,
-            [['name' => '20 kg bag', 'price' => 1200], ['name' => '40 kg bag', 'price' => 2300]]
-        );
+            // ── Fertilizers (8) ───────────────────────────────────────────────
+            ['name' => 'DAP Fertilizer (50kg)',                 'category_id' => $cFert, 'vendor_id' => $v2, 'brand_id' => $bTS, 'price' => 9800,  'discount_price' => null,  'stock_quantity' => 200, 'is_featured' => 1, 'description' => 'Di-Ammonium Phosphate 18-46-0. Essential basal dose fertilizer for wheat, rice, and cotton crops.'],
+            ['name' => 'Urea Fertilizer (50kg)',                'category_id' => $cFert, 'vendor_id' => $v2, 'brand_id' => $bTS, 'price' => 8200,  'discount_price' => null,  'stock_quantity' => 300, 'is_featured' => 1, 'description' => 'Granular urea 46% N. Primary nitrogen source for top-dressing all field crops.'],
+            ['name' => 'NPK 15-15-15 Compound Fertilizer (25kg)', 'category_id' => $cFert, 'vendor_id' => $v4, 'brand_id' => $bTS, 'price' => 5500,  'discount_price' => 5000,  'stock_quantity' => 150, 'is_featured' => 0, 'description' => 'Balanced nitrogen, phosphorus, and potassium compound fertilizer for vegetables and orchards.'],
+            ['name' => 'Potassium Sulphate K2SO4 (25kg)',       'category_id' => $cFert, 'vendor_id' => $v2, 'brand_id' => $bTS, 'price' => 7200,  'discount_price' => null,  'stock_quantity' => 100, 'is_featured' => 0, 'description' => 'Chloride-free potassium sulphate ideal for tobacco, potatoes, and fruit trees.'],
+            ['name' => 'Calcium Nitrate (25kg)',                 'category_id' => $cFert, 'vendor_id' => $v2, 'brand_id' => $bGG, 'price' => 6200,  'discount_price' => 5800,  'stock_quantity' => 80,  'is_featured' => 0, 'description' => 'Water-soluble calcium nitrate for fertigation systems. Prevents blossom-end rot in tomatoes and peppers.'],
+            ['name' => 'Organic Compost Premium (40kg)',         'category_id' => $cFert, 'vendor_id' => $v6, 'brand_id' => $bNC, 'price' => 1800,  'discount_price' => 1650,  'stock_quantity' => 250, 'is_featured' => 0, 'description' => 'Fully composted organic matter enriched with vermicast. Improves soil structure, water retention, and microbial activity.'],
+            ['name' => 'Micronutrient Mix Foliar Spray (500ml)','category_id' => $cFert, 'vendor_id' => $v2, 'brand_id' => $bTS, 'price' => 1200,  'discount_price' => null,  'stock_quantity' => 350, 'is_featured' => 0, 'description' => 'Complete trace element formula containing Zn, Fe, Mn, Cu, B, Mo. Corrects hidden hunger in all crops.'],
+            ['name' => 'Boron Supplement 20% (1kg)',            'category_id' => $cFert, 'vendor_id' => $v2, 'brand_id' => $bTS, 'price' =>  980,  'discount_price' =>  880,  'stock_quantity' => 200, 'is_featured' => 0, 'description' => 'Solubor boron supplement for flower set, fruit development, and pollen viability in canola and sunflower.'],
 
-        $insert('Punjab Seeds Centre', 'Seeds',
-            'Desi Basmati Rice Seed (Super Basmati)',
-            'Aromatic, fine-grain Super Basmati variety. Preferred by rice millers. Suited for Gujranwala & Sheikhupura paddies.',
-            2200.00, null, false,
-            [['name' => '5 kg bag', 'price' => 2200], ['name' => '10 kg bag', 'price' => 4200]]
-        );
+            // ── Pesticides (8) ────────────────────────────────────────────────
+            ['name' => 'Lambda-Cyhalothrin 2.5% EC (500ml)', 'category_id' => $cPest, 'vendor_id' => $v5, 'brand_id' => $bAS, 'price' =>  850, 'discount_price' =>  780, 'stock_quantity' => 300, 'is_featured' => 0, 'description' => 'Broad-spectrum pyrethroid insecticide for sucking and chewing pests on cotton, vegetables, and cereals.'],
+            ['name' => 'Glyphosate 41% SL (1L)',             'category_id' => $cPest, 'vendor_id' => $v5, 'brand_id' => $bCS, 'price' => 1400, 'discount_price' => null, 'stock_quantity' => 200, 'is_featured' => 0, 'description' => 'Systemic non-selective herbicide for pre-planting weed control in orchards, cotton fields, and roadways.'],
+            ['name' => 'Copper Hydroxide 77% WP (500g)',     'category_id' => $cPest, 'vendor_id' => $v5, 'brand_id' => $bAS, 'price' =>  720, 'discount_price' =>  650, 'stock_quantity' => 180, 'is_featured' => 0, 'description' => 'Broad-spectrum copper fungicide for downy mildew, early blight, and bacterial spot in vegetables.'],
+            ['name' => 'Imidacloprid 200SC (100ml)',         'category_id' => $cPest, 'vendor_id' => $v5, 'brand_id' => $bCS, 'price' =>  950, 'discount_price' =>  850, 'stock_quantity' => 250, 'is_featured' => 1, 'description' => 'Systemic neonicotinoid insecticide for whitefly, aphids, and thrips. Soil drench or foliar application.'],
+            ['name' => 'Chlorpyrifos 40% EC (500ml)',        'category_id' => $cPest, 'vendor_id' => $v5, 'brand_id' => $bAS, 'price' =>  680, 'discount_price' => null, 'stock_quantity' => 320, 'is_featured' => 0, 'description' => 'Contact and stomach organophosphate insecticide effective against stem borers and soil insects.'],
+            ['name' => 'Mancozeb 80% WP (1kg)',              'category_id' => $cPest, 'vendor_id' => $v5, 'brand_id' => $bCS, 'price' =>  540, 'discount_price' =>  490, 'stock_quantity' => 400, 'is_featured' => 0, 'description' => 'Protective multi-site fungicide for early and late blight, Alternaria, and rust diseases.'],
+            ['name' => 'Weed Control Granules (5kg)',        'category_id' => $cPest, 'vendor_id' => $v5, 'brand_id' => $bAS, 'price' => 1100, 'discount_price' => null, 'stock_quantity' => 140, 'is_featured' => 0, 'description' => 'Pre-emergence granular herbicide for rice paddies. Controls annual grasses and sedges effectively.'],
+            ['name' => 'Metaldehyde Bait 5% (500g)',         'category_id' => $cPest, 'vendor_id' => $v5, 'brand_id' => $bCS, 'price' =>  420, 'discount_price' => null, 'stock_quantity' => 220, 'is_featured' => 0, 'description' => 'Molluscicide bait pellets for slug and snail control in vegetables, strawberries, and wheat.'],
 
-        $insert('Punjab Seeds Centre', 'Seeds',
-            'Sunflower Hybrid Seed (Hysun-33)',
-            'Imported hybrid sunflower seed. Short duration, tolerates Punjabi summer heat. Oil content 45%.',
-            4500.00, 4100.00, true,
-            [['name' => '500 g can', 'price' => 4500]]
-        );
+            // ── Farming Tools (8) ─────────────────────────────────────────────
+            ['name' => 'Heavy Duty Steel Spade',          'category_id' => $cTools, 'vendor_id' => $v3, 'brand_id' => $bKP, 'price' => 1800, 'discount_price' => 1580, 'stock_quantity' => 80,  'is_featured' => 0, 'description' => 'Forged steel spade with anti-rust coating and ergonomic ash wood handle. Ideal for sandy and clay soils.'],
+            ['name' => 'Garden Trowel Set (4 Piece)',      'category_id' => $cTools, 'vendor_id' => $v3, 'brand_id' => $bKP, 'price' => 1200, 'discount_price' => null, 'stock_quantity' => 120, 'is_featured' => 0, 'description' => 'Stainless steel trowel set including planting trowel, weeder, transplanter, and cultivator.'],
+            ['name' => 'Bypass Pruning Shears',            'category_id' => $cTools, 'vendor_id' => $v3, 'brand_id' => $bFM, 'price' =>  950, 'discount_price' =>  820, 'stock_quantity' => 150, 'is_featured' => 0, 'description' => 'High-carbon bypass pruning shears for clean cuts on branches up to 2cm diameter. Non-slip soft grip handle.'],
+            ['name' => 'Irrigation Shovel Kana',           'category_id' => $cTools, 'vendor_id' => $v3, 'brand_id' => $bKP, 'price' => 1400, 'discount_price' => null, 'stock_quantity' => 60,  'is_featured' => 0, 'description' => 'Traditional Pakistani irrigation shovel (kana) used for channel opening and water management in fields.'],
+            ['name' => 'Wheel Hoe Cultivator',             'category_id' => $cTools, 'vendor_id' => $v3, 'brand_id' => $bFM, 'price' => 8500, 'discount_price' => 7800, 'stock_quantity' => 25,  'is_featured' => 1, 'description' => 'Single-wheel manual hoe cultivator for between-row weed control in vegetables. Adjustable tine widths.'],
+            ['name' => 'Digital Soil pH Meter',            'category_id' => $cTools, 'vendor_id' => $v3, 'brand_id' => $bFM, 'price' => 3200, 'discount_price' => 2900, 'stock_quantity' => 55,  'is_featured' => 1, 'description' => 'Professional 3-in-1 soil tester measuring pH, moisture, and light intensity. No batteries required.'],
+            ['name' => 'Manual Seed Drill (2-Row)',        'category_id' => $cTools, 'vendor_id' => $v3, 'brand_id' => $bKP, 'price' => 12000,'discount_price' =>11000, 'stock_quantity' => 15,  'is_featured' => 0, 'description' => 'Hand-pushed 2-row seed drill for accurate planting depth and spacing. Suitable for wheat, maize, and vegetables.'],
+            ['name' => 'Knapsack Crop Sprayer 16L',        'category_id' => $cTools, 'vendor_id' => $v3, 'brand_id' => $bFM, 'price' => 4500, 'discount_price' => 4000, 'stock_quantity' => 70,  'is_featured' => 0, 'description' => 'Manual backpack sprayer 16L with adjustable brass nozzle. For pesticide and fertilizer foliar application.'],
 
-        // ────────────────────────────────────────────────────────
-        //  FERTILIZERS — Sona Fertilizer Store (Faisalabad)
-        // ────────────────────────────────────────────────────────
-        $insert('Sona Fertilizer Store', 'Fertilizers',
-            'Engro Urea (46% N)',
-            'Granular urea fertilizer – most widely used nitrogenous fertilizer in Pakistan. ENGRO brand, certified FCCI standard bag.',
-            4200.00, 4000.00, true,
-            [['name' => '50 kg bag', 'price' => 4200], ['name' => '10 kg bag', 'price' => 900]]
-        );
+            // ── Irrigation (6) ────────────────────────────────────────────────
+            ['name' => 'Drip Irrigation Kit (1 Kanal)',    'category_id' => $cIrr, 'vendor_id' => $v3, 'brand_id' => $bHF, 'price' => 22000,'discount_price' =>19500, 'stock_quantity' => 20,  'is_featured' => 1, 'description' => 'Complete drip irrigation kit for 1 kanal (500 sq. metres). Includes mainline, lateral pipes, drippers, and filter.'],
+            ['name' => 'Rotary Sprinkler Set (12 Units)',  'category_id' => $cIrr, 'vendor_id' => $v3, 'brand_id' => $bHF, 'price' => 8500, 'discount_price' => 7800, 'stock_quantity' => 30,  'is_featured' => 0, 'description' => 'Heavy-duty rotary sprinkler kit covering 10m radius. Suitable for lawns, orchards, and row crops.'],
+            ['name' => 'HDPE Main Line Pipe 32mm (100m)',  'category_id' => $cIrr, 'vendor_id' => $v3, 'brand_id' => $bHF, 'price' => 6800, 'discount_price' => null, 'stock_quantity' => 50,  'is_featured' => 0, 'description' => '32mm high-density polyethylene irrigation mainline pipe. Pressure rated 6 bar, UV stabilised.'],
+            ['name' => 'Agricultural Water Pump 1.5HP',    'category_id' => $cIrr, 'vendor_id' => $v3, 'brand_id' => $bFM, 'price' =>18000,'discount_price' =>16500, 'stock_quantity' => 18,  'is_featured' => 1, 'description' => 'Single-phase 1.5HP centrifugal pump for tube well and canal-based irrigation. Max head 35m.'],
+            ['name' => 'Rain Gun Sprinkler (1.5" Inlet)',  'category_id' => $cIrr, 'vendor_id' => $v3, 'brand_id' => $bHF, 'price' => 9500, 'discount_price' => null, 'stock_quantity' => 22,  'is_featured' => 0, 'description' => 'Heavy-duty brass rain gun covering 30m radius. Ideal for sugar cane, wheat, and large orchards.'],
+            ['name' => 'Soaker Hose 15m',                 'category_id' => $cIrr, 'vendor_id' => $v3, 'brand_id' => $bHF, 'price' => 1600, 'discount_price' => 1400, 'stock_quantity' => 90,  'is_featured' => 0, 'description' => 'Porous rubber soaker hose for slow deep watering at root level. Reduces evaporation by 70%.'],
 
-        $insert('Sona Fertilizer Store', 'Fertilizers',
-            'Fauji DAP (18-46-0)',
-            'Di-ammonium Phosphate fertilizer by Fauji Fertilizer Company. Boosts root development and early flowering.',
-            7800.00, 7400.00, true,
-            [['name' => '50 kg bag', 'price' => 7800]]
-        );
+            // ── Greenhouse (4) ────────────────────────────────────────────────
+            ['name' => 'Greenhouse UV Film (200 micron, 10x30m)', 'category_id' => $cGreen, 'vendor_id' => $v6, 'brand_id' => $bHF, 'price' => 28000,'discount_price' =>25000, 'stock_quantity' => 10,  'is_featured' => 0, 'description' => '5-layer UV-stabilised 200 micron greenhouse film. Provides 90% light transmission and 4-year outdoor durability.'],
+            ['name' => 'Shade Net 50% (4x10m)',                    'category_id' => $cGreen, 'vendor_id' => $v6, 'brand_id' => $bHF, 'price' => 4200, 'discount_price' => 3800, 'stock_quantity' => 40,  'is_featured' => 0, 'description' => '50% black HDPE shade net for nurseries, vegetables, and fruit orchards. Reduces temperature by 8–10°C.'],
+            ['name' => 'Greenhouse Plastic Clips (100 pcs)',       'category_id' => $cGreen, 'vendor_id' => $v6, 'brand_id' => $bHF, 'price' =>  650, 'discount_price' => null, 'stock_quantity' => 200, 'is_featured' => 0, 'description' => 'Heavy-duty spring clips for attaching shade nets and plastic film to greenhouse frames.'],
+            ['name' => 'Mini Hydroponic NFT Kit (20 Plants)',      'category_id' => $cGreen, 'vendor_id' => $v6, 'brand_id' => $bHF, 'price' => 15000,'discount_price' =>13500, 'stock_quantity' => 12,  'is_featured' => 1, 'description' => 'Nutrient Film Technique kit for leafy greens and herbs. Includes channels, pump, reservoir, net cups, and nutrients.'],
 
-        $insert('Sona Fertilizer Store', 'Fertilizers',
-            'SOP Potassium Sulphate (50% K2O)',
-            'Sulphate of Potash – chloride-free potash source. Ideal for fruits, vegetables and tobacco in Pakistan.',
-            6500.00, null, false,
-            [['name' => '25 kg bag', 'price' => 6500], ['name' => '50 kg bag', 'price' => 12500]]
-        );
+            // ── Animal Feed (5) ───────────────────────────────────────────────
+            ['name' => 'Broiler Starter Feed (25kg)',      'category_id' => $cFeed, 'vendor_id' => $v4, 'brand_id' => null, 'price' => 3800, 'discount_price' => 3500, 'stock_quantity' => 100, 'is_featured' => 0, 'description' => 'High protein (22%) crumble feed for day-old to 14-day broiler chicks. Includes coccidiostat.'],
+            ['name' => 'Dairy Cattle Concentrate (50kg)',  'category_id' => $cFeed, 'vendor_id' => $v4, 'brand_id' => null, 'price' => 7200, 'discount_price' => null, 'stock_quantity' => 60,  'is_featured' => 0, 'description' => 'Balanced energy-protein dairy concentrate boosting milk yield. Contains vitamins, minerals, and bypass protein.'],
+            ['name' => 'Goat Feed Pellets (25kg)',         'category_id' => $cFeed, 'vendor_id' => $v4, 'brand_id' => null, 'price' => 3200, 'discount_price' => 2900, 'stock_quantity' => 80,  'is_featured' => 0, 'description' => 'Multi-ingredient pellet feed for goats. Supports growth, reproduction, and lactation in all breeds.'],
+            ['name' => 'Layer Hen Feed (50kg)',            'category_id' => $cFeed, 'vendor_id' => $v4, 'brand_id' => null, 'price' => 5800, 'discount_price' => null, 'stock_quantity' => 70,  'is_featured' => 0, 'description' => 'Mash feed optimised for egg production layers 18+ weeks. Contains shell-forming calcium 4%.'],
+            ['name' => 'Fish Pellets (20kg)',              'category_id' => $cFeed, 'vendor_id' => $v4, 'brand_id' => null, 'price' => 4500, 'discount_price' => 4100, 'stock_quantity' => 40,  'is_featured' => 0, 'description' => 'Sinking pellets (3mm) for catfish, tilapia, and Rohu. 32% protein, balanced amino acid profile.'],
 
-        $insert('Sona Fertilizer Store', 'Fertilizers',
-            'Nitrophos NP (23-23-0)',
-            'Balanced nitrogen-phosphate fertilizer for basal application. Reduces need for separate urea + DAP application.',
-            5200.00, 4900.00, false,
-            [['name' => '50 kg bag', 'price' => 5200]]
-        );
+            // ── Organic (8) ───────────────────────────────────────────────────
+            ['name' => 'Vermicompost Premium (20kg)',          'category_id' => $cOrg, 'vendor_id' => $v6, 'brand_id' => $bNC, 'price' => 1600, 'discount_price' => 1400, 'stock_quantity' => 200, 'is_featured' => 1, 'description' => 'Pure earthworm vermicompost enriched with humic acid, enzymes, and beneficial bacteria. Improves soil fertility organically.'],
+            ['name' => 'Neem Azal Biopesticide (1L)',          'category_id' => $cOrg, 'vendor_id' => $v6, 'brand_id' => $bNC, 'price' => 1800, 'discount_price' => 1620, 'stock_quantity' => 150, 'is_featured' => 0, 'description' => 'Cold-pressed neem oil extract (0.3% Azadirachtin). Controls aphids, whitefly, mites, and nematodes.'],
+            ['name' => 'Bio-Enzyme Plant Activator (500ml)',   'category_id' => $cOrg, 'vendor_id' => $v6, 'brand_id' => $bBP, 'price' => 1200, 'discount_price' => null, 'stock_quantity' => 180, 'is_featured' => 0, 'description' => 'Fermented plant enzyme activator improving nutrient uptake, stress tolerance, and root development.'],
+            ['name' => 'Seaweed Extract Liquid (1L)',           'category_id' => $cOrg, 'vendor_id' => $v6, 'brand_id' => $bNC, 'price' => 2200, 'discount_price' => 2000, 'stock_quantity' => 120, 'is_featured' => 1, 'description' => 'ECKLONIA maxima kelp extract with natural plant growth hormones (auxins, cytokinins, gibberellins). 100% organic.'],
+            ['name' => 'Humic Acid 70% Powder (1kg)',          'category_id' => $cOrg, 'vendor_id' => $v6, 'brand_id' => $bTS, 'price' => 1400, 'discount_price' => 1260, 'stock_quantity' => 200, 'is_featured' => 0, 'description' => 'Leonardite-derived 70% humic acid for soil conditioning. Chelates micro-nutrients and improves CEC.'],
+            ['name' => 'Mycorrhizal Fungi Inoculant (500g)',   'category_id' => $cOrg, 'vendor_id' => $v6, 'brand_id' => $bBP, 'price' => 2800, 'discount_price' => null, 'stock_quantity' => 80,  'is_featured' => 0, 'description' => 'Mixed mycorrhiza containing Glomus species. Applied to seed rows to boost phosphorus uptake and drought tolerance.'],
+            ['name' => 'Beneficial Bacteria WSP (1kg)',        'category_id' => $cOrg, 'vendor_id' => $v6, 'brand_id' => $bBP, 'price' => 2400, 'discount_price' => 2160, 'stock_quantity' => 100, 'is_featured' => 0, 'description' => 'Water-soluble powder with Bacillus subtilis + Trichoderma harzianum for biological disease suppression.'],
+            ['name' => 'Biodegradable Mulch Film (1.2m x 200m)', 'category_id' => $cOrg, 'vendor_id' => $v6, 'brand_id' => $bNC, 'price' => 5500, 'discount_price' => 5000, 'stock_quantity' => 35,  'is_featured' => 0, 'description' => 'Oxo-biodegradable black mulch film for weed suppression and moisture retention in vegetable beds.'],
+        ];
 
-        $insert('Sona Fertilizer Store', 'Fertilizers',
-            'Zinc Sulphate Micronutrient (33% Zn)',
-            'Corrects zinc deficiency in rice, wheat and maize. Granular form. Approved by Faisalabad Agriculture University trials.',
-            1800.00, 1600.00, false,
-            [['name' => '5 kg bag', 'price' => 1800], ['name' => '25 kg bag', 'price' => 8500]]
-        );
-
-        // ────────────────────────────────────────────────────────
-        //  PESTICIDES — Al-Rehman Agro Supplies (Multan)
-        // ────────────────────────────────────────────────────────
-        $insert('Al-Rehman Agro Supplies', 'Pesticides',
-            'Syngenta Karate 2.5% WG (Lambda-Cyhalothrin)',
-            'Broad-spectrum insecticide/pesticide for cotton, wheat and rice. Controls armyworm, thrips and leafhoppers.',
-            1450.00, 1300.00, true,
-            [['name' => '100 g pack', 'price' => 1450], ['name' => '500 g pack', 'price' => 6800]]
-        );
-
-        $insert('Al-Rehman Agro Supplies', 'Pesticides',
-            'FMC Tilt 250 EC (Propiconazole)',
-            'Systemic fungicide effective against brown rust, yellow rust and leaf spot in wheat. Absorbed quickly after rain.',
-            2100.00, null, false,
-            [['name' => '100 ml bottle', 'price' => 2100], ['name' => '500 ml bottle', 'price' => 9800]]
-        );
-
-        $insert('Al-Rehman Agro Supplies', 'Pesticides',
-            'Bayer Confidor 200 SL (Imidacloprid)',
-            'Systemic insecticide for sucking pest control in cotton, chilli and vegetables. Long residual activity.',
-            3200.00, 2950.00, true,
-            [['name' => '250 ml bottle', 'price' => 3200], ['name' => '1 litre bottle', 'price' => 11500]]
-        );
-
-        $insert('Al-Rehman Agro Supplies', 'Pesticides',
-            'BASF Maestro 75% WP (Captan)',
-            'Protectant fungicide for apple scab, brown rot and downy mildew in orchard and vegetable crops.',
-            1850.00, 1700.00, false,
-            [['name' => '200 g pack', 'price' => 1850], ['name' => '1 kg pack', 'price' => 8500]]
-        );
-
-        // ────────────────────────────────────────────────────────
-        //  INSECTICIDES — Kisaan Agri Mart (Bahawalpur)
-        // ────────────────────────────────────────────────────────
-        $insert('Kisaan Agri Mart', 'Insecticides',
-            'Bayer Regent 80 WG (Fipronil)',
-            'Granular insecticide for soil application against white grub, termites and stem borers in sugarcane and maize.',
-            2700.00, 2500.00, true,
-            [['name' => '100 g pack', 'price' => 2700], ['name' => '500 g pack', 'price' => 12500]]
-        );
-
-        $insert('Kisaan Agri Mart', 'Insecticides',
-            'Syngenta Actara 25 WG (Thiamethoxam)',
-            '2nd-generation neonicotinoid. Controls whitefly, aphids, jassids and thrips in cotton. Quick knock-down effect.',
-            3600.00, 3400.00, true,
-            [['name' => '100 g pack', 'price' => 3600], ['name' => '250 g pack', 'price' => 8700]]
-        );
-
-        $insert('Kisaan Agri Mart', 'Insecticides',
-            'Chlorpyrifos 40% EC',
-            'Contact and stomach-acting organophosphate insecticide for cutworms, grubs and termites. Registered by DRAP.',
-            900.00, 800.00, false,
-            [['name' => '500 ml bottle', 'price' => 900], ['name' => '1 litre bottle', 'price' => 1700]]
-        );
-
-        $insert('Kisaan Agri Mart', 'Insecticides',
-            'Deltamethrin 2.8% EC (Decis)',
-            'Pyrethroid insecticide with fast knockdown. For bollworm, aphids and thrips in cotton and vegetables.',
-            1200.00, null, false,
-            [['name' => '250 ml bottle', 'price' => 1200], ['name' => '1 litre bottle', 'price' => 4500]]
-        );
-
-        // ────────────────────────────────────────────────────────
-        //  SEEDS — Green Land Seeds (Gujranwala)
-        // ────────────────────────────────────────────────────────
-        $insert('Green Land Seeds', 'Seeds',
-            'IRRI-6 Paddy Rice Seed',
-            'Long-grain non-basmati variety. High yield, tolerant to blast disease. Suitable for Gujranwala, Hafizabad and Sialkot paddies.',
-            1800.00, 1650.00, true,
-            [['name' => '10 kg bag', 'price' => 1800], ['name' => '25 kg bag', 'price' => 4300]]
-        );
-
-        $insert('Green Land Seeds', 'Seeds',
-            'Hybrid Canola Seed (Bulbul-98)',
-            'High oil-content canola variety for rabi season. Yields 15–18 mounds/acre. Suited for Punjab and KPK.',
-            2400.00, 2200.00, false,
-            [['name' => '2 kg tin', 'price' => 2400]]
-        );
-
-        $insert('Green Land Seeds', 'Seeds',
-            'Garden Pea Seed (Local Improved)',
-            'Improved local pea variety for kitchen garden and commercial cultivation. Cold tolerant. Ready in 70 days.',
-            650.00, null, false,
-            [['name' => '500 g pack', 'price' => 650], ['name' => '2 kg pack', 'price' => 2400]]
-        );
-
-        // ────────────────────────────────────────────────────────
-        //  FERTILIZERS — Ittehad Fertilizers (Sahiwal)
-        // ────────────────────────────────────────────────────────
-        $insert('Ittehad Fertilizers', 'Fertilizers',
-            'Borax (Sodium Tetraborate 11% B)',
-            'Boron micronutrient for improved fruit set in mango, citrus and cotton. Reduces hollow heart in potato.',
-            1400.00, 1250.00, false,
-            [['name' => '2 kg bag', 'price' => 1400], ['name' => '10 kg bag', 'price' => 6500]]
-        );
-
-        $insert('Ittehad Fertilizers', 'Fertilizers',
-            'Iron Sulphate (FeSO4 – 19% Fe)',
-            'Iron source for chlorosis correction in calcareous soils of Pakistan. Granular, easy to broadcast.',
-            1100.00, null, false,
-            [['name' => '5 kg bag', 'price' => 1100], ['name' => '25 kg bag', 'price' => 5000]]
-        );
-
-        // ────────────────────────────────────────────────────────
-        //  PESTICIDES — KPK Agro Solutions (Peshawar)
-        // ────────────────────────────────────────────────────────
-        $insert('KPK Agro Solutions', 'Herbicides',
-            'Stomp 330 EC (Pendimethalin)',
-            'Pre-emergence herbicide for control of annual grasses and broadleaf weeds in maize, onion and tobacco.',
-            2300.00, 2100.00, true,
-            [['name' => '500 ml bottle', 'price' => 2300], ['name' => '1 litre bottle', 'price' => 4400]]
-        );
-
-        $insert('KPK Agro Solutions', 'Pesticides',
-            'Ridomil Gold MZ 68% WG (Mancozeb + Metalaxyl)',
-            'Systemic + contact fungicide, highly effective against late blight of potato and tomato in KPK highlands.',
-            3800.00, 3500.00, true,
-            [['name' => '100 g pack', 'price' => 3800], ['name' => '500 g pack', 'price' => 17500]]
-        );
-
-        // ────────────────────────────────────────────────────────
-        //  BIO PESTICIDES — Biocare Agri Pakistan (Karachi)
-        // ────────────────────────────────────────────────────────
-        $insert('Biocare Agri Pakistan', 'Bio Pesticides',
-            'BioLogic Bt (Bacillus thuringiensis) WP',
-            'Biological insecticide – harmless to humans and beneficial insects. Controls caterpillars and leaf miners. Halal certified.',
-            2600.00, 2350.00, true,
-            [['name' => '250 g pack', 'price' => 2600], ['name' => '1 kg pack', 'price' => 9500]]
-        );
-
-        $insert('Biocare Agri Pakistan', 'Bio Pesticides',
-            'Neem Azadirachtin 0.03% EC (NeemGuard)',
-            'Cold-pressed neem extract. Repels and discourages feeding by mites, thrips, whitefly and aphids. Safe for organic farming.',
-            1900.00, 1700.00, false,
-            [['name' => '500 ml bottle', 'price' => 1900], ['name' => '1 litre bottle', 'price' => 3600]]
-        );
-
-        $insert('Biocare Agri Pakistan', 'Bio Pesticides',
-            'Trichoderma Viride Bio-Fungicide',
-            'Soil application fungicide – controls damping off, Fusarium root rot and Pythium. Compatible with organic farming program.',
-            2200.00, null, false,
-            [['name' => '500 g pack', 'price' => 2200]]
-        );
-
-        // ────────────────────────────────────────────────────────
-        //  HERBICIDES — Sindh Crop Care (Sukkur)
-        // ────────────────────────────────────────────────────────
-        $insert('Sindh Crop Care', 'Herbicides',
-            'Gramoxone 20% SL (Paraquat)',
-            'Non-selective contact herbicide. Widely used for weed burndown in rice transplant fields and orchard strips.',
-            1600.00, 1450.00, false,
-            [['name' => '500 ml bottle', 'price' => 1600], ['name' => '1 litre bottle', 'price' => 3000]]
-        );
-
-        $insert('Sindh Crop Care', 'Herbicides',
-            'Puma Super 7.5% EW (Fenoxaprop-P-Ethyl)',
-            'Post-emergence herbicide for control of wild oat and weedy rices in wheat. Safe for broad-leaf plants.',
-            4200.00, 3900.00, true,
-            [['name' => '500 ml bottle', 'price' => 4200], ['name' => '1 litre bottle', 'price' => 8000]]
-        );
-
-        $insert('Sindh Crop Care', 'Herbicides',
-            'Roundup 41% SL (Glyphosate)',
-            'Systemic broad-spectrum herbicide. Used for land clearing and orchard weed management across Sindh.',
-            2800.00, 2600.00, false,
-            [['name' => '500 ml bottle', 'price' => 2800], ['name' => '1 litre bottle', 'price' => 5400]]
-        );
-
-        // ────────────────────────────────────────────────────────
-        //  FUNGICIDES — Balochistan Crop Protect (Quetta)
-        // ────────────────────────────────────────────────────────
-        $insert('Balochistan Crop Protect', 'Fungicides',
-            'Score 250 EC (Difenoconazole)',
-            'Systemic triazole fungicide for apple scab, cherry leaf spot and peach shot-hole disease in Balochistan orchards.',
-            4800.00, 4500.00, true,
-            [['name' => '100 ml bottle', 'price' => 4800], ['name' => '500 ml bottle', 'price' => 22000]]
-        );
-
-        $insert('Balochistan Crop Protect', 'Fungicides',
-            'Mancozeb 80% WP (Dithane M-45)',
-            'Broad-spectrum protectant fungicide for early & late blight, downy mildew in potato, tomato & grapes.',
-            850.00, 780.00, false,
-            [['name' => '200 g pack', 'price' => 850], ['name' => '1 kg pack', 'price' => 3900]]
-        );
-
-        $insert('Balochistan Crop Protect', 'Fungicides',
-            'Topsin M 70% WP (Thiophanate-Methyl)',
-            'Systemic benzimidazole fungicide against grey mould (Botrytis), powdery mildew and white rot in apple and plum.',
-            2900.00, 2700.00, false,
-            [['name' => '200 g pack', 'price' => 2900], ['name' => '1 kg pack', 'price' => 13000]]
-        );
-
-        $this->command->info('ProductsSeeder: ' . DB::table('products')->count() . ' products, ' . DB::table('product_attributes')->count() . ' attributes inserted.');
+        foreach ($products as $p) {
+            DB::table('products')->insert(array_merge($p, [
+                'slug'        => Str::slug($p['name']),
+                'is_active'   => 1,
+                'sort_order'  => 0,
+                'created_at'  => $now->copy()->subDays(rand(1, 180)),
+                'updated_at'  => $now,
+            ]));
+        }
     }
 }

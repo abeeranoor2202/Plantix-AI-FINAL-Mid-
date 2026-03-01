@@ -37,7 +37,8 @@ class Kernel extends HttpKernel
             \App\Http\Middleware\VerifyCsrfToken::class,
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
             \App\Http\Middleware\CheckUserRoleMiddleware::class,
-
+            \App\Http\Middleware\CheckAccountLocked::class,
+            \App\Http\Middleware\EnforceSessionFreshness::class,
         ],
 
         'api' => [
@@ -71,5 +72,6 @@ class Kernel extends HttpKernel
         'vendor.auth'=> \App\Http\Middleware\EnsureVendorGuard::class,
         'expert.auth'=> \App\Http\Middleware\EnsureExpertGuard::class,
         'customer'   => \App\Http\Middleware\EnsureCustomerAuth::class,
+        'admin.ip'   => \App\Http\Middleware\AdminIpRestriction::class,
     ];
 }

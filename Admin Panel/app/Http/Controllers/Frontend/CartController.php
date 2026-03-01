@@ -25,7 +25,7 @@ class CartController extends Controller
     public function index(): View
     {
         $cart = $this->getOrCreateCart();
-        return view('customer.cart', ['cart' => $cart->load('admin.items.product.primaryImage')]);
+        return view('customer.cart', ['cart' => $cart->load('items.product.primaryImage')]);
     }
 
     public function add(Request $request): JsonResponse|RedirectResponse
@@ -178,7 +178,7 @@ class CartController extends Controller
     public function checkout(): View
     {
         $user = auth('web')->user();
-        $cart = Cart::with('admin.items.product')->where('user_id', $user->id)->firstOrFail();
+        $cart = Cart::with('items.product.primaryImage')->where('user_id', $user->id)->firstOrFail();
 
         return view('customer.checkout', [
             'cart'      => $cart,
@@ -186,13 +186,37 @@ class CartController extends Controller
         ]);
     }
 
-    public function placeOrder(CheckoutRequest $request): RedirectResponse
+    public function placeOrder(CheckoutRequest $request): JsonResponse|RedirectResponse
     {
-        $user  = auth('web')->user();
-        $order = $this->checkout->placeOrder($user, $request->validated());
+        $user    = auth('web')->user();
+        $payload = $request->validated();
 
-        return redirect()->route('order.success', ['order' => $order->id])
-                         ->with('success', 'Order placed successfully!');
+        try {
+            if ($payload['payment_method'] === 'stripe') {
+                // Stripe: create order + PI, return client_secret to JS
+                $result = $this->checkout->initiate($user, $payload);
+                return response()->json([
+                    'client_secret'     => $result['client_secret'],
+                    'order_id'          => $result['order']->id,
+                    'payment_intent_id' => $result['order']->payment_intent_id,
+                ]);
+            }
+
+            // COD: deduct stock immediately, redirect to success
+            $order = $this->checkout->placeCodOrder($user, $payload);
+
+            return redirect()->route('order.success', ['id' => $order->id])
+                             ->with('success', 'Order placed successfully!');
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return request()->expectsJson()
+                ? response()->json(['errors' => $e->errors()], 422)
+                : back()->withErrors($e->errors());
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error('placeOrder error', ['message' => $e->getMessage()]);
+            return request()->expectsJson()
+                ? response()->json(['error' => 'Order could not be placed. Please try again.'], 500)
+                : back()->withErrors(['order' => 'Order could not be placed. Please try again.']);
+        }
     }
 
     // ── Helper ────────────────────────────────────────────────────────────────

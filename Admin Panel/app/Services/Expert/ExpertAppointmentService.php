@@ -49,8 +49,8 @@ class ExpertAppointmentService
 
         return [
             'total'       => (clone $base)->count(),
-            'pending'     => (clone $base)->whereIn('status', [Appointment::STATUS_REQUESTED, Appointment::STATUS_PENDING])->count(),
-            'upcoming'    => (clone $base)->whereIn('status', [Appointment::STATUS_ACCEPTED, Appointment::STATUS_CONFIRMED])->upcoming()->count(),
+            'pending'     => (clone $base)->whereIn('status', [Appointment::STATUS_PENDING_EXPERT_APPROVAL, Appointment::STATUS_RESCHEDULE_REQUESTED])->count(),
+            'upcoming'    => (clone $base)->whereIn('status', [Appointment::STATUS_CONFIRMED])->upcoming()->count(),
             'completed'   => (clone $base)->where('status', Appointment::STATUS_COMPLETED)->count(),
             'rejected'    => (clone $base)->where('status', Appointment::STATUS_REJECTED)->count(),
         ];
@@ -61,11 +61,11 @@ class ExpertAppointmentService
     public function accept(Appointment $appointment, Expert $expert, ?string $meetingLink = null): Appointment
     {
         $this->assertBelongsToExpert($appointment, $expert);
-        $this->assertCanTransition($appointment, Appointment::STATUS_ACCEPTED);
+        $this->assertCanTransition($appointment, Appointment::STATUS_CONFIRMED);
 
         return $this->transition(
             $appointment,
-            Appointment::STATUS_ACCEPTED,
+            Appointment::STATUS_CONFIRMED,
             $expert->user_id,
             ['accepted_at' => now(), 'meeting_link' => $meetingLink]
         );
@@ -120,19 +120,19 @@ class ExpertAppointmentService
             ]);
 
             $appointment->update([
-                'status'                    => Appointment::STATUS_RESCHEDULED,
+                'status'                    => Appointment::STATUS_RESCHEDULE_REQUESTED,
                 'reschedule_requested_at'   => now(),
             ]);
 
             $this->logStatusChange(
                 $appointment,
                 $expert->user_id,
-                Appointment::STATUS_ACCEPTED,
-                Appointment::STATUS_RESCHEDULED,
+                Appointment::STATUS_CONFIRMED,
+                Appointment::STATUS_RESCHEDULE_REQUESTED,
                 $reason
             );
 
-            event(new AppointmentStatusChanged($appointment, $expert->user, Appointment::STATUS_RESCHEDULED));
+            event(new AppointmentStatusChanged($appointment, $expert->user, Appointment::STATUS_RESCHEDULE_REQUESTED));
 
             // Section 14 – Reschedule proposed → Customer → Email + In-app
             $appointment->loadMissing('user');
@@ -198,7 +198,7 @@ class ExpertAppointmentService
     private function assertCanTransition(Appointment $appointment, string $targetStatus): void
     {
         $allowed = match ($targetStatus) {
-            Appointment::STATUS_ACCEPTED  => $appointment->canBeAccepted(),
+            Appointment::STATUS_CONFIRMED => $appointment->canBeAccepted(),
             Appointment::STATUS_REJECTED  => $appointment->canBeRejected(),
             Appointment::STATUS_COMPLETED => $appointment->canBeCompleted(),
             default                       => false,

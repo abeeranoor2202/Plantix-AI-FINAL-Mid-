@@ -8,9 +8,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Role extends Model
 {
-    protected $table = 'role';
+    protected $table = 'roles';
 
-    protected $fillable = ['role_name', 'guard', 'is_active'];
+    protected $fillable = ['role_name', 'slug', 'description', 'guard', 'is_active'];
 
     protected $casts = [
         'is_active' => 'boolean',

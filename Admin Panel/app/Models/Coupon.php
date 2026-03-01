@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\CouponUserUsage;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -33,6 +34,23 @@ class Coupon extends Model
         return $this->hasMany(Order::class);
     }
 
+    /**
+     * 'discount' is the legacy column alias used in CartCheckoutService.
+     * The DB column is 'value'. This accessor bridges the gap.
+     */
+    public function getDiscountAttribute(): ?string
+    {
+        return $this->value;
+    }
+
+    /** Per-user usage check — how many times this user has used this coupon */
+    public function usageCountForUser(int $userId): int
+    {
+        return CouponUserUsage::where('coupon_id', $this->id)
+                              ->where('user_id', $userId)
+                              ->count();
+    }
+
     public function isValid(): bool
     {
         if (!$this->is_active) return false;
@@ -45,16 +63,16 @@ class Coupon extends Model
     /** Calculate discount for a given subtotal */
     public function calculateDiscount(float $subtotal): float
     {
-        if (!$this->isValid() || $subtotal < $this->min_order) return 0;
+        if (!$this->isValid() || $subtotal < (float) ($this->min_order ?? 0)) return 0;
 
         $discount = $this->type === 'percentage'
             ? $subtotal * ($this->value / 100)
-            : $this->value;
+            : (float) $this->value;
 
         if ($this->max_discount) {
-            $discount = min($discount, $this->max_discount);
+            $discount = min($discount, (float) $this->max_discount);
         }
 
-        return round($discount, 2);
+        return round(min($discount, $subtotal), 2);
     }
 }

@@ -31,10 +31,10 @@
                         <label class="form-label small fw-semibold text-muted mb-1">Status</label>
                         <select name="status" class="form-select form-select-sm rounded-pill border-0 bg-light">
                             <option value="">All Statuses</option>
-                            <option value="open"    {{ request('status') === 'open'    ? 'selected' : '' }}>Open</option>
-                            <option value="closed"  {{ request('status') === 'closed'  ? 'selected' : '' }}>Closed</option>
-                            <option value="flagged" {{ request('status') === 'flagged' ? 'selected' : '' }}>Flagged</option>
-                            <option value="pending" {{ request('status') === 'pending' ? 'selected' : '' }}>Pending</option>
+                            <option value="open"     {{ request('status') === 'open'     ? 'selected' : '' }}>Open</option>
+                            <option value="locked"   {{ request('status') === 'locked'   ? 'selected' : '' }}>Locked</option>
+                            <option value="resolved" {{ request('status') === 'resolved' ? 'selected' : '' }}>Resolved</option>
+                            <option value="archived" {{ request('status') === 'archived' ? 'selected' : '' }}>Archived</option>
                         </select>
                     </div>
                     <div class="col-md-3">
@@ -88,7 +88,7 @@
                                 <tr>
                                     <td class="text-muted small">{{ $thread->id }}</td>
                                     <td>
-                                        <a href="{{ route('admin.forum.thread', $thread->id) }}" class="text-dark fw-semibold text-decoration-none">
+                                        <a href="{{ route('admin.forum.threads.show', $thread->id) }}" class="text-dark fw-semibold text-decoration-none">
                                             {{ Str::limit($thread->title, 55) }}
                                         </a>
                                     </td>
@@ -99,7 +99,7 @@
                                     <td class="text-center">{{ $thread->replies_count }}</td>
                                     <td>
                                         @php
-                                            $colors = ['open'=>'success','closed'=>'secondary','flagged'=>'danger','pending'=>'warning'];
+                                            $colors = ['open'=>'success','locked'=>'secondary','resolved'=>'info','archived'=>'dark'];
                                             $c = $colors[$thread->status] ?? 'light';
                                         @endphp
                                         <span class="badge bg-{{ $c }}">{{ ucfirst($thread->status) }}</span>
@@ -113,26 +113,47 @@
                                     </td>
                                     <td class="text-muted small">{{ $thread->created_at->format('d M Y') }}</td>
                                     <td>
-                                        <a href="{{ route('admin.forum.thread', $thread->id) }}" class="btn btn-xs btn-outline-primary me-1">
+                                        <a href="{{ route('admin.forum.threads.show', $thread->id) }}" class="btn btn-xs btn-outline-primary me-1">
                                             <i class="fa fa-eye"></i>
                                         </a>
-                                        {{-- Moderate drop-down --}}
+                                        {{-- Action drop-down --}}
                                         <div class="btn-group btn-group-sm me-1">
                                             <button type="button" class="btn btn-xs btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">
-                                                Status
+                                                Actions
                                             </button>
                                             <ul class="dropdown-menu dropdown-menu-end">
-                                                @foreach(['open','closed','flagged'] as $s)
-                                                    @if($s !== $thread->status)
-                                                    <li>
-                                                        <form method="POST" action="{{ route('admin.forum.threads.moderate', $thread->id) }}">
-                                                            @csrf @method('PUT')
-                                                            <input type="hidden" name="status" value="{{ $s }}">
-                                                            <button type="submit" class="dropdown-item">Set {{ ucfirst($s) }}</button>
-                                                        </form>
-                                                    </li>
-                                                    @endif
-                                                @endforeach
+                                                @if(!$thread->is_approved)
+                                                <li>
+                                                    <form method="POST" action="{{ route('admin.forum.threads.approve', $thread->id) }}">
+                                                        @csrf
+                                                        <button type="submit" class="dropdown-item text-success"><i class="fa fa-check me-1"></i>Approve</button>
+                                                    </form>
+                                                </li>
+                                                @endif
+                                                @if($thread->status !== 'locked')
+                                                <li>
+                                                    <form method="POST" action="{{ route('admin.forum.threads.lock', $thread->id) }}">
+                                                        @csrf
+                                                        <button type="submit" class="dropdown-item"><i class="fa fa-lock me-1"></i>Lock</button>
+                                                    </form>
+                                                </li>
+                                                @endif
+                                                @if($thread->status === 'locked')
+                                                <li>
+                                                    <form method="POST" action="{{ route('admin.forum.threads.unlock', $thread->id) }}">
+                                                        @csrf
+                                                        <button type="submit" class="dropdown-item"><i class="fa fa-unlock me-1"></i>Unlock</button>
+                                                    </form>
+                                                </li>
+                                                @endif
+                                                @if($thread->status !== 'archived')
+                                                <li>
+                                                    <form method="POST" action="{{ route('admin.forum.threads.archive', $thread->id) }}">
+                                                        @csrf
+                                                        <button type="submit" class="dropdown-item text-secondary"><i class="fa fa-archive me-1"></i>Archive</button>
+                                                    </form>
+                                                </li>
+                                                @endif
                                             </ul>
                                         </div>
                                         {{-- Pin toggle --}}

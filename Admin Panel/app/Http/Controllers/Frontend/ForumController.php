@@ -3,123 +3,143 @@
 namespace App\Http\Controllers\Frontend;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Forum\CreateReplyRequest;
+use App\Http\Requests\Forum\CreateThreadRequest;
+use App\Http\Requests\Forum\FlagReplyRequest;
+use App\Http\Requests\Forum\UpdateReplyRequest;
 use App\Models\ForumCategory;
 use App\Models\ForumReply;
 use App\Models\ForumThread;
-use App\Notifications\ForumReplyNotification;
+use App\Services\Forum\ForumService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Log;
 use Illuminate\View\View;
 
+/**
+ * ForumController — farmers, vendors (read-only), all authenticated users.
+ *
+ * Thin: validation in Form Requests, business logic in ForumService,
+ * access control via Laravel Policies (authorize calls).
+ *
+ * Rate limits are applied at the route level (RouteServiceProvider).
+ */
 class ForumController extends Controller
 {
+    public function __construct(
+        private readonly ForumService $forum,
+    ) {}
+
+    // ── Public (no auth required) ─────────────────────────────────────────────
+
     public function index(Request $request): View
     {
-        $query = ForumThread::with(['user', 'category', 'replies'])
-                            ->approved()
-                            ->latest();
-
-        if ($request->filled('category')) {
-            $query->whereHas('category', fn($q) => $q->where('slug', $request->category));
-        }
-
-        if ($request->filled('search')) {
-            $query->where('title', 'like', "%{$request->search}%");
-        }
-
-        $threads    = $query->paginate(15)->withQueryString();
+        $threads    = $this->forum->listThreads($request->only(['category', 'search', 'status']));
+        $pinned     = $this->forum->pinnedThreads();
         $categories = ForumCategory::active()->withCount('threads')->get();
 
-        return view('customer.forum', compact('threads', 'categories'));
+        return view('customer.forum', compact('threads', 'pinned', 'categories'));
     }
 
-    public function show(int $id): View
+    public function show(string $slug): View
     {
-        $thread = ForumThread::with(['user', 'replies.user'])
-                             ->approved()
-                             ->findOrFail($id);
+        $thread = ForumThread::where('slug', $slug)
+            ->where('is_approved', true)
+            ->firstOrFail();
 
-        $thread->incrementViews();
+        $this->authorize('view', $thread);
 
-        return view('customer.forum-thread', compact('thread'));
+        ['thread' => $thread, 'replies' => $replies] = $this->forum->showThread($thread);
+
+        return view('customer.forum-thread', compact('thread', 'replies'));
     }
+
+    // ── Thread: Create ────────────────────────────────────────────────────────
 
     public function create(): View
     {
-        $this->requireAuth();
+        $this->authorize('create', ForumThread::class);
+
         $categories = ForumCategory::active()->get();
+
         return view('customer.forum-new', compact('categories'));
     }
 
-    public function store(Request $request): RedirectResponse
+    public function store(CreateThreadRequest $request): RedirectResponse
     {
-        $this->requireAuth();
+        $this->authorize('create', ForumThread::class);
 
-        $request->validate([
-            'title'             => 'required|string|min:5|max:255',
-            'body'              => 'required|string|min:20|max:10000',
-            'forum_category_id' => 'nullable|exists:forum_categories,id',
-        ]);
+        $thread = $this->forum->createThread(auth('web')->user(), $request->validated());
 
-        // Respect admin moderation toggle: config('plantix.forum_auto_approve', true)
-        $autoApprove = (bool) config('plantix.forum_auto_approve', true);
-
-        $thread = ForumThread::create([
-            'user_id'           => auth('web')->id(),
-            'forum_category_id' => $request->forum_category_id,
-            'title'             => strip_tags($request->title),
-            'body'              => htmlspecialchars(strip_tags($request->body), ENT_QUOTES, 'UTF-8'),
-            'status'            => $autoApprove ? 'open' : 'pending',
-            'is_approved'       => $autoApprove,
-        ]);
-
-        $message = $autoApprove
+        $message = $thread->is_approved
             ? 'Thread posted!'
-            : 'Thread submitted — it will be visible after review.';
+            : 'Thread submitted — it will be visible after admin review.';
 
-        return redirect()->route('forum.thread', $thread->id)
-                         ->with('success', $message);
+        return redirect()
+            ->route('forum.thread', $thread->slug)
+            ->with('success', $message);
     }
 
-    public function reply(Request $request, int $threadId): RedirectResponse
+    // ── Reply: Create ─────────────────────────────────────────────────────────
+
+    public function reply(CreateReplyRequest $request, ForumThread $thread): RedirectResponse
     {
-        $this->requireAuth();
+        $this->authorize('create', [ForumReply::class, $thread]);
 
-        $request->validate(['body' => 'required|string|min:5|max:5000']);
-
-        $thread = ForumThread::findOrFail($threadId);
-
-        if ($thread->is_locked) {
-            return back()->withErrors(['body' => 'This thread is locked.']);
-        }
-
-        $autoApprove = (bool) config('plantix.forum_auto_approve', true);
-
-        $reply = ForumReply::create([
-            'thread_id'      => $thread->id,
-            'user_id'        => auth('web')->id(),
-            'body'           => htmlspecialchars(strip_tags($request->body), ENT_QUOTES, 'UTF-8'),
-            'is_approved'    => $autoApprove,
-            'is_expert_answer' => false,
-        ]);
-
-        // Section 14 – Trigger: Forum reply added → Thread owner → In-app
-        if ($autoApprove && $thread->user && $thread->user_id !== auth('web')->id()) {
-            try {
-                $thread->user->notify(new ForumReplyNotification($reply, $thread));
-            } catch (\Throwable $e) {
-                Log::warning('Forum reply notification failed: ' . $e->getMessage());
-            }
+        try {
+            $this->forum->createReply(auth('web')->user(), $thread, $request->validated());
+        } catch (\DomainException $e) {
+            return back()->withErrors(['body' => $e->getMessage()]);
         }
 
         return back()->with('success', 'Reply posted.');
     }
 
-    private function requireAuth(): void
+    // ── Reply: Edit ───────────────────────────────────────────────────────────
+
+    public function editReply(UpdateReplyRequest $request, ForumReply $reply): RedirectResponse
     {
-        if (! auth('web')->check()) {
-            abort(redirect()->route('signin'));
+        $this->authorize('update', $reply);
+
+        try {
+            $this->forum->editReply($reply, $request->validated('body'));
+        } catch (\DomainException $e) {
+            return back()->withErrors(['body' => $e->getMessage()]);
         }
+
+        return back()->with('success', 'Reply updated.');
+    }
+
+    // ── Reply: Soft Delete ────────────────────────────────────────────────────
+
+    public function destroyReply(ForumReply $reply): RedirectResponse
+    {
+        $this->authorize('delete', $reply);
+
+        $slug = $reply->thread->slug ?? $reply->thread_id;
+
+        try {
+            $this->forum->deleteReply(auth('web')->user(), $reply);
+        } catch (\DomainException $e) {
+            return back()->withErrors(['error' => $e->getMessage()]);
+        }
+
+        return redirect()
+            ->route('forum.thread', $slug)
+            ->with('success', 'Reply removed.');
+    }
+
+    // ── Reply: Flag ───────────────────────────────────────────────────────────
+
+    public function flagReply(FlagReplyRequest $request, ForumReply $reply): RedirectResponse
+    {
+        $this->authorize('flag', $reply);
+
+        try {
+            $this->forum->flagReply(auth('web')->user(), $reply, $request->validated('reason'));
+        } catch (\DomainException $e) {
+            return back()->withErrors(['error' => $e->getMessage()]);
+        }
+
+        return back()->with('success', 'Reply reported to moderators. Thank you.');
     }
 }

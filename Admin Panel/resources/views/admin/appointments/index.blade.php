@@ -25,9 +25,9 @@
                         <i class="fas fa-filter" style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--agri-text-muted);"></i>
                         <select name="status" class="form-agri" style="padding-left: 40px;">
                             <option value="">All Statuses</option>
-                            @foreach(['pending','confirmed','cancelled','completed'] as $s)
+                            @foreach(['draft','pending_payment','payment_failed','pending_expert_approval','confirmed','reschedule_requested','rejected','completed','cancelled'] as $s)
                                 <option value="{{ $s }}" @selected(request('status') === $s)>
-                                    {{ ucfirst($s) }}
+                                    {{ ucwords(str_replace('_', ' ', $s)) }}
                                 </option>
                             @endforeach
                         </select>
@@ -41,8 +41,16 @@
                                value="{{ request('date') }}">
                     </div>
                 </div>
-                <div class="col-lg-4 col-md-6 d-flex align-items-end gap-2">
-                    <button type="submit" class="btn-agri btn-agri-primary" style="flex: 1;">
+                <div class="col-lg-4 col-md-6">
+                    <label style="font-size: 12px; font-weight: 600; color: var(--agri-text-muted); text-transform: uppercase; margin-bottom: 8px; display: block;">Search</label>
+                    <div style="position: relative;">
+                        <i class="fas fa-search" style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--agri-text-muted);"></i>
+                        <input type="text" name="search" class="form-agri" style="padding-left: 40px;"
+                               placeholder="Customer or expert name..." value="{{ request('search') }}">
+                    </div>
+                </div>
+                <div class="col-lg-12 col-md-6 d-flex align-items-end gap-2 justify-content-end" style="margin-top: 8px;">
+                    <button type="submit" class="btn-agri btn-agri-primary">
                         Filter Bookings
                     </button>
                     <a href="{{ route('admin.appointments.index') }}" class="btn-agri btn-agri-outline" style="min-width: 80px; text-decoration: none;">
@@ -85,7 +93,7 @@
                                         <div style="width: 24px; height: 24px; border-radius: 50%; background: var(--agri-secondary-light); color: var(--agri-secondary); display: flex; align-items: center; justify-content: center; font-size: 10px;">
                                             <i class="fas fa-user-tie"></i>
                                         </div>
-                                        <span style="font-size: 13px; color: var(--agri-text-main);">{{ $appt->expert->name ?? '—' }}</span>
+                                        <span style="font-size: 13px; color: var(--agri-text-main);">{{ optional($appt->expert)->user->name ?? '—' }}</span>
                                     </div>
                                 </div>
                             </td>
@@ -93,32 +101,37 @@
                                 <div style="display: flex; flex-direction: column; gap: 4px;">
                                     <div style="font-weight: 600; color: var(--agri-text-heading); font-size: 14px;">
                                         <i class="far fa-calendar-alt" style="margin-right: 6px; color: var(--agri-primary);"></i>
-                                        {{ \Carbon\Carbon::parse($appt->appointment_date)->format('d M, Y') }}
+                                        {{ $appt->scheduled_at ? $appt->scheduled_at->format('d M, Y') : '—' }}
                                     </div>
                                     <div style="font-size: 13px; color: var(--agri-text-muted);">
                                         <i class="far fa-clock" style="margin-right: 6px;"></i>
-                                        {{ $appt->appointment_time ? \Carbon\Carbon::parse($appt->appointment_time)->format('g:i A') : '—' }}
+                                        {{ $appt->scheduled_at ? $appt->scheduled_at->format('g:i A') : '—' }}
                                     </div>
                                 </div>
                             </td>
                             <td style="padding: 20px 24px;">
                                 <div style="font-weight: 700; color: var(--agri-primary-dark); font-size: 16px;">
-                                    {{ config('plantix.currency_symbol') }}{{ number_format($appt->expert->fee ?? 0, 2) }}
+                                    {{ config('plantix.currency_symbol', 'PKR') }}{{ number_format($appt->fee ?? 0, 2) }}
                                 </div>
                             </td>
                             <td style="padding: 20px 24px;" class="text-center">
                                 @php
                                     $bc = [
-                                        'pending'   => ['#FBBF24', '#FFFBEB'],
-                                        'confirmed' => ['#10B981', '#ECFDF5'],
-                                        'cancelled' => ['#EF4444', '#FEF2F2'],
-                                        'completed' => ['#3B82F6', '#EFF6FF'],
+                                        'draft'                   => ['#6B7280', '#F3F4F6'],
+                                        'pending_payment'         => ['#D97706', '#FEF3C7'],
+                                        'payment_failed'          => ['#DC2626', '#FEE2E2'],
+                                        'pending_expert_approval' => ['#7C3AED', '#EDE9FE'],
+                                        'confirmed'               => ['#059669', '#D1FAE5'],
+                                        'reschedule_requested'    => ['#2563EB', '#DBEAFE'],
+                                        'rejected'                => ['#B91C1C', '#FEE2E2'],
+                                        'completed'               => ['#0D9488', '#CCFBF1'],
+                                        'cancelled'               => ['#9CA3AF', '#F9FAFB'],
                                     ];
                                     $currentStatus = $bc[$appt->status] ?? ['#9CA3AF', '#F9FAFB'];
                                 @endphp
                                 <div style="display: inline-flex; align-items: center; gap: 6px; color: {{ $currentStatus[0] }}; background: {{ $currentStatus[1] }}; padding: 6px 14px; border-radius: 100px; font-size: 12px; font-weight: 600; border: 1px solid {{ $currentStatus[0] }}20;">
                                     <span style="width: 6px; height: 6px; border-radius: 50%; background: {{ $currentStatus[0] }};"></span>
-                                    {{ ucfirst($appt->status) }}
+                                    {{ ucwords(str_replace('_', ' ', $appt->status)) }}
                                 </div>
                             </td>
                             <td style="padding: 20px 24px;" class="text-end">
@@ -126,7 +139,7 @@
                                     <a href="{{ route('admin.appointments.show', $appt->id) }}" class="btn-agri" style="padding: 8px; background: var(--agri-primary-light); color: var(--agri-primary); border-radius: 10px; text-decoration: none;">
                                         <i class="fas fa-eye"></i>
                                     </a>
-                                    @if($appt->status === 'pending')
+                                    @if(in_array($appt->status, ['pending_expert_approval', 'reschedule_requested']))
                                         <form action="{{ route('admin.appointments.confirm', $appt->id) }}" method="POST" class="d-inline">
                                             @csrf
                                             <button type="submit" class="btn-agri" style="padding: 8px; background: var(--agri-success-light); color: var(--agri-success); border-radius: 10px; border: none;" title="Confirm">

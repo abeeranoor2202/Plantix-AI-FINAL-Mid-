@@ -38,8 +38,8 @@ class AppointmentRescheduledNotification extends Notification implements ShouldQ
     public function toMail(object $notifiable): MailMessage
     {
         $expertName   = $this->appointment->expert?->user?->name ?? 'Your Expert';
-        $oldTime      = $this->reschedule->old_scheduled_at?->format('M j, Y g:i A');
-        $newTime      = $this->reschedule->new_scheduled_at?->format('M j, Y g:i A');
+        $oldTime      = $this->reschedule->original_scheduled_at?->format('M j, Y g:i A');
+        $newTime      = $this->reschedule->proposed_scheduled_at?->format('M j, Y g:i A');
         $bookingUrl   = url('/appointment/' . $this->appointment->id);
 
         return match ($this->event) {
@@ -74,7 +74,7 @@ class AppointmentRescheduledNotification extends Notification implements ShouldQ
     public function toArray(object $notifiable): array
     {
         $expertName = $this->appointment->expert?->user?->name ?? 'Your Expert';
-        $newTime    = $this->reschedule->new_scheduled_at?->format('M j, Y g:i A');
+        $newTime    = $this->reschedule->proposed_scheduled_at?->format('M j, Y g:i A');
 
         $titleMap = [
             'proposed' => "Reschedule request from {$expertName}",

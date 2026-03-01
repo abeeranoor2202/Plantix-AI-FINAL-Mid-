@@ -4,32 +4,37 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
+use Carbon\Carbon;
 
 class BrandSeeder extends Seeder
 {
     public function run(): void
     {
+        $now = Carbon::now();
+
         $brands = [
-            ['name' => 'Engro Fertilizers',  'slug' => 'engro-fertilizers',  'is_active' => true],
-            ['name' => 'FFC (Fauji)',          'slug' => 'ffc-fauji',           'is_active' => true],
-            ['name' => 'Syngenta',             'slug' => 'syngenta',            'is_active' => true],
-            ['name' => 'Bayer CropScience',    'slug' => 'bayer-cropscience',   'is_active' => true],
-            ['name' => 'BASF AgriSolutions',   'slug' => 'basf-agrisolutions',  'is_active' => true],
-            ['name' => 'Corteva Agriscience',  'slug' => 'corteva-agriscience', 'is_active' => true],
-            ['name' => 'National Foods',       'slug' => 'national-foods',      'is_active' => true],
-            ['name' => 'Agri Tech Pakistan',   'slug' => 'agri-tech-pk',        'is_active' => true],
+            'GreenGrow'   => 'Pakistan\'s leading seed and plant nutrition brand.',
+            'PakSeed'     => 'High-yield certified seeds trusted by farmers nationwide.',
+            'AgroShield'  => 'Effective crop protection chemicals for all field crops.',
+            'KisanPro'    => 'Professional-grade farming tools for Pakistan\'s smallholder farmers.',
+            'HydroFarm'   => 'Modern drip and hydroponic irrigation system manufacturer.',
+            'NatureCraft' => 'Organic and bio-based inputs for sustainable agriculture.',
+            'FieldMaster' => 'Heavy-duty equipment and sprayers for large-scale operations.',
+            'CropSure'    => 'Integrated pest and disease management solutions.',
+            'BioPak'      => 'Home of certified bio-fertilizers and beneficial microorganisms.',
+            'TerraSol'    => 'Soil science company specializing in micro-nutrients and humic acids.',
         ];
 
-        foreach ($brands as $brand) {
-            DB::table('brands')->updateOrInsert(
-                ['slug' => $brand['slug']],
-                array_merge($brand, [
-                    'created_at' => now(),
-                    'updated_at' => now(),
-                ])
-            );
+        foreach ($brands as $name => $desc) {
+            DB::table('brands')->insert([
+                'name'       => $name,
+                'slug'       => Str::slug($name),
+                'logo'       => null,
+                'is_active'  => 1,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ]);
         }
-
-        $this->command->info('Brands seeded: ' . count($brands));
     }
 }

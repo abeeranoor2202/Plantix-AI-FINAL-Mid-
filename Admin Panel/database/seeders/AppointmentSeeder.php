@@ -6,190 +6,107 @@ use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 
+/**
+ * AppointmentSeeder — 30 appointments across approved experts.
+ */
 class AppointmentSeeder extends Seeder
 {
     public function run(): void
     {
-        $farmers = DB::table('users')->where('role', 'user')->get(['id', 'name']);
-        $experts = DB::table('experts')->get(['id', 'user_id', 'hourly_rate']);
+        $now      = Carbon::now();
+        $experts  = DB::table('experts')->where('status', 'approved')->get();
+        $customers = DB::table('users')->where('role', 'user')->pluck('id')->toArray();
+        $adminId  = DB::table('users')->where('email', 'admin@plantix.com')->value('id') ?? 1;
 
-        if ($farmers->isEmpty() || $experts->isEmpty()) {
-            $this->command->warn('Missing farmers or experts. Run UsersSeeder and ExpertsSeeder first.');
+        if ($experts->isEmpty() || empty($customers)) {
             return;
         }
 
-        $now = Carbon::now();
+        $statusPlan = array_merge(
+            array_fill(0, 12, 'completed'),
+            array_fill(0,  8, 'confirmed'),
+            array_fill(0,  5, 'pending'),
+            array_fill(0,  3, 'cancelled'),
+            array_fill(0,  2, 'cancelled')
+        );
 
-        // Realistic appointment topics for agricultural consultations
         $topics = [
-            'Cotton Leaf Curl Virus management and whitefly control',
-            'Wheat rust identification and emergency fungicide schedule',
-            'Rice blast disease — neck rot prevention before heading',
-            'Fertilizer plan for low-phosphorus soil — Rabi season',
-            'Drip irrigation system design for 15-acre mango orchard',
-            'Integrated pest management for vegetables in polytunnel',
-            'Sugar cane replanting advice after red rot incidence',
-            'Soil salinity reclamation using gypsum and leaching',
-            'Organic farming certification requirements in Punjab',
-            'Crop insurance claim documentation for flood damage',
-            'Maize hybrid selection for high-temperature Kharif season',
-            'Water logging problem in clay soil — drainage installation',
-            'Post-harvest grain storage and fumigation advisory',
-            'Tomato early blight control in rainy season',
-            'Groundwater quality impact on rice germination',
+            'Soil fertility analysis and fertiliser prescription',
+            'Wheat disease identification and spray program',
+            'Drip irrigation design for my vegetable farm',
+            'Organic certification process guidance',
+            'Mango orchard spray calendar',
+            'Cotton bollworm integrated management',
+            'Saline soil reclamation plan',
+            'Tomato crop nutrition program',
+            'Water management for rice in Punjab',
+            'Basmati 1121 best practices',
+            'Potato late blight control',
+            'Sugarcane planting guide for first-time growers',
+            'Onion storage and post-harvest losses',
+            'Weed management in wheat',
+            'Farm profitability analysis',
         ];
 
-        $meetingLinks = [
-            'https://meet.google.com/abc-defg-hij',
-            'https://zoom.us/j/1234567890',
-            'https://teams.microsoft.com/l/meetup-join/test',
-            null,  // offline appointments
-        ];
+        foreach ($statusPlan as $idx => $status) {
+            $expert   = $experts[$idx % count($experts)];
+            $userId   = $customers[$idx % count($customers)];
+            $daysAgo  = $status === 'completed' ? rand(10, 120) : -rand(1, 30); // past vs future
+            $scheduled = $now->copy()->subDays($daysAgo)->setTime(rand(9, 16), [0, 30][rand(0, 1)], 0);
 
-        $appointments   = [];
-        $statusHistory  = [];
-        $notifications  = [];
+            $fee            = $expert->consultation_price ?? 2000;
+            $payStatus      = match($status) {
+                'completed'  => 'paid',
+                'confirmed'  => rand(0, 1) ? 'paid' : 'unpaid',
+                'cancelled'  => rand(0, 1) ? 'refunded' : 'unpaid',
+                default      => 'unpaid',
+            };
 
-        $farmerList = $farmers->values();
-        $expertList = $experts->values();
-
-        // Each expert gets 2–4 appointments
-        foreach ($expertList as $expert) {
-            $numAppts = rand(2, 4);
-
-            for ($a = 0; $a < $numAppts; $a++) {
-                $farmer       = $farmerList[($expert->id + $a) % $farmerList->count()];
-                $topic        = $topics[($expert->id * 2 + $a) % count($topics)];
-                $duration     = [30, 45, 60, 90][array_rand([30, 45, 60, 90])];
-                $fee          = round($expert->hourly_rate * ($duration / 60), 0);
-                $scheduledAt  = Carbon::now()->subDays(rand(-14, 60)); // past and future
-
-                // Status distribution (realistic)
-                $statusPool = [
-                    'completed', 'completed', 'completed',
-                    'confirmed', 'confirmed',
-                    'pending',
-                    'cancelled',
-                ];
-                $status = $statusPool[array_rand($statusPool)];
-
-                $paymentStatus = match ($status) {
-                    'completed' => 'paid',
-                    'confirmed' => (rand(0, 1) ? 'paid' : 'unpaid'),
-                    'cancelled' => (rand(0, 1) ? 'refunded' : 'unpaid'),
-                    default     => 'unpaid',
-                };
-
-                $acceptedAt   = ($status !== 'pending')  ? $scheduledAt->copy()->subDays(rand(1, 7)) : null;
-                $completedAt  = ($status === 'completed') ? $scheduledAt->copy()->addMinutes($duration) : null;
-                $rejectedAt   = ($status === 'cancelled') ? $scheduledAt->copy()->subDays(rand(1, 3)) : null;
-                $rejectReason = ($status === 'cancelled') ? 'Expert unavailable at requested time.' : null;
-                $meetingLink  = in_array($status, ['confirmed', 'completed']) ? $meetingLinks[array_rand($meetingLinks)] : null;
-
-                $appointments[] = [
-                    'user_id'          => $farmer->id,
-                    'expert_id'        => $expert->id,
-                    'scheduled_at'     => $scheduledAt->toDateTimeString(),
-                    'duration_minutes' => $duration,
-                    'status'           => $status,
-                    'notes'            => 'Consultation: ' . $topic,
-                    'admin_notes'      => null,
-                    'fee'              => $fee,
-                    'payment_status'   => $paymentStatus,
-                    'topic'            => $topic,
-                    'meeting_link'     => $meetingLink,
-                    'reschedule_requested_at' => null,
-                    'accepted_at'      => $acceptedAt?->toDateTimeString(),
-                    'rejected_at'      => $rejectedAt?->toDateTimeString(),
-                    'completed_at'     => $completedAt?->toDateTimeString(),
-                    'reject_reason'    => $rejectReason,
-                    'created_at'       => $scheduledAt->copy()->subDays(rand(3, 14))->toDateTimeString(),
-                    'updated_at'       => $now,
-                ];
-            }
-        }
-
-        foreach (array_chunk($appointments, 50) as $chunk) {
-            DB::table('appointments')->insert($chunk);
-        }
-
-        // Reload to get IDs for status history
-        $insertedAppts = DB::table('appointments')->orderBy('id')->get();
-        $adminId       = DB::table('users')->where('role', 'admin')->value('id') ?? 1;
-
-        foreach ($insertedAppts as $appt) {
-            // Always create an initial "pending" history entry
-            $createdAt = Carbon::parse($appt->created_at);
-
-            $statusHistory[] = [
-                'appointment_id' => $appt->id,
-                'changed_by'     => $appt->user_id,
-                'from_status'    => '',
-                'to_status'      => 'pending',
-                'notes'          => 'Appointment request submitted by farmer.',
-                'changed_at'     => $createdAt->toDateTimeString(),
-                'created_at'     => $createdAt->toDateTimeString(),
-                'updated_at'     => $createdAt->toDateTimeString(),
-            ];
-
-            if ($appt->status !== 'pending') {
-                $statusHistory[] = [
-                    'appointment_id' => $appt->id,
-                    'changed_by'     => $appt->expert_id,    // expert's user_id via expert table
-                    'from_status'    => 'pending',
-                    'to_status'      => in_array($appt->status, ['cancelled']) ? 'cancelled' : 'confirmed',
-                    'notes'          => in_array($appt->status, ['cancelled']) ? 'Expert declined: unavailable.' : 'Expert confirmed appointment.',
-                    'changed_at'     => $appt->accepted_at ?? $createdAt->addHours(2)->toDateTimeString(),
-                    'created_at'     => $now,
-                    'updated_at'     => $now,
-                ];
+            $paymentIntentId = null;
+            if (in_array($payStatus, ['paid', 'refunded'])) {
+                $paymentIntentId = 'pi_3' . strtoupper(substr(md5(uniqid()), 0, 20));
             }
 
-            if ($appt->status === 'completed') {
-                $statusHistory[] = [
-                    'appointment_id' => $appt->id,
-                    'changed_by'     => $adminId,
-                    'from_status'    => 'confirmed',
-                    'to_status'      => 'completed',
-                    'notes'          => 'Session completed successfully.',
-                    'changed_at'     => $appt->completed_at ?? $now->toDateTimeString(),
-                    'created_at'     => $now,
-                    'updated_at'     => $now,
-                ];
-            }
+            $appointmentId = DB::table('appointments')->insertGetId([
+                'user_id'           => $userId,
+                'expert_id'         => $expert->id,
+                'scheduled_at'      => $scheduled,
+                'duration_minutes'  => $expert->consultation_duration_minutes ?? 60,
+                'status'            => $status,
+                'notes'             => 'Customer request: ' . $topics[$idx % count($topics)],
+                'admin_notes'       => null,
+                'fee'               => $fee,
+                'payment_status'    => $payStatus,
+                'topic'             => $topics[$idx % count($topics)],
+                'meeting_link'      => in_array($status, ['confirmed', 'completed'])
+                    ? 'https://meet.google.com/plantix-' . strtolower(substr(md5($idx), 0, 10))
+                    : null,
+                'accepted_at'       => in_array($status, ['confirmed', 'completed'])
+                    ? $scheduled->copy()->subHours(2) : null,
+                'completed_at'      => $status === 'completed'
+                    ? $scheduled->copy()->addMinutes($expert->consultation_duration_minutes ?? 60) : null,
+                'rejected_at'       => null,
+                'reject_reason'     => null,
+                'customer_rating'   => $status === 'completed' ? rand(4, 5) : null,
+                'customer_review'   => $status === 'completed'
+                    ? ['Excellent consultation.', 'Very helpful and detailed advice.', 'Highly recommended!'][rand(0, 2)]
+                    : null,
+                'rated_at'          => $status === 'completed' ? $scheduled->copy()->addDays(1) : null,
+                'created_at'        => $scheduled->copy()->subDays(rand(1, 10)),
+                'updated_at'        => $now,
+            ]);
+
+            // Status history entry
+            DB::table('appointment_status_history')->insert([
+                'appointment_id' => $appointmentId,
+                'changed_by'     => $userId,
+                'from_status'    => 'pending',
+                'to_status'      => $status,
+                'notes'          => 'Initial booking.',
+                'changed_at'     => $scheduled->copy()->subDays(rand(1, 10)),
+                'created_at'     => $now,
+                'updated_at'     => $now,
+            ]);
         }
-
-        foreach (array_chunk($statusHistory, 100) as $chunk) {
-            DB::table('appointment_status_history')->insert($chunk);
-        }
-
-        // Expert notification logs: new appointment notification per expert
-        $specialtiesMap = DB::table('experts')->pluck('specialty', 'id');
-
-        foreach ($insertedAppts as $appt) {
-            $notifications[] = [
-                'expert_id'  => $appt->expert_id,
-                'type'       => 'new_appointment',
-                'title'      => 'New Consultation Request',
-                'body'       => 'A farmer has requested a consultation: ' . substr($appt->topic ?? 'Agricultural advice', 0, 60) . '...',
-                'data'       => json_encode(['appointment_id' => $appt->id, 'farmer_id' => $appt->user_id]),
-                'related_id' => $appt->user_id,
-                'is_read'    => in_array($appt->status, ['completed', 'confirmed', 'cancelled']),
-                'read_at'    => in_array($appt->status, ['completed', 'confirmed']) ? $now->toDateTimeString() : null,
-                'created_at' => $appt->created_at,
-                'updated_at' => $now,
-            ];
-        }
-
-        foreach (array_chunk($notifications, 100) as $chunk) {
-            DB::table('expert_notification_logs')->insert($chunk);
-        }
-
-        $this->command->info(sprintf(
-            'AppointmentSeeder: %d appointments, %d status history, %d notification logs seeded.',
-            count($appointments),
-            count($statusHistory),
-            count($notifications)
-        ));
     }
 }

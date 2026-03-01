@@ -5,6 +5,8 @@ namespace App\Providers;
 use App\Models\Appointment;
 use App\Models\CropDiseaseReport;
 use App\Models\CropRecommendation;
+use App\Models\ExpertApplication;
+use App\Models\ForumReply;
 use App\Models\ForumThread;
 use App\Models\Order;
 use App\Models\Product;
@@ -14,8 +16,9 @@ use App\Models\Vendor;
 use App\Policies\AppointmentPolicy;
 use App\Policies\CropDiseaseReportPolicy;
 use App\Policies\CropRecommendationPolicy;
-use App\Policies\Expert\ExpertAppointmentPolicy;
-use App\Policies\Expert\ExpertForumPolicy;
+use App\Policies\ExpertApplicationPolicy;
+use App\Policies\ForumReplyPolicy;
+use App\Policies\ForumThreadPolicy;
 use App\Policies\OrderPolicy;
 use App\Policies\ProductPolicy;
 use App\Policies\ReturnRequestPolicy;
@@ -36,8 +39,11 @@ class AuthServiceProvider extends ServiceProvider
         ReturnRequest::class      => ReturnRequestPolicy::class,
         CropRecommendation::class => CropRecommendationPolicy::class,
         CropDiseaseReport::class  => CropDiseaseReportPolicy::class,
-        // ── Expert guard policies ──────────────────────────────────────────────
-        ForumThread::class        => ExpertForumPolicy::class,
+        // ── Forum policies (all roles, web guard) ─────────────────────────────
+        ForumThread::class        => ForumThreadPolicy::class,
+        ForumReply::class         => ForumReplyPolicy::class,
+        // ── Expert policies ────────────────────────────────────────────────────
+        ExpertApplication::class  => ExpertApplicationPolicy::class,
     ];
 
     public function boot(): void
