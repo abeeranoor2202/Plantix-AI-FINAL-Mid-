@@ -9,7 +9,7 @@ class Permission extends Model
 {
     protected $table = 'permissions';
 
-    protected $fillable = ['name', 'group', 'display_name'];
+    protected $fillable = ['name', 'slug', 'group', 'display_name'];
 
     public function roles(): BelongsToMany
     {

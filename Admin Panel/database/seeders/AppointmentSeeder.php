@@ -97,7 +97,7 @@ class AppointmentSeeder extends Seeder
             ]);
 
             // Status history entry
-            DB::table('appointment_status_history')->insert([
+            DB::table('appointment_status_histories')->insert([
                 'appointment_id' => $appointmentId,
                 'changed_by'     => $userId,
                 'from_status'    => 'pending',
@@ -110,3 +110,4 @@ class AppointmentSeeder extends Seeder
         }
     }
 }
+

@@ -125,10 +125,10 @@ class OrdersSeeder extends Seeder
                 'updated_at' => $s['created_at'],
             ]);
 
-            if (in_array($s['status'], ['accepted', 'preparing', 'ready', 'delivered'])) {
+            if (in_array($s['status'], ['confirmed', 'processing', 'shipped', 'delivered'])) {
                 DB::table('order_status_history')->insert([
                     'order_id'   => $orderId,
-                    'status'     => 'accepted',
+                    'status'     => 'confirmed',
                     'notes'      => 'Order accepted by vendor.',
                     'changed_by' => $adminId,
                     'created_at' => $s['created_at']->copy()->addMinutes(30),
@@ -136,10 +136,10 @@ class OrdersSeeder extends Seeder
                 ]);
             }
 
-            if (in_array($s['status'], ['preparing', 'ready', 'delivered'])) {
+            if (in_array($s['status'], ['processing', 'shipped', 'delivered'])) {
                 DB::table('order_status_history')->insert([
                     'order_id'   => $orderId,
-                    'status'     => 'preparing',
+                    'status'     => 'processing',
                     'notes'      => 'Vendor is preparing your order.',
                     'changed_by' => $adminId,
                     'created_at' => $s['created_at']->copy()->addHours(2),
@@ -178,8 +178,8 @@ class OrdersSeeder extends Seeder
             array_fill(0, 30, 'delivered'),
             array_fill(0,  8, 'cancelled'),
             array_fill(0,  5, 'pending'),
-            array_fill(0,  3, 'accepted'),
-            array_fill(0,  2, 'preparing'),
+            array_fill(0,  3, 'confirmed'),
+            array_fill(0,  2, 'processing'),
             array_fill(0,  4, 'rejected'),
             array_fill(0,  3, 'refunded')   // mapped as delivered + payment refunded
         );
@@ -235,7 +235,7 @@ class OrdersSeeder extends Seeder
             $payStatus    = match($status) {
                 'delivered'                => 'paid',
                 'cancelled', 'rejected'    => ($payMethod === 'stripe' && rand(0, 1)) ? 'failed' : 'pending',
-                'pending', 'accepted', 'preparing' => 'pending',
+                'pending', 'confirmed', 'processing' => 'pending',
                 'refunded'                 => 'refunded',
                 default                    => 'pending',
             };
@@ -260,3 +260,4 @@ class OrdersSeeder extends Seeder
         return $scenarios;
     }
 }
+

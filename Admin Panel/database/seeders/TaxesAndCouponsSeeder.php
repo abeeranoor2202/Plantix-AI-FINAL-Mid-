@@ -12,15 +12,8 @@ class TaxesAndCouponsSeeder extends Seeder
     {
         $now = Carbon::now();
 
-        // ── Taxes ─────────────────────────────────────────────────────────────
-        $taxes = [
-            ['name' => 'General Sales Tax (GST)',      'rate' => 17.00, 'type' => 'exclusive', 'is_active' => 1],
-            ['name' => 'Agriculture Input Exemption',  'rate' =>  0.00, 'type' => 'exclusive', 'is_active' => 1],
-            ['name' => 'Federal Excise Duty (FED)',    'rate' =>  5.00, 'type' => 'inclusive', 'is_active' => 1],
-        ];
-        foreach ($taxes as $t) {
-            DB::table('taxes')->insert(array_merge($t, ['created_at' => $now, 'updated_at' => $now]));
-        }
+        // Note: `taxes` table was dropped in migration 2026_02_28_200001.
+        // tax_amount is stored directly on orders as a decimal column.
 
         // ── Coupons ───────────────────────────────────────────────────────────
         $vendors = DB::table('vendors')->pluck('id')->toArray();

@@ -11,6 +11,12 @@ class BrandSeeder extends Seeder
 {
     public function run(): void
     {
+        // The `brands` table was removed in migration 2026_02_28_200001_drop_unused_tables_cleanup.
+        // Products no longer carry a brand_id foreign key.
+    }
+
+    private function _unused(): void
+    {
         $now = Carbon::now();
 
         $brands = [

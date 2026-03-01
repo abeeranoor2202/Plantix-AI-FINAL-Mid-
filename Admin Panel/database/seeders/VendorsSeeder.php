@@ -14,8 +14,6 @@ class VendorsSeeder extends Seeder
 
         // Vendor user IDs are: 1-6 (inserted first by UsersSeeder)
         // Category IDs: 1=Seeds, 2=Fertilizers, 3=Pesticides, 4=Tools, 5=Irrigation, 6=Greenhouse, 7=Animal Feed, 8=Organic
-        // Zone IDs: 1=Punjab, 2=Sindh, 3=KPK, 4=Balochistan, 5=ICT
-
         $vendorUserIds  = DB::table('users')->where('role', 'vendor')->pluck('id')->toArray();
         $catSeedsId     = DB::table('categories')->where('name', 'Seeds & Planting')->value('id');
         $catFertId      = DB::table('categories')->where('name', 'Fertilizers & Soil Nutrients')->value('id');
@@ -24,15 +22,11 @@ class VendorsSeeder extends Seeder
         $catOrganicId   = DB::table('categories')->where('name', 'Organic & Natural Products')->value('id');
         $catFeedId      = DB::table('categories')->where('name', 'Animal Feed & Livestock')->value('id');
 
-        $punjabId = DB::table('zones')->where('zone_name', 'Punjab')->value('id');
-        $sindhId  = DB::table('zones')->where('zone_name', 'Sindh')->value('id');
-        $kpkId    = DB::table('zones')->where('zone_name', 'Khyber Pakhtunkhwa')->value('id');
-        $ictId    = DB::table('zones')->where('zone_name', 'Islamabad Capital Territory')->value('id');
+        // zone_id is nullable on vendors; the `zones` table was removed in migration 2026_02_28_200001.
 
         $vendors = [
             [
                 'author_id'      => $vendorUserIds[0] ?? 1,
-                'zone_id'        => $punjabId,
                 'category_id'    => $catSeedsId,
                 'title'          => 'GreenHarvest Seeds Co.',
                 'description'    => 'Pakistan\'s largest certified seed supplier with over 20 years of field experience. We offer hybrid and open-pollinated varieties for all major crops.',
@@ -53,7 +47,6 @@ class VendorsSeeder extends Seeder
             ],
             [
                 'author_id'      => $vendorUserIds[1] ?? 2,
-                'zone_id'        => $sindhId,
                 'category_id'    => $catFertId,
                 'title'          => 'PakiAgroPro',
                 'description'    => 'Trusted supplier of premium fertilizers, soil amendments, and plant nutrition products serving farmers across Sindh and Balochistan.',
@@ -74,7 +67,6 @@ class VendorsSeeder extends Seeder
             ],
             [
                 'author_id'      => $vendorUserIds[2] ?? 3,
-                'zone_id'        => $punjabId,
                 'category_id'    => $catToolsId,
                 'title'          => 'FarmTech Solutions',
                 'description'    => 'Manufacturer and retailer of high-quality farming tools, soil testing meters, and mechanised equipment for smallholder and commercial farms in Pakistan.',
@@ -95,7 +87,6 @@ class VendorsSeeder extends Seeder
             ],
             [
                 'author_id'      => $vendorUserIds[3] ?? 4,
-                'zone_id'        => $punjabId,
                 'category_id'    => $catFertId,
                 'title'          => 'KisanMart Supply',
                 'description'    => 'One-stop agri supply shop for farmers in South Punjab. Fertilizers, seeds, and basic tools delivered to your doorstep.',
@@ -116,7 +107,6 @@ class VendorsSeeder extends Seeder
             ],
             [
                 'author_id'      => $vendorUserIds[4] ?? 5,
-                'zone_id'        => $kpkId,
                 'category_id'    => $catPestId,
                 'title'          => 'AgroShield Pesticides',
                 'description'    => 'Registered supplier of crop protection products including herbicides, insecticides, and fungicides. All products are government-certified.',
@@ -137,7 +127,6 @@ class VendorsSeeder extends Seeder
             ],
             [
                 'author_id'      => $vendorUserIds[5] ?? 6,
-                'zone_id'        => $ictId,
                 'category_id'    => $catOrganicId,
                 'title'          => 'NatureCrop Organics',
                 'description'    => 'Pakistan\'s first dedicated organic farming supply platform. We stock vermicompost, neem-based pesticides, biofertilisers, and mycorrhizal inoculants.',
@@ -169,3 +158,4 @@ class VendorsSeeder extends Seeder
         }
     }
 }
+

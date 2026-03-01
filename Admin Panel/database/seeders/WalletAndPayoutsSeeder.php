@@ -10,6 +10,12 @@ class WalletAndPayoutsSeeder extends Seeder
 {
     public function run(): void
     {
+        // wallet_transactions, payouts, and payout_requests were removed in
+        // migration 2026_02_28_200001_drop_unused_tables_cleanup.
+    }
+
+    private function _unused(): void
+    {
         $now      = Carbon::now();
         $adminId  = DB::table('users')->where('email', 'admin@plantix.com')->value('id') ?? 1;
         $vendors  = DB::table('vendors')->select('id')->pluck('id')->toArray();

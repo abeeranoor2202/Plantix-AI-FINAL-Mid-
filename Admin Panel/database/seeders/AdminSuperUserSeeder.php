@@ -42,10 +42,10 @@ class AdminSuperUserSeeder extends Seeder
 
         // ── Staff Admins ──────────────────────────────────────────────────────
         $staff = [
-            ['name' => 'Bilal Chaudhry',  'email' => 'store@plantix.com',   'slug' => 'store-manager',    'phone' => '+923011100001'],
-            ['name' => 'Sara Ahmed',       'email' => 'orders@plantix.com',  'slug' => 'order-manager',    'phone' => '+923011100002'],
-            ['name' => 'Nadia Khan',       'email' => 'content@plantix.com', 'slug' => 'content-moderator','phone' => '+923011100003'],
-            ['name' => 'Faisal Iqbal',     'email' => 'finance@plantix.com', 'slug' => 'finance-manager',  'phone' => '+923011100004'],
+            ['name' => 'Bilal Chaudhry',  'email' => 'store@plantix.com',   'slug' => 'store-manager',   'phone' => '+923011100001'],
+            ['name' => 'Sara Ahmed',       'email' => 'orders@plantix.com',  'slug' => 'store-manager',   'phone' => '+923011100002'],
+            ['name' => 'Nadia Khan',       'email' => 'content@plantix.com', 'slug' => 'content-manager', 'phone' => '+923011100003'],
+            ['name' => 'Faisal Iqbal',     'email' => 'finance@plantix.com', 'slug' => 'finance-manager', 'phone' => '+923011100004'],
         ];
 
         foreach ($staff as $s) {

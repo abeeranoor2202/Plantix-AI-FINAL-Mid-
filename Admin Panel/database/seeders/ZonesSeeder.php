@@ -10,8 +10,12 @@ class ZonesSeeder extends Seeder
 {
     public function run(): void
     {
-        $now = Carbon::now();
+        // The `zones` table was removed in migration 2026_02_28_200001_drop_unused_tables_cleanup.
+        // Delivery zone management is not part of the Plantix AI feature set.
+    }
 
+    private function _unused(): void
+    {
         $zones = [
             ['zone_name' => 'Punjab',                      'description' => 'Largest province of Pakistan', 'status' => 'active'],
             ['zone_name' => 'Sindh',                       'description' => 'Province in southern Pakistan', 'status' => 'active'],

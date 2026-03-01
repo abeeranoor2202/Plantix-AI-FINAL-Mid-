@@ -169,7 +169,15 @@ class AdminRbacSeeder extends Seeder
      */
     private array $roles = [
         [
+            'role_name'    => 'Super Admin',
+            'slug'         => 'super-admin',
+            'guard'        => 'admin',
+            'is_active'    => true,
+            'perm_groups'  => [],   // all-permissions — handled separately below
+        ],
+        [
             'role_name'    => 'Store Manager',
+            'slug'         => 'store-manager',
             'guard'        => 'admin',
             'is_active'    => true,
             'perm_groups'  => [
@@ -180,6 +188,7 @@ class AdminRbacSeeder extends Seeder
         ],
         [
             'role_name'    => 'Finance Manager',
+            'slug'         => 'finance-manager',
             'guard'        => 'admin',
             'is_active'    => true,
             'perm_groups'  => [
@@ -189,6 +198,7 @@ class AdminRbacSeeder extends Seeder
         ],
         [
             'role_name'    => 'Content Manager',
+            'slug'         => 'content-manager',
             'guard'        => 'admin',
             'is_active'    => true,
             'perm_groups'  => [
@@ -198,6 +208,7 @@ class AdminRbacSeeder extends Seeder
         ],
         [
             'role_name'    => 'Driver Manager',
+            'slug'         => 'driver-manager',
             'guard'        => 'admin',
             'is_active'    => true,
             'perm_groups'  => [
@@ -207,6 +218,7 @@ class AdminRbacSeeder extends Seeder
         ],
         [
             'role_name'    => 'Support Staff',
+            'slug'         => 'support-staff',
             'guard'        => 'admin',
             'is_active'    => true,
             'perm_groups'  => ['users', 'orders', 'reports'],
@@ -217,11 +229,11 @@ class AdminRbacSeeder extends Seeder
     {
         DB::transaction(function () {
 
-            // ── 1. Seed permissions (upsert by name) ──────────────────────────
+            // ── 1. Seed permissions (upsert by slug) ──────────────────────────
             foreach ($this->permissions as $perm) {
                 Permission::firstOrCreate(
-                    ['name' => $perm['name']],
-                    ['group' => $perm['group'], 'display_name' => $perm['display_name']]
+                    ['slug' => $perm['name']],
+                    ['name' => $perm['name'], 'group' => $perm['group'], 'display_name' => $perm['display_name']]
                 );
             }
 
@@ -234,12 +246,16 @@ class AdminRbacSeeder extends Seeder
 
                 /** @var Role $role */
                 $role = Role::firstOrCreate(
-                    ['role_name' => $roleData['role_name']],
+                    ['slug' => $roleData['slug']],
                     $roleData
                 );
 
-                // Resolve all permission IDs for the assigned groups
-                $ids = Permission::whereIn('group', $permGroups)->pluck('id')->toArray();
+                // Super Admin gets ALL permissions
+                if ($role->slug === 'super-admin') {
+                    $ids = Permission::pluck('id')->toArray();
+                } else {
+                    $ids = Permission::whereIn('group', $permGroups)->pluck('id')->toArray();
+                }
                 $role->permissions()->sync($ids);
 
                 $this->command->info("  ✓ Role '{$role->role_name}' → " . count($ids) . " permissions.");
