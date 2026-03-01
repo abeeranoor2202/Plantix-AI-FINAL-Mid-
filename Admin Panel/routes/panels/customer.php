@@ -68,6 +68,10 @@ Route::get('/forum',                  [\App\Http\Controllers\Frontend\ForumContr
 Route::get('/forum/{slug}',           [\App\Http\Controllers\Frontend\ForumController::class, 'show'])->name('forum.thread');
 Route::redirect('/blog',              '/forum')->name('blog');
 
+// ── Expert browse (public — no auth required to view) ────────────────────────
+Route::get('/experts',         [\App\Http\Controllers\Frontend\ExpertBrowseController::class, 'index'])->name('experts.index');
+Route::get('/experts/{id}',    [\App\Http\Controllers\Frontend\ExpertBrowseController::class, 'show'])->name('experts.show');
+
 // ══════════════════════════════════════════════════════════════════════════════
 // 4. AUTHENTICATED CUSTOMER ROUTES  [EnsureCustomerAuth]
 // ══════════════════════════════════════════════════════════════════════════════
@@ -108,6 +112,9 @@ Route::middleware(['customer', 'verified'])->group(function () {
     Route::post('/orders/{id}/return',     [\App\Http\Controllers\Frontend\CustomerOrderController::class, 'requestReturn'])->name('order.return');
     Route::post('/orders/{id}/cancel',     [\App\Http\Controllers\Frontend\CustomerOrderController::class, 'cancel'])->name('order.cancel');
     Route::get('/orders/{id}/invoice',     [\App\Http\Controllers\Frontend\InvoiceController::class, 'download'])->name('order.invoice');
+
+    // ── Expert quick-book (auth required to submit booking) ─────────────────
+    Route::post('/experts/{id}/book', [\App\Http\Controllers\Frontend\ExpertBrowseController::class, 'quickBook'])->name('experts.quick-book');
 
     // ── Appointments with Experts ─────────────────────────────────────────────
     Route::get('/appointments',              [\App\Http\Controllers\Frontend\CustomerAppointmentController::class, 'index'])->name('appointments');

@@ -47,6 +47,7 @@
               <li><a href="{{ route('contact') }}">Contact</a></li>
               <li><a href="{{ route('ai.chat') }}">Plantix-AI</a></li>
               <li><a href="{{ route('forum') }}">Forum</a></li>
+              <li><a href="{{ route('experts.index') }}">Experts</a></li>
               <li><a href="{{ route('shop') }}">Shop</a></li>
               <li><a href="{{ route('appointments') }}">Appointments</a></li>
             </ul>
