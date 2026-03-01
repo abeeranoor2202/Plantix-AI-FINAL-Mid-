@@ -203,20 +203,60 @@
 
 @push('scripts')
 <script>
-// Auto-format card number with spaces
+// ── Auto-formatters ─────────────────────────────────────────────────────────
 document.getElementById('cardNumber')?.addEventListener('input', function () {
     let v = this.value.replace(/\D/g, '').substring(0, 16);
     this.value = v.replace(/(\d{4})(?=\d)/g, '$1 ');
 });
-// Auto-format expiry
 document.getElementById('cardExp')?.addEventListener('input', function () {
     let v = this.value.replace(/\D/g, '').substring(0, 4);
     if (v.length >= 3) v = v.substring(0,2) + ' / ' + v.substring(2);
     this.value = v;
 });
-// Digits only for CVC
 document.getElementById('cardCvc')?.addEventListener('input', function () {
     this.value = this.value.replace(/\D/g, '').substring(0, 4);
+});
+
+// ── Client-side submit guard ─────────────────────────────────────────────────
+document.querySelector('form')?.addEventListener('submit', function (e) {
+    let ok = true;
+
+    function err(id, msg) {
+        const el = document.getElementById(id);
+        el.classList.add('is-invalid');
+        let fb = el.parentElement.querySelector('.invalid-feedback') ||
+                 el.closest('.col-12, .col-6')?.querySelector('.text-danger');
+        if (!fb) { fb = document.createElement('div'); fb.className = 'text-danger mt-1 small'; el.after(fb); }
+        fb.textContent = msg;
+        ok = false;
+    }
+    function clear(id) {
+        const el = document.getElementById(id);
+        if (el) el.classList.remove('is-invalid');
+    }
+
+    ['cardNumber','cardExp','cardCvc'].forEach(clear);
+
+    const num = document.getElementById('cardNumber').value;
+    if (!/^\d{4} \d{4} \d{4} \d{4}$/.test(num))
+        err('cardNumber', 'Enter a valid 16-digit card number.');
+
+    const exp = document.getElementById('cardExp').value;
+    if (!/^\d{2} \/ \d{2}$/.test(exp)) {
+        err('cardExp', 'Use MM / YY format.');
+    } else {
+        const [m, y] = exp.split(' / ').map(Number);
+        const now = new Date();
+        const expDate = new Date(2000 + y, m, 0);
+        if (m < 1 || m > 12) err('cardExp', 'Invalid month.');
+        else if (expDate < now) err('cardExp', 'This card has expired.');
+    }
+
+    const cvc = document.getElementById('cardCvc').value;
+    if (!/^\d{3,4}$/.test(cvc))
+        err('cardCvc', 'CVC must be 3 or 4 digits.');
+
+    if (!ok) e.preventDefault();
 });
 </script>
 @endpush
