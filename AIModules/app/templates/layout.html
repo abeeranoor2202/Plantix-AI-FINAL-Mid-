@@ -253,24 +253,84 @@
 		}
 
 
-		<script type="text/JavaScript" src="{{ url_for('static', filename='scripts/cities.js') }}"></script></head><body>< !-- Navigation --><nav class="navbar navbar-expand-lg px-3"><div class="container"><a class="navbar-brand" href="{{ url_for('home') }}"><div style="background: var(--agri-primary-light); padding: 8px 10px; border-radius: 8px;"><i class="fa-solid fa-seedling" style="color: var(--agri-primary-dark); font-size: 20px;"></i></div><span style="font-size: 22px; font-weight: 800; color: var(--agri-text-heading); letter-spacing: -0.5px;">Plantix <span style="color: var(--agri-primary);">AI</span></span></a><button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarResponsive"
+	</style>
 
-		aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation"><span class="navbar-toggler-icon"></span></button><div class="collapse navbar-collapse" id="navbarResponsive"><ul class="navbar-nav ml-auto"><li class="nav-item active"><a class="nav-link" href="{{ url_for('home') }}">Home <span class="sr-only">(current)</span></a></li><li class="nav-item"><a class="nav-link" href="{{ url_for('crop_recommend') }}">Crop</a></li><li class="nav-item"><a class="nav-link" href="{{ url_for('fertilizer_recommendation') }}">Fertilizer</a></li><li class="nav-item"><a class="nav-link" href="{{ url_for('disease_prediction') }}">Disease</a></li></ul></div></div></nav><main style="min-height: calc(100vh - 200px);"> {
-			% block body %
-		}
+	<script type="text/javascript" src="{{ url_for('static', filename='scripts/cities.js') }}"></script>
+</head>
 
-			{
-			% endblock %
-		}
+<body>
 
-		</main>< !-- footer --><footer><div class="container text-center"><div class="mb-4"><a href="{{ url_for('home') }}" style="text-decoration: none; display: inline-flex; align-items: center; gap: 10px;"><i class="fa-solid fa-seedling" style="color: var(--agri-primary); font-size: 24px;"></i><span style="font-size: 24px; font-weight: 800; color: var(--agri-text-heading); font-family: var(--font-heading); letter-spacing: -0.5px;">Plantix <span style="color: var(--agri-primary);">AI</span></span></a></div><p class="mb-4 fw-medium text-muted">Advanced Agricultural Intelligence & Environmental Insight</p><div class="d-flex justify-content-center gap-3 mb-4"><div style="width: 40px; height: 40px; border-radius: 50%; background: var(--agri-bg); border: 1px solid var(--agri-border); display: flex; align-items: center; justify-content: center; cursor: pointer;"><i class="fa-brands fa-twitter text-muted"></i></div><div style="width: 40px; height: 40px; border-radius: 50%; background: var(--agri-bg); border: 1px solid var(--agri-border); display: flex; align-items: center; justify-content: center; cursor: pointer;"><i class="fa-brands fa-linkedin text-muted"></i></div><div style="width: 40px; height: 40px; border-radius: 50%; background: var(--agri-bg); border: 1px solid var(--agri-border); display: flex; align-items: center; justify-content: center; cursor: pointer;"><i class="fa-brands fa-github text-muted"></i></div></div><div class="border-top pt-4 mt-4" style="border-color: var(--agri-border) !important;"><p class="small mb-1">&copy;
+	<!-- Navigation -->
+	<nav class="navbar navbar-expand-lg px-3">
+		<div class="container">
+			<a class="navbar-brand" href="{{ url_for('home') }}">
+				<div style="background: var(--agri-primary-light); padding: 8px 10px; border-radius: 8px;">
+					<i class="fa-solid fa-seedling" style="color: var(--agri-primary-dark); font-size: 20px;"></i>
+				</div>
+				<span style="font-size: 22px; font-weight: 800; color: var(--agri-text-heading); letter-spacing: -0.5px;">
+					Plantix <span style="color: var(--agri-primary);">AI</span>
+				</span>
+			</a>
+			<button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarResponsive"
+				aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
+				<span class="navbar-toggler-icon"></span>
+			</button>
+			<div class="collapse navbar-collapse" id="navbarResponsive">
+				<ul class="navbar-nav ml-auto">
+					<li class="nav-item active">
+						<a class="nav-link" href="{{ url_for('home') }}">Home <span class="sr-only">(current)</span></a>
+					</li>
+					<li class="nav-item">
+						<a class="nav-link" href="{{ url_for('crop_recommend') }}">Crop</a>
+					</li>
+					<li class="nav-item">
+						<a class="nav-link" href="{{ url_for('fertilizer_recommendation') }}">Fertilizer</a>
+					</li>
+					<li class="nav-item">
+						<a class="nav-link" href="{{ url_for('disease_prediction') }}">Disease</a>
+					</li>
+				</ul>
+			</div>
+		</div>
+	</nav>
 
-		Copyright {
-				{
-				now.year | default('2024')
-			}
-		}
+	<main style="min-height: calc(100vh - 200px);">
+		{% block body %}{% endblock %}
+	</main>
 
-		Plantix AI Platform.</p><p class="small text-muted mb-0">Empowering farmers around the world.</p></div></div></footer>< !-- //footer -->
+	<!-- footer -->
+	<footer>
+		<div class="container text-center">
+			<div class="mb-4">
+				<a href="{{ url_for('home') }}" style="text-decoration: none; display: inline-flex; align-items: center; gap: 10px;">
+					<i class="fa-solid fa-seedling" style="color: var(--agri-primary); font-size: 24px;"></i>
+					<span style="font-size: 24px; font-weight: 800; color: var(--agri-text-heading); font-family: var(--font-heading); letter-spacing: -0.5px;">
+						Plantix <span style="color: var(--agri-primary);">AI</span>
+					</span>
+				</a>
+			</div>
+			<p class="mb-4 fw-medium text-muted">Advanced Agricultural Intelligence &amp; Environmental Insight</p>
+			<div class="d-flex justify-content-center gap-3 mb-4">
+				<div style="width: 40px; height: 40px; border-radius: 50%; background: var(--agri-bg); border: 1px solid var(--agri-border); display: flex; align-items: center; justify-content: center; cursor: pointer;">
+					<i class="fa-brands fa-twitter text-muted"></i>
+				</div>
+				<div style="width: 40px; height: 40px; border-radius: 50%; background: var(--agri-bg); border: 1px solid var(--agri-border); display: flex; align-items: center; justify-content: center; cursor: pointer;">
+					<i class="fa-brands fa-linkedin text-muted"></i>
+				</div>
+				<div style="width: 40px; height: 40px; border-radius: 50%; background: var(--agri-bg); border: 1px solid var(--agri-border); display: flex; align-items: center; justify-content: center; cursor: pointer;">
+					<i class="fa-brands fa-github text-muted"></i>
+				</div>
+			</div>
+			<div class="border-top pt-4 mt-4" style="border-color: var(--agri-border) !important;">
+				<p class="small mb-1">&copy; Copyright {{ now.year | default('2024') }} Plantix AI Platform.</p>
+				<p class="small text-muted mb-0">Empowering farmers around the world.</p>
+			</div>
+		</div>
+	</footer>
+	<!-- //footer -->
 
-		<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script><script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script><script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script></body></html>
+	<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+	<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>

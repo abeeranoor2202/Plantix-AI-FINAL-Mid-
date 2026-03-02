@@ -8,70 +8,108 @@ use Illuminate\Support\Facades\Hash;
 use Carbon\Carbon;
 
 /**
- * AdminSuperUserSeeder
+ * AdminSuperUserSeeder — Plantix AI Admin Panel
  *
- * Creates the Super Admin user and 4 staff admins.
- * Must run AFTER AdminRbacSeeder (needs roles table populated).
+ * Creates the Super Admin and four role-specific staff accounts.
+ * Must run AFTER AdminRbacSeeder (needs the roles table populated).
  *
- * Super Admin Credentials:
- *   Email   : admin@plantix.com
- *   Password: Admin@123456
+ * ┌─────────────────────┬────────────────────────────┬───────────────────────────┬──────────────────────────────┐
+ * │ Name                │ Email                      │ Password                  │ Role                         │
+ * ├─────────────────────┼────────────────────────────┼───────────────────────────┼──────────────────────────────┤
+ * │ Super Admin         │ admin@plantix.com          │ Admin@123456              │ (null role_id — unrestricted)│
+ * │ Bilal Chaudhry      │ catalog@plantix.com        │ Staff@123456              │ Catalog Manager              │
+ * │ Sara Ahmed          │ users@plantix.com          │ Staff@123456              │ User & Vendor Manager        │
+ * │ Nadia Khan          │ comms@plantix.com          │ Staff@123456              │ Communications Manager       │
+ * │ Faisal Iqbal        │ sysadmin@plantix.com       │ Staff@123456              │ System Admin                 │
+ * └─────────────────────┴────────────────────────────┴───────────────────────────┴──────────────────────────────┘
  */
 class AdminSuperUserSeeder extends Seeder
 {
     public function run(): void
     {
-        $now          = Carbon::now();
-        $superRoleId  = DB::table('roles')->where('slug', 'super-admin')->value('id');
+        $now = Carbon::now();
 
-        // ── Super Admin (no role_id needed — role=admin with null role_id = unrestricted)
-        // Super admin must have role_id = NULL to bypass permission middleware
-        DB::table('users')->insert([
-            'name'               => 'Super Admin',
-            'email'              => 'admin@plantix.com',
-            'password'           => Hash::make('Admin@123456'),
-            'phone'              => '+923001000001',
-            'role'               => 'admin',
-            'role_id'            => null,
-            'active'             => 1,
-            'email_verified_at'  => $now,
-            'password_changed_at'=> $now,
-            'created_at'         => $now->copy()->subDays(180),
-            'updated_at'         => $now,
-        ]);
+        // ── Super Admin ───────────────────────────────────────────────────────
+        // role_id = NULL → bypasses ALL permission middleware (unrestricted access).
+        DB::table('users')->updateOrInsert(
+            ['email' => 'admin@plantix.com'],
+            [
+                'name'                => 'Super Admin',
+                'email'               => 'admin@plantix.com',
+                'password'            => Hash::make('Admin@123456'),
+                'phone'               => '+923001000001',
+                'role'                => 'admin',
+                'role_id'             => null,
+                'active'              => 1,
+                'email_verified_at'   => $now,
+                'password_changed_at' => $now,
+                'created_at'          => $now->copy()->subDays(180),
+                'updated_at'          => $now,
+            ]
+        );
 
         // ── Staff Admins ──────────────────────────────────────────────────────
         $staff = [
-            ['name' => 'Bilal Chaudhry',  'email' => 'store@plantix.com',   'slug' => 'store-manager',   'phone' => '+923011100001'],
-            ['name' => 'Sara Ahmed',       'email' => 'orders@plantix.com',  'slug' => 'store-manager',   'phone' => '+923011100002'],
-            ['name' => 'Nadia Khan',       'email' => 'content@plantix.com', 'slug' => 'content-manager', 'phone' => '+923011100003'],
-            ['name' => 'Faisal Iqbal',     'email' => 'finance@plantix.com', 'slug' => 'finance-manager', 'phone' => '+923011100004'],
+            [
+                'name'  => 'Bilal Chaudhry',
+                'email' => 'catalog@plantix.com',
+                'slug'  => 'catalog-manager',
+                'phone' => '+923011100001',
+            ],
+            [
+                'name'  => 'Sara Ahmed',
+                'email' => 'users@plantix.com',
+                'slug'  => 'user-vendor-manager',
+                'phone' => '+923011100002',
+            ],
+            [
+                'name'  => 'Nadia Khan',
+                'email' => 'comms@plantix.com',
+                'slug'  => 'communications-manager',
+                'phone' => '+923011100003',
+            ],
+            [
+                'name'  => 'Faisal Iqbal',
+                'email' => 'sysadmin@plantix.com',
+                'slug'  => 'system-admin',
+                'phone' => '+923011100004',
+            ],
         ];
 
         foreach ($staff as $s) {
             $rid = DB::table('roles')->where('slug', $s['slug'])->value('id');
-            DB::table('users')->insert([
-                'name'              => $s['name'],
-                'email'             => $s['email'],
-                'password'          => Hash::make('Staff@123456'),
-                'phone'             => $s['phone'],
-                'role'              => 'admin',
-                'role_id'           => $rid,
-                'active'            => 1,
-                'email_verified_at' => $now,
-                'created_at'        => $now->copy()->subDays(rand(30, 150)),
-                'updated_at'        => $now,
-            ]);
+            DB::table('users')->updateOrInsert(
+                ['email' => $s['email']],
+                [
+                    'name'              => $s['name'],
+                    'email'             => $s['email'],
+                    'password'          => Hash::make('Staff@123456'),
+                    'phone'             => $s['phone'],
+                    'role'              => 'admin',
+                    'role_id'           => $rid,
+                    'active'            => 1,
+                    'email_verified_at' => $now,
+                    'created_at'        => $now->copy()->subDays(rand(30, 150)),
+                    'updated_at'        => $now,
+                ]
+            );
         }
 
         if ($this->command) {
             $this->command->info('');
-            $this->command->info('  ╔══════════════════════════════════════════╗');
-            $this->command->info('  ║         SUPER ADMIN CREDENTIALS         ║');
-            $this->command->info('  ╠══════════════════════════════════════════╣');
-            $this->command->info('  ║  Email   : admin@plantix.com            ║');
-            $this->command->info('  ║  Password: Admin@123456                 ║');
-            $this->command->info('  ╚══════════════════════════════════════════╝');
+            $this->command->info('  ╔══════════════════════════════════════════════════════════╗');
+            $this->command->info('  ║              PLANTIX AI — ADMIN CREDENTIALS             ║');
+            $this->command->info('  ╠══════════════════════════════════════════════════════════╣');
+            $this->command->info('  ║  SUPER ADMIN (unrestricted)                             ║');
+            $this->command->info('  ║    Email   : admin@plantix.com                          ║');
+            $this->command->info('  ║    Password: Admin@123456                               ║');
+            $this->command->info('  ╠══════════════════════════════════════════════════════════╣');
+            $this->command->info('  ║  STAFF ACCOUNTS  (password for all: Staff@123456)       ║');
+            $this->command->info('  ║    catalog@plantix.com   → Catalog Manager              ║');
+            $this->command->info('  ║    users@plantix.com     → User & Vendor Manager        ║');
+            $this->command->info('  ║    comms@plantix.com     → Communications Manager       ║');
+            $this->command->info('  ║    sysadmin@plantix.com  → System Admin                 ║');
+            $this->command->info('  ╚══════════════════════════════════════════════════════════╝');
             $this->command->info('');
         }
     }

@@ -2,7 +2,7 @@
 
 from flask import Flask, render_template, request
 from markupsafe import Markup
-from datetime import datetime
+from datetime import datetime, timezone
 import numpy as np
 import pandas as pd
 from utils.disease import disease_dic
@@ -132,7 +132,7 @@ app = Flask(__name__)
 
 @app.context_processor
 def inject_now():
-    return {'now': datetime.utcnow()}
+    return {'now': datetime.now(timezone.utc)}
 
 # render home page
 
@@ -182,20 +182,14 @@ def crop_prediction():
         ph = float(request.form['ph'])
         rainfall = float(request.form['rainfall'])
 
-        # state = request.form.get("stt")
-        city = request.form.get("city")
+        temperature = float(request.form['temperature'])
+        humidity = float(request.form['humidity'])
 
-        if weather_fetch(city) != None:
-            temperature, humidity = weather_fetch(city)
-            data = np.array([[N, P, K, temperature, humidity, ph, rainfall]])
-            my_prediction = crop_recommendation_model.predict(data)
-            final_prediction = my_prediction[0]
+        data = np.array([[N, P, K, temperature, humidity, ph, rainfall]])
+        my_prediction = crop_recommendation_model.predict(data)
+        final_prediction = my_prediction[0]
 
-            return render_template('crop-result.html', prediction=final_prediction, title=title)
-
-        else:
-
-            return render_template('try_again.html', title=title)
+        return render_template('crop-result.html', prediction=final_prediction, title=title)
 
 # render fertilizer recommendation result page
 
