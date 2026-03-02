@@ -2,18 +2,18 @@
 <html lang="en">
 
 <head>
-	<title>{{ title }}</title>
+	<title>{{ title }} | Plantix AI</title>
 	<link rel="shortcut icon" href="{{ url_for('static', filename='images/favicon.ico') }}"/>
 
-	<!-- for-mobile-apps -->
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<meta charset="utf-8">
-	<meta name="keywords" content="Agro Harvest Responsive web template, Bootstrap Web Templates, Flat Web Templates, Android Compatible web template, 
-Smartphone Compatible web template, free webdesigns for Nokia, Samsung, LG, SonyEricsson, Motorola web design" />
+	<meta name="description" content="Plantix AI - Modern Agriculture Intelligence" />
 
-	<style>
-		html {
-			font-size: 1rem;
+	<!-- Google Fonts -->
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
 		}
 
 		@media (min-width: 576px) {
@@ -115,57 +115,150 @@ Smartphone Compatible web template, free webdesigns for Nokia, Samsung, LG, Sony
 	<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"
 		integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM"
 		crossorigin="anonymous"></script>
-	<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"
-		integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj"
-		crossorigin="anonymous"></script>
-	<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"
-		integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo"
-		crossorigin="anonymous"></script>
-	</body>
-	<!-- css files -->
+	</style>
+
 	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
 		integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
-	<link href="{{ url_for('static', filename='css/bootstrap.css') }}" rel='stylesheet' type='text/css' />
-	<!-- bootstrap css -->
-	<link href="{{ url_for('static', filename='css/style.css') }}" rel='stylesheet' type='text/css' />
-	<!-- custom css -->
-	<link href="{{ url_for('static', filename='css/font-awesome.min.css') }}" rel="stylesheet"><!-- fontawesome css -->
-	<!-- //css files -->
-	<!-- <link rel="icon" type="image/png" href="{{ url_for('static', filename='images/favicon.png?') }}"> -->
+	<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+	
+	<!-- Plantix AI Modern StyleOverrides -->
+	<style>
+		:root {
+			--agri-primary: #10B981;
+			--agri-primary-dark: #059669;
+			--agri-primary-light: #D1FAE5;
+			--agri-bg: #F9FAFB;
+			--agri-text-main: #374151;
+			--agri-text-muted: #6B7280;
+			--agri-text-heading: #111827;
+			--agri-border: #E5E7EB;
+			--agri-shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+			--agri-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+			--agri-radius: 12px;
+			
+			--font-heading: 'Outfit', sans-serif;
+			--font-body: 'Inter', sans-serif;
+		}
+
+		body {
+			font-family: var(--font-body);
+			color: var(--agri-text-main);
+			background-color: var(--agri-bg);
+			-webkit-font-smoothing: antialiased;
+		}
+
+		h1, h2, h3, h4, h5, h6 {
+			font-family: var(--font-heading);
+			color: var(--agri-text-heading);
+			font-weight: 700;
+		}
+
+		.navbar {
+			background: white !important;
+			box-shadow: var(--agri-shadow-sm);
+			padding: 15px 0;
+			border-bottom: 1px solid var(--agri-border);
+			position: sticky;
+			top: 0;
+			z-index: 1000;
+		}
+
+		.navbar-brand {
+			display: flex;
+			align-items: center;
+			gap: 12px;
+			transition: all 0.2s ease;
+		}
+		
+		.navbar-brand:hover {
+		    transform: scale(1.02);
+		}
+
+		.nav-link {
+			font-family: var(--font-heading);
+			font-weight: 600;
+			color: var(--agri-text-muted) !important;
+			text-transform: uppercase;
+			font-size: 14px;
+			letter-spacing: 0.5px;
+			padding: 8px 16px !important;
+			border-radius: 8px;
+			transition: all 0.2s ease;
+		}
+
+		.nav-link:hover, .nav-item.active .nav-link {
+			color: var(--agri-primary-dark) !important;
+			background: var(--agri-primary-light);
+		}
+
+		.card-agri {
+			background: white;
+			border-radius: var(--agri-radius);
+			border: 1px solid var(--agri-border);
+			box-shadow: var(--agri-shadow-sm);
+			padding: 32px;
+		}
+		
+		.btn-agri {
+		    font-family: var(--font-heading);
+		    font-weight: 700;
+		    border-radius: 8px;
+		    padding: 10px 24px;
+		    transition: all 0.2s;
+		}
+		
+		.btn-agri-primary {
+		    background: var(--agri-primary);
+		    color: white;
+		    border: none;
+		    box-shadow: 0 4px 6px rgba(16, 185, 129, 0.25);
+		}
+		
+		.btn-agri-primary:hover {
+		    background: var(--agri-primary-dark);
+		    transform: translateY(-2px);
+		    color: white;
+		    box-shadow: 0 6px 12px rgba(16, 185, 129, 0.3);
+		}
+		
+		.form-agri {
+		    border: 1px solid var(--agri-border);
+		    border-radius: 8px;
+		    padding: 12px 16px;
+		    font-size: 15px;
+		    background: white;
+		    transition: all 0.2s;
+		}
+		
+		.form-agri:focus {
+		    border-color: var(--agri-primary);
+		    box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.1);
+		    outline: none;
+		}
+
+		footer {
+			background: white;
+			border-top: 1px solid var(--agri-border);
+			padding: 40px 0;
+			color: var(--agri-text-muted);
+		}
 
 
 	<script type="text/JavaScript" src="{{ url_for('static', filename='scripts/cities.js') }}"></script>
 
 
-	<!-- google fonts -->
-	<link href="//fonts.googleapis.com/css?family=Thasadith:400,400i,700,700i&amp;subset=latin-ext,thai,vietnamese"
-		rel="stylesheet">
-	<!-- //google fonts -->
-
-	<style>
-		:root {
-			--agri-primary: #4CAF50;
-			--agri-primary-light: #e8f5e9;
-			--agri-primary-dark: #2e7d32;
-		}
-		header {
-			background-color: rgba(30, 30, 30, 1);
-			margin-top: 0rem;
-			display: block;
-		}
-	</style>
 </head>
 
 <body>
 
 	<!-- Navigation -->
-	<nav class="navbar navbar-expand-lg navbar-dark static-top" style="background-color: var(--agri-primary) !important;">
+	<nav class="navbar navbar-expand-lg px-3">
 		<div class="container">
-			<a class="navbar-brand" href="{{ url_for('home') }}" style="display: flex; align-items: center; background: white; padding: 5px 15px; border-radius: 8px;">
-				<div style="background: var(--agri-primary-light); padding: 8px; border-radius: 5px; margin-right: 12px; display: flex; align-items: center;">
-					<i class="fa fa-leaf" style="color: var(--agri-primary); font-size: 24px;"></i> 
+			<a class="navbar-brand" href="{{ url_for('home') }}">
+				<div style="background: var(--agri-primary-light); padding: 8px 10px; border-radius: 8px;">
+					<i class="fa-solid fa-seedling" style="color: var(--agri-primary-dark); font-size: 20px;"></i> 
 				</div>
-				<span style="font-size: 20px; font-weight: 700; color: var(--agri-primary-dark); font-family: 'Outfit', sans-serif; letter-spacing: -0.5px;">Plantix AI</span>
+				<span style="font-size: 22px; font-weight: 800; color: var(--agri-text-heading); letter-spacing: -0.5px;">Plantix <span style="color: var(--agri-primary);">AI</span></span>
 			</a>
 			<button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarResponsive"
 				aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
@@ -195,42 +288,40 @@ Smartphone Compatible web template, free webdesigns for Nokia, Samsung, LG, Sony
 
 
 
-	{% block body %} {% endblock %}
+	<main style="min-height: calc(100vh - 200px);">
+		{% block body %} {% endblock %}
+	</main>
 
 	<!-- footer -->
-	<footer class="text-center py-5">
-		<div class="container py-md-3">
-			<!-- logo -->
-			<h2 class="logo2 text-center">
-				<a href="{{ url_for('home') }}">
-					Plantix AI
+	<footer>
+		<div class="container text-center">
+			<div class="mb-4">
+				<a href="{{ url_for('home') }}" style="text-decoration: none; display: inline-flex; align-items: center; gap: 10px;">
+					<i class="fa-solid fa-seedling" style="color: var(--agri-primary); font-size: 24px;"></i>
+					<span style="font-size: 24px; font-weight: 800; color: var(--agri-text-heading); font-family: var(--font-heading); letter-spacing: -0.5px;">Plantix <span style="color: var(--agri-primary);">AI</span></span>
 				</a>
-			</h2>
-			<!-- //logo -->
-			<!-- address -->
-			<div class="contact-left-footer mt-4">
-
-
-
-
-
-				<!-- <a href="community.html">Community</a> -->
-				</p>
 			</div>
-			<div class="w3l-copy text-center">
-				<p class="text-da">An Environmental Intelligence Startup<br> </p>
-			</div>
-			<p class="homelogo">
-			<p>Made with ❤️ by Atharva</p>
-			<p>&copy; Copyright 2021 Atharva Ingle</p>
 			
+			<p class="mb-4 fw-medium text-muted">Advanced Agricultural Intelligence & Environmental Insight</p>
+
+			<div class="d-flex justify-content-center gap-3 mb-4">
+				<div style="width: 40px; height: 40px; border-radius: 50%; background: var(--agri-bg); border: 1px solid var(--agri-border); display: flex; align-items: center; justify-content: center; cursor: pointer;"><i class="fa-brands fa-twitter text-muted"></i></div>
+				<div style="width: 40px; height: 40px; border-radius: 50%; background: var(--agri-bg); border: 1px solid var(--agri-border); display: flex; align-items: center; justify-content: center; cursor: pointer;"><i class="fa-brands fa-linkedin text-muted"></i></div>
+				<div style="width: 40px; height: 40px; border-radius: 50%; background: var(--agri-bg); border: 1px solid var(--agri-border); display: flex; align-items: center; justify-content: center; cursor: pointer;"><i class="fa-brands fa-github text-muted"></i></div>
+			</div>
+			
+			<div class="border-top pt-4 mt-4" style="border-color: var(--agri-border) !important;">
+				<p class="small mb-1">&copy; Copyright {{ now.year ?? '2024' }} Plantix AI Platform.</p>
+				<p class="small text-muted mb-0">Empowering farmers around the world.</p>
+			</div>
 		</div>
 	</footer>
 	<!-- //footer -->
 
-	<!-- move top icon -->
-	<a href="#home" class="move-top text-center"></a>
-	<!-- //move top icon -->
+	<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+	<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
 </body>
 
 </html>

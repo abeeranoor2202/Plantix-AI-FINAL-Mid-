@@ -1,54 +1,65 @@
-{% extends 'layout.html' %} {% block body %}
+{% extends 'layout.html' %}
 
+{% block body %}
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-lg-6">
+      <div class="card-agri p-5 border-0 shadow-sm text-center" style="background: white; border-radius: 16px;">
+        <div class="mb-4">
+          <div
+            style="background: rgba(239, 68, 68, 0.1); width: 64px; height: 64px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px auto; border: 1px solid rgba(239, 68, 68, 0.2);">
+            <i class="fa-solid fa-microscope" style="font-size: 28px; color: #EF4444;"></i>
+          </div>
+          <h2 class="fw-bold mb-2 text-dark" style="font-size: 28px;">Disease Prediction</h2>
+          <p class="text-muted" style="font-size: 16px;">Upload a clear photo of an infected plant leaf to identify the
+            disease and get treatment suggestions.</p>
+        </div>
 
-<style>
-  html body {
-    background-color: rgb(206, 206, 228);
-  }
-</style>
-<br /><br />
-  <h2 style="text-align: center; margin: 0px; color: black">
-    <b>Find out which disease has been caught by your plant</b>
-  </h2>
-  <br />
-  <br>
+        <form class="form-signin" method="post" enctype="multipart/form-data">
+          <div class="upload-area p-5 mb-4 position-relative"
+            style="border: 2px dashed var(--agri-border); border-radius: 12px; transition: all 0.3s ease; cursor: pointer; background: var(--agri-bg);"
+            onclick="document.getElementById('inputfile').click();">
 
-<div style="
-    width: 350px;
-    height: 50rem;
-    margin: 0px auto;
-    color: black;
-    border-radius: 25px;
-    padding: 10px 10px;
-    font-weight: bold;
-  ">
+            <div id="upload-placeholder">
+              <i class="fa-solid fa-cloud-arrow-up mb-3" style="font-size: 48px; color: var(--agri-text-muted);"></i>
+              <h4 class="fw-bold text-dark mb-1" style="font-size: 18px;">Click to Upload Image</h4>
+              <p class="small text-muted mb-0">JPEG, PNG, JPG (max 5MB)</p>
+            </div>
 
-  
+            <img id="output-image" class="rounded d-none w-100"
+              style="max-height: 300px; object-fit: contain; pointer-events: none;" />
 
+            <input type="file" name="file" id="inputfile" onchange="preview_image(event)" style="display: none;"
+              accept="image/*" required>
+          </div>
 
-  <form class="form-signin" method=post enctype=multipart/form-data>
-
-    <h2 class="h4 mb-3 font-weight-normal"><b>Please Upload The Image</b></h2>
-    <input type="file" name="file" class="form-control-file" id="inputfile" onchange="preview_image(event)" style="font-weight: bold;">
-    <br>
-    <br>
-    <img id="output-image" class="rounded mx-auto d-block" />
-    <button class="btn btn-lg btn-primary btn-block" type="submit" style="font-weight: bold;">Predict</button>
-
-
-  </form>
+          <button class="btn-agri w-100 py-3" type="submit"
+            style="font-size: 18px; letter-spacing: 0.5px; background: #EF4444; color: white; border: none; box-shadow: 0 4px 6px rgba(239, 68, 68, 0.25);">
+            <i class="fas fa-stethoscope me-2"></i> Analyze Leaf Image
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
 </div>
 
 <script type="text/javascript">
   function preview_image(event) {
     var reader = new FileReader();
-    reader.onload = function () {
-      var output = document.getElementById('output-image')
-      output.src = reader.result;
+    reader.onload = function (e) {
+      var output = document.getElementById('output-image');
+      var placeholder = document.getElementById('upload-placeholder');
+
+      output.src = e.target.result;
+      output.classList.remove('d-none');
+      placeholder.classList.add('d-none');
+
+      // Adjust border color to show active state
+      output.closest('.upload-area').style.borderColor = '#EF4444';
     }
-    reader.readAsDataURL(event.target.files[0]);
+    if (event.target.files[0]) {
+      reader.readAsDataURL(event.target.files[0]);
+    }
   }
 </script>
-
-</div>
 {% endblock %}

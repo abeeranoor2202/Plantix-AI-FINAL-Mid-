@@ -27,7 +27,7 @@ use Illuminate\Support\Facades\Route;
 // 1. PUBLIC PAGES (no authentication required)
 // ══════════════════════════════════════════════════════════════════════════════
 
-Route::get('/',          fn () => view('customer.index'))->name('home');
+Route::get('/',          [\App\Http\Controllers\Frontend\HomeController::class, 'index'])->name('home');
 Route::get('/about-us',  fn () => view('customer.about-us'))->name('about');
 Route::get('/contact',   fn () => view('customer.contact'))->name('contact');
 
@@ -69,6 +69,8 @@ Route::get('/stores',      [\App\Http\Controllers\Frontend\StoreController::clas
 Route::get('/stores/{id}', [\App\Http\Controllers\Frontend\StoreController::class, 'show'])->name('stores.single');
 
 Route::get('/forum',                  [\App\Http\Controllers\Frontend\ForumController::class, 'index'])->name('forum');
+// Literal route MUST be registered before the {slug} wildcard to avoid being swallowed by it
+Route::get('/forum/new-thread',       [\App\Http\Controllers\Frontend\ForumController::class, 'create'])->middleware(['customer', 'verified'])->name('forum.new');
 Route::get('/forum/{slug}',           [\App\Http\Controllers\Frontend\ForumController::class, 'show'])->name('forum.thread');
 Route::redirect('/blog',              '/forum')->name('blog');
 
@@ -88,7 +90,6 @@ Route::middleware(['customer', 'verified'])->group(function () {
 
     // ── Forum (write operations) ──────────────────────────────────────────────
     // Rate limits: thread creation (5/min), replies (10/min), flags (3/min)
-    Route::get('/forum/new-thread',              [\App\Http\Controllers\Frontend\ForumController::class, 'create'])->name('forum.new');
     Route::post('/forum',                        [\App\Http\Controllers\Frontend\ForumController::class, 'store'])->name('forum.store')
         ->middleware('throttle:5,1');
     Route::post('/forum/{thread}/reply',         [\App\Http\Controllers\Frontend\ForumController::class, 'reply'])->name('forum.reply')

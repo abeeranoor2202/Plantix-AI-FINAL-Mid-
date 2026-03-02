@@ -79,4 +79,38 @@ class VendorReturnController extends Controller
 
         return back()->with('success', 'Note added. Admin will review the return request.');
     }
+
+    /**
+     * Vendor approves a pending return request.
+     * Route: POST /vendor/returns/{id}/approve
+     */
+    public function approve(Request $request, int $id): RedirectResponse
+    {
+        $request->validate(['admin_notes' => 'nullable|string|max:1000']);
+
+        $return = ReturnRequest::whereHas('order', fn ($q) => $q->where('vendor_id', $this->vendorId()))
+                               ->where('status', 'pending')
+                               ->findOrFail($id);
+
+        $this->service->approve($return, $request->admin_notes);
+
+        return back()->with('success', 'Return request approved. Stock has been restored.');
+    }
+
+    /**
+     * Vendor rejects a pending return request.
+     * Route: POST /vendor/returns/{id}/reject
+     */
+    public function reject(Request $request, int $id): RedirectResponse
+    {
+        $request->validate(['admin_notes' => 'required|string|max:1000']);
+
+        $return = ReturnRequest::whereHas('order', fn ($q) => $q->where('vendor_id', $this->vendorId()))
+                               ->where('status', 'pending')
+                               ->findOrFail($id);
+
+        $this->service->reject($return, $request->admin_notes);
+
+        return back()->with('success', 'Return request has been rejected.');
+    }
 }

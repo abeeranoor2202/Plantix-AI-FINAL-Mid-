@@ -47,7 +47,7 @@ class StoreController extends Controller
 
         // Fetch their associated active/in-stock products
         $products = $store->products()
-                          ->with(['category', 'primaryImage', 'brand'])
+                          ->with(['category', 'primaryImage'])
                           ->active()
                           ->inStock()
                           ->paginate(12);

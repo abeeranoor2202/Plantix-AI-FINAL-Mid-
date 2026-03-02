@@ -110,6 +110,49 @@
                 </form>
             </div>
         </div>
+
+        {{-- Approve / Reject Actions --}}
+        <div class="card border-0 shadow-sm mt-4" style="border-radius:16px;">
+            <div class="card-header bg-white border-bottom py-3">
+                <h6 class="mb-0 fw-bold text-dark"><i class="bi bi-shield-check me-2 text-primary fs-5"></i>Take Action</h6>
+            </div>
+            <div class="card-body p-4">
+                <p class="text-muted small mb-4">Approve to accept the return and restore stock, or reject with a reason for the customer.</p>
+                <div class="row g-3">
+                    {{-- Approve --}}
+                    <div class="col-md-6">
+                        <form method="POST" action="{{ route('vendor.returns.approve', $return->id) }}">
+                            @csrf
+                            <div class="mb-3">
+                                <label class="form-label fw-bold small text-muted text-uppercase mb-2">Approval Note (optional)</label>
+                                <textarea name="admin_notes" rows="3" class="form-control bg-light border-0 rounded-3 fs-6"
+                                          placeholder="e.g. Return approved, please ship back the item..."></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-success rounded-pill fw-bold px-4 py-2 w-100 shadow-sm"
+                                    onclick="return confirm('Approve this return request? Stock will be restored.')">
+                                <i class="bi bi-check-circle-fill me-2"></i>Approve Return
+                            </button>
+                        </form>
+                    </div>
+                    {{-- Reject --}}
+                    <div class="col-md-6">
+                        <form method="POST" action="{{ route('vendor.returns.reject', $return->id) }}">
+                            @csrf
+                            <div class="mb-3">
+                                <label class="form-label fw-bold small text-muted text-uppercase mb-2">Rejection Reason <span class="text-danger">*</span></label>
+                                <textarea name="admin_notes" rows="3" required class="form-control bg-light border-0 rounded-3 fs-6 @error('admin_notes') is-invalid @enderror"
+                                          placeholder="e.g. Return window expired, item shows signs of use..."></textarea>
+                                @error('admin_notes')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+                            </div>
+                            <button type="submit" class="btn btn-danger rounded-pill fw-bold px-4 py-2 w-100 shadow-sm"
+                                    onclick="return confirm('Reject this return request?')">
+                                <i class="bi bi-x-circle-fill me-2"></i>Reject Return
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
         @endif
     </div>
 

@@ -22,7 +22,7 @@ class VendorCategoryController extends Controller
      */
     public function index(): View
     {
-        $categories = Category::orderBy('name')->paginate(30);
+        $categories = Category::withCount('products')->orderBy('name')->paginate(30);
         return view('vendor.categories.index', compact('categories'));
     }
 
@@ -32,7 +32,7 @@ class VendorCategoryController extends Controller
      */
     public function attributes(): View
     {
-        $attributes = Attribute::orderBy('name')->paginate(30);
+        $attributes = Attribute::orderBy('title')->paginate(30);
         return view('vendor.attributes.index', compact('attributes'));
     }
 }

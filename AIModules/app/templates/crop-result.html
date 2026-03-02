@@ -1,19 +1,36 @@
-{% extends 'layout.html' %} {% block body %}
+{% extends 'layout.html' %}
 
-<style>
-  .mt-0 {
-  margin-top: 50 !important;
-}
-</style>
+{% block body %}
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-lg-6">
+      <div class="card-agri p-5 border-0 shadow-sm text-center" style="background: white; border-radius: 16px;">
+        <div
+          style="background: var(--agri-primary-light); width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 24px auto;">
+          <i class="fa-solid fa-check" style="font-size: 32px; color: var(--agri-primary-dark);"></i>
+        </div>
 
+        <h2 class="fw-bold text-dark mb-4" style="font-size: 24px;">Recommended Crop</h2>
 
-<div class="container py-2 mx-auto my-50 h-10 " style="margin: 12rem;">
-  <div class="row">
-      <div class="col-sm py-2 py-md-3">
-          <div class="card card-body" style="justify-content: center;">
-               <h1 class="text-center"><b>You should grow <i>{{ prediction }} </i>in your farm</b></h1>
-          </div>
+        <div class="p-4 mb-4"
+          style="background: var(--agri-bg); border-radius: 12px; border: 1px solid var(--agri-border);">
+          <p class="text-muted mb-2 small text-uppercase fw-bold letter-spacing-1">Optimal Cultivation Choice</p>
+          <h1 class="fw-bold mb-0" style="color: var(--agri-primary); font-size: 36px; text-transform: capitalize;">{{
+            prediction }}</h1>
+        </div>
+
+        <p class="text-muted mb-5" style="font-size: 15px; line-height: 1.6;">
+          Based on your soil's nutritional levels (N, P, K), pH, rainfall, and location, this crop has the highest
+          potential yield in your specific environment.
+        </p>
+
+        <div class="d-flex justify-content-center gap-3">
+          <a href="{{ url_for('crop_recommend') }}" class="btn-agri btn-agri-primary px-4 py-2">
+            <i class="fas fa-redo me-2"></i> Try Another Prediction
+          </a>
+        </div>
       </div>
+    </div>
   </div>
 </div>
 {% endblock %}

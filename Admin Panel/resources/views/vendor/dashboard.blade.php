@@ -104,9 +104,9 @@
                                 <a href="{{ route('vendor.orders.show', $order->id) }}" class="fw-bold text-decoration-none" style="color: var(--agri-primary);">#{{ $order->id }}</a>
                             </td>
                             <td class="border-bottom-0 py-3 text-dark fw-medium">{{ $order->user->name ?? 'N/A' }}</td>
-                            <td class="border-bottom-0 py-3 fw-bold">{{ config('plantix.currency_symbol') }}{{ number_format($order->grand_total, 2) }}</td>
+                            <td class="border-bottom-0 py-3 fw-bold">{{ config('plantix.currency_symbol') }}{{ number_format($order->total, 2) }}</td>
                             <td class="border-bottom-0 py-3">
-                                <span class="badge-agri badge-{{ match($order->order_status) {
+                                <span class="badge-agri badge-{{ match($order->status) {
                                     'pending'   => 'warning',
                                     'accepted'  => 'info',
                                     'preparing' => 'primary',
@@ -115,7 +115,7 @@
                                     'cancelled' => 'danger',
                                     default     => 'secondary'
                                 } }}-agri">
-                                    {{ ucfirst($order->order_status) }}
+                                    {{ ucfirst($order->status) }}
                                 </span>
                             </td>
                             <td class="border-bottom-0 py-3 text-muted small">{{ $order->created_at->format('d M Y') }}</td>

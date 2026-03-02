@@ -137,9 +137,10 @@ class StripePaymentController extends Controller
         $request->validate([
             'card_name'   => 'required|string|max:100',
             'card_number' => ['required', 'string', 'regex:/^\d{4} \d{4} \d{4} \d{4}$/'],
-            'card_exp'    => ['required', 'string', 'regex:/^\d{2} \/ \d{2}$/',
+            'card_exp'    => ['bail', 'required', 'string', 'regex:/^\d{2} ?\/ ?\d{2}$/',
                 function ($attr, $value, $fail) {
-                    [$m, $y] = explode(' / ', $value);
+                    $normalised = preg_replace('/\s*\/\s*/', ' / ', $value);
+                    [$m, $y] = explode(' / ', $normalised);
                     $expires = \Carbon\Carbon::createFromDate('20' . $y, (int) $m, 1)->endOfMonth();
                     if ($expires->isPast()) {
                         $fail('The expiry date has passed.');
@@ -149,7 +150,7 @@ class StripePaymentController extends Controller
             'card_cvc'    => ['required', 'string', 'regex:/^\d{3,4}$/'],
         ], [
             'card_number.regex' => 'Card number must be 16 digits (e.g. 4242 4242 4242 4242).',
-            'card_exp.regex'    => 'Expiry must be in MM / YY format.',
+            'card_exp.regex'    => 'Expiry must be in MM/YY format (e.g. 12/29).',
             'card_cvc.regex'    => 'CVC must be 3 or 4 digits.',
         ]);
 

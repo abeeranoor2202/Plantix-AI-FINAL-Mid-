@@ -36,7 +36,7 @@
                         
                         <div class="mb-3">
                             <label class="form-label fw-bold text-dark" style="font-size: 14px;">Email</label>
-                            <input type="email" name="email" class="form-agri @error('email') is-invalid @enderror" placeholder="Enter your email" value="{{ old('email', request('email')) }}" required>
+                            <input type="email" name="email" class="form-agri @error('email') is-invalid @enderror" placeholder="Enter your email" value="{{ old('email', request('email')) }}" readonly style="background-color: #f3f4f6; cursor: not-allowed;">
                             @error('email')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         </div>
                         

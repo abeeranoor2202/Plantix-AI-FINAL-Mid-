@@ -302,8 +302,37 @@
             </a>
         </div>
         <div class="nav-item-agri">
+            <a class="nav-link-agri {{ request()->routeIs('vendor.returns.*') ? 'active' : '' }}" href="{{ route('vendor.returns.index') }}">
+                <i class="fas fa-undo-alt"></i> Returns
+                @php $pendingReturns = \App\Models\ReturnRequest::whereHas('order', fn($q) => $q->where('vendor_id', optional(auth('vendor')->user()->vendor)->id ?? 0))->where('status','pending')->count(); @endphp
+                @if($pendingReturns > 0)
+                    <span class="badge bg-danger rounded-pill ms-auto" style="font-size:10px;">{{ $pendingReturns }}</span>
+                @endif
+            </a>
+        </div>
+        <div class="nav-item-agri">
+            <a class="nav-link-agri {{ request()->routeIs('vendor.return-reasons.*') ? 'active' : '' }}" href="{{ route('vendor.return-reasons.index') }}" style="padding-left: 2.5rem; font-size: 0.85rem;">
+                <i class="fas fa-tags"></i> Return Reasons
+            </a>
+        </div>
+        <div class="nav-item-agri">
             <a class="nav-link-agri {{ request()->routeIs('vendor.coupons.*') ? 'active' : '' }}" href="{{ route('vendor.coupons.index') }}">
                 <i class="fas fa-ticket-alt"></i> Coupons
+            </a>
+        </div>
+
+        <div class="px-4 py-2 mt-2 mb-1">
+            <span class="text-uppercase text-muted" style="font-size: 0.7rem; font-weight: 700; letter-spacing: 0.5px;">Catalog</span>
+        </div>
+
+        <div class="nav-item-agri">
+            <a class="nav-link-agri {{ request()->routeIs('vendor.categories.*') ? 'active' : '' }}" href="{{ route('vendor.categories.index') }}">
+                <i class="fas fa-tags"></i> Categories
+            </a>
+        </div>
+        <div class="nav-item-agri">
+            <a class="nav-link-agri {{ request()->routeIs('vendor.attributes.*') ? 'active' : '' }}" href="{{ route('vendor.attributes.index') }}">
+                <i class="fas fa-sliders-h"></i> Attributes
             </a>
         </div>
 

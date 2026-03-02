@@ -38,14 +38,7 @@ class CustomerCartApiController extends Controller
 
         $user    = $request->user();
         $product = Product::active()->inStock()->findOrFail($request->product_id);
-        $cart    = $this->getOrCreateCart($user, $product->vendor_id);
-
-        if ($cart->vendor_id && $cart->vendor_id !== $product->vendor_id) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Your cart contains items from a different store. Clear it first.',
-            ], 409);
-        }
+        $cart    = $this->getOrCreateCart($user);
 
         $existing = CartItem::where('cart_id', $cart->id)
                             ->where('product_id', $product->id)
@@ -160,18 +153,9 @@ class CustomerCartApiController extends Controller
 
     // ── Helpers ───────────────────────────────────────────────────────────────
 
-    private function getOrCreateCart($user, ?int $vendorId = null): Cart
+    private function getOrCreateCart($user): Cart
     {
-        $cart = Cart::firstOrCreate(
-            ['user_id' => $user->id],
-            ['vendor_id' => $vendorId]
-        );
-
-        if ($vendorId && ! $cart->vendor_id) {
-            $cart->update(['vendor_id' => $vendorId]);
-        }
-
-        return $cart;
+        return Cart::firstOrCreate(['user_id' => $user->id]);
     }
 
     private function cartPayload(Cart $cart): array

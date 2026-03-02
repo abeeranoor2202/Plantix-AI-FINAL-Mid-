@@ -62,13 +62,13 @@
                         </div>
                         <div class="info">
                             <div class="top">
-                                <h4><a href="{{ route('crop-recommendation') }}">Crop <span>Recommendation</span></a></h4>
+                                <h4><a href="{{ route('crop.recommendation') }}">Crop <span>Recommendation</span></a></h4>
                             </div>
                             <p>
                                 Get the best crop suggestions for your field based on soil, weather, and region data.
                             </p>
                         </div>
-                        <a href="{{ route('crop-recommendation') }}" class="btn-angle"><i class="fas fa-arrow-right"></i></a>
+                        <a href="{{ route('crop.recommendation') }}" class="btn-angle"><i class="fas fa-arrow-right"></i></a>
                     </div>
                 </div>
                 <!-- End Single Item -->
@@ -80,13 +80,13 @@
                         </div>
                         <div class="info">
                             <div class="top">
-                                <h4><a href="{{ route('crop-planning') }}">Crop <span>Planning</span></a></h4>
+                                <h4><a href="{{ route('crop.planning') }}">Crop <span>Planning</span></a></h4>
                             </div>
                             <p>
                                 Plan your crop cycles for maximum yield and profitability with expert guidance.
                             </p>
                         </div>
-                        <a href="{{ route('crop-planning') }}" class="btn-angle"><i class="fas fa-arrow-right"></i></a>
+                        <a href="{{ route('crop.planning') }}" class="btn-angle"><i class="fas fa-arrow-right"></i></a>
                     </div>
                 </div>
                 <!-- End Single Item -->
@@ -98,14 +98,14 @@
                         </div>
                         <div class="info">
                             <div class="top">
-                                <h4><a href="{{ route('disease-identification') }}">Plant Disease <span>Identification</span></a>
+                                <h4><a href="{{ route('disease.identification') }}">Plant Disease <span>Identification</span></a>
                                 </h4>
                             </div>
                             <p>
                                 Instantly identify plant diseases from photos and get actionable treatment advice.
                             </p>
                         </div>
-                        <a href="{{ route('disease-identification') }}" class="btn-angle"><i class="fas fa-arrow-right"></i></a>
+                        <a href="{{ route('disease.identification') }}" class="btn-angle"><i class="fas fa-arrow-right"></i></a>
                     </div>
                 </div>
                 <!-- End Single Item -->
@@ -117,14 +117,14 @@
                         </div>
                         <div class="info">
                             <div class="top">
-                                <h4><a href="{{ route('fertilizer-recommendation') }}">Fertilizer <span>Recommendation</span></a>
+                                <h4><a href="{{ route('fertilizer.recommendation') }}">Fertilizer <span>Recommendation</span></a>
                                 </h4>
                             </div>
                             <p>
                                 Receive precise fertilizer suggestions tailored to your crop and soil needs.
                             </p>
                         </div>
-                        <a href="{{ route('fertilizer-recommendation') }}" class="btn-angle"><i
+                        <a href="{{ route('fertilizer.recommendation') }}" class="btn-angle"><i
                                 class="fas fa-arrow-right"></i></a>
                     </div>
                 </div>
@@ -154,7 +154,7 @@
                             <div class="product-list-box">
                                 <!-- Single Item -->
                                 <div class="product-list-item">
-                                    <a href="{{ route('crop-recommendation') }}">
+                                    <a href="{{ route('crop.recommendation') }}">
                                         <img src="{{ asset('assets/img/icon/9.png') }}" alt="Crop Recommendation">
                                         <h5>Crop Recommendation</h5>
                                     </a>
@@ -162,7 +162,7 @@
                                 <!-- End Single Item -->
                                 <!-- Single Item -->
                                 <div class="product-list-item">
-                                    <a href="{{ route('crop-planning') }}">
+                                    <a href="{{ route('crop.planning') }}">
                                         <img src="{{ asset('assets/img/icon/10.png') }}" alt="Crop Planning">
                                         <h5>Crop Planning</h5>
                                     </a>
@@ -170,7 +170,7 @@
                                 <!-- End Single Item -->
                                 <!-- Single Item -->
                                 <div class="product-list-item">
-                                    <a href="{{ route('disease-identification') }}">
+                                    <a href="{{ route('disease.identification') }}">
                                         <img src="{{ asset('assets/img/icon/11.png') }}" alt="Disease Identification">
                                         <h5>Disease Identification</h5>
                                     </a>
@@ -178,7 +178,7 @@
                                 <!-- End Single Item -->
                                 <!-- Single Item -->
                                 <div class="product-list-item">
-                                    <a href="{{ route('fertilizer-recommendation') }}">
+                                    <a href="{{ route('fertilizer.recommendation') }}">
                                         <img src="{{ asset('assets/img/icon/12.png') }}" alt="Fertilizer Recommendation">
                                         <h5>Fertilizer Recommendation</h5>
                                     </a>
@@ -186,7 +186,7 @@
                                 <!-- End Single Item -->
                                 <!-- Single Item -->
                                 <div class="product-list-item">
-                                    <a href="{{ route('crop-recommendation') }}">
+                                    <a href="{{ route('crop.recommendation') }}">
                                         <img src="{{ asset('assets/img/icon/13.png') }}" alt="Crop Recommendation">
                                         <h5>Crop Recommendation</h5>
                                     </a>
@@ -194,7 +194,7 @@
                                 <!-- End Single Item -->
                                 <!-- Single Item -->
                                 <div class="product-list-item">
-                                    <a href="{{ route('crop-planning') }}">
+                                    <a href="{{ route('crop.planning') }}">
                                         <img src="{{ asset('assets/img/icon/14.png') }}" alt="Crop Planning">
                                         <h5>Crop Planning</h5>
                                     </a>

@@ -30,7 +30,7 @@ class AiChatSession extends Model
     }
 
     // ── Helpers ────────────────────────────────────────────────────────────
-    public function touch(): bool
+    public function touch($attribute = null): bool
     {
         $this->update([
             'last_active_at' => now(),

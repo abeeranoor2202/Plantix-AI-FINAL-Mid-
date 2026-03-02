@@ -6,7 +6,7 @@
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
         <h4 class="mb-0 fw-bold text-dark"><i class="bi bi-sliders me-2 text-primary"></i>Product Attributes</h4>
-        <span class="text-muted small fw-medium mt-1 d-block">Manage product variations like Weight, Size, and Color used across the store</span>
+        <span class="text-muted small fw-medium mt-1 d-block">View available attributes (e.g. Weight, Quantity) defined by administrators for product listings</span>
     </div>
 </div>
 
@@ -29,10 +29,9 @@
                 <table class="table table-hover align-middle mb-0">
                     <thead class="table-light">
                         <tr>
-                            <th class="ps-4 fw-semibold text-muted text-uppercase small" style="width: 80px;">ID</th>
+                            <th class="ps-4 fw-semibold text-muted text-uppercase small" style="width: 80px;">#</th>
                             <th class="fw-semibold text-muted text-uppercase small">Attribute Name</th>
-                            <th class="fw-semibold text-muted text-uppercase small">Type</th>
-                            <th class="pe-4 fw-semibold text-muted text-uppercase small">Values</th>
+                            <th class="pe-4 fw-semibold text-muted text-uppercase small">Used on Your Products</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -42,23 +41,24 @@
                                 <span class="font-monospace text-muted small">#{{ $attr->id }}</span>
                             </td>
                             <td>
-                                <span class="fw-bold text-dark">{{ $attr->name }}</span>
-                            </td>
-                            <td>
-                                <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 rounded-pill px-3 py-1 shadow-sm text-uppercase" style="font-size: 0.70rem;">
-                                    {{ $attr->type ?? 'text' }}
-                                </span>
+                                <div class="d-flex align-items-center gap-2">
+                                    <div class="bg-primary bg-opacity-10 rounded d-flex align-items-center justify-content-center flex-shrink-0" style="width:34px;height:34px;">
+                                        <i class="bi bi-tag text-primary"></i>
+                                    </div>
+                                    <span class="fw-bold text-dark">{{ $attr->title }}</span>
+                                </div>
                             </td>
                             <td class="pe-4">
-                                <div class="d-flex flex-wrap gap-1">
-                                    @if($attr->values)
-                                        @foreach(explode(',', $attr->values) as $val)
-                                            <span class="badge bg-light text-dark border px-2 py-1 fw-medium shadow-sm">{{ trim($val) }}</span>
-                                        @endforeach
-                                    @else
-                                        <span class="text-muted small fst-italic">No predefined values</span>
-                                    @endif
-                                </div>
+                                @php
+                                    $vendorId = optional(auth('vendor')->user()->vendor)->id ?? 0;
+                                    $usageCount = \App\Models\ProductAttribute::whereHas('product', fn($q) => $q->where('vendor_id', $vendorId))
+                                        ->where('name', $attr->title)->count();
+                                @endphp
+                                @if($usageCount > 0)
+                                    <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 rounded-pill px-3 py-1">{{ $usageCount }} product(s)</span>
+                                @else
+                                    <span class="text-muted small fst-italic">Not yet used</span>
+                                @endif
                             </td>
                         </tr>
                         @endforeach

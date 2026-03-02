@@ -66,9 +66,18 @@ Route::prefix('vendor')->name('vendor.')->group(function () {
         Route::get('/attributes',  [\App\Http\Controllers\Vendor\VendorCategoryController::class, 'attributes'])->name('attributes.index');
 
         // ── Returns & Refunds (vendor view) ─────────────────────────────────────
-        Route::get('/returns',              [\App\Http\Controllers\Vendor\VendorReturnController::class, 'index'])->name('returns.index');
-        Route::get('/returns/{id}',         [\App\Http\Controllers\Vendor\VendorReturnController::class, 'show'])->name('returns.show');
-        Route::post('/returns/{id}/note',   [\App\Http\Controllers\Vendor\VendorReturnController::class, 'addNote'])->name('returns.note');
+        Route::get('/returns',                  [\App\Http\Controllers\Vendor\VendorReturnController::class, 'index'])->name('returns.index');
+        Route::get('/returns/{id}',             [\App\Http\Controllers\Vendor\VendorReturnController::class, 'show'])->name('returns.show');
+        Route::post('/returns/{id}/note',       [\App\Http\Controllers\Vendor\VendorReturnController::class, 'addNote'])->name('returns.note');
+        Route::post('/returns/{id}/approve',    [\App\Http\Controllers\Vendor\VendorReturnController::class, 'approve'])->name('returns.approve');
+        Route::post('/returns/{id}/reject',     [\App\Http\Controllers\Vendor\VendorReturnController::class, 'reject'])->name('returns.reject');
+
+        // ── Return Reasons (configurable) ────────────────────────────────────────
+        Route::get('/return-reasons',                    [\App\Http\Controllers\Vendor\VendorReturnReasonController::class, 'index'])->name('return-reasons.index');
+        Route::post('/return-reasons',                   [\App\Http\Controllers\Vendor\VendorReturnReasonController::class, 'store'])->name('return-reasons.store');
+        Route::patch('/return-reasons/{id}',             [\App\Http\Controllers\Vendor\VendorReturnReasonController::class, 'update'])->name('return-reasons.update');
+        Route::patch('/return-reasons/{id}/toggle',      [\App\Http\Controllers\Vendor\VendorReturnReasonController::class, 'toggle'])->name('return-reasons.toggle');
+        Route::delete('/return-reasons/{id}',            [\App\Http\Controllers\Vendor\VendorReturnReasonController::class, 'destroy'])->name('return-reasons.destroy');
 
         // ── Product Reviews (vendor view) ─────────────────────────────────────
         Route::get('/reviews',       [\App\Http\Controllers\Vendor\VendorReviewController::class, 'index'])->name('reviews.index');

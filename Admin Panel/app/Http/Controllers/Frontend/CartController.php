@@ -81,15 +81,7 @@ class CartController extends Controller
         ]);
 
         $product = Product::active()->inStock()->findOrFail($request->product_id);
-        $cart    = $this->getOrCreateCart($product->vendor_id);
-
-        // Enforce single-vendor cart
-        if ($cart->vendor_id !== $product->vendor_id) {
-            $message = 'Your cart contains items from another store. Clear it first.';
-            return $request->expectsJson()
-                ? response()->json(['error' => $message], 409)
-                : back()->withErrors(['cart' => $message]);
-        }
+        $cart    = $this->getOrCreateCart();
 
         $existing = CartItem::where('cart_id', $cart->id)
                             ->where('product_id', $product->id)
@@ -280,20 +272,11 @@ class CartController extends Controller
 
     // ── Helper ────────────────────────────────────────────────────────────────
 
-    private function getOrCreateCart(?int $vendorId = null): Cart
+    private function getOrCreateCart(): Cart
     {
         $user = auth('web')->user();
 
-        $cart = Cart::where('user_id', $user->id)->first();
-
-        if (! $cart && $vendorId) {
-            $cart = Cart::create([
-                'user_id'   => $user->id,
-                'vendor_id' => $vendorId,
-            ]);
-        }
-
-        return $cart ?? new Cart();
+        return Cart::firstOrCreate(['user_id' => $user->id]);
     }
 }
 

@@ -66,7 +66,7 @@
                         <span class="badge-agri bg-light text-dark border">{{ $order->order_items_count ?? $order->orderItems->count() }}</span>
                     </td>
                     <td class="py-3">
-                        <div class="fw-bold text-success fs-6">{{ config('plantix.currency_symbol') }}{{ number_format($order->grand_total, 2) }}</div>
+                        <div class="fw-bold text-success fs-6">{{ config('plantix.currency_symbol') }}{{ number_format($order->total, 2) }}</div>
                     </td>
                     <td class="py-3">
                         <span class="badge-agri border {{ $order->payment_status === 'paid' ? 'badge-success-agri border-success border-opacity-25' : 'badge-warning-agri border-warning border-opacity-25' }}">
@@ -75,7 +75,7 @@
                         </span>
                     </td>
                     <td class="py-3">
-                        <span class="badge-agri border badge-{{ match($order->order_status) {
+                        <span class="badge-agri border badge-{{ match($order->status) {
                                 'pending'=>'warning',
                                 'accepted'=>'info',
                                 'preparing'=>'primary',
@@ -83,7 +83,7 @@
                                 'delivered'=>'success',
                                 'cancelled'=>'danger',
                                 default=>'secondary'
-                            } }}-agri border-{{ match($order->order_status) {
+                            } }}-agri border-{{ match($order->status) {
                                 'pending'=>'warning',
                                 'accepted'=>'info',
                                 'preparing'=>'primary',
@@ -92,7 +92,7 @@
                                 'cancelled'=>'danger',
                                 default=>'secondary'
                             } }} border-opacity-25">
-                            {{ ucfirst($order->order_status) }}
+                            {{ ucfirst($order->status) }}
                         </span>
                     </td>
                     <td class="py-3">

@@ -213,6 +213,11 @@ document.getElementById('cardExp')?.addEventListener('input', function () {
     if (v.length >= 3) v = v.substring(0,2) + ' / ' + v.substring(2);
     this.value = v;
 });
+document.getElementById('cardExp')?.addEventListener('blur', function () {
+    let v = this.value.replace(/\D/g, '').substring(0, 4);
+    if (v.length >= 2) v = v.substring(0,2) + ' / ' + v.substring(2);
+    this.value = v;
+});
 document.getElementById('cardCvc')?.addEventListener('input', function () {
     this.value = this.value.replace(/\D/g, '').substring(0, 4);
 });
@@ -242,10 +247,10 @@ document.querySelector('form')?.addEventListener('submit', function (e) {
         err('cardNumber', 'Enter a valid 16-digit card number.');
 
     const exp = document.getElementById('cardExp').value;
-    if (!/^\d{2} \/ \d{2}$/.test(exp)) {
-        err('cardExp', 'Use MM / YY format.');
+    if (!/^\d{2} ?\/ ?\d{2}$/.test(exp)) {
+        err('cardExp', 'Use MM/YY format (e.g. 12/29).');
     } else {
-        const [m, y] = exp.split(' / ').map(Number);
+        const [m, y] = exp.split(/\s*\/\s*/).map(Number);
         const now = new Date();
         const expDate = new Date(2000 + y, m, 0);
         if (m < 1 || m > 12) err('cardExp', 'Invalid month.');

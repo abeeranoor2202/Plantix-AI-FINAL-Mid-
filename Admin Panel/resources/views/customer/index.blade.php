@@ -10,6 +10,86 @@
         </div>
     </div>
 
+    <!-- ── Weather Marquee Bar ─────────────────────────────────────────── -->
+    <div id="weather-topbar" style="background: linear-gradient(90deg, #1a3c1a 0%, #2d6a2d 100%); color: #fff; font-size: 13px; padding: 7px 0; overflow: hidden; position: relative; z-index: 1100;">
+        <div class="d-flex align-items-center" style="width: 100%; overflow: hidden;">
+
+            {{-- Left-pinned label --}}
+            <div class="d-none d-md-flex align-items-center gap-2 flex-shrink-0"
+                 style="padding: 0 16px; border-right: 1px solid rgba(255,255,255,0.25); margin-right: 16px; white-space: nowrap;">
+                <i class="fas fa-cloud-sun" style="font-size: 16px; color: #90EE90;"></i>
+                <span style="font-weight: 700; font-size: 13px; letter-spacing: 0.5px;">LIVE WEATHER</span>
+            </div>
+
+            {{-- Scrolling marquee --}}
+            <div style="overflow: hidden; flex: 1; min-width: 0;">
+                <div class="weather-marquee-inner" style="display: inline-flex; gap: 0; animation: weatherScroll {{ count($weatherList) > 0 ? max(40, count($weatherList) * 8) : 30 }}s linear infinite; white-space: nowrap;">
+
+                    @php
+                        // Helper: pick farming tip based on conditions
+                        function weatherTip(array $w): string {
+                            if ($w['humidity'] > 75) return '⚠ High humidity — watch for fungal disease';
+                            if ($w['temp'] > 38)     return '☀ Extreme heat — irrigate early/evening';
+                            if ($w['temp'] < 8)      return '❄ Frost risk — protect sensitive crops';
+                            return '✓ Good growing conditions';
+                        }
+                    @endphp
+
+                    @forelse($weatherList as $w)
+                    <span style="display: inline-flex; align-items: center; gap: 6px; padding: 0 28px; border-right: 1px solid rgba(255,255,255,0.15);">
+                        <img src="{{ $w['icon_url'] }}" alt="{{ $w['condition'] }}"
+                             style="width: 22px; height: 22px; filter: brightness(1.2); vertical-align: middle;">
+                        <strong style="font-size: 14px;">{{ $w['city'] }}</strong>
+                        <span style="color: #FFD54F; font-weight: 700;">{{ $w['temp'] }}°C</span>
+                        <span style="color: rgba(255,255,255,0.7);">{{ ucfirst($w['condition']) }}</span>
+                        <span style="color: #7EC8E3;"><i class="fas fa-tint" style="font-size: 11px;"></i> {{ $w['humidity'] }}%</span>
+                        <span style="color: #C8E6C9;"><i class="fas fa-wind" style="font-size: 11px;"></i> {{ $w['wind_speed'] }} km/h</span>
+                    </span>
+                    @empty
+                    <span style="padding: 0 28px;"><i class="fas fa-seedling me-2" style="color: #A5D6A7;"></i>Welcome to Plantix AI — Smart Farming Solutions</span>
+                    <span style="padding: 0 28px;"><i class="fas fa-robot me-2"></i>AI-powered crop disease detection &amp; expert consultations</span>
+                    <span style="padding: 0 28px;"><i class="fas fa-store me-2"></i>Shop quality agricultural inputs from verified vendors</span>
+                    @endforelse
+
+                    {{-- Duplicate set for seamless infinite loop --}}
+                    @forelse($weatherList as $w)
+                    <span style="display: inline-flex; align-items: center; gap: 6px; padding: 0 28px; border-right: 1px solid rgba(255,255,255,0.15);">
+                        <img src="{{ $w['icon_url'] }}" alt="{{ $w['condition'] }}"
+                             style="width: 22px; height: 22px; filter: brightness(1.2); vertical-align: middle;">
+                        <strong style="font-size: 14px;">{{ $w['city'] }}</strong>
+                        <span style="color: #FFD54F; font-weight: 700;">{{ $w['temp'] }}°C</span>
+                        <span style="color: rgba(255,255,255,0.7);">{{ ucfirst($w['condition']) }}</span>
+                        <span style="color: #7EC8E3;"><i class="fas fa-tint" style="font-size: 11px;"></i> {{ $w['humidity'] }}%</span>
+                        <span style="color: #C8E6C9;"><i class="fas fa-wind" style="font-size: 11px;"></i> {{ $w['wind_speed'] }} km/h</span>
+                    </span>
+                    @empty
+                    <span style="padding: 0 28px;"><i class="fas fa-seedling me-2" style="color: #A5D6A7;"></i>Welcome to Plantix AI — Smart Farming Solutions</span>
+                    <span style="padding: 0 28px;"><i class="fas fa-robot me-2"></i>AI-powered crop disease detection &amp; expert consultations</span>
+                    <span style="padding: 0 28px;"><i class="fas fa-store me-2"></i>Shop quality agricultural inputs from verified vendors</span>
+                    @endforelse
+
+                </div>
+            </div>
+
+            {{-- Right: updated time --}}
+            @if(count($weatherList) > 0)
+            <div class="d-none d-lg-block flex-shrink-0"
+                 style="padding: 0 16px; border-left: 1px solid rgba(255,255,255,0.2); font-size: 11px; color: rgba(255,255,255,0.55); white-space: nowrap;">
+                <i class="fas fa-sync-alt me-1"></i>{{ now()->format('H:i') }}
+            </div>
+            @endif
+
+        </div>
+    </div>
+    <style>
+    @keyframes weatherScroll {
+        0%   { transform: translateX(0); }
+        100% { transform: translateX(-50%); }
+    }
+    .weather-marquee-inner:hover { animation-play-state: paused; }
+    </style>
+    <!-- ── End Weather Marquee ─────────────────────────────────────────── -->
+
     <!-- Header Navigation -->
     <header class="agri-header bg-white" style="box-shadow: var(--agri-shadow-sm); position: sticky; top: 0; z-index: 1000;">
         <nav class="navbar navbar-expand-lg py-3">

@@ -11,14 +11,14 @@
         <div>
             <h4 class="mb-0 fw-bold text-dark d-flex align-items-center gap-2">
                 Order #{{ $order->id }}
-                <span class="badge-agri border badge-{{ match($order->order_status) {
+                <span class="badge-agri border badge-{{ match($order->status) {
                     'pending'=>'warning','accepted'=>'info','preparing'=>'primary',
                     'ready'=>'success','delivered'=>'success','cancelled'=>'danger',
-                    default=>'secondary'} }}-agri border-{{ match($order->order_status) {
+                    default=>'secondary'} }}-agri border-{{ match($order->status) {
                     'pending'=>'warning','accepted'=>'info','preparing'=>'primary',
                     'ready'=>'success','delivered'=>'success','cancelled'=>'danger',
                     default=>'secondary'} }} border-opacity-25 ms-2 shadow-sm" style="font-size: 14px; padding: 0.3em 1em;">
-                    {{ ucfirst($order->order_status) }}
+                    {{ ucfirst($order->status) }}
                 </span>
             </h4>
             <span class="text-muted small fw-medium mt-1 d-block"><i class="far fa-clock me-1"></i>Placed on {{ $order->created_at->format('M d, Y at h:i A') }}</span>
@@ -73,7 +73,7 @@
                     <tfoot style="background: var(--agri-bg);">
                         <tr>
                             <td colspan="3" class="text-end fw-bold py-3 text-muted border-0">Subtotal</td>
-                            <td class="text-end px-4 py-3 fw-bold text-dark border-0">{{ config('plantix.currency_symbol') }}{{ number_format($order->sub_total ?? $order->grand_total, 2) }}</td>
+                            <td class="text-end px-4 py-3 fw-bold text-dark border-0">{{ config('plantix.currency_symbol') }}{{ number_format($order->sub_total ?? $order->total, 2) }}</td>
                         </tr>
                         @if($order->coupon_discount)
                         <tr>
@@ -83,7 +83,7 @@
                         @endif
                         <tr>
                             <td colspan="3" class="text-end py-4 fw-bold text-dark fs-5 border-0">Grand Total</td>
-                            <td class="text-end px-4 py-4 fw-bold text-primary fs-4 border-0">{{ config('plantix.currency_symbol') }}{{ number_format($order->grand_total, 2) }}</td>
+                            <td class="text-end px-4 py-4 fw-bold text-primary fs-4 border-0">{{ config('plantix.currency_symbol') }}{{ number_format($order->total, 2) }}</td>
                         </tr>
                     </tfoot>
                 </table>
@@ -139,7 +139,8 @@
         </div>
 
         {{-- Update Status --}}
-        @if(!in_array($order->order_status, ['delivered','cancelled']))
+        @php $nextStatuses = \App\Models\Order::allowedTransitions()[$order->status] ?? []; @endphp
+        @if(count($nextStatuses) > 0)
         <div class="card-agri p-0 border-0">
             <div class="p-4 bg-light border-bottom d-flex align-items-center gap-2">
                 <i class="fas fa-sync-alt text-warning fs-5"></i>
@@ -152,20 +153,15 @@
                     <div class="mb-4">
                         <label class="form-label text-dark fw-bold small mb-2">Order Progress</label>
                         <select name="status" class="form-agri py-2 fw-medium shadow-none">
-                            @php
-                                $allowed = ['accepted','preparing','ready','rejected','cancelled'];
-                            @endphp
-                            @foreach($allowed as $s)
-                                <option value="{{ $s }}" {{ $order->order_status === $s ? 'selected' : '' }}>
-                                    ⟷ {{ ucfirst($s) }}
-                                </option>
+                            @foreach($nextStatuses as $s)
+                                <option value="{{ $s }}">⟷ {{ ucfirst(str_replace('_', ' ', $s)) }}</option>
                             @endforeach
                         </select>
                     </div>
                     
                     <div class="mb-4">
                         <label class="form-label text-dark fw-bold small mb-2">Additional Note (Optional)</label>
-                        <textarea name="note" rows="3" class="form-agri py-2 shadow-none"
+                        <textarea name="notes" rows="3" class="form-agri py-2 shadow-none"
                                   placeholder="Message to customer regarding this update..."></textarea>
                     </div>
                     

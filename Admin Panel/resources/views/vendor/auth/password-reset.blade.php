@@ -48,7 +48,7 @@
             <div class="input-group">
                 <span class="input-group-text"><i class="bi bi-envelope"></i></span>
                 <input type="email" name="email" class="form-control @error('email') is-invalid @enderror"
-                       value="{{ old('email', $email ?? '') }}" required autofocus>
+                       value="{{ old('email', $email ?? '') }}" readonly style="background-color: #f3f4f6; cursor: not-allowed;">
                 @error('email')
                     <div class="invalid-feedback">{{ $message }}</div>
                 @enderror

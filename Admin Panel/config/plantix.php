@@ -44,6 +44,7 @@ return [
     // ── AI / External API Keys ──────────────────────────────────────────────
     // OpenWeatherMap (https://openweathermap.org/api)
     'openweather_api_key' => env('OPENWEATHER_API_KEY', ''),
+    'weather_city'        => env('WEATHER_CITY', 'Lahore,PK'),
 
     // OpenAI GPT (https://platform.openai.com)
     'openai_api_key' => env('OPENAI_API_KEY', ''),
