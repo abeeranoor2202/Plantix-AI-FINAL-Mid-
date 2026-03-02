@@ -57,7 +57,7 @@ class NotificationService
 
     /**
      * Send a notification to multiple users (in-app + optional email).
-     * Uses chunking to avoid memory overload. Async processing via queue.
+     * Uses chunking to avoid memory overload. Sends immediately (synchronously).
      *
      * @param array $users
      * @param string $title
@@ -84,13 +84,14 @@ class NotificationService
         collect($userIds)
             ->chunk(self::CHUNK_SIZE)
             ->each(function ($chunk) use ($title, $body, $data, $sendEmail, &$totalDispatched) {
+                // Dispatch and execute immediately (like password reset)
                 dispatch(new SendCustomNotificationJob(
                     $chunk->toArray(),
                     $title,
                     $body,
                     $data['action_url'] ?? null,
                     $sendEmail
-                ));
+                ))->now();
                 $totalDispatched += count($chunk);
             });
 
@@ -102,7 +103,8 @@ class NotificationService
     // -------------------------------------------------------------------------
 
     /**
-     * Send notification to all users of a specific role.
+     * Send notification immediately to all users of a specific role (synchronous).
+     * Sends are processed immediately in the background, like password reset emails.
      *
      * @param string $role
      * @param string $title
@@ -127,7 +129,8 @@ class NotificationService
     }
 
     /**
-     * Send notification to all active users.
+     * Send notification immediately to all active users (synchronous).
+     * Sends are processed immediately in the background, like password reset emails.
      *
      * @param string $title
      * @param string $body
@@ -220,8 +223,8 @@ class NotificationService
     }
 
     /**
-     * Send a custom admin notification to all users of a specific role.
-     * Uses batch processing for efficiency.
+     * Send a custom admin notification immediately to all users of a specific role (synchronous).
+     * Uses batch processing for efficiency. Sends are processed immediately like password reset emails.
      *
      * @param string $role customer | vendor | expert | admin
      * @param string $title

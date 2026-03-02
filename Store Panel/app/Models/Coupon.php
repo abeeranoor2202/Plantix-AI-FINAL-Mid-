@@ -11,7 +11,7 @@ class Coupon extends Model
     protected $fillable = [
         'vendor_id', 'code', 'type', 'value', 'min_order',
         'max_discount', 'usage_limit', 'used_count',
-        'starts_at', 'expires_at', 'is_active', 'firebase_doc_id',
+        'starts_at', 'expires_at', 'is_active', 'firebase_doc_id', 'per_user_limit',
     ];
 
     protected $casts = [
@@ -21,6 +21,7 @@ class Coupon extends Model
         'is_active'   => 'boolean',
         'starts_at'   => 'datetime',
         'expires_at'  => 'datetime',
+        'per_user_limit' => 'integer',
     ];
 
     public function vendor(): BelongsTo

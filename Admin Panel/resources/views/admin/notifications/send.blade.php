@@ -30,31 +30,56 @@
                         <div id="data-table_processing" class="text-center py-3" style="display: none; color: var(--agri-text-muted);">
                             <i class="fa fa-spinner fa-spin me-2"></i> Sending...
                         </div>
-                        <div class="error_top alert alert-danger" style="display:none; background: #FEE2E2; color: #991B1B; border: 1px solid #FECACA; border-radius: 12px; padding: 16px; font-size: 14px; font-weight: 600; margin-bottom: 24px;"></div>
-                        <div class="success_top alert alert-success" style="display:none; background: #D1FAE5; color: #065F46; border: 1px solid #A7F3D0; border-radius: 12px; padding: 16px; font-size: 14px; font-weight: 600; margin-bottom: 24px;"></div>
+                        <div class="error_top alert alert-danger" style="display:none; background: #FEE2E2; border: 1px solid #FCA5A5; border-radius: 12px; padding: 16px; font-size: 14px; margin-bottom: 24px;">
+                            <div style="display: flex; gap: 8px; align-items: flex-start;">
+                                <i class="fa fa-exclamation-circle" style="color: #DC2626; font-size: 16px; margin-top: 2px; flex-shrink: 0;"></i>
+                                <div class="error-content" style="color: #991B1B; font-weight: 500; line-height: 1.5;"></div>
+                            </div>
+                        </div>
+                        <div class="success_top alert alert-success" style="display:none; background: #D1FAE5; border: 1px solid #86EFAC; border-radius: 12px; padding: 16px; font-size: 14px; margin-bottom: 24px;">
+                            <div style="display: flex; gap: 8px; align-items: flex-start;">
+                                <i class="fa fa-check-circle" style="color: #059669; font-size: 16px; margin-top: 2px; flex-shrink: 0;"></i>
+                                <div class="success-content" style="color: #065F46; font-weight: 500; line-height: 1.5;"></div>
+                            </div>
+                        </div>
 
                         <div class="row">
                             <div class="col-md-10 mx-auto">
                                 <!-- Notification Type Selection -->
                                 <div class="mb-4">
-                                    <label style="font-size: 12px; font-weight: 700; color: var(--agri-text-muted); text-transform: uppercase; margin-bottom: 8px; display: block;">
-                                        <i class="fa fa-list me-2"></i>Send To (Select Type)
+                                    <label style="font-size: 12px; font-weight: 700; color: var(--agri-text-heading); text-transform: uppercase; margin-bottom: 12px; display: block; user-select: none;">
+                                        <i class="fa fa-paper-plane me-2" style="color: var(--agri-primary);"></i>Send To (Select Type)
                                     </label>
-                                    <div style="display: flex; gap: 16px; margin-bottom: 16px;">
-                                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-weight: 500; color: var(--agri-text-heading);">
-                                            <input type="radio" name="send-type" value="role" checked style="cursor: pointer;">
-                                            <span>All Users by Role</span>
+                                    <div style="display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap;">
+                                        <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; font-weight: 600; color: var(--agri-text-heading); user-select: none; padding: 12px 16px; border: 2px solid transparent; border-radius: 8px; transition: all 0.3s ease; background: #F9FAFB;" class="send-type-option" data-type="role">
+                                            <input type="radio" name="send-type" value="role" checked style="cursor: pointer; width: 18px; height: 18px;">
+                                            <span style="font-size: 15px;">All Users by Role</span>
                                         </label>
-                                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-weight: 500; color: var(--agri-text-heading);">
-                                            <input type="radio" name="send-type" value="single" style="cursor: pointer;">
-                                            <span>Specific User</span>
+                                        <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; font-weight: 600; color: var(--agri-text-heading); user-select: none; padding: 12px 16px; border: 2px solid transparent; border-radius: 8px; transition: all 0.3s ease; background: #F9FAFB;" class="send-type-option" data-type="single">
+                                            <input type="radio" name="send-type" value="single" style="cursor: pointer; width: 18px; height: 18px;">
+                                            <span style="font-size: 15px;">Specific User</span>
                                         </label>
                                     </div>
                                 </div>
 
+                                <style>
+                                    .send-type-option {
+                                        transition: all 0.3s ease !important;
+                                    }
+                                    .send-type-option:hover {
+                                        background: #F0F9FF !important;
+                                        border-color: var(--agri-primary) !important;
+                                    }
+                                    .send-type-option input[type="radio"]:checked {
+                                        accent-color: var(--agri-primary);
+                                    }
+                                </style>
+
                                 <!-- Role Selection (Default) -->
                                 <div id="role-section" class="mb-4">
-                                    <label style="font-size: 12px; font-weight: 700; color: var(--agri-text-muted); text-transform: uppercase; margin-bottom: 8px; display: block;">Select Role</label>
+                                    <label style="font-size: 12px; font-weight: 700; color: var(--agri-text-heading); text-transform: uppercase; margin-bottom: 8px; display: block;">
+                                        <i class="fa fa-briefcase me-2" style="color: var(--agri-primary);"></i>Select Role
+                                    </label>
                                     <select id="role" class="form-agri">
                                         <option value="customer">Customers (Farmers)</option>
                                         <option value="vendor">Vendors</option>
@@ -65,7 +90,9 @@
 
                                 <!-- User Selection (Hidden by default) -->
                                 <div id="user-section" class="mb-4" style="display: none;">
-                                    <label style="font-size: 12px; font-weight: 700; color: var(--agri-text-muted); text-transform: uppercase; margin-bottom: 8px; display: block;">Select User</label>
+                                    <label style="font-size: 12px; font-weight: 700; color: var(--agri-text-heading); text-transform: uppercase; margin-bottom: 8px; display: block;">
+                                        <i class="fa fa-user me-2" style="color: var(--agri-primary);"></i>Select User
+                                    </label>
                                     <select id="user-id" class="form-agri">
                                         <option value="">-- Choose a User --</option>
                                     </select>
@@ -110,7 +137,7 @@
                                 <div style="background: #FFFBEB; border: 1px solid #FCD34D; border-radius: 12px; padding: 16px; margin-bottom: 24px;">
                                     <p style="margin: 0; color: #92400E; font-size: 13px; line-height: 1.6;">
                                         <i class="fa fa-info-circle me-2" style="color: #F59E0B;"></i>
-                                        <strong>Note:</strong> Notifications are sent asynchronously using a job queue. In-app notifications are stored immediately in the database, while email delivery may take a few moments to process.
+                                        <strong>Note:</strong> Notifications are sent immediately in the background (like password reset emails). In-app notifications are delivered instantly to recipients' account, and emails are sent via SMTP without delaying your response.
                                     </p>
                                 </div>
                             </div>
@@ -188,38 +215,39 @@ $(document).ready(function () {
         const sendEmail = $("#send_email").is(':checked');
 
         if (!subject) {
-            $(".error_top").show().html("<p><i class='fa fa-exclamation-circle me-2'></i>Please enter a subject.</p>");
+            $(".error_top").show().find('.error-content').html('Please enter a subject.');
             window.scrollTo(0, 0);
             return;
         }
         if (!message) {
-            $(".error_top").show().html("<p><i class='fa fa-exclamation-circle me-2'></i>Please enter a message.</p>");
+            $(".error_top").show().find('.error-content').html('Please enter a message.');
             window.scrollTo(0, 0);
             return;
         }
 
         const data = {
-            subject: subject,
             message: message,
-            send_email: sendEmail,
+            send_email: sendEmail ? 1 : 0,
             _token: '{{ csrf_token() }}'
         };
 
         // Add role or user_id based on send type
         if (sendType === 'role') {
             data.role = $("#role").val();
+            data.subject = subject;  // broadcast endpoint expects 'subject'
         } else {
             const userId = $("#user-id").val();
             if (!userId) {
-                $(".error_top").show().html("<p><i class='fa fa-exclamation-circle me-2'></i>Please select a user.</p>");
+                $(".error_top").show().find('.error-content').html('Please select a user.');
                 window.scrollTo(0, 0);
                 return;
             }
             data.user_id = userId;
+            data.title = subject;  // send endpoint expects 'title'
         }
 
+        $(".save-form-btn").prop('disabled', true).html('<i class="fa fa-spinner fa-spin me-2"></i>Sending...');
         $("#data-table_processing").show();
-        $(".save-form-btn").prop('disabled', true);
 
         const url = sendType === 'role' 
             ? '{{ route("admin.notification.broadcast") }}'
@@ -232,29 +260,41 @@ $(document).ready(function () {
             data: data,
             success: function (response) {
                 $("#data-table_processing").hide();
-                $(".save-form-btn").prop('disabled', false);
+                $(".save-form-btn").prop('disabled', false).html('<i class="fa fa-paper-plane me-2"></i>Send Notification');
                 if (response.success) {
-                    $(".success_top").show().html("<p><i class='fa fa-check-circle me-2'></i>" + response.message + "</p>");
+                    $(".success_top").show().find('.success-content').html(response.message);
                     window.scrollTo(0, 0);
                     setTimeout(function () {
                         window.location.href = '{{ route("admin.notification") }}';
                     }, 2500);
                 } else {
-                    $(".error_top").show().html("<p>" + response.message + "</p>");
+                    $(".error_top").show().find('.error-content').html(response.message);
                     window.scrollTo(0, 0);
                 }
             },
             error: function (xhr) {
                 $("#data-table_processing").hide();
-                $(".save-form-btn").prop('disabled', false);
-                let msg = 'An error occurred. Please try again.';
-                if (xhr.responseJSON?.message) {
-                    msg = xhr.responseJSON.message;
-                } else if (xhr.responseJSON?.errors) {
-                    const errors = Object.values(xhr.responseJSON.errors).flat();
-                    msg = errors.join('<br>');
+                $(".save-form-btn").prop('disabled', false).html('<i class="fa fa-paper-plane me-2"></i>Send Notification');
+                let errorHtml = '';
+                
+                if (xhr.responseJSON?.errors) {
+                    // Field-specific validation errors
+                    const errors = xhr.responseJSON.errors;
+                    errorHtml = '<ul style="margin: 0; padding-left: 20px;">';
+                    for (const [field, messages] of Object.entries(errors)) {
+                        const fieldLabel = field.charAt(0).toUpperCase() + field.slice(1).replace(/_/g, ' ');
+                        errorHtml += '<li>' + fieldLabel + ': ' + messages.join(', ') + '</li>';
+                    }
+                    errorHtml += '</ul>';
+                } else if (xhr.responseJSON?.message) {
+                    errorHtml = xhr.responseJSON.message;
+                } else if (xhr.status === 422) {
+                    errorHtml = 'Validation failed. Please check your input and try again.';
+                } else {
+                    errorHtml = 'An unexpected error occurred. Please try again.';
                 }
-                $(".error_top").show().html("<p>" + msg + "</p>");
+                
+                $(".error_top").show().find('.error-content').html(errorHtml);
                 window.scrollTo(0, 0);
             }
         });

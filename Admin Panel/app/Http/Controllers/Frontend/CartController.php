@@ -122,7 +122,7 @@ class CartController extends Controller
             : back()->with('success', 'Cart updated.');
     }
 
-    public function remove(int $itemId): JsonResponse|RedirectResponse
+    public function remove(string $itemId): JsonResponse|RedirectResponse
     {
         CartItem::findOrFail($itemId)->delete();
 
