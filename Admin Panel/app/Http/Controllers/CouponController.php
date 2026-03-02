@@ -41,6 +41,10 @@ class CouponController extends Controller
         ]);
         $data['is_active'] = $request->boolean('is_active');
         $data['code']      = strtoupper(trim($data['code']));
+        
+        // Provide defaults for nullable numeric fields
+        $data['min_order'] = $data['min_order'] ?? 0.00;
+        $data['max_discount'] = $data['max_discount'] ?? 0.00;
 
         Coupon::create($data);
         return response()->json(['success' => true, 'redirect' => route('admin.coupons')]);
@@ -71,6 +75,10 @@ class CouponController extends Controller
         ]);
         $data['is_active'] = $request->boolean('is_active');
         $data['code']      = strtoupper(trim($data['code']));
+        
+        // Provide defaults for nullable numeric fields
+        $data['min_order'] = $data['min_order'] ?? 0.00;
+        $data['max_discount'] = $data['max_discount'] ?? 0.00;
 
         $coupon->update($data);
         return response()->json(['success' => true, 'redirect' => route('admin.coupons')]);

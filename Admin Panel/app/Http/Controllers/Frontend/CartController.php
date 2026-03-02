@@ -153,29 +153,62 @@ class CartController extends Controller
     {
         $request->validate(['code' => 'required|string|max:100']);
 
-        $cart   = $this->getOrCreateCart();
-        $coupon = Coupon::where('code', strtoupper(trim($request->code)))
-                        ->where('is_active', true)
-                        ->first();
+        $cart = $this->getOrCreateCart();
+        $coupon = Coupon::where('code', strtoupper(trim($request->code)))->first();
 
-        if (! $coupon || ! $coupon->isValid()) {
-            $error = 'Invalid or expired coupon code.';
+        // Validate coupon exists
+        if (! $coupon) {
+            $error = 'Invalid coupon code.';
             return $request->expectsJson()
                 ? response()->json(['error' => $error], 422)
                 : back()->withErrors(['coupon' => $error]);
         }
 
-        // Ensure coupon belongs to the same vendor as the cart (or is global)
-        if ($coupon->vendor_id && $cart->vendor_id && $coupon->vendor_id !== $cart->vendor_id) {
-            $error = 'This coupon is not valid for items in your cart.';
+        // Check if coupon is active and not expired
+        if (! $coupon->isValid()) {
+            $error = 'This coupon has expired or is not yet valid.';
+            if ($coupon->expires_at && now()->gt($coupon->expires_at)) {
+                $error = 'This coupon has expired.';
+            }
             return $request->expectsJson()
                 ? response()->json(['error' => $error], 422)
                 : back()->withErrors(['coupon' => $error]);
         }
 
-        $subtotal = $cart->load('items')->subtotal;
+        // Check per-user usage limit
+        $user = auth('web')->user();
+        if ($user) {
+            $perUserLimit = (int) ($coupon->per_user_limit ?? 1);
+            if ($coupon->usageCountForUser($user->id) >= $perUserLimit) {
+                $error = 'You have used this coupon the maximum number of times.';
+                return $request->expectsJson()
+                    ? response()->json(['error' => $error], 422)
+                    : back()->withErrors(['coupon' => $error]);
+            }
+        }
 
-        if ($cart->vendor_id && $coupon->min_order && $subtotal < $coupon->min_order) {
+        // Check if coupon is store-specific
+        if ($coupon->vendor_id && $cart->items->isNotEmpty()) {
+            // Get all unique vendors in the cart
+            $cartVendorIds = $cart->load('items.product.vendor')
+                                ->items
+                                ->pluck('product.vendor_id')
+                                ->unique()
+                                ->filter();
+
+            // Only allow coupon if cart contains items from the coupon's store
+            if ($cartVendorIds->isNotEmpty() && ! $cartVendorIds->contains($coupon->vendor_id)) {
+                $error = 'This coupon is not valid for items in your cart.';
+                return $request->expectsJson()
+                    ? response()->json(['error' => $error], 422)
+                    : back()->withErrors(['coupon' => $error]);
+            }
+        }
+
+        $subtotal = (float) $cart->subtotal;
+
+        // Check minimum order amount
+        if ($coupon->min_order && $subtotal < (float) $coupon->min_order) {
             $error = "Minimum order of " . number_format($coupon->min_order, 2) . " required for this coupon.";
             return $request->expectsJson()
                 ? response()->json(['error' => $error], 422)

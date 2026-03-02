@@ -116,23 +116,57 @@ class CustomerCartApiController extends Controller
     {
         $request->validate(['code' => 'required|string|max:50']);
 
-        $coupon = Coupon::where('code', strtoupper($request->code))
-                        ->where('is_active', true)
-                        ->first();
+        $coupon = Coupon::where('code', strtoupper(trim($request->code)))->first();
 
         if (! $coupon) {
-            return response()->json(['success' => false, 'message' => 'Invalid or expired coupon.'], 422);
+            return response()->json(['success' => false, 'message' => 'Invalid coupon code.'], 422);
         }
 
-        $cart = $this->getOrCreateCart($request->user());
-        $cart->update(['coupon_id' => $coupon->id, 'discount_amount' => 0]);
+        // Check if coupon is active and not expired
+        if (! $coupon->isValid()) {
+            $message = 'This coupon has expired or is not yet valid.';
+            if ($coupon->expires_at && now()->gt($coupon->expires_at)) {
+                $message = 'This coupon has expired.';
+            }
+            return response()->json(['success' => false, 'message' => $message], 422);
+        }
+
+        // Check per-user usage limit
+        $user = $request->user();
+        $perUserLimit = (int) ($coupon->per_user_limit ?? 1);
+        if ($coupon->usageCountForUser($user->id) >= $perUserLimit) {
+            return response()->json(['success' => false, 'message' => 'You have used this coupon the maximum number of times.'], 422);
+        }
+
+        // Get or create cart
+        $cart = $this->getOrCreateCart($user);
+
+        // Check if coupon is store-specific and cart has items from different store
+        if ($coupon->vendor_id && $cart->items->isNotEmpty()) {
+            $cartVendorIds = $cart->items->pluck('product.vendor_id')->unique()->filter();
+            if ($cartVendorIds->isNotEmpty() && ! $cartVendorIds->contains($coupon->vendor_id)) {
+                return response()->json(['success' => false, 'message' => 'This coupon is not valid for items in your cart.'], 422);
+            }
+        }
+
+        // Check minimum order amount
+        $subtotal = (float) $cart->subtotal;
+        if ($coupon->min_order && $subtotal < (float) $coupon->min_order) {
+            return response()->json(['success' => false, 'message' => "Minimum order of " . number_format($coupon->min_order, 2) . " required for this coupon."], 422);
+        }
+
+        // Calculate and apply discount
+        $discount = $coupon->calculateDiscount($subtotal);
+        $cart->update(['coupon_id' => $coupon->id, 'discount_amount' => $discount]);
 
         return response()->json([
             'success' => true,
+            'message' => 'Coupon applied successfully!',
             'coupon'  => [
                 'code'  => $coupon->code,
                 'type'  => $coupon->type,
                 'value' => $coupon->value,
+                'discount' => $discount,
             ],
             'cart' => $this->cartPayload($cart->fresh()->load('items.product')),
         ]);

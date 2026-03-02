@@ -1,7 +1,6 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="page-wrapper">
 
     <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 32px; flex-wrap: wrap; gap: 16px;">
         <div>
@@ -202,5 +201,5 @@
         </div>
 
     </div>
-</div>
+
 @endsection

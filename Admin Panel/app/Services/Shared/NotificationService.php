@@ -2,7 +2,9 @@
 
 namespace App\Services\Shared;
 
+use App\Jobs\SendCustomNotificationJob;
 use App\Models\User;
+use App\Notifications\CustomNotification;
 use Illuminate\Notifications\DatabaseNotification;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -10,47 +12,149 @@ use Illuminate\Support\Str;
 /**
  * NotificationService
  *
- * Delivers in-app (database-channel) notifications to users.
- * No third-party push services required — records are stored in the
- * `notifications` table and surfaced through the standard
- * $user->notifications relationship.
+ * Delivers notifications to users via multiple channels:
+ * 1. In-app (database-channel) – stored in notifications table
+ * 2. Email (SMTP) – sent via Mail driver
+ *
+ * Supports both sync and async (queued) notifications.
  */
 class NotificationService
 {
+    private const CHUNK_SIZE = 100;
+
     // -------------------------------------------------------------------------
-    // Public API  (signatures unchanged — callers need no modifications)
+    // Public API – Single User Notifications
     // -------------------------------------------------------------------------
 
     /**
-     * Send an in-app notification to a single user.
+     * Send a notification to a single user (in-app + optional email).
+     *
+     * @param User $user
+     * @param string $title
+     * @param string $body
+     * @param array $data
+     * @param bool $sendEmail
+     * @return bool Success status
      */
-    public function sendToUser(User $user, string $title, string $body = '', array $data = []): bool
-    {
+    public function sendToUser(
+        User $user,
+        string $title,
+        string $body = '',
+        array $data = [],
+        bool $sendEmail = false
+    ): bool {
         try {
-            $this->store($user, $title, $body, $data);
+            $user->notify(new CustomNotification($title, $body, null, $sendEmail));
             return true;
         } catch (\Throwable $e) {
             Log::error('NotificationService::sendToUser failed: ' . $e->getMessage(), [
                 'user_id' => $user->id,
+                'title'   => $title,
             ]);
             return false;
         }
     }
 
     /**
-     * Send an in-app notification to multiple users.
+     * Send a notification to multiple users (in-app + optional email).
+     * Uses chunking to avoid memory overload. Async processing via queue.
+     *
+     * @param array $users
+     * @param string $title
+     * @param string $body
+     * @param array $data
+     * @param bool $sendEmail
+     * @return int Total users notified
      */
-    public function sendToMany(array $users, string $title, string $body = '', array $data = []): void
-    {
-        foreach ($users as $user) {
-            if ($user instanceof User) {
-                $this->sendToUser($user, $title, $body, $data);
-            }
-        }
+    public function sendToMany(
+        array $users,
+        string $title,
+        string $body = '',
+        array $data = [],
+        bool $sendEmail = false
+    ): int {
+        $totalDispatched = 0;
+        $userIds         = collect($users)
+            ->map(fn($user) => $user instanceof User ? $user->id : $user)
+            ->filter()
+            ->unique()
+            ->values()
+            ->toArray();
+
+        collect($userIds)
+            ->chunk(self::CHUNK_SIZE)
+            ->each(function ($chunk) use ($title, $body, $data, $sendEmail, &$totalDispatched) {
+                dispatch(new SendCustomNotificationJob(
+                    $chunk->toArray(),
+                    $title,
+                    $body,
+                    $data['action_url'] ?? null,
+                    $sendEmail
+                ));
+                $totalDispatched += count($chunk);
+            });
+
+        return $totalDispatched;
+    }
+
+    // -------------------------------------------------------------------------
+    // Public API – Role-Based Broadcast Notifications  
+    // -------------------------------------------------------------------------
+
+    /**
+     * Send notification to all users of a specific role.
+     *
+     * @param string $role
+     * @param string $title
+     * @param string $body
+     * @param bool $sendEmail
+     * @return int Total users notified
+     */
+    public function sendToRole(
+        string $role,
+        string $title,
+        string $body = '',
+        bool $sendEmail = false
+    ): int {
+        $users = User::where('role', $role)
+            ->where('active', true)
+            ->select('id')
+            ->get()
+            ->pluck('id')
+            ->all();
+
+        return $this->sendToMany($users, $title, $body, [], $sendEmail);
     }
 
     /**
+     * Send notification to all active users.
+     *
+     * @param string $title
+     * @param string $body
+     * @param bool $sendEmail
+     * @return int Total users notified
+     */
+    public function sendToAll(
+        string $title,
+        string $body = '',
+        bool $sendEmail = false
+    ): int {
+        $users = User::where('active', true)
+            ->select('id')
+            ->get()
+            ->pluck('id')
+            ->all();
+
+        return $this->sendToMany($users, $title, $body, [], $sendEmail);
+    }
+
+    // -------------------------------------------------------------------------
+    // Public API – Order Status Notifications (Legacy Support)
+    // -------------------------------------------------------------------------
+
+    /**
      * Helper specifically for order-status change notifications.
+     * Sends via database only (not email) – can be enhanced if needed.
      */
     public function sendOrderStatusNotification(
         User   $user,
@@ -75,28 +179,148 @@ class NotificationService
             'order_id' => (string) $orderId,
             'status'   => $status,
             'type'     => 'order_status',
-        ]);
+        ], false); // Don't send email for order status
     }
 
     // -------------------------------------------------------------------------
-    // Internal
+    // Admin Custom Notifications API
     // -------------------------------------------------------------------------
 
+    /**
+     * Send a custom admin notification to a single user.
+     * This is typically used by admins via the UI to send personalized messages.
+     *
+     * @param User $user
+     * @param string $title
+     * @param string $body
+     * @param string|null $actionUrl Optional URL for CTA button
+     * @param bool $sendEmail Whether to also send via email/SMTP
+     * @return bool
+     *
+     * Example:
+     *   $notificationService->sendAdminNotification(
+     *       user: $user,
+     *       title: "Promotion Alert",
+     *       body: "A new seasonal promotion is available for you!",
+     *       actionUrl: route('shop'),
+     *       sendEmail: true
+     *   );
+     */
+    public function sendAdminNotification(
+        User $user,
+        string $title,
+        string $body,
+        ?string $actionUrl = null,
+        bool $sendEmail = false
+    ): bool {
+        return $this->sendToUser($user, $title, $body, [
+            'type' => 'admin_notification',
+            'action_url' => $actionUrl,
+        ], $sendEmail);
+    }
+
+    /**
+     * Send a custom admin notification to all users of a specific role.
+     * Uses batch processing for efficiency.
+     *
+     * @param string $role customer | vendor | expert | admin
+     * @param string $title
+     * @param string $body
+     * @param string|null $actionUrl Optional URL for CTA button
+     * @param bool $sendEmail Whether to also send via email/SMTP
+     * @return int Total users notified
+     *
+     * Example:
+     *   $count = $notificationService->broadcastAdminNotification(
+     *       role: 'customer',
+     *       title: "System Maintenance",
+     *       body: "We will be performing scheduled maintenance tonight.",
+     *       sendEmail: true
+     *   );
+     *   echo "Notified {$count} customers";
+     */
+    public function broadcastAdminNotification(
+        string $role,
+        string $title,
+        string $body,
+        ?string $actionUrl = null,
+        bool $sendEmail = false
+    ): int {
+        $users = User::where('role', $role)
+            ->where('active', true)
+            ->select('id')
+            ->get()
+            ->pluck('id')
+            ->all();
+
+        return $this->sendToMany($users, $title, $body, [
+            'type' => 'admin_notification',
+            'action_url' => $actionUrl,
+        ], $sendEmail);
+    }
+
+    /**
+     * Send to all administrators.
+     * Useful for system alerts and critical updates.
+     *
+     * @param string $title
+     * @param string $body
+     * @param bool $sendEmail
+     * @return int
+     */
+    public function notifyAdmins(
+        string $title,
+        string $body,
+        bool $sendEmail = false
+    ): int {
+        return $this->broadcastAdminNotification('admin', $title, $body, null, $sendEmail);
+    }
+
+    /**
+     * Legacy method – stores only in-app notifications (no email).
+     * @deprecated Use sendToUser() or sendToMany() with $sendEmail parameter
+     */
+    public function sendToUserLegacy(User $user, string $title, string $body = '', array $data = []): void
+    {
+        try {
+            $this->store($user, $title, $body, $data);
+        } catch (\Throwable $e) {
+            Log::error('NotificationService::sendToUserLegacy failed: ' . $e->getMessage(), [
+                'user_id' => $user->id,
+            ]);
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    // Internal Helpers
+    // -------------------------------------------------------------------------
+
+    /**
+     * Store a notification in the database table.
+     * Used when only in-app notification is needed.
+     */
     private function store(User $user, string $title, string $body, array $data): void
     {
-        DatabaseNotification::create([
-            'id'              => (string) Str::uuid(),
-            'type'            => 'App\Notifications\GenericDatabaseNotification',
-            'notifiable_type' => User::class,
-            'notifiable_id'   => $user->id,
-            'data'            => json_encode([
-                'title' => $title,
-                'body'  => $body,
-                'data'  => $data,
-            ]),
-            'read_at'         => null,
-        ]);
+        try {
+            DatabaseNotification::create([
+                'id'              => (string) Str::uuid(),
+                'type'            => 'App\Notifications\GenericDatabaseNotification',
+                'notifiable_type' => User::class,
+                'notifiable_id'   => $user->id,
+                'data'            => json_encode([
+                    'title' => $title,
+                    'body'  => $body,
+                    'data'  => $data,
+                ]),
+                'read_at'         => null,
+            ]);
+        } catch (\Throwable $e) {
+            Log::error('NotificationService::store failed: ' . $e->getMessage(), [
+                'user_id' => $user->id,
+            ]);
+        }
     }
 }
+
 
 

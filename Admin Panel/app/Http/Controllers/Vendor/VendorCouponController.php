@@ -94,7 +94,7 @@ class VendorCouponController extends Controller
 
     private function validated(Request $request): array
     {
-        return $request->validate([
+        $validated = $request->validate([
             'code'         => ['nullable', 'string', 'max:50'],
             'type'         => ['required', 'in:percentage,fixed'],
             'value'        => ['required', 'numeric', 'min:0.01'],
@@ -105,5 +105,12 @@ class VendorCouponController extends Controller
             'expires_at'   => ['nullable', 'date', 'after_or_equal:starts_at'],
             'is_active'    => ['boolean'],
         ]);
+
+        // Convert null values to defaults to match database constraints
+        $validated['min_order'] = $validated['min_order'] ?? 0.00;
+        $validated['max_discount'] = $validated['max_discount'] ?? 0.00;
+        $validated['usage_limit'] = $validated['usage_limit'] ?? null;
+
+        return $validated;
     }
 }

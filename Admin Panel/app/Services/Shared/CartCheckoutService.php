@@ -512,9 +512,19 @@ class CartCheckoutService
     {
         $coupon = Coupon::where('code', strtoupper(trim($code)))->first();
 
-        if (! $coupon || ! $coupon->isValid()) {
+        if (! $coupon) {
             throw ValidationException::withMessages([
-                'coupon_code' => 'Invalid or expired coupon code.',
+                'coupon_code' => 'Invalid coupon code.',
+            ]);
+        }
+
+        if (! $coupon->isValid()) {
+            $message = 'This coupon has expired or is not yet valid.';
+            if ($coupon->expires_at && now()->gt($coupon->expires_at)) {
+                $message = 'This coupon has expired.';
+            }
+            throw ValidationException::withMessages([
+                'coupon_code' => $message,
             ]);
         }
 
@@ -525,15 +535,27 @@ class CartCheckoutService
             ]);
         }
 
-        if ($coupon->vendor_id && $coupon->vendor_id !== $cart->vendor_id) {
-            throw ValidationException::withMessages([
-                'coupon_code' => 'This coupon is not valid for items in your cart.',
-            ]);
+        // Enhanced store-specific coupon handling
+        if ($coupon->vendor_id && $cart->items->isNotEmpty()) {
+            // Get all unique vendors from cart items
+            $cartVendorIds = $cart->load('items.product')
+                                ->items
+                                ->pluck('product.vendor_id')
+                                ->unique()
+                                ->filter()
+                                ->values();
+
+            // Only allow if cart has items from the coupon's store
+            if ($cartVendorIds->isNotEmpty() && ! $cartVendorIds->contains($coupon->vendor_id)) {
+                throw ValidationException::withMessages([
+                    'coupon_code' => 'This coupon is only valid for items from a specific store that are not in your cart.',
+                ]);
+            }
         }
 
         if ($coupon->min_order && (float) $cart->subtotal < (float) $coupon->min_order) {
             throw ValidationException::withMessages([
-                'coupon_code' => "Minimum order of {$coupon->min_order} required.",
+                'coupon_code' => "Minimum order of " . number_format($coupon->min_order, 2) . " required.",
             ]);
         }
 

@@ -288,7 +288,9 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::delete('/notification/delete/{id}', [\App\Http\Controllers\NotificationController::class, 'destroyDynamic'])->name('notification.destroy');
         Route::middleware(['permission:general-notifications,notification.send'])->group(function () {
             Route::get('/notification/send', [\App\Http\Controllers\NotificationController::class, 'send'])->name('notification.send');
+            Route::get('/notification/users/list', [\App\Http\Controllers\NotificationController::class, 'getUsersList'])->name('notification.users.list');
             Route::post('/notification/broadcast', [\App\Http\Controllers\NotificationController::class, 'broadcastnotification'])->name('notification.broadcast');
+            Route::post('/notification/send', [\App\Http\Controllers\NotificationController::class, 'sendNotification'])->name('notification.send');
         });
 
         // ── AI Agriculture Module (Admin Oversight) ───────────────────────────

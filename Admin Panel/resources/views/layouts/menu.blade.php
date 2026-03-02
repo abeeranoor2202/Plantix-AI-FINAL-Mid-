@@ -192,18 +192,12 @@
             <li class="nav-small-cap" style="{{ $cap }}">NOTIFICATIONS</li>
 
             <li style="margin-bottom: 2px;">
-                <a class="nav-link-agri {{ Request::is('admin/notification') ? 'active' : '' }}" href="{!! route('admin.notification') !!}">
+                <a class="nav-link-agri {{ Request::is('admin/notification') ? 'active' : '' }}" href="{!! route('admin.notification.send') !!}">
                     <i class="mdi mdi-bell" style="font-size: 20px;"></i>
                     <span>Push Notifications</span>
                 </a>
             </li>
 
-            <li style="margin-bottom: 2px;">
-                <a class="nav-link-agri {{ Request::is('admin/notifications/broadcast*') ? 'active' : '' }}" href="{!! route('admin.notifications.broadcast.history') !!}">
-                    <i class="mdi mdi-broadcast" style="font-size: 20px;"></i>
-                    <span>Broadcasts</span>
-                </a>
-            </li>
 
             {{-- ── ACCESS CONTROL ────────────────────────────────────── --}}
             <li class="nav-small-cap" style="{{ $cap }}">ACCESS CONTROL</li>
