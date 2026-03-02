@@ -139,10 +139,11 @@
 
         </aside>
 
-        <main class="page-wrapper pt-4">
-
+        <main class="page-wrapper" style="min-height: 100vh;">
             @yield('content')
-
+            <footer class="footer">
+                @include('layouts.footer')
+            </footer>
         </main>
 
     </div>

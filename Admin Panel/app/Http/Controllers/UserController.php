@@ -284,13 +284,22 @@ class UserController extends Controller
         if ($user) {
             $user->name = $name;
             $user->email = $email;
+            
+            if ($request->hasFile('profile_photo')) {
+                $file = $request->file('profile_photo');
+                $ext = $file->getClientOriginalExtension();
+                $filename = time() . '.' . $ext;
+                $file->move('storage/profiles/', $filename);
+                $user->profile_photo = 'profiles/' . $filename;
+            }
+
             if ($password != '') {
                 $user->password = Hash::make($password);
             }
             $user->save();
         }
 
-        return redirect()->back();
+        return redirect()->back()->with('success', 'Profile updated successfully!');
     }
 
     public function create()
