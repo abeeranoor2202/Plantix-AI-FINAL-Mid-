@@ -35,7 +35,7 @@ class CheckoutRequest extends FormRequest
     {
         return [
             'delivery_address' => 'required|string|max:1000',
-            'payment_method'   => 'required|in:cod,stripe,wallet',
+            'payment_method'   => 'required|in:cod,stripe',
             'coupon_code'      => 'nullable|string|max:50',
             'notes'            => 'nullable|string|max:500',
             'delivery_fee'     => 'nullable|numeric|min:0',

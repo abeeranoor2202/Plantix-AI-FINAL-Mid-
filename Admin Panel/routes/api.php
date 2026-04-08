@@ -131,7 +131,6 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'role:admin,staff'])->group(
     Route::post('/users',                                   [AdminUsersController::class, 'store'])->name('api.admin.users.store');
     Route::post('/users/{id}',                              [AdminUsersController::class, 'update'])->name('api.admin.users.update');
     Route::post('/users/{id}/send-password-reset',          [AdminUsersController::class, 'sendPasswordReset'])->name('api.admin.users.send-password-reset');
-    Route::post('/users/{id}/wallet-topup',                 [AdminUsersController::class, 'walletTopup'])->name('api.admin.users.wallet-topup');
     Route::patch('/users/{id}/toggle-active',               [AdminUsersController::class, 'toggleActive'])->name('api.admin.users.toggle-active');
     Route::delete('/users/{id}',                            [AdminUsersController::class, 'destroy'])->name('api.admin.users.destroy');
 

@@ -69,6 +69,54 @@
                         </div>
                     </div>
 
+					{{-- Address Information --}}
+					<div style="margin-bottom: 40px; background: var(--agri-bg); padding: 24px; border-radius: 16px; border: 1px solid var(--agri-border);">
+						<h4 style="font-size: 16px; font-weight: 700; color: var(--agri-text-heading); margin-bottom: 16px; display: flex; align-items: center; gap: 10px;">
+							<i class="fas fa-map-marker-alt"></i> Customer Address
+						</h4>
+						<div class="row g-4">
+							<div class="col-md-4">
+								<label class="agri-label">Address Label</label>
+								<select class="form-agri address_label" style="height: 46px;">
+									<option value="">Select label</option>
+									<option value="Home">Home</option>
+									<option value="Work">Work</option>
+									<option value="Other">Other</option>
+								</select>
+							</div>
+
+							<div class="col-md-8">
+								<label class="agri-label">Address Line 1</label>
+								<input type="text" class="form-agri address_line1" placeholder="House / Street / Area">
+							</div>
+
+							<div class="col-md-6">
+								<label class="agri-label">Address Line 2</label>
+								<input type="text" class="form-agri address_line2" placeholder="Apartment, floor, suite (optional)">
+							</div>
+
+							<div class="col-md-6">
+								<label class="agri-label">City</label>
+								<input type="text" class="form-agri city" placeholder="City">
+							</div>
+
+							<div class="col-md-4">
+								<label class="agri-label">State / Province</label>
+								<input type="text" class="form-agri state" placeholder="State or province">
+							</div>
+
+							<div class="col-md-4">
+								<label class="agri-label">ZIP / Postal Code</label>
+								<input type="text" class="form-agri zip" placeholder="ZIP or postal code">
+							</div>
+
+							<div class="col-md-4">
+								<label class="agri-label">Country</label>
+								<input type="text" class="form-agri country" placeholder="Country">
+							</div>
+						</div>
+					</div>
+
                     {{-- Profile Image --}}
                     <div style="margin-bottom: 40px; background: var(--agri-bg); padding: 24px; border-radius: 16px; border: 1px solid var(--agri-border);">
                          <h4 style="font-size: 16px; font-weight: 700; color: var(--agri-text-heading); margin-bottom: 16px;">{{trans('lang.store_image')}}</h4>
@@ -132,6 +180,14 @@
 		var password = $(".user_password").val();
 		var userPhone = $(".user_phone").val();
 		var active = $(".user_active").is(":checked");
+		var addressLabel = $(".address_label").val();
+		var addressLine1 = $(".address_line1").val();
+		var addressLine2 = $(".address_line2").val();
+		var city = $(".city").val();
+		var state = $(".state").val();
+		var zip = $(".zip").val();
+		var country = $(".country").val();
+		var hasAddressInput = addressLabel !== '' || addressLine1 !== '' || addressLine2 !== '' || city !== '' || state !== '' || zip !== '' || country !== '';
 
 		$(".error_top").hide();
 
@@ -150,6 +206,15 @@
 		} else if (userPhone == '') {
 			$(".error_top").show().html("<p>{{trans('lang.user_phone_error')}}</p>");
 			window.scrollTo(0, 0);
+		} else if (hasAddressInput && addressLine1 == '') {
+			$(".error_top").show().html("<p>Address Line 1 is required when adding an address.</p>");
+			window.scrollTo(0, 0);
+		} else if (hasAddressInput && city == '') {
+			$(".error_top").show().html("<p>City is required when adding an address.</p>");
+			window.scrollTo(0, 0);
+		} else if (hasAddressInput && country == '') {
+			$(".error_top").show().html("<p>Country is required when adding an address.</p>");
+			window.scrollTo(0, 0);
 		} else {
             jQuery("#data-table_processing").show();
 
@@ -161,13 +226,22 @@
 			formData.append('password', password);
 			formData.append('phone_number', userPhone);
 			formData.append('is_active', active ? 1 : 0);
+			if (hasAddressInput) {
+				formData.append('address_label', addressLabel);
+				formData.append('address_line1', addressLine1);
+				formData.append('address_line2', addressLine2);
+				formData.append('city', city);
+				formData.append('state', state);
+				formData.append('zip', zip);
+				formData.append('country', country);
+			}
 			if (photoFile) {
 				formData.append('profile_picture', photoFile);
 			}
 
 			// Create user via backend API
 			$.ajax({
-				url: '{{ route("api.admin.users.store") }}',
+					url: '{{ route("admin.users.api.store") }}',
 				method: 'POST',
 				headers: {
 					'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')

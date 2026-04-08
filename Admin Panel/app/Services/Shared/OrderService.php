@@ -133,7 +133,6 @@ class OrderService
     private function processRefundIfPaid(Order $order): void
     {
         if ($order->payment_status === 'paid') {
-            $this->wallet->creditUser($order->user, $order->total, "Refund for order #{$order->order_number}", $order);
             $order->update(['payment_status' => 'refunded']);
         }
     }

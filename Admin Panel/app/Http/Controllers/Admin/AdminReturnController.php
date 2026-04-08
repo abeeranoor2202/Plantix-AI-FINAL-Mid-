@@ -63,7 +63,7 @@ class AdminReturnController extends Controller
     {
         $request->validate([
             'amount'          => 'required|numeric|min:0.01',
-            'method'          => 'required|in:wallet,original_payment,bank_transfer',
+            'method'          => 'required|in:original_payment,bank_transfer',
             'transaction_ref' => 'nullable|string|max:191',
             'notes'           => 'nullable|string|max:500',
         ]);

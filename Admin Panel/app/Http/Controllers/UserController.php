@@ -37,11 +37,37 @@ class UserController extends Controller
 
     public function updateUserProfile(Request $request, $id)
     {
+        $request->validate([
+            'first_name'    => 'nullable|string|max:255',
+            'last_name'     => 'nullable|string|max:255',
+            'phone_number'  => 'nullable|string|max:50',
+            'is_active'     => 'nullable|boolean',
+            'profile_picture'=> 'nullable|image|max:2048',
+
+            'address_label' => 'nullable|string|max:60',
+            'address_line1' => 'nullable|string|max:255|required_with:address_line2,city,state,zip,country,address_label',
+            'address_line2' => 'nullable|string|max:255',
+            'city'          => 'nullable|string|max:100|required_with:address_line1',
+            'state'         => 'nullable|string|max:100',
+            'zip'           => 'nullable|string|max:20',
+            'country'       => 'nullable|string|max:60|required_with:address_line1',
+        ]);
+
         $user = User::findOrFail($id);
-        $user->first_name = $request->input('first_name', $user->first_name);
-        $user->last_name  = $request->input('last_name',  $user->last_name);
-        $user->phone      = $request->input('phone_number', $user->phone);
-        $user->active     = $request->boolean('is_active');
+
+        $firstName = trim((string) $request->input('first_name', ''));
+        $lastName  = trim((string) $request->input('last_name', ''));
+        if ($firstName !== '' || $lastName !== '') {
+            $user->name = trim($firstName . ' ' . $lastName);
+        }
+
+        if ($request->filled('phone_number')) {
+            $user->phone = $request->input('phone_number');
+        }
+
+        if ($request->has('is_active')) {
+            $user->active = $request->boolean('is_active');
+        }
 
         if ($request->hasFile('profile_picture')) {
             $path = $request->file('profile_picture')->store('profiles', 'public');
@@ -49,6 +75,38 @@ class UserController extends Controller
         }
 
         $user->save();
+
+        $hasAddressPayload = $request->filled('address_line1')
+            || $request->filled('address_line2')
+            || $request->filled('city')
+            || $request->filled('state')
+            || $request->filled('zip')
+            || $request->filled('country')
+            || $request->filled('address_label');
+
+        if ($hasAddressPayload) {
+            $defaultAddress = $user->addresses()->where('is_default', true)->first();
+
+            if ($defaultAddress || $request->filled('address_line1')) {
+                $addressPayload = [
+                    'label'         => $request->input('address_label', $defaultAddress?->label ?? 'Home'),
+                    'address_line1' => $request->input('address_line1', $defaultAddress?->address_line1),
+                    'address_line2' => $request->input('address_line2', $defaultAddress?->address_line2),
+                    'city'          => $request->input('city', $defaultAddress?->city),
+                    'state'         => $request->input('state', $defaultAddress?->state),
+                    'zip'           => $request->input('zip', $defaultAddress?->zip),
+                    'country'       => $request->input('country', $defaultAddress?->country ?? 'Pakistan'),
+                    'is_default'    => true,
+                ];
+
+                if ($defaultAddress) {
+                    $defaultAddress->update($addressPayload);
+                } else {
+                    $user->addresses()->create($addressPayload);
+                }
+            }
+        }
+
         return response()->json(['success' => true]);
     }
 
@@ -104,6 +162,61 @@ class UserController extends Controller
         ]);
 
         return redirect('admin-users');
+    }
+
+    public function storeWebUser(Request $request)
+    {
+        $request->validate([
+            'first_name' => 'required|string|max:255',
+            'last_name' => 'required|string|max:255',
+            'email' => 'required|email|unique:users,email',
+            'password' => 'required|string|min:6',
+            'phone_number' => 'required|string|max:50',
+            'is_active' => 'boolean',
+            'profile_picture' => 'nullable|image|max:2048',
+
+            'address_label' => 'nullable|string|max:60',
+            'address_line1' => 'nullable|string|max:255|required_with:address_line2,city,state,zip,country,address_label',
+            'address_line2' => 'nullable|string|max:255',
+            'city' => 'nullable|string|max:100|required_with:address_line1',
+            'state' => 'nullable|string|max:100',
+            'zip' => 'nullable|string|max:20',
+            'country' => 'nullable|string|max:60|required_with:address_line1',
+        ]);
+
+        $user = new User();
+        $user->name = trim($request->input('first_name') . ' ' . $request->input('last_name'));
+        $user->email = $request->input('email');
+        $user->password = Hash::make($request->input('password'));
+        $user->phone = $request->input('phone_number');
+        $user->active = $request->boolean('is_active', true);
+        $user->role = 'user';
+
+        if ($request->hasFile('profile_picture')) {
+            $path = $request->file('profile_picture')->store('users', 'public');
+            $user->profile_photo = asset('storage/' . $path);
+        }
+
+        $user->save();
+
+        if ($request->filled('address_line1')) {
+            $user->addresses()->create([
+                'label'         => $request->input('address_label', 'Home'),
+                'address_line1' => $request->input('address_line1'),
+                'address_line2' => $request->input('address_line2'),
+                'city'          => $request->input('city'),
+                'state'         => $request->input('state'),
+                'zip'           => $request->input('zip'),
+                'country'       => $request->input('country', 'Pakistan'),
+                'is_default'    => true,
+            ]);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'User created successfully',
+            'data' => $user->load('addresses'),
+        ]);
     }
     public function editAdminUsers($id)
     {

@@ -14,14 +14,22 @@
         </div>
         <div style="display: flex; justify-content: space-between; align-items: flex-end;">
             <div>
-                <h1 style="font-size: 28px; font-weight: 700; color: var(--agri-primary-dark); margin: 0;">Farmer Profile</h1>
+                <h1 style="font-size: 28px; font-weight: 700; color: var(--agri-primary-dark); margin: 0;">
+                    @if(optional($user)->role === 'user')
+                        Customer Profile
+                    @elseif(optional($user)->role === 'vendor')
+                        Vendor Profile
+                    @elseif(optional($user)->role === 'expert' || optional($user)->role === 'agency_expert')
+                        Expert Profile
+                    @elseif(optional($user)->role === 'admin')
+                        Admin Profile
+                    @else
+                        User Profile
+                    @endif
+                </h1>
                 <p style="color: var(--agri-text-muted); margin: 4px 0 0 0;">Comprehensive overview of account activities and details.</p>
             </div>
             <div style="display: flex; gap: 12px;">
-                <a href="javascript:void(0)" data-toggle="modal" data-target="#addWalletModal" class="btn-agri btn-agri-primary" style="text-decoration: none; display: flex; align-items: center; gap: 8px;">
-                    <i class="fas fa-plus-circle"></i>
-                    {{trans('lang.add_wallet_amount')}}
-                </a>
                 <a href="{!! route('admin.users') !!}" class="btn-agri btn-agri-outline" style="text-decoration: none;">
                     <i class="fas fa-arrow-left" style="margin-right: 8px;"></i> Back to List
                 </a>
@@ -37,9 +45,6 @@
         <a href="{{route('admin.orders.index')}}?userId={{$id}}" style="text-decoration: none; padding: 12px 4px; color: var(--agri-text-muted); font-weight: 600;">
             {{trans('lang.tab_orders')}}
         </a>
-        <a href="#" style="text-decoration: none; padding: 12px 4px; color: var(--agri-text-muted); font-weight: 600;" title="Wallet transactions feature not available">
-            {{trans('lang.wallet_transaction')}}
-        </a>
     </div>
 
     <div class="row">
@@ -51,19 +56,26 @@
                 </div>
                 <h3 class="user_name" style="font-size: 22px; font-weight: 800; color: var(--agri-text-heading); margin-bottom: 8px;">---</h3>
                 <div style="display: inline-flex; align-items: center; gap: 6px; background: var(--agri-primary-light); color: var(--agri-primary); padding: 4px 12px; border-radius: 100px; font-size: 13px; font-weight: 700; margin-bottom: 24px;">
-                    <i class="fas fa-seedling"></i> Verified Farmer
+                    <i class="fas fa-seedling"></i>
+                    @if(optional($user)->role === 'user')
+                        Verified Customer
+                    @elseif(optional($user)->role === 'vendor')
+                        Verified Vendor
+                    @elseif(optional($user)->role === 'expert' || optional($user)->role === 'agency_expert')
+                        Verified Expert
+                    @elseif(optional($user)->role === 'admin')
+                        Verified Admin
+                    @else
+                        Verified User
+                    @endif
                 </div>
                 
                 <div style="background: var(--agri-bg); border-radius: 16px; padding: 20px; text-align: left; border: 1px solid var(--agri-border);">
-                    <div style="margin-bottom: 16px;">
-                        <span style="font-size: 11px; text-transform: uppercase; color: var(--agri-text-muted); font-weight: 700; display: block; margin-bottom: 4px;">Wallet Balance</span>
-                        <div class="wallet_balance" style="font-size: 24px; font-weight: 800; color: var(--agri-primary);">---</div>
-                    </div>
-                    <div style="display: flex; align-items: center; gap: 10px; color: var(--agri-text-heading); font-size: 14px; font-weight: 600;">
+                    <div style="display: flex; align-items: center; gap: 10px; color: var(--agri-text-heading); font-size: 14px; font-weight: 600; margin-bottom: 16px;">
                          <i class="fas fa-envelope" style="color: var(--agri-text-muted); width: 16px;"></i>
                          <span class="email">---</span>
                     </div>
-                    <div style="display: flex; align-items: center; gap: 10px; color: var(--agri-text-heading); font-size: 14px; font-weight: 600; margin-top: 10px;">
+                    <div style="display: flex; align-items: center; gap: 10px; color: var(--agri-text-heading); font-size: 14px; font-weight: 600;">
                          <i class="fas fa-phone-alt" style="color: var(--agri-text-muted); width: 16px;"></i>
                          <span class="phone">---</span>
                     </div>
@@ -77,48 +89,6 @@
                 <div class="address">
                     {{-- Addresses injected by JS --}}
                 </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-{{-- Add Wallet Modal --}}
-<div class="modal fade" id="addWalletModal" tabindex="-1" role="dialog" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content" style="border-radius: 20px; border: none; overflow: hidden; box-shadow: 0 20px 50px rgba(0,0,0,0.2);">
-            <div class="modal-header" style="background: var(--agri-primary); color: white; padding: 24px; border: none;">
-                <h5 class="modal-title" style="font-weight: 700; display: flex; align-items: center; gap: 10px;">
-                    <i class="fas fa-wallet"></i> {{trans('lang.add_wallet_amount')}}
-                </h5>
-                <button type="button" class="btn-close btn-close-white" data-dismiss="modal" aria-label="Close" style="border: none; background: transparent; color: white; outline: none;"><i class="fas fa-times"></i></button>
-            </div>
-            <div class="modal-body" style="padding: 32px;">
-                <form id="walletForm">
-                    <div style="margin-bottom: 24px;">
-                        <label class="agri-label">{{trans('lang.amount')}}</label>
-                        <div class="input-group">
-                            <span class="input-group-text bg-light" style="border-color: var(--agri-border);">{{trans('lang.currency_symbol')}}</span>
-                            <input type="number" name="amount" class="form-agri" id="amount" placeholder="0.00" style="margin-bottom: 0; border-left: none;">
-                        </div>
-                        <div id="wallet_error" style="color: var(--agri-error); font-size: 12px; margin-top: 6px; font-weight: 600;"></div>
-                    </div>
-
-                    <div style="margin-bottom: 24px;">
-                        <label class="agri-label">{{trans('lang.note')}}</label>
-                        <textarea name="note" class="form-agri" id="note" rows="3" placeholder="Reason for top-up..."></textarea>
-                    </div>
-
-                    <div id="user_account_not_found_error" style="color: var(--agri-error); font-size: 13px; margin-bottom: 16px; font-weight: 700;"></div>
-
-                    <div style="display: flex; gap: 12px;">
-                        <button type="button" class="btn-agri btn-agri-primary save-form-btn" style="flex: 2; height: 48px;">
-                            <i class="fas fa-check-circle" style="margin-right: 8px;"></i> {{trans('submit')}}
-                        </button>
-                        <button type="button" class="btn-agri btn-agri-outline" data-dismiss="modal" style="flex: 1; height: 48px;">
-                            {{trans('close')}}
-                        </button>
-                    </div>
-                </form>
             </div>
         </div>
     </div>
@@ -157,20 +127,24 @@
     var decimal_degits   = @json($decimalDigits);
 
     // ── User data injected server-side ────────────────────────────────────
-    @if($user)
-    var userData = @json([
-        'first_name'          => $user->first_name,
-        'last_name'           => $user->last_name,
-        'email'               => $user->email,
-        'phone_number'        => $user->phone_number,
-        'wallet_amount'       => $user->wallet_amount,
-        'profile_picture_url' => $user->profile_photo,
-        'is_active'           => $user->is_active,
-        'addresses'           => $user->addresses,
-    ]);
-    @else
-    var userData = null;
-    @endif
+    @php
+        $fullName = trim((string) ($user->name ?? ''));
+        $nameParts = preg_split('/\s+/', $fullName, 2) ?: ['', ''];
+        $firstName = $user->first_name ?? ($nameParts[0] ?? '');
+        $lastName = $user->last_name ?? ($nameParts[1] ?? '');
+        $phoneNumber = $user->phone_number ?? $user->phone ?? '';
+        $isActive = isset($user->is_active) ? (bool) $user->is_active : (bool) ($user->active ?? false);
+        $userData = $user ? [
+            'first_name'          => $firstName,
+            'last_name'           => $lastName,
+            'email'               => $user->email,
+            'phone_number'        => $phoneNumber,
+            'profile_picture_url' => $user->profile_photo,
+            'is_active'           => $isActive,
+            'addresses'           => $user->addresses,
+        ] : null;
+    @endphp
+    var userData = @json($userData);
 
     $(document).ready(function () {
 
@@ -180,27 +154,23 @@
             $(".email").text(user.email || '{{trans("lang.not_mentioned")}}');
             $(".phone").text(user.phone_number || '{{trans("lang.not_mentioned")}}');
 
-            var wallet_balance = user.wallet_amount || 0;
-            if (currencyAtRight) {
-                wallet_balance = parseFloat(wallet_balance).toFixed(decimal_degits) + currentCurrency;
-            } else {
-                wallet_balance = currentCurrency + parseFloat(wallet_balance).toFixed(decimal_degits);
-            }
-            $('.wallet_balance').html(wallet_balance);
-
             var profileImg = '<img class="rounded-circle" style="width:100%; height:100%; object-fit:cover;" src="' + (user.profile_picture_url || placeholderImage) + '" onerror="this.src=\'' + placeholderImage + '\'">';
             $('.profile_image').html(profileImg);
 
             var addressHtml = '';
             if (user.addresses && Array.isArray(user.addresses) && user.addresses.length > 0) {
                 user.addresses.forEach((addr) => {
+                    var label = addr.address_as || addr.label || 'Home';
+                    var primaryAddress = addr.address || [addr.address_line1, addr.address_line2].filter(Boolean).join(', ');
+                    var secondaryAddress = [addr.locality, addr.landmark, addr.city, addr.state, addr.zip, addr.country].filter(Boolean).join(', ');
+
                     addressHtml += '<div class="address-card">';
                     addressHtml += '<div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px;">';
-                    addressHtml += '<span style="font-size:12px; font-weight:800; text-transform:uppercase; letter-spacing:1px; color:var(--agri-primary);">' + (addr.address_as || 'Home') + '</span>';
+                    addressHtml += '<span style="font-size:12px; font-weight:800; text-transform:uppercase; letter-spacing:1px; color:var(--agri-primary);">' + label + '</span>';
                     if(addr.is_default) addressHtml += '<span style="background:var(--agri-primary); color:white; padding:2px 8px; border-radius:4px; font-size:10px; font-weight:700;">DEFAULT</span>';
                     addressHtml += '</div>';
-                    addressHtml += '<h6 style="font-weight:700; color:var(--agri-text-heading); margin-bottom:4px; line-height:1.4;">' + addr.address + '</h6>';
-                    addressHtml += '<p style="font-size:13px; color:var(--agri-text-muted); margin:0;">' + (addr.locality || '') + ' ' + (addr.landmark || '') + '</p>';
+                    addressHtml += '<h6 style="font-weight:700; color:var(--agri-text-heading); margin-bottom:4px; line-height:1.4;">' + (primaryAddress || 'Address not provided') + '</h6>';
+                    addressHtml += '<p style="font-size:13px; color:var(--agri-text-muted); margin:0;">' + secondaryAddress + '</p>';
                     addressHtml += '</div>';
                 });
             } else {
@@ -210,37 +180,6 @@
             $('.address').html(addressHtml);
         }
 
-        $(".save-form-btn").click(function () {
-            var amount = $('#amount').val();
-            if (amount == '') {
-                $('#wallet_error').text('{{trans("lang.add_wallet_amount_error")}}');
-                return false;
-            }
-
-            var note = $('#note').val() || "Manual top-up by admin";
-
-            $.ajax({
-                url: '{{ route("api.admin.users.wallet-topup", ":id") }}'.replace(':id', id),
-                method: 'POST',
-                headers: {
-                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                },
-                data: {
-                    amount: amount,
-                    note: note
-                },
-                success: function(response) {
-                    window.location.reload();
-                },
-                error: function(xhr) {
-                    var errorMsg = 'Error processing wallet topup';
-                    if (xhr.responseJSON && xhr.responseJSON.message) {
-                        errorMsg = xhr.responseJSON.message;
-                    }
-                    $('#wallet_error').text(errorMsg);
-                }
-            });
-        });
     });
 
     function getCookie(name) {

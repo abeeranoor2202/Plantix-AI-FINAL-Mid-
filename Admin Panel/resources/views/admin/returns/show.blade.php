@@ -124,7 +124,7 @@
             @if($return->status === 'approved' && !$return->refund)
             <div class="card-agri" style="padding: 32px; background: white; border: 1px solid #166534; box-shadow: 0 10px 40px rgba(22, 101, 52, 0.08);">
                 <h5 style="font-size: 18px; font-weight: 700; color: #166534; margin-bottom: 24px; display: flex; align-items: center; gap: 10px;">
-                    <i class="fas fa-wallet"></i> Financial Reversal (Refund)
+                    <i class="fas fa-undo-alt"></i> Financial Reversal (Refund)
                 </h5>
                 <form action="{{ route('admin.returns.refund', $return->id) }}" method="POST">
                     @csrf
@@ -138,7 +138,6 @@
                         <div class="col-md-4">
                             <label class="agri-label">DISBURSEMENT METHOD</label>
                             <select name="method" class="form-agri" style="height: 52px; font-weight: 700;">
-                                <option value="wallet">Platform Wallet Credit</option>
                                 <option value="original_payment">Original Payment Method</option>
                                 <option value="bank_transfer">Direct Bank Transfer</option>
                             </select>

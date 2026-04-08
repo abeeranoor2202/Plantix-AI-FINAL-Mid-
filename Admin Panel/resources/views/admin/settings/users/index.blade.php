@@ -35,7 +35,7 @@
                     <span class="input-group-text bg-white border-end-0" style="border-radius: 10px 0 0 10px; border-color: var(--agri-border);">
                         <i class="fas fa-search" style="color: var(--agri-text-muted); font-size: 14px;"></i>
                     </span>
-                    <input type="text" id="search-input" class="form-agri border-start-0" placeholder="Search farmers..." style="margin-bottom: 0; border-radius: 0 10px 10px 0; height: 42px;">
+                    <input type="text" id="search-input" class="form-agri border-start-0" placeholder="Search customers..." style="margin-bottom: 0; border-radius: 0 10px 10px 0; height: 42px;">
                 </div>
 
                 <?php if (in_array('user.delete', json_decode(@session('admin_permissions'),true))) { ?>

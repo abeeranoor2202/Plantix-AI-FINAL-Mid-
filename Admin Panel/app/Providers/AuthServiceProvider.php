@@ -74,7 +74,7 @@ class AuthServiceProvider extends ServiceProvider
             'stores', 'vendors-document', 'drivers-document', 'items', 'item-attribute',
             'category', 'orders', 'dinein-orders', 'coupons', 'payment-method',
             'payments', 'payout-request', 'driver-payments', 'driver-payouts',
-            'store-payouts', 'wallet-transaction', 'drivers', 'approve_drivers',
+            'store-payouts', 'drivers', 'approve_drivers',
             'pending_drivers', 'reports', 'banners', 'cms', 'documents',
             'email-template', 'dynamic-notifications', 'general-notifications',
             'gift-cards', 'language', 'currency', 'tax', 'zone',

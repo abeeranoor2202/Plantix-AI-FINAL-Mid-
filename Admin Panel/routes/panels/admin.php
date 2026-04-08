@@ -51,6 +51,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         });
         Route::middleware(['permission:users,users.create'])->group(function () {
             Route::get('/users/create', [\App\Http\Controllers\UserController::class, 'create'])->name('users.create');
+            Route::post('/users/api/store', [\App\Http\Controllers\UserController::class, 'storeWebUser'])->name('users.api.store');
         });
         Route::middleware(['permission:users,users.view'])->group(function () {
             Route::get('/users/view/{id}', [\App\Http\Controllers\UserController::class, 'view'])->name('users.view');

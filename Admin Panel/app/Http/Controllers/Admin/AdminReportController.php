@@ -261,7 +261,7 @@ class AdminReportController extends Controller
      * GET /admin/reports/refunds
      *
      * Returns total refund amount + count, grouped by day/week/month
-     * and broken down by method (stripe / wallet / bank_transfer).
+     * and broken down by method (stripe / bank_transfer).
      */
     public function refunds(Request $request): JsonResponse
     {

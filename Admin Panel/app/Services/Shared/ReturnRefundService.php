@@ -192,7 +192,7 @@ class ReturnRefundService
 
             if (! $payment || ! $payment->gateway_transaction_id) {
                 throw new \DomainException(
-                    'No completed Stripe payment found for this order. Use wallet or bank transfer.'
+                    'No completed Stripe payment found for this order. Use original payment or bank transfer.'
                 );
             }
 
@@ -254,9 +254,8 @@ class ReturnRefundService
                 'changed_by' => $processedBy->id,
             ]);
 
-            // Wallet credit
             if ($method === 'wallet') {
-                $return->user->increment('wallet_amount', $amount);
+                throw new \DomainException('Wallet refunds are disabled. Use original payment or bank transfer.');
             }
 
             // Notify customer

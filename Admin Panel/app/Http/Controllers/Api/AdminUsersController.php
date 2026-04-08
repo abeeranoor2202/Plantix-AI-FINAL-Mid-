@@ -52,7 +52,6 @@ class AdminUsersController extends Controller
                     'phone_number' => $user->phone_number ?? '',
                     'profile_picture_url' => $user->profile_picture_url ?? null,
                     'is_active' => (bool) $user->is_active,
-                    'wallet_amount' => $user->wallet_amount ?? 0,
                     'addresses' => $user->addresses ?? [],
                 ]
             ]);
@@ -249,51 +248,4 @@ class AdminUsersController extends Controller
         }
     }
 
-    /**
-     * Add wallet topup
-     */
-    public function walletTopup(Request $request, $id)
-    {
-        try {
-            $user = User::find($id);
-            if (!$user) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'User not found'
-                ], 404);
-            }
-
-            $validated = $request->validate([
-                'amount' => 'required|numeric|min:0.01',
-                'note' => 'nullable|string',
-            ]);
-
-            $user->wallet_amount = ($user->wallet_amount ?? 0) + $validated['amount'];
-            $user->save();
-
-            // Record wallet transaction
-            \DB::table('wallet_transactions')->insert([
-                'user_id' => $id,
-                'amount' => $validated['amount'],
-                'type' => 'credit',
-                'note' => $validated['note'] ?? 'Admin topup',
-                'payment_method' => 'admin',
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]);
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Wallet topup successful',
-                'data' => [
-                    'new_wallet_amount' => $user->wallet_amount
-                ]
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Error processing wallet topup: ' . $e->getMessage()
-            ], 500);
-        }
-    }
 }

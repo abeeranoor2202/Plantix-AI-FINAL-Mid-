@@ -29,7 +29,7 @@ class ReturnStatusNotification extends Notification implements ShouldQueue
         $message = match ($this->newStatus) {
             'approved'  => "Your return request for Order #{$this->return->order_id} has been **approved**. A refund will be processed shortly.",
             'rejected'  => "Your return request for Order #{$this->return->order_id} has been **rejected**. Please contact support if you have questions.",
-            'refunded'  => "Your refund for Order #{$this->return->order_id} has been **processed** and credited to your wallet.",
+            'refunded'  => "Your refund for Order #{$this->return->order_id} has been **processed** and will be disbursed via the selected refund method.",
             default     => "Your return request status has been updated to **{$label}**.",
         };
 

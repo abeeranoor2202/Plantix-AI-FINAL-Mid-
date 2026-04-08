@@ -78,6 +78,53 @@
                     </div>
 
                     <div style="margin-bottom: 40px; background: var(--agri-bg); padding: 24px; border-radius: 16px; border: 1px solid var(--agri-border);">
+                        <h4 style="font-size: 16px; font-weight: 700; color: var(--agri-text-heading); margin-bottom: 16px; display: flex; align-items: center; gap: 10px;">
+                            <i class="fas fa-map-marker-alt"></i> Customer Address
+                        </h4>
+                        <div class="row g-4">
+                            <div class="col-md-4">
+                                <label class="agri-label">Address Label</label>
+                                <select class="form-agri address_label" style="height: 46px;">
+                                    <option value="">Select label</option>
+                                    <option value="Home">Home</option>
+                                    <option value="Work">Work</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+
+                            <div class="col-md-8">
+                                <label class="agri-label">Address Line 1</label>
+                                <input type="text" class="form-agri address_line1" placeholder="House / Street / Area">
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="agri-label">Address Line 2</label>
+                                <input type="text" class="form-agri address_line2" placeholder="Apartment, floor, suite (optional)">
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="agri-label">City</label>
+                                <input type="text" class="form-agri city" placeholder="City">
+                            </div>
+
+                            <div class="col-md-4">
+                                <label class="agri-label">State / Province</label>
+                                <input type="text" class="form-agri state" placeholder="State or province">
+                            </div>
+
+                            <div class="col-md-4">
+                                <label class="agri-label">ZIP / Postal Code</label>
+                                <input type="text" class="form-agri zip" placeholder="ZIP or postal code">
+                            </div>
+
+                            <div class="col-md-4">
+                                <label class="agri-label">Country</label>
+                                <input type="text" class="form-agri country" placeholder="Country">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="margin-bottom: 40px; background: var(--agri-bg); padding: 24px; border-radius: 16px; border: 1px solid var(--agri-border);">
                          <h4 style="font-size: 16px; font-weight: 700; color: var(--agri-text-heading); margin-bottom: 16px;">{{trans('lang.store_image')}}</h4>
                          <div style="display: flex; align-items: center; gap: 20px;">
                              <div class="user_image" style="width: 80px; height: 80px; border-radius: 12px; background: white; border: 1px solid var(--agri-border); overflow: hidden; display: flex; align-items: center; justify-content: center;">
@@ -158,13 +205,29 @@
 
     // ── User data injected server-side ────────────────────────────────────
     @if($user)
+    @php
+        $fullName = trim((string) ($user->name ?? ''));
+        $nameParts = preg_split('/\s+/', $fullName, 2) ?: ['', ''];
+        $firstName = $user->first_name ?? ($nameParts[0] ?? '');
+        $lastName = $user->last_name ?? ($nameParts[1] ?? '');
+        $phoneNumber = $user->phone_number ?? $user->phone ?? '';
+        $isActive = isset($user->is_active) ? (bool) $user->is_active : (bool) ($user->active ?? false);
+        $defaultAddress = $user->addresses->firstWhere('is_default', true) ?? $user->addresses->first();
+    @endphp
     var userData = {
-        first_name:          '{{ addslashes($user->first_name ?? '') }}',
-        last_name:           '{{ addslashes($user->last_name ?? '') }}',
+        first_name:          '{{ addslashes($firstName) }}',
+        last_name:           '{{ addslashes($lastName) }}',
         email:               '{{ addslashes($user->email ?? '') }}',
-        phone_number:        '{{ addslashes($user->phone ?? '') }}',
+        phone_number:        '{{ addslashes($phoneNumber) }}',
         profile_picture_url: '{{ $user->profile_photo ? asset('storage/'.$user->profile_photo) : '' }}',
-        is_active:           {{ $user->active ? 'true' : 'false' }},
+        is_active:           {{ $isActive ? 'true' : 'false' }},
+        address_label:       '{{ addslashes($defaultAddress->label ?? '') }}',
+        address_line1:       '{{ addslashes($defaultAddress->address_line1 ?? '') }}',
+        address_line2:       '{{ addslashes($defaultAddress->address_line2 ?? '') }}',
+        city:                '{{ addslashes($defaultAddress->city ?? '') }}',
+        state:               '{{ addslashes($defaultAddress->state ?? '') }}',
+        zip:                 '{{ addslashes($defaultAddress->zip ?? '') }}',
+        country:             '{{ addslashes($defaultAddress->country ?? '') }}',
     };
     var totalOrders = {{ (int)$totalOrders }};
     @else
@@ -198,6 +261,13 @@
             $(".user_last_name").val(user.last_name || '');
             $(".user_email").val(user.email || '');
             $(".user_phone").val(user.phone_number || '');
+            $(".address_label").val(user.address_label || '');
+            $(".address_line1").val(user.address_line1 || '');
+            $(".address_line2").val(user.address_line2 || '');
+            $(".city").val(user.city || '');
+            $(".state").val(user.state || '');
+            $(".zip").val(user.zip || '');
+            $(".country").val(user.country || '');
 
             var imgSrc = user.profile_picture_url || placeholderImage;
             $(".user_image").html('<img class="rounded" style="width:100%; height:100%; object-fit:cover;" src="' + imgSrc + '" alt="image">');
@@ -214,12 +284,29 @@
             var userLastName = $(".user_last_name").val();
             var userPhone = $(".user_phone").val();
             var active = $(".user_active").is(":checked");
+            var addressLabel = $(".address_label").val();
+            var addressLine1 = $(".address_line1").val();
+            var addressLine2 = $(".address_line2").val();
+            var city = $(".city").val();
+            var state = $(".state").val();
+            var zip = $(".zip").val();
+            var country = $(".country").val();
+            var hasAddressInput = addressLabel !== '' || addressLine1 !== '' || addressLine2 !== '' || city !== '' || state !== '' || zip !== '' || country !== '';
 
             if (userFirstName == '') {
                 $(".error_top").show().html("<p>{{trans('lang.user_firstname_error')}}</p>");
                 window.scrollTo(0, 0);
             } else if (userLastName == '') {
                 $(".error_top").show().html("<p>{{trans('lang.user_lastname_error')}}</p>");
+                window.scrollTo(0, 0);
+            } else if (hasAddressInput && addressLine1 == '') {
+                $(".error_top").show().html("<p>Address Line 1 is required when adding an address.</p>");
+                window.scrollTo(0, 0);
+            } else if (hasAddressInput && city == '') {
+                $(".error_top").show().html("<p>City is required when adding an address.</p>");
+                window.scrollTo(0, 0);
+            } else if (hasAddressInput && country == '') {
+                $(".error_top").show().html("<p>Country is required when adding an address.</p>");
                 window.scrollTo(0, 0);
             } else {
                 jQuery("#data-table_processing").show();
@@ -231,6 +318,15 @@
                 formData.append('last_name', userLastName);
                 formData.append('phone_number', userPhone);
                 formData.append('is_active', active ? 1 : 0);
+                if (hasAddressInput) {
+                    formData.append('address_label', addressLabel);
+                    formData.append('address_line1', addressLine1);
+                    formData.append('address_line2', addressLine2);
+                    formData.append('city', city);
+                    formData.append('state', state);
+                    formData.append('zip', zip);
+                    formData.append('country', country);
+                }
                 if (photoFile) {
                     formData.append('profile_picture', photoFile);
                 }
@@ -305,3 +401,6 @@
             }
         }
         return '';
+    }
+</script>
+@endsection
