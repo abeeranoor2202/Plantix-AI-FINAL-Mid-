@@ -51,6 +51,15 @@ class VendorProductController extends Controller
         return view('vendor.products.form', compact('categories'));
     }
 
+    public function show(int $id): View
+    {
+        $product = Product::with(['category', 'images', 'stock'])
+            ->where('vendor_id', $this->vendorId())
+            ->findOrFail($id);
+
+        return view('vendor.products.show', compact('product'));
+    }
+
     public function store(StoreVendorProductRequest $request): RedirectResponse
     {
         $vendorId = $this->vendorId();
