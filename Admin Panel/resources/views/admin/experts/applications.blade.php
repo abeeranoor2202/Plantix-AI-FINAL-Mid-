@@ -75,8 +75,8 @@
     <div class="card-agri" style="padding: 0; overflow: hidden;">
         <div class="card-body p-0">
             <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0">
-                    <thead class="table-light">
+                <table class="table align-middle mb-0">
+                    <thead>
                         <tr>
                             <th>#</th>
                             <th>Applicant</th>
@@ -149,7 +149,7 @@
                                                 </div>
                                                 <div class="modal-body">
                                                     <label class="form-label fw-semibold">Reason <span class="text-danger">*</span></label>
-                                                    <textarea name="reason" class="form-control" rows="4" required
+                                                    <textarea name="reason" class="form-agri" rows="4" required
                                                               placeholder="Explain why this application is being rejected..."></textarea>
                                                 </div>
                                                 <div class="modal-footer">
