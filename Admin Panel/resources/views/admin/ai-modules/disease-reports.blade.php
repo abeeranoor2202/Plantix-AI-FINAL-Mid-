@@ -19,7 +19,6 @@
         </a>
     </div>
 
-    <div class="card shadow-sm">
     <div class="card-agri" style="padding: 0; background: white; border: none; box-shadow: 0 10px 30px rgba(0,0,0,0.04); overflow: hidden;">
         <div class="table-responsive">
             <table class="table mb-0" style="vertical-align: middle;">
