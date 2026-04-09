@@ -32,7 +32,7 @@
                     </div>
                 @endif
 
-                <form method="post" action="{{ route('admin.users.update', $user->id) }}">
+                <form method="post" action="{{ route('admin.admin.users.update', $user->id) }}">
                     @csrf
 
                     {{-- Profile Section --}}
