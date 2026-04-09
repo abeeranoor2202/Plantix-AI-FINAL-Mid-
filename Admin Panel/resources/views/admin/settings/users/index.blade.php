@@ -22,6 +22,11 @@
         </div>
     </div>
 
+    @php
+        $permissions = json_decode(@session('admin_permissions'), true) ?? [];
+        $canDeleteUsers = in_array('users.delete', $permissions) || in_array('user.delete', $permissions) || in_array('admin.users.delete', $permissions);
+    @endphp
+
     {{-- Table Card --}}
     <div class="card-agri" style="padding: 0; overflow: hidden;">
         <div class="card-header bg-white border-bottom-0 pt-4 pb-3 px-4 d-flex justify-content-between align-items-center">
@@ -37,12 +42,6 @@
                     </span>
                     <input type="text" id="search-input" class="form-agri border-start-0" placeholder="Search customers..." style="margin-bottom: 0; border-radius: 0 10px 10px 0; height: 42px;">
                 </div>
-
-                <?php if (in_array('user.delete', json_decode(@session('admin_permissions'),true))) { ?>
-                    <button id="deleteAll" class="btn-agri btn-agri-outline" style="color: var(--agri-error); border-color: var(--agri-error)20; background: var(--agri-error-light); padding: 8px 20px; font-size: 14px; height: 42px;">
-                        <i class="fas fa-trash-alt" style="margin-right: 6px;"></i> Delete Selected
-                    </button>
-                <?php } ?>
             </div>
         </div>
         
@@ -50,11 +49,6 @@
             <table id="userTable" class="table mb-0" style="vertical-align: middle;">
                 <thead style="background: var(--agri-bg);">
                     <tr>
-                        <th style="padding: 16px 24px; border: none; width: 50px;">
-                            <div class="form-check m-0">
-                                <input type="checkbox" id="is_active" class="form-check-input" style="cursor: pointer;">
-                            </div>
-                        </th>
                         <th style="padding: 16px 24px; font-size: 12px; font-weight: 600; color: var(--agri-text-muted); text-transform: uppercase; border: none;">{{trans('lang.extra_image')}}</th>
                         <th style="padding: 16px 24px; font-size: 12px; font-weight: 600; color: var(--agri-text-muted); text-transform: uppercase; border: none;">{{trans('lang.user_name')}}</th>
                         <th style="padding: 16px 24px; font-size: 12px; font-weight: 600; color: var(--agri-text-muted); text-transform: uppercase; border: none;">{{trans('lang.email')}}</th>
@@ -69,18 +63,29 @@
                         $editRoute = route('admin.users.edit', $user->id);
                         $viewRoute = route('admin.users.view', $user->id);
                         $deleteRoute = route('admin.users.delete', $user->id);
-                        $canDelete = in_array('user.delete', json_decode(@session('admin_permissions'), true) ?? []);
+                        $canDelete = $canDeleteUsers;
+
+                        $rawPhoto = (string) ($user->profile_photo ?? '');
+                        $normalizedPhoto = ltrim($rawPhoto, '/');
+                        $isExternalPhoto = \Illuminate\Support\Str::startsWith($rawPhoto, ['http://', 'https://', '//']);
+
+                        if ($normalizedPhoto === '') {
+                            $photoUrl = asset('images/favicon.png');
+                        } elseif ($isExternalPhoto) {
+                            $photoUrl = $rawPhoto;
+                        } elseif (\Illuminate\Support\Str::startsWith($normalizedPhoto, 'storage/')) {
+                            $photoUrl = asset($normalizedPhoto);
+                        } else {
+                            $photoUrl = asset('storage/' . $normalizedPhoto);
+                        }
+
+                        $fallbackPhotoUrl = asset('images/favicon.png');
                     @endphp
                     <tr>
                         <td class="px-4 py-3">
-                            <div class="form-check m-0">
-                                <input type="checkbox" class="is_open form-check-input" data-id="{{ $user->id }}" style="cursor:pointer;">
-                            </div>
-                        </td>
-                        <td class="px-4 py-3">
                             <div style="width:40px;height:40px;border-radius:8px;overflow:hidden;border:1px solid var(--agri-border);">
-                                <img src="{{ $user->profile_photo ? asset('storage/'.$user->profile_photo) : asset('images/placeholder.png') }}"
-                                     onerror="this.src='{{ asset('images/placeholder.png') }}'"
+                                <img src="{{ $photoUrl }}"
+                                     onerror="this.onerror=null;this.src='{{ $fallbackPhotoUrl }}'"
                                      style="width:100%;height:100%;object-fit:cover;" alt="">
                             </div>
                         </td>
@@ -118,7 +123,7 @@
                         </td>
                     </tr>
                     @empty
-                    <tr><td colspan="7" class="text-center py-5" style="color:var(--agri-text-muted);">{{trans('lang.no_record_found')}}</td></tr>
+                    <tr><td colspan="6" class="text-center py-5" style="color:var(--agri-text-muted);">{{trans('lang.no_record_found')}}</td></tr>
                     @endforelse
                 </tbody>
             </table>
@@ -189,20 +194,6 @@
             $(this).toggle($(this).text().toLowerCase().indexOf(val) > -1);
         });
     });
-
-        $('#is_active').on('click', function () {
-            $('#userTable .is_open').prop('checked', $(this).prop('checked'));
-        });
-
-        $('#deleteAll').on('click', function () {
-            var ids = $('#userTable .is_open:checked').map(function () {
-                return $(this).data('id');
-            }).get();
-            if (!ids.length) { alert("{{ trans('lang.select_delete_alert') }}"); return; }
-            if (!confirm("{{ trans('lang.selected_delete_alert') }}")) return;
-            $("#data-table_processing").show();
-            window.location.href = '{{ route("admin.users.delete", "__ID__") }}'.replace('__ID__', ids[0]);
-        });
 
         $(document).on('change', '.toggle-active', function () {
             var id  = $(this).data('id');
