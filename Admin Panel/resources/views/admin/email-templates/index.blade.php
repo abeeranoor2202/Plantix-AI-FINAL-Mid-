@@ -48,13 +48,13 @@
                                 <td>{{ $template->subject ?: '—' }}</td>
                                 <td>
                                     @if($template->is_active)
-                                        <span class="badge bg-success">Active</span>
+                                        <span class="badge-agri" style="background:#DCFCE7; color:#166534; border:1px solid #BBF7D0;">Active</span>
                                     @else
-                                        <span class="badge bg-secondary">Inactive</span>
+                                        <span class="badge-agri" style="background:#FEE2E2; color:#991B1B; border:1px solid #FECACA;">Inactive</span>
                                     @endif
                                 </td>
                                 <td class="text-end">
-                                    <a href="{{ route('admin.email-templates.save', $template->id) }}" class="btn btn-sm btn-outline-success" style="border-radius:8px;font-weight:700;">
+                                    <a href="{{ route('admin.email-templates.save', $template->id) }}" class="btn-agri btn-agri-outline" style="border-radius:8px;font-weight:700; text-decoration: none; padding: 6px 12px;">
                                         <i class="fas fa-edit me-1"></i>{{ trans('lang.edit') }}
                                     </a>
                                 </td>
@@ -80,7 +80,7 @@
 <script>
     $(document).ready(function () {
 
-    $('#search-input').on('keyup', function () {
+    $('#custom-search-input').on('keyup', function () {
         var val = $(this).val().toLowerCase();
         $('#emailTemplatesTable tbody tr').filter(function () {
             $(this).toggle($(this).text().toLowerCase().indexOf(val) > -1);
