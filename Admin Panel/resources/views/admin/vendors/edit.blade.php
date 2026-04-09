@@ -90,15 +90,15 @@
 
             {{-- Action Buttons --}}
             <div style="border-top: 1px solid var(--agri-border); padding-top: 24px; display: flex; gap: 12px; justify-content: flex-end;">
-                <a href="{{ route('admin.vendors') }}" class="btn btn-secondary">
+                <a href="{{ route('admin.vendors') }}" class="btn-agri btn-agri-outline" style="text-decoration: none; display: inline-flex; align-items: center; justify-content: center;">
                     Cancel
                 </a>
                 @if(!$vendor->is_approved)
-                    <button type="submit" name="action" value="approve" class="btn btn-success">
+                    <button type="submit" name="action" value="approve" class="btn-agri btn-agri-primary">
                         <i class="fas fa-check"></i> Approve Vendor
                     </button>
                 @endif
-                <button type="submit" name="action" value="toggle_active" class="btn btn-{{ $vendor->is_active ? 'danger' : 'success' }}">
+                <button type="submit" name="action" value="toggle_active" class="btn-agri" style="{{ $vendor->is_active ? 'background:#FEF2F2;color:#991B1B;border:1px solid #FECACA;' : 'background:#D1FAE5;color:#065F46;border:1px solid #A7F3D0;' }}">
                     <i class="fas fa-{{ $vendor->is_active ? 'lock' : 'unlock' }}"></i>
                     {{ $vendor->is_active ? 'Deactivate' : 'Activate' }}
                 </button>
