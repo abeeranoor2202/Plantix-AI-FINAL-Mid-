@@ -18,7 +18,7 @@
             <h1 style="font-size: 26px; font-weight: 700; color: var(--agri-primary-dark); margin: 0;"><i class="fa fa-history text-success me-2"></i> Broadcast History</h1>
         </div>
         <div style="display: flex; gap: 12px; align-items: center;">
-            <a href="{{ route('admin.notifications.broadcast') }}" class="btn-agri btn-agri-primary" style="text-decoration: none;">
+            <a href="{{ route('admin.notifications.broadcast.index') }}" class="btn-agri btn-agri-primary" style="text-decoration: none;">
                 <i class="fa fa-bullhorn me-2"></i> New Broadcast
             </a>
         </div>
@@ -45,7 +45,7 @@
                         <i class="fa fa-bullhorn" style="font-size: 48px; opacity: 0.3; margin-bottom: 16px;"></i>
                         <p style="margin: 0; font-weight: 600; color: var(--agri-text-heading);">No broadcasts sent yet.</p>
                         <div style="margin-top: 24px;">
-                            <a href="{{ route('admin.notifications.broadcast') }}" class="btn-agri btn-agri-outline" style="text-decoration: none;">
+                            <a href="{{ route('admin.notifications.broadcast.index') }}" class="btn-agri btn-agri-outline" style="text-decoration: none;">
                                 Send your first broadcast
                             </a>
                         </div>
