@@ -107,16 +107,16 @@
                                 <td>{{ $coupon->expires_at ? \Carbon\Carbon::parse($coupon->expires_at)->format('d M Y') : '—' }}</td>
                                 <td>
                                     @if($coupon->is_active)
-                                        <span class="badge bg-success">Active</span>
+                                        <span class="badge-agri badge-agri-success">Active</span>
                                     @else
-                                        <span class="badge bg-secondary">Inactive</span>
+                                        <span class="badge-agri badge-agri-error">Inactive</span>
                                     @endif
                                 </td>
                                 <td class="text-end">
-                                    <a href="{{ route('admin.coupons.edit', $coupon->id) }}" class="btn btn-sm btn-outline-success me-1" style="border-radius:8px;font-weight:700;">
+                                    <a href="{{ route('admin.coupons.edit', $coupon->id) }}" class="btn-agri btn-agri-outline me-1" style="border-radius:8px;font-weight:700; text-decoration: none; padding: 6px 12px;">
                                         <i class="fas fa-edit me-1"></i>{{ trans('lang.edit') }}
                                     </a>
-                                    <button class="btn btn-sm btn-outline-danger delete-coupon-btn" data-id="{{ $coupon->id }}" style="border-radius:8px;font-weight:700;">
+                                    <button class="btn-agri delete-coupon-btn" data-id="{{ $coupon->id }}" style="border-radius:8px;font-weight:700; padding: 6px 12px; background: #FEF2F2; color: #991B1B; border: 1px solid #FECACA;">
                                         <i class="fas fa-trash me-1"></i>{{ trans('lang.delete') }}
                                     </button>
                                 </td>
