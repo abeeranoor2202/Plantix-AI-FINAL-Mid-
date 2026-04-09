@@ -3,13 +3,21 @@
 @section('title', 'Expert Applications')
 
 @section('content')
-<div class="container-fluid py-4">
+<div class="container-fluid" style="padding-top: 24px; padding-bottom: 40px;">
 
     {{-- Header --}}
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h4 class="mb-0 fw-bold">Expert Applications</h4>
-        <a href="{{ route('admin.experts.index') }}" class="btn btn-outline-secondary btn-sm">
-            ← Back to Experts
+    <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 32px; gap: 16px; flex-wrap: wrap;">
+        <div>
+            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
+                <a href="{{ route('admin.experts.index') }}" style="text-decoration: none; color: var(--agri-text-muted); font-size: 14px; font-weight: 600;">Experts</a>
+                <i class="fas fa-chevron-right" style="font-size: 10px; color: var(--agri-text-muted);"></i>
+                <span style="color: var(--agri-primary); font-size: 14px; font-weight: 600;">Applications</span>
+            </div>
+            <h1 style="font-size: 28px; font-weight: 700; color: var(--agri-primary-dark); margin: 0;">Expert Applications</h1>
+            <p style="color: var(--agri-text-muted); margin: 4px 0 0 0;">Review incoming expert applications and manage approval decisions.</p>
+        </div>
+        <a href="{{ route('admin.experts.index') }}" class="btn-agri btn-agri-outline" style="text-decoration: none; display: flex; align-items: center; gap: 8px;">
+            <i class="fas fa-arrow-left"></i> Back to Experts
         </a>
     </div>
 
@@ -23,7 +31,7 @@
         ] as $s)
         <div class="col-6 col-md-3">
             <a href="{{ request()->fullUrlWithQuery(['status' => $s['key']]) }}" class="text-decoration-none">
-                <div class="card border-0 shadow-sm h-100">
+                <div class="card-agri h-100">
                     <div class="card-body text-center">
                         <div class="fs-2 fw-bold text-{{ $s['color'] }}">{{ $stats[$s['key']] ?? 0 }}</div>
                         <div class="text-muted small">{{ $s['label'] }}</div>
@@ -35,17 +43,19 @@
     </div>
 
     {{-- Filter bar --}}
-    <form method="GET" class="mb-3 d-flex gap-2 flex-wrap">
-        <select name="status" class="form-select form-select-sm w-auto">
-            <option value="">Needs Review (default)</option>
-            <option value="pending"      @selected(request('status') === 'pending')>Pending</option>
-            <option value="under_review" @selected(request('status') === 'under_review')>Under Review</option>
-            <option value="approved"     @selected(request('status') === 'approved')>Approved</option>
-            <option value="rejected"     @selected(request('status') === 'rejected')>Rejected</option>
-        </select>
-        <button class="btn btn-primary btn-sm">Filter</button>
-        <a href="{{ route('admin.experts.applications.index') }}" class="btn btn-outline-secondary btn-sm">Reset</a>
-    </form>
+    <div class="card-agri mb-3" style="padding: 16px;">
+        <form method="GET" class="d-flex gap-2 flex-wrap align-items-center">
+            <select name="status" class="form-agri" style="width: auto; min-width: 220px;">
+                <option value="">Needs Review (default)</option>
+                <option value="pending"      @selected(request('status') === 'pending')>Pending</option>
+                <option value="under_review" @selected(request('status') === 'under_review')>Under Review</option>
+                <option value="approved"     @selected(request('status') === 'approved')>Approved</option>
+                <option value="rejected"     @selected(request('status') === 'rejected')>Rejected</option>
+            </select>
+            <button class="btn-agri btn-agri-primary" type="submit">Filter</button>
+            <a href="{{ route('admin.experts.applications.index') }}" class="btn-agri btn-agri-outline" style="text-decoration: none;">Reset</a>
+        </form>
+    </div>
 
     @if(session('success'))
     <div class="alert alert-success alert-dismissible fade show" role="alert">
@@ -62,7 +72,7 @@
     @endif
 
     {{-- Table --}}
-    <div class="card shadow-sm">
+    <div class="card-agri" style="padding: 0; overflow: hidden;">
         <div class="card-body p-0">
             <div class="table-responsive">
                 <table class="table table-hover align-middle mb-0">
@@ -105,7 +115,7 @@
                                     @if($app->isPending())
                                     <form action="{{ route('admin.experts.applications.under-review', $app->id) }}" method="POST">
                                         @csrf
-                                        <button class="btn btn-outline-info btn-sm">Start Review</button>
+                                        <button class="btn-agri" style="padding: 6px 10px; background: #e0f2fe; color: #0c4a6e; border: 1px solid #bae6fd; font-size: 12px;">Start Review</button>
                                     </form>
                                     @endif
 
@@ -114,11 +124,11 @@
                                     <form action="{{ route('admin.experts.applications.approve', $app->id) }}" method="POST"
                                           onsubmit="return confirm('Approve this application and create an expert account?')">
                                         @csrf
-                                        <button class="btn btn-success btn-sm">Approve</button>
+                                        <button class="btn-agri btn-agri-primary" style="padding: 6px 10px; font-size: 12px;">Approve</button>
                                     </form>
 
                                     {{-- Reject --}}
-                                    <button class="btn btn-outline-danger btn-sm"
+                                    <button class="btn-agri" style="padding: 6px 10px; background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; font-size: 12px;"
                                             data-bs-toggle="modal"
                                             data-bs-target="#rejectModal{{ $app->id }}">
                                         Reject
@@ -143,8 +153,8 @@
                                                               placeholder="Explain why this application is being rejected..."></textarea>
                                                 </div>
                                                 <div class="modal-footer">
-                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                                                    <button type="submit" class="btn btn-danger">Confirm Rejection</button>
+                                                    <button type="button" class="btn-agri btn-agri-outline" data-bs-dismiss="modal">Cancel</button>
+                                                    <button type="submit" class="btn-agri" style="background: #fef2f2; color: #991b1b; border: 1px solid #fecaca;">Confirm Rejection</button>
                                                 </div>
                                             </form>
                                         </div>
