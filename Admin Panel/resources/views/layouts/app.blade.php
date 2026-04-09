@@ -67,6 +67,7 @@
     
     <!-- AgriTech Redesign: Core Design System -->
     <link href="{{ asset('css/agritech-redesign.css') }}" rel="stylesheet">
+    <link href="{{ asset('css/admin-customer-unified.css') }}" rel="stylesheet">
 
     <style>
         /* Modern structure overrides */
@@ -85,11 +86,45 @@
             top: 0;
             z-index: 1050;
         }
+
+        /* Keep admin sidebar expanded so menu names remain fully visible. */
+        @media (min-width: 768px) {
+            body.admin-sidebar-lock.mini-sidebar .left-sidebar {
+                width: 240px;
+            }
+
+            body.admin-sidebar-lock.mini-sidebar .navbar-header {
+                width: 240px;
+            }
+
+            body.admin-sidebar-lock.mini-sidebar .page-wrapper {
+                padding-left: 240px !important;
+                margin-left: 0 !important;
+            }
+
+            body.admin-sidebar-lock.mini-sidebar .footer {
+                left: 240px;
+            }
+
+            body.admin-sidebar-lock.mini-sidebar .scroll-sidebar {
+                overflow-x: hidden !important;
+                position: relative !important;
+            }
+
+            body.admin-sidebar-lock.mini-sidebar .sidebar-nav #sidebarnav > li > a {
+                width: auto !important;
+            }
+
+            body.admin-sidebar-lock.mini-sidebar .sidebar-nav #sidebarnav > li:hover > a {
+                width: auto !important;
+                background: transparent !important;
+            }
+        }
     </style>
 
 </head>
 
-<body>
+<body class="admin-sidebar-lock admin-unified-ui">
 
 
 
@@ -206,6 +241,25 @@
 
 
 
+</script>
+
+<script type="text/javascript">
+    (function ($) {
+        function keepSidebarExpanded() {
+            if (window.innerWidth >= 768) {
+                $('body').removeClass('mini-sidebar');
+                $('.navbar-brand span').show();
+            }
+        }
+
+        $(window).on('resize.adminSidebarLock', keepSidebarExpanded);
+
+        $(document).on('click', '.sidebartoggler', function () {
+            setTimeout(keepSidebarExpanded, 0);
+        });
+
+        $(keepSidebarExpanded);
+    })(jQuery);
 </script>
 
 <!-- Firebase has been removed from the application -->
