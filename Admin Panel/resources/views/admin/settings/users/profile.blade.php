@@ -135,10 +135,10 @@
 
                         <div class="card-footer bg-white border-top-0 pt-4 px-0 pb-0">
                             <div class="d-flex justify-content-end gap-2">
-                                <a href="{!! route('admin.dashboard') !!}" class="btn btn-light px-4 rounded-md">
+                                <a href="{!! route('admin.dashboard') !!}" class="btn-agri btn-agri-outline px-4 rounded-md" style="text-decoration: none; display: inline-flex; align-items: center;">
                                     <i class="fa-solid fa-xmark me-2"></i>{{ trans('lang.cancel')}}
                                 </a>
-                                <button type="submit" class="btn btn-agri-primary px-5 rounded-md shadow-sm">
+                                <button type="submit" class="btn-agri btn-agri-primary px-5 rounded-md shadow-sm">
                                     <i class="fa-solid fa-floppy-disk me-2"></i> {{ trans('lang.save')}}
                                 </button>
                             </div>
