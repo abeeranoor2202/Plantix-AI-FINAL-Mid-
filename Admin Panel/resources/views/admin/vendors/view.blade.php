@@ -16,7 +16,7 @@
             </h1>
         </div>
         <div style="display: flex; gap: 12px;">
-            <a href="{{ route('admin.vendors.edit', $vendor->id) }}" class="btn btn-primary">
+            <a href="{{ route('admin.vendors.edit', $vendor->id) }}" class="btn-agri btn-agri-primary" style="text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
                 <i class="fas fa-edit"></i> Edit Vendor
             </a>
         </div>
@@ -101,7 +101,7 @@
             <form method="POST" action="{{ route('admin.vendors.toggle', $vendor->id) }}" style="display: inline;">
                 @csrf
                 <input type="hidden" name="action" value="toggle_active">
-                <button type="submit" class="btn btn-{{ $vendor->is_active ? 'danger' : 'success' }}">
+                <button type="submit" class="btn-agri" style="{{ $vendor->is_active ? 'background:#FEF2F2;color:#991B1B;border:1px solid #FECACA;' : 'background:#D1FAE5;color:#065F46;border:1px solid #A7F3D0;' }}">
                     <i class="fas fa-{{ $vendor->is_active ? 'lock' : 'unlock' }}"></i>
                     {{ $vendor->is_active ? 'Deactivate' : 'Activate' }} Vendor
                 </button>
@@ -110,7 +110,7 @@
                 <form method="POST" action="{{ route('admin.vendors.toggle', $vendor->id) }}" style="display: inline;">
                     @csrf
                     <input type="hidden" name="action" value="approve">
-                    <button type="submit" class="btn btn-success">
+                    <button type="submit" class="btn-agri btn-agri-primary">
                         <i class="fas fa-check"></i> Approve Vendor
                     </button>
                 </form>
@@ -136,7 +136,7 @@
 
     {{-- Back Link --}}
     <div>
-        <a href="{{ route('admin.vendors') }}" class="btn btn-secondary">
+        <a href="{{ route('admin.vendors') }}" class="btn-agri btn-agri-outline" style="text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
             <i class="fas fa-arrow-left"></i> Back to Vendors
         </a>
     </div>
