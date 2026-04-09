@@ -3,23 +3,30 @@
 @section('title', 'Expert Audit Log')
 
 @section('content')
-<div class="container-fluid py-4">
+<div class="container-fluid" style="padding-top: 24px; padding-bottom: 40px;">
 
-    <div class="d-flex justify-content-between align-items-center mb-4">
+    <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 32px; gap: 16px; flex-wrap: wrap;">
         <div>
-            <h4 class="mb-0 fw-bold">Audit Log</h4>
-            <p class="text-muted mb-0">Expert: {{ $expert->display_name }}</p>
+            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
+                <a href="{{ route('admin.experts.index') }}" style="text-decoration: none; color: var(--agri-text-muted); font-size: 14px; font-weight: 600;">Experts</a>
+                <i class="fas fa-chevron-right" style="font-size: 10px; color: var(--agri-text-muted);"></i>
+                <a href="{{ route('admin.experts.show', $expert->id) }}" style="text-decoration: none; color: var(--agri-text-muted); font-size: 14px; font-weight: 600;">{{ $expert->display_name }}</a>
+                <i class="fas fa-chevron-right" style="font-size: 10px; color: var(--agri-text-muted);"></i>
+                <span style="color: var(--agri-primary); font-size: 14px; font-weight: 600;">Audit Log</span>
+            </div>
+            <h1 style="font-size: 28px; font-weight: 700; color: var(--agri-primary-dark); margin: 0;">Expert Audit Log</h1>
+            <p style="color: var(--agri-text-muted); margin: 4px 0 0 0;">Track all moderation and status transitions for this expert profile.</p>
         </div>
-        <a href="{{ route('admin.experts.show', $expert->id) }}" class="btn btn-outline-secondary btn-sm">
-            ← Back to Expert
+        <a href="{{ route('admin.experts.show', $expert->id) }}" class="btn-agri btn-agri-outline" style="text-decoration: none; display: flex; align-items: center; gap: 8px;">
+            <i class="fas fa-arrow-left"></i> Back to Expert
         </a>
     </div>
 
-    <div class="card shadow-sm">
+    <div class="card-agri" style="padding: 0; overflow: hidden;">
         <div class="card-body p-0">
             <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0">
-                    <thead class="table-light">
+                <table class="table align-middle mb-0">
+                    <thead>
                         <tr>
                             <th>Date</th>
                             <th>Action</th>
