@@ -255,6 +255,17 @@ class SettingsController extends Controller
         $template = ($id !== '') ? EmailTemplate::find($id) : null;
         return view('admin.email-templates.save', compact('id', 'template'));
     }
+
+    public function emailTemplatesDelete($id)
+    {
+        $template = EmailTemplate::findOrFail($id);
+        $template->delete();
+
+        return redirect()
+            ->route('admin.email-templates.index')
+            ->with('success', 'Email template deleted successfully.');
+    }
+
     public function documentVerification()
     {
         return view('admin.settings.app.documentVerificationSetting');
