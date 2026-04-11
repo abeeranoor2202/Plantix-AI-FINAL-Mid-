@@ -49,7 +49,7 @@ class AdminStockController extends Controller
         }
 
         $stocks  = $query->latest()->paginate(30)->withQueryString();
-        $vendors = Vendor::orderBy('name')->get(['id', 'name']);
+        $vendors = Vendor::orderBy('title')->get(['id', 'title as name']);
 
         $summary = [
             'total_products' => ProductStock::count(),
