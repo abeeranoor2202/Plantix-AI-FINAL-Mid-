@@ -1,219 +1,226 @@
 @extends('layouts.app')
 
-@section('title', 'Product: '.$product->name)
-
 @section('content')
-<div class="container-fluid">
+<div class="container-fluid" style="padding-top: 24px;">
 
-    <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 32px; flex-wrap: wrap; gap: 16px;">
-        <div>
-            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
-                <a href="{{ route('admin.dashboard') }}" style="text-decoration: none; color: var(--agri-text-muted); font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 6px;">
-                    <i class="fas fa-home"></i> Dashboard
-                </a>
-                <i class="fas fa-chevron-right" style="font-size: 10px; color: var(--agri-text-muted);"></i>
-                <a href="{{ route('admin.products.index') }}" style="text-decoration: none; color: var(--agri-text-muted); font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 4px;">
-                    Products
-                </a>
-                <i class="fas fa-chevron-right" style="font-size: 10px; color: var(--agri-text-muted);"></i>
-                <span style="color: var(--agri-primary); font-size: 13px; font-weight: 600;">{{ $product->name }}</span>
-            </div>
-            <h1 style="font-size: 26px; font-weight: 700; color: var(--agri-primary-dark); margin: 0;">{{ $product->name }}</h1>
+    <div style="margin-bottom: 32px;">
+        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
+            <a href="{{url('/dashboard')}}" style="text-decoration: none; color: var(--agri-text-muted); font-size: 14px; font-weight: 600;">Dashboard</a>
+            <i class="fas fa-chevron-right" style="font-size: 10px; color: var(--agri-text-muted);"></i>
+            <a href="{{ route('admin.products.index') }}" style="text-decoration: none; color: var(--agri-text-muted); font-size: 14px; font-weight: 600;">Products</a>
+            <i class="fas fa-chevron-right" style="font-size: 10px; color: var(--agri-text-muted);"></i>
+            <span style="color: var(--agri-primary); font-size: 14px; font-weight: 600;">Product Details</span>
         </div>
-        <div style="display: flex; gap: 12px; align-items: center;">
-            <a href="{{ route('admin.products.edit', $product->id) }}" class="btn-agri btn-agri-outline" style="text-decoration: none; color: #D97706; border-color: #FDE68A; background: #FEF3C7; padding: 10px 24px;">
-                <i class="fas fa-edit me-1"></i> Edit
-            </a>
-            <form method="POST" action="{{ route('admin.products.destroy', $product->id) }}"
-                  class="d-inline" onsubmit="return confirm('Delete this product?')">
-                @csrf
-                @method('DELETE')
-                <button type="submit" class="btn-agri" style="background: #FEE2E2; color: #991B1B; border: 1px solid #FECACA; padding: 10px 24px;">
-                    <i class="fas fa-trash me-1"></i> Delete
-                </button>
-            </form>
+        <div style="display: flex; justify-content: space-between; align-items: flex-end;">
+            <div>
+                <h1 style="font-size: 28px; font-weight: 700; color: var(--agri-primary-dark); margin: 0;">Product Profile</h1>
+                <p style="color: var(--agri-text-muted); margin: 4px 0 0 0;">Comprehensive overview of product details and settings.</p>
+            </div>
+            <div style="display: flex; gap: 12px;">
+                <a href="{{ route('admin.products.edit', $product->id) }}" class="btn-agri btn-agri-primary" style="text-decoration: none;">
+                    <i class="fas fa-edit" style="margin-right: 8px;"></i> Edit
+                </a>
+                <a href="{{ route('admin.products.index') }}" class="btn-agri btn-agri-outline" style="text-decoration: none;">
+                    <i class="fas fa-arrow-left" style="margin-right: 8px;"></i> Back to List
+                </a>
+            </div>
         </div>
     </div>
 
-    @if(session('success'))
-        <div class="alert alert-success alert-dismissible fade show" style="background: #D1FAE5; color: #065F46; border: 1px solid #A7F3D0; border-radius: 12px; padding: 16px; font-size: 14px; font-weight: 600; margin-bottom: 24px;">
-            {{ session('success') }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
-    @endif
+    <div style="display: flex; gap: 24px; border-bottom: 2px solid var(--agri-border); margin-bottom: 32px; padding-bottom: 2px;">
+        <a href="{{ route('admin.products.show', $product->id) }}" style="text-decoration: none; padding: 12px 4px; position: relative; color: var(--agri-primary); font-weight: 700; border-bottom: 3px solid var(--agri-primary);">
+            Basic
+        </a>
+        <a href="{{ route('admin.products.edit', $product->id) }}" style="text-decoration: none; padding: 12px 4px; color: var(--agri-text-muted); font-weight: 600;">
+            Edit
+        </a>
+    </div>
 
-    <div class="row g-4">
-
-        {{-- Main Info --}}
-        <div class="col-lg-8">
-            <div class="card-agri mb-4" style="padding: 24px;">
-                <div class="row">
-                    <div class="col-md-3 text-center mb-3 mb-md-0">
-                        @if($product->image)
-                            <img src="{{ asset('storage/'.$product->image) }}"
-                                 alt="{{ $product->name }}"
-                                 style="max-height: 200px; width: 100%; object-fit: cover; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
-                        @else
-                            <div style="background: var(--agri-bg); border-radius: 12px; height: 200px; display: flex; align-items: center; justify-content: center;">
-                                <i class="fas fa-image" style="font-size: 48px; color: var(--agri-border);"></i>
-                            </div>
-                        @endif
-                    </div>
-                    <div class="col-md-9">
-                        <h4 style="font-size: 20px; font-weight: 800; color: var(--agri-text-heading); margin-bottom: 8px;">{{ $product->name }}</h4>
-                        <p style="color: var(--agri-text-muted); font-size: 14px; margin-bottom: 24px; line-height: 1.6;">{{ $product->short_description }}</p>
-
-                        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px;">
-                            <div style="background: var(--agri-bg); padding: 12px 16px; border-radius: 12px;">
-                                <div style="font-size: 11px; font-weight: 700; color: var(--agri-text-muted); text-transform: uppercase; margin-bottom: 4px;">SKU</div>
-                                <div style="font-size: 14px; font-weight: 600; color: var(--agri-text-main);">{{ $product->sku ?? '—' }}</div>
-                            </div>
-                            <div style="background: var(--agri-bg); padding: 12px 16px; border-radius: 12px;">
-                                <div style="font-size: 11px; font-weight: 700; color: var(--agri-text-muted); text-transform: uppercase; margin-bottom: 4px;">Category</div>
-                                <div style="font-size: 14px; font-weight: 600; color: var(--agri-text-main);">{{ $product->category->name ?? '—' }}</div>
-                            </div>
-                            <div style="background: var(--agri-bg); padding: 12px 16px; border-radius: 12px;">
-                                <div style="font-size: 11px; font-weight: 700; color: var(--agri-text-muted); text-transform: uppercase; margin-bottom: 4px;">Vendor</div>
-                                <div style="font-size: 14px; font-weight: 600; color: var(--agri-text-main);">{{ $product->vendor->name ?? '—' }}</div>
-                            </div>
-                            <div style="background: var(--agri-bg); padding: 12px 16px; border-radius: 12px;">
-                                <div style="font-size: 11px; font-weight: 700; color: var(--agri-text-muted); text-transform: uppercase; margin-bottom: 4px;">Price</div>
-                                <div style="font-size: 14px; font-weight: 700; color: var(--agri-primary);">
-                                    Rs {{ number_format($product->price, 2) }} <span style="font-size: 13px; font-weight: 500; color: var(--agri-text-muted);">/ {{ $product->unit ?? 'unit' }}</span>
-                                    @if($product->sale_price)
-                                        <div style="margin-top: 4px;">
-                                            <span style="background: #FEE2E2; color: #991B1B; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 800; border: 1px solid #FECACA;">
-                                                Sale: Rs {{ number_format($product->sale_price, 2) }}
-                                            </span>
-                                        </div>
-                                    @endif
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                @if($product->description)
-                    <div style="margin-top: 32px; padding-top: 24px; border-top: 1px dashed var(--agri-border);">
-                        <h6 style="font-size: 13px; font-weight: 800; color: var(--agri-text-heading); text-transform: uppercase; margin-bottom: 12px; letter-spacing: 0.5px;">Description</h6>
-                        <div style="color: var(--agri-text-main); font-size: 14px; line-height: 1.7;">
-                            {{ $product->description }}
-                        </div>
-                    </div>
-                @endif
-            </div>
-
-            {{-- Gallery --}}
-            @if($product->images && $product->images->where('is_primary', false)->count())
-                <div class="card-agri mb-4" style="padding: 24px;">
-                    <h6 style="font-size: 14px; font-weight: 800; color: var(--agri-text-heading); text-transform: uppercase; margin-bottom: 20px; display: flex; align-items: center; gap: 8px;">
-                        <i class="fas fa-images text-success"></i> Gallery
-                    </h6>
-                    <div style="display: flex; flex-wrap: wrap; gap: 12px;">
-                        @foreach($product->images->where('is_primary', false) as $img)
-                            <img src="{{ asset('storage/'.$img->path) }}"
-                                 style="width: 80px; height: 80px; object-fit: cover; border-radius: 8px; border: 1px solid var(--agri-border); box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
-                        @endforeach
-                    </div>
-                </div>
-            @endif
-        </div>
-
-        {{-- Sidebar: stock & flags --}}
+    <div class="row">
         <div class="col-lg-4">
-            <div class="card-agri mb-4" style="padding: 0; overflow: hidden;">
-                <div style="padding: 16px 24px; border-bottom: 1px dashed var(--agri-border); background: var(--agri-bg);">
-                    <h6 style="font-size: 13px; font-weight: 800; color: var(--agri-text-heading); text-transform: uppercase; margin: 0; display: flex; align-items: center; gap: 8px;">
-                        <i class="fas fa-boxes text-success"></i> Stock Availability
-                    </h6>
+            <div class="card-agri" style="text-align: center; padding: 40px 24px;">
+                <div class="profile_image" style="width: 120px; height: 120px; border-radius: 50%; border: 4px solid white; box-shadow: 0 8px 24px rgba(0,0,0,0.1); margin: 0 auto 24px; overflow: hidden; background: var(--agri-bg); display: flex; align-items: center; justify-content: center;">
+                    @if($product->image)
+                        <img src="{{ asset('storage/'.$product->image) }}" alt="{{ $product->name }}" style="width:100%; height:100%; object-fit:cover;">
+                    @else
+                        <i class="fas fa-image" style="font-size: 36px; color: var(--agri-border);"></i>
+                    @endif
                 </div>
-                <div style="padding: 24px; text-align: center;">
-                    <div style="font-size: 48px; font-weight: 900; line-height: 1; {{ ($product->stock_quantity ?? 0) <= ($product->low_stock_threshold ?? 10) ? 'color: #DC2626;' : 'color: var(--agri-primary-dark);' }}">
-                        {{ $product->stock_quantity ?? 0 }}
-                    </div>
-                    <p style="font-size: 13px; font-weight: 600; color: var(--agri-text-muted); text-transform: uppercase; margin-top: 8px; margin-bottom: 24px; letter-spacing: 0.5px;">units in stock</p>
-                    
-                    <div style="background: #F8FAFC; border-radius: 8px; padding: 12px; font-size: 12px; color: var(--agri-text-muted); display: inline-block;">
-                        <i class="fas fa-info-circle me-1" style="color: #94A3B8;"></i>
-                        Low-stock alert threshold: <strong style="color: var(--agri-text-heading);">{{ $product->low_stock_threshold ?? config('plantix.low_stock_threshold') }} units</strong>
-                    </div>
+                <h3 class="user_name" style="font-size: 22px; font-weight: 800; color: var(--agri-text-heading); margin-bottom: 8px;">{{ $product->name }}</h3>
+                <div style="display: inline-flex; align-items: center; gap: 6px; background: var(--agri-primary-light); color: var(--agri-primary); padding: 4px 12px; border-radius: 100px; font-size: 13px; font-weight: 700; margin-bottom: 24px;">
+                    <i class="fas fa-seedling"></i>
+                    {{ $product->is_active ? 'Active Product' : 'Inactive Product' }}
                 </div>
-            </div>
 
-            <div class="card-agri mb-4" style="padding: 0; overflow: hidden;">
-                <div style="padding: 16px 24px; border-bottom: 1px dashed var(--agri-border); background: var(--agri-bg);">
-                    <h6 style="font-size: 13px; font-weight: 800; color: var(--agri-text-heading); text-transform: uppercase; margin: 0; display: flex; align-items: center; gap: 8px;">
-                        <i class="fas fa-toggle-on text-success"></i> Status & Flags
-                    </h6>
-                </div>
-                <div style="padding: 24px;">
-                    <div style="display: flex; flex-direction: column; gap: 16px;">
-                        <div style="display: flex; justify-content: space-between; align-items: center;">
-                            <span style="font-size: 13px; font-weight: 600; color: var(--agri-text-muted);">Active</span>
-                            @if($product->is_active)
-                                <span style="background: #D1FAE5; color: #065F46; padding: 4px 10px; border-radius: 100px; font-size: 11px; font-weight: 800; border: 1px solid #A7F3D0;">Yes</span>
-                            @else
-                                <span style="background: #F3F4F6; color: #4B5563; padding: 4px 10px; border-radius: 100px; font-size: 11px; font-weight: 800; border: 1px solid #E5E7EB;">No</span>
-                            @endif
-                        </div>
-                        
-                        <div style="display: flex; justify-content: space-between; align-items: center;">
-                            <span style="font-size: 13px; font-weight: 600; color: var(--agri-text-muted);">Featured</span>
-                            @if($product->is_featured)
-                                <span style="background: #FEF3C7; color: #92400E; padding: 4px 10px; border-radius: 100px; font-size: 11px; font-weight: 800; border: 1px solid #FDE68A;"><i class="fas fa-star text-warning me-1"></i>Yes</span>
-                            @else
-                                <span style="background: #F3F4F6; color: #4B5563; padding: 4px 10px; border-radius: 100px; font-size: 11px; font-weight: 800; border: 1px solid #E5E7EB;">No</span>
-                            @endif
-                        </div>
-                        
-                        <div style="display: flex; justify-content: space-between; align-items: center;">
-                            <span style="font-size: 13px; font-weight: 600; color: var(--agri-text-muted);">Returnable</span>
-                            @if($product->is_returnable)
-                                <span style="background: #E0F2FE; color: #0369A1; padding: 4px 10px; border-radius: 100px; font-size: 11px; font-weight: 800; border: 1px solid #BAE6FD;">Yes ({{ $product->return_window_days ?? 7 }} days)</span>
-                            @else
-                                <span style="background: #F3F4F6; color: #4B5563; padding: 4px 10px; border-radius: 100px; font-size: 11px; font-weight: 800; border: 1px solid #E5E7EB;">No</span>
-                            @endif
-                        </div>
-
-                        <div style="display: flex; justify-content: space-between; align-items: center;">
-                            <span style="font-size: 13px; font-weight: 600; color: var(--agri-text-muted);">Tax Rate</span>
-                            <span style="font-size: 14px; font-weight: 800; color: var(--agri-text-heading);">{{ $product->tax_rate ?? 0 }}%</span>
-                        </div>
+                <div style="background: var(--agri-bg); border-radius: 16px; padding: 20px; text-align: left; border: 1px solid var(--agri-border);">
+                    <div style="display: flex; align-items: center; gap: 10px; color: var(--agri-text-heading); font-size: 14px; font-weight: 600; margin-bottom: 16px;">
+                         <i class="fas fa-tags" style="color: var(--agri-text-muted); width: 16px;"></i>
+                         <span>{{ $product->category->name ?? 'Not assigned' }}</span>
                     </div>
-
-                    <div style="margin-top: 24px; padding-top: 24px; border-top: 1px dashed var(--agri-border);">
-                        <form method="POST" action="{{ route('admin.products.toggle-featured', $product->id) }}">
-                            @csrf
-                            <button type="submit" class="btn-agri w-100" style="background: #FEF3C7; color: #92400E; border: 1px solid #FDE68A; padding-top: 12px; padding-bottom: 12px; font-size: 13px; box-shadow: none;">
-                                <i class="fas fa-star me-2" style="color: #D97706;"></i>
-                                {{ $product->is_featured ? 'Remove from Featured' : 'Mark as Featured' }}
-                            </button>
-                        </form>
+                    <div style="display: flex; align-items: center; gap: 10px; color: var(--agri-text-heading); font-size: 14px; font-weight: 600; margin-bottom: 16px;">
+                         <i class="fas fa-store" style="color: var(--agri-text-muted); width: 16px;"></i>
+                         <span>{{ $product->vendor->title ?? 'Not assigned' }}</span>
                     </div>
-                </div>
-            </div>
-
-            <div class="card-agri" style="padding: 0; overflow: hidden;">
-                <div style="padding: 16px 24px; border-bottom: 1px dashed var(--agri-border); background: var(--agri-bg);">
-                    <h6 style="font-size: 13px; font-weight: 800; color: var(--agri-text-heading); text-transform: uppercase; margin: 0; display: flex; align-items: center; gap: 8px;">
-                        <i class="fas fa-clock text-success"></i> Timestamps
-                    </h6>
-                </div>
-                <div style="padding: 20px 24px;">
-                    <div style="display: flex; flex-direction: column; gap: 12px;">
-                        <div>
-                            <div style="font-size: 11px; font-weight: 700; color: var(--agri-text-muted); text-transform: uppercase; margin-bottom: 2px;">Created</div>
-                            <div style="font-size: 13px; font-weight: 600; color: var(--agri-text-main);">{{ $product->created_at->format('d M Y, h:i A') }}</div>
-                        </div>
-                        <div>
-                            <div style="font-size: 11px; font-weight: 700; color: var(--agri-text-muted); text-transform: uppercase; margin-bottom: 2px;">Updated</div>
-                            <div style="font-size: 13px; font-weight: 600; color: var(--agri-text-main);">{{ $product->updated_at->format('d M Y, h:i A') }}</div>
-                        </div>
+                    <div style="display: flex; align-items: center; gap: 10px; color: var(--agri-text-heading); font-size: 14px; font-weight: 600;">
+                         <i class="fas fa-boxes" style="color: var(--agri-text-muted); width: 16px;"></i>
+                         <span>{{ $product->stock_quantity ?? 0 }} in stock</span>
                     </div>
                 </div>
             </div>
         </div>
 
+        <div class="col-lg-8">
+            <div class="card-agri" style="padding: 32px;">
+
+                <h4 style="font-size: 18px; font-weight: 700; color: var(--agri-primary-dark); margin-bottom: 24px;">Product Details</h4>
+                <div class="address-card">
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            <label class="agri-label">Product Name</label>
+                            <div class="field-static">{{ $product->name ?? 'Not provided' }}</div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="agri-label">SKU</label>
+                            <div class="field-static">{{ $product->sku ?? 'Not provided' }}</div>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="agri-label">Base Price</label>
+                            <div class="field-static">Rs {{ number_format((float) $product->price, 2) }}</div>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="agri-label">Sale Price</label>
+                            <div class="field-static">{{ $product->discount_price !== null ? 'Rs '.number_format((float) $product->discount_price, 2) : 'Not set' }}</div>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="agri-label">Effective Price</label>
+                            <div class="field-static">Rs {{ number_format((float) $product->effective_price, 2) }}</div>
+                        </div>
+                        <div class="col-12">
+                            <label class="agri-label">Short Description</label>
+                            <div class="field-static">{{ $product->short_description ?? 'Not provided' }}</div>
+                        </div>
+                        <div class="col-12">
+                            <label class="agri-label">Description</label>
+                            <div class="field-static" style="white-space: pre-line;">{{ $product->description ?? 'Not provided' }}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <h4 style="font-size: 18px; font-weight: 700; color: var(--agri-primary-dark); margin-bottom: 24px; margin-top: 24px;">Classification & Stock</h4>
+                <div class="address-card">
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            <label class="agri-label">Category</label>
+                            <div class="field-static">{{ $product->category->name ?? 'Not assigned' }}</div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="agri-label">Vendor</label>
+                            <div class="field-static">{{ $product->vendor->title ?? 'Not assigned' }}</div>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="agri-label">Unit</label>
+                            <div class="field-static">{{ $product->unit ?? 'Not set' }}</div>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="agri-label">Stock</label>
+                            <div class="field-static">{{ $product->stock_quantity ?? 0 }}</div>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="agri-label">Low Stock Warning</label>
+                            <div class="field-static">{{ $product->low_stock_threshold ?? 10 }}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <h4 style="font-size: 18px; font-weight: 700; color: var(--agri-primary-dark); margin-bottom: 24px; margin-top: 24px;">Media</h4>
+                <div class="address-card">
+                    <div class="row g-4">
+                        <div class="col-md-4">
+                            <label class="agri-label">Primary Image</label>
+                            <div style="width: 100%; height: 120px; border-radius: 12px; background: white; border: 1px solid var(--agri-border); overflow: hidden; display: flex; align-items: center; justify-content: center;">
+                                @if($product->image)
+                                    <img src="{{ asset('storage/'.$product->image) }}" alt="{{ $product->name }}" style="width:100%; height:100%; object-fit:cover;">
+                                @else
+                                    <i class="fas fa-image" style="font-size: 28px; color: var(--agri-border);"></i>
+                                @endif
+                            </div>
+                        </div>
+                        <div class="col-md-8">
+                            <label class="agri-label">Gallery</label>
+                            <div style="display: flex; flex-wrap: wrap; gap: 8px; min-height: 120px; align-items: flex-start;">
+                                @forelse($product->images->where('is_primary', false) as $img)
+                                    <img src="{{ asset('storage/'.$img->path) }}" alt="Gallery" style="width: 72px; height: 72px; object-fit: cover; border-radius: 8px; border: 1px solid var(--agri-border);">
+                                @empty
+                                    <div class="field-static" style="width: 100%;">No gallery images</div>
+                                @endforelse
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <h4 style="font-size: 18px; font-weight: 700; color: var(--agri-primary-dark); margin-bottom: 24px; margin-top: 24px;">Settings</h4>
+                <div class="address-card" style="margin-bottom: 0;">
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            <label class="agri-label">Active</label>
+                            <div class="form-check form-switch" style="padding-left: 0; margin-bottom: 0;">
+                                <input type="checkbox" class="form-check-input" style="width: 44px; height: 22px; margin-left: 0;" {{ $product->is_active ? 'checked' : '' }} disabled>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="agri-label">Featured</label>
+                            <div class="form-check form-switch" style="padding-left: 0; margin-bottom: 0;">
+                                <input type="checkbox" class="form-check-input" style="width: 44px; height: 22px; margin-left: 0;" {{ $product->is_featured ? 'checked' : '' }} disabled>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="agri-label">Returnable</label>
+                            <div class="field-static">{{ $product->is_returnable ? 'Yes' : 'No' }}</div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="agri-label">Tax Rate</label>
+                            <div class="field-static">{{ $product->tax_rate ?? 0 }}%</div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
     </div>
 </div>
+
+<style>
+    .agri-label {
+        font-size: 13px;
+        font-weight: 700;
+        color: var(--agri-text-heading);
+        margin-bottom: 8px;
+        display: block;
+    }
+    .address-card {
+        background: var(--agri-bg);
+        border: 1px solid var(--agri-border);
+        border-radius: 16px;
+        padding: 20px;
+        margin-bottom: 16px;
+        transition: all 0.2s;
+    }
+    .address-card:hover {
+        border-color: var(--agri-primary);
+        background: white;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    }
+    .field-static {
+        background: white;
+        border: 1px solid var(--agri-border);
+        border-radius: 12px;
+        min-height: 46px;
+        padding: 12px 14px;
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--agri-text-heading);
+        display: flex;
+        align-items: center;
+    }
+</style>
 @endsection
