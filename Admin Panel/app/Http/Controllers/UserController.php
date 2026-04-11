@@ -8,6 +8,7 @@ use App\Models\Role;
 use App\Models\Vendor;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Password;
@@ -324,8 +325,113 @@ class UserController extends Controller
 
     public function vendorEdit(int $id)
     {
-        $vendor = Vendor::findOrFail($id);
+        $vendor = Vendor::with('author', 'category')->findOrFail($id);
         return view('admin.vendors.edit', compact('vendor'));
+    }
+
+    public function vendorStore(Request $request)
+    {
+        $validated = $request->validate([
+            'name'       => ['required', 'string', 'max:255'],
+            'email'      => ['required', 'email', 'max:255', 'unique:users,email'],
+            'phone'      => ['required', 'string', 'max:30', 'unique:users,phone'],
+            'store_name' => ['required', 'string', 'max:255', 'unique:vendors,title'],
+            'password'   => ['required', 'string', 'min:8', 'confirmed'],
+        ]);
+
+        DB::transaction(function () use ($validated) {
+            $user = User::create([
+                'name'     => $validated['name'],
+                'email'    => $validated['email'],
+                'phone'    => $validated['phone'],
+                'password' => Hash::make($validated['password']),
+                'role'     => 'vendor',
+                'active'   => false,
+            ]);
+
+            Vendor::create([
+                'author_id'   => $user->id,
+                'title'       => $validated['store_name'],
+                'is_active'   => false,
+                'is_approved' => false,
+            ]);
+        });
+
+        return back()->with('success', 'Vendor created successfully. Awaiting approval.');
+    }
+
+    public function vendorUpdate(Request $request, int $id)
+    {
+        $vendor = Vendor::with('author')->findOrFail($id);
+
+        $validated = $request->validate([
+            'title'           => ['required', 'string', 'max:255', 'unique:vendors,title,' . $vendor->id],
+            'owner_name'      => ['required', 'string', 'max:255'],
+            'owner_email'     => ['required', 'email', 'max:255', 'unique:users,email,' . $vendor->author_id],
+            'owner_phone'     => ['nullable', 'string', 'max:30'],
+            'description'     => ['nullable', 'string', 'max:2000'],
+            'address'         => ['nullable', 'string', 'max:500'],
+            'phone'           => ['nullable', 'string', 'max:30'],
+            'commission_rate' => ['nullable', 'numeric', 'min:0', 'max:100'],
+            'delivery_fee'    => ['nullable', 'numeric', 'min:0'],
+            'open_time'       => ['nullable', 'date_format:H:i'],
+            'close_time'      => ['nullable', 'date_format:H:i'],
+            'status'          => ['required', 'in:pending,approved,suspended'],
+        ]);
+
+        [$isApproved, $isActive] = match ($validated['status']) {
+            'approved'  => [true, true],
+            'suspended' => [true, false],
+            default     => [false, false],
+        };
+
+        DB::transaction(function () use ($vendor, $validated, $isApproved, $isActive) {
+            $vendor->update([
+                'title'           => $validated['title'],
+                'description'     => $validated['description'] ?? null,
+                'address'         => $validated['address'] ?? null,
+                'phone'           => $validated['phone'] ?? null,
+                'commission_rate' => $validated['commission_rate'] ?? $vendor->commission_rate,
+                'delivery_fee'    => $validated['delivery_fee'] ?? $vendor->delivery_fee,
+                'open_time'       => $validated['open_time'] ?? null,
+                'close_time'      => $validated['close_time'] ?? null,
+                'is_active'       => $isActive,
+                'is_approved'     => $isApproved,
+            ]);
+
+            if ($vendor->author) {
+                $vendor->author->update([
+                    'name'   => $validated['owner_name'],
+                    'email'  => $validated['owner_email'],
+                    'phone'  => $validated['owner_phone'] ?? $vendor->author->phone,
+                    'active' => $isActive,
+                ]);
+            }
+        });
+
+        return back()->with('success', 'Vendor updated successfully.');
+    }
+
+    public function vendorDelete(int $id)
+    {
+        $vendor = Vendor::with('author')->findOrFail($id);
+
+        if ($vendor->orders()->exists()) {
+            $vendor->update(['is_active' => false, 'is_approved' => false]);
+            if ($vendor->author) {
+                $vendor->author->update(['active' => false]);
+            }
+
+            return back()->with('success', 'Vendor has existing orders, so it was archived instead of deleted.');
+        }
+
+        if ($vendor->author) {
+            $vendor->author->delete();
+        } else {
+            $vendor->delete();
+        }
+
+        return back()->with('success', 'Vendor deleted successfully.');
     }
 
     public function vendorToggle(Request $request, int $id)
