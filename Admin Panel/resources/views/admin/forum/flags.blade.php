@@ -1,214 +1,104 @@
 @extends('layouts.app')
 
 @section('content')
-
-    <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 32px; flex-wrap: wrap; gap: 16px;">
+<div class="container-fluid" style="padding-top: 24px; padding-bottom: 40px;">
+    <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 32px;">
         <div>
-            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
-                <a href="{{ url('/dashboard') }}" style="text-decoration: none; color: var(--agri-text-muted); font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 6px;">
-                    <i class="fas fa-home"></i> Dashboard
-                </a>
+            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
+                <a href="{{ url('/dashboard') }}" style="text-decoration: none; color: var(--agri-text-muted); font-size: 14px; font-weight: 600;">Dashboard</a>
                 <i class="fas fa-chevron-right" style="font-size: 10px; color: var(--agri-text-muted);"></i>
-                <a href="{{ route('admin.forum.index') }}" style="text-decoration: none; color: var(--agri-text-muted); font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 4px;">
-                    Forum
-                </a>
+                <a href="{{ route('admin.forum.index') }}" style="text-decoration: none; color: var(--agri-text-muted); font-size: 14px; font-weight: 600;">Forum</a>
                 <i class="fas fa-chevron-right" style="font-size: 10px; color: var(--agri-text-muted);"></i>
-                <span style="color: var(--agri-primary); font-size: 13px; font-weight: 600;">Flags</span>
+                <span style="color: var(--agri-primary); font-size: 14px; font-weight: 600;">Flags</span>
             </div>
-            <h1 style="font-size: 26px; font-weight: 700; color: var(--agri-primary-dark); margin: 0;"><i class="fa fa-flag text-danger me-2"></i> Flagged Replies</h1>
+            <h1 style="font-size: 28px; font-weight: 700; color: var(--agri-primary-dark); margin: 0;">Flagged Replies</h1>
+            <p style="color: var(--agri-text-muted); margin: 4px 0 0 0;">Review and resolve forum reports in one unified moderation table.</p>
         </div>
     </div>
 
-    <div class="container-fluid">
+    @if(session('success'))
+        <div class="card-agri mb-4" style="background: #ecfdf5; border: 1px solid #86efac; border-radius: 12px; padding: 12px 20px; color: #166534; font-weight: 700;">
+            {{ session('success') }}
+        </div>
+    @endif
 
-        @if(session('success'))
-            <div class="alert mb-4" style="border-radius: 14px; border: none; background: #D1FAE5; color: #065F46; font-weight: 700; padding: 18px 24px; display: flex; align-items: center; justify-content: space-between;">
-                <div style="display: flex; align-items: center; gap: 12px;"><i class="fas fa-check-circle" style="font-size: 18px;"></i> {{ session('success') }}</div>
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-        @endif
-        @if(session('error'))
-            <div class="alert mb-4" style="border-radius: 14px; border: none; background: #FEE2E2; color: #991B1B; font-weight: 700; padding: 18px 24px; display: flex; align-items: center; justify-content: space-between;">
-                <div style="display: flex; align-items: center; gap: 12px;"><i class="fas fa-times-circle" style="font-size: 18px;"></i> {{ session('error') }}</div>
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-        @endif
+    @if(session('error'))
+        <div class="card-agri mb-4" style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 12px; padding: 12px 20px; color: #991b1b; font-weight: 700;">
+            {{ session('error') }}
+        </div>
+    @endif
 
-        {{-- Filter Bar --}}
-        <div class="card-agri mb-4" style="padding: 24px;">
-            <form method="GET" class="row g-3 align-items-end">
-                <div class="col-md-4">
-                    <label style="font-size: 12px; font-weight: 700; color: var(--agri-text-muted); text-transform: uppercase; margin-bottom: 8px; display: block;">Status</label>
-                    <select name="status" class="form-agri">
-                        <option value="">All Statuses</option>
-                        <option value="pending"   {{ request('status') === 'pending'   ? 'selected' : '' }}>Pending</option>
-                        <option value="reviewed"  {{ request('status') === 'reviewed'  ? 'selected' : '' }}>Reviewed</option>
-                        <option value="dismissed" {{ request('status') === 'dismissed' ? 'selected' : '' }}>Dismissed</option>
-                    </select>
-                </div>
-                <div class="col-md-3 d-flex gap-2">
-                    <button type="submit" class="btn-agri btn-agri-primary" style="padding-left: 24px; padding-right: 24px;">Filter</button>
-                    <a href="{{ route('admin.forum.flags.index') }}" class="btn-agri btn-agri-outline" style="padding-left: 24px; padding-right: 24px; text-decoration: none;">Reset</a>
-                </div>
-                <div class="col-md-5 text-end">
-                    <a href="{{ route('admin.forum.index') }}" class="btn-agri btn-agri-outline" style="display: inline-flex; text-decoration: none;">
-                        <i class="fa fa-arrow-left"></i> Back to Forum
-                    </a>
-                    <a href="{{ route('admin.forum.audit-log') }}" class="btn-agri" style="display: inline-flex; background: var(--agri-bg); color: var(--agri-text-muted); border: 1px solid var(--agri-border); margin-left: 8px; text-decoration: none;">
-                        <i class="fa fa-history"></i> Audit Log
-                    </a>
-                </div>
+    <div class="card-agri" style="padding: 0; overflow: hidden;">
+        <div class="card-header bg-white border-bottom-0 pt-4 pb-3 px-4 d-flex justify-content-between align-items-center" style="gap: 10px; flex-wrap: wrap;">
+            <h4 class="mb-0 fw-bold text-dark" style="font-size: 18px;">Flag Report List</h4>
+            <form method="GET" action="{{ route('admin.forum.flags.index') }}" style="display: flex; align-items: center; gap: 10px;">
+                <select name="status" class="form-agri" style="height: 42px; min-width: 180px; margin-bottom: 0;">
+                    <option value="">All Statuses</option>
+                    <option value="pending" @selected(request('status') === 'pending')>Pending</option>
+                    <option value="reviewed" @selected(request('status') === 'reviewed')>Reviewed</option>
+                    <option value="dismissed" @selected(request('status') === 'dismissed')>Dismissed</option>
+                </select>
+                <button type="submit" class="btn-agri btn-agri-primary" style="height: 42px; padding: 0 16px;">Filter</button>
+                <a href="{{ route('admin.forum.flags.index') }}" class="btn-agri btn-agri-outline" style="height: 42px; display: inline-flex; align-items: center; text-decoration: none;">Reset</a>
             </form>
         </div>
 
-        {{-- Flags Table --}}
-        <div class="card-agri" style="padding: 0; overflow: hidden;">
-            <div style="padding: 24px 28px; border-bottom: 1px solid var(--agri-border); display: flex; align-items: center; justify-content: space-between;">
-                <div style="display: flex; align-items: center; gap: 12px;">
-                    <div style="width: 36px; height: 36px; background: #FEE2E2; color: #DC2626; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 14px;"><i class="fa fa-flag"></i></div>
-                    <h6 style="margin: 0; font-weight: 800; color: var(--agri-text-heading); font-size: 14px; text-transform: uppercase;">Flag Reports</h6>
-                </div>
-                <span style="background: var(--agri-bg); color: var(--agri-text-muted); padding: 4px 12px; border-radius: 100px; font-size: 12px; font-weight: 800;">{{ $flags->total() }} total</span>
-            </div>
-            <div class="table-responsive">
-                @if($flags->isEmpty())
-                    <div style="padding: 60px 24px; text-align: center; color: var(--agri-text-muted);">
-                        <i class="fa fa-check-circle" style="font-size: 48px; opacity: 0.3; margin-bottom: 16px; color: #10B981;"></i>
-                        <p style="margin: 0; font-weight: 600; color: var(--agri-text-heading);">No flag reports found.</p>
-                        <p style="margin: 4px 0 0 0; font-size: 14px;">Great job keeping the forum clean!</p>
-                    </div>
-                @else
-                    <table class="table mb-0" style="vertical-align: middle;">
-                        <thead style="background: var(--agri-bg);">
-                            <tr>
-                                <th style="padding: 16px 24px; font-size: 12px; font-weight: 700; color: var(--agri-text-muted); text-transform: uppercase; border: none; width: 60px;">#</th>
-                                <th style="padding: 16px 24px; font-size: 12px; font-weight: 700; color: var(--agri-text-muted); text-transform: uppercase; border: none;">Flagged Reply</th>
-                                <th style="padding: 16px 24px; font-size: 12px; font-weight: 700; color: var(--agri-text-muted); text-transform: uppercase; border: none;">Thread</th>
-                                <th style="padding: 16px 24px; font-size: 12px; font-weight: 700; color: var(--agri-text-muted); text-transform: uppercase; border: none;">Reporter</th>
-                                <th style="padding: 16px 24px; font-size: 12px; font-weight: 700; color: var(--agri-text-muted); text-transform: uppercase; border: none;">Reason</th>
-                                <th style="padding: 16px 24px; font-size: 12px; font-weight: 700; color: var(--agri-text-muted); text-transform: uppercase; border: none;">Status</th>
-                                <th style="padding: 16px 24px; font-size: 12px; font-weight: 700; color: var(--agri-text-muted); text-transform: uppercase; border: none;">Flagged / Reviewed</th>
-                                <th style="padding: 16px 24px; font-size: 12px; font-weight: 700; color: var(--agri-text-muted); text-transform: uppercase; border: none; text-align: end; min-width: 160px;">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach($flags as $flag)
-                            @php
-                                $reply  = $flag->reply;
-                                $thread = $reply?->thread;
-                                $statusColors = [
-                                    'pending'   => ['#FEF3C7', '#92400E'],
-                                    'reviewed'  => ['#D1FAE5', '#065F46'],
-                                    'dismissed' => ['#F3F4F6', '#4B5563'],
-                                ];
-                                $sc = $statusColors[$flag->status] ?? ['#F9FAFB', '#6B7280'];
-                            @endphp
-                            <tr style="border-bottom: 1px solid var(--agri-border);">
-                                <td style="padding: 18px 24px; font-size: 13px; font-weight: 600; color: var(--agri-text-muted);">{{ $flag->id }}</td>
-                                <td style="padding: 18px 24px; max-width:260px;">
-                                    @if($reply)
-                                        <div style="font-size: 14px; color: var(--agri-text-heading); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-bottom: 4px;" title="{{ strip_tags($reply->body) }}">
-                                            {{ Str::limit(strip_tags($reply->body), 80) }}
-                                        </div>
-                                        <span style="font-size: 12px; color: var(--agri-text-muted);">by {{ optional($reply->user)->name ?? '—' }}</span>
-                                    @else
-                                        <span style="font-size: 13px; color: var(--agri-text-muted); font-style: italic;">Reply deleted</span>
-                                    @endif
-                                </td>
-                                <td style="padding: 18px 24px; max-width:200px;">
+        <div class="table-responsive">
+            <table class="table mb-0" style="vertical-align: middle;">
+                <thead style="background: var(--agri-bg);">
+                    <tr>
+                        <th style="padding: 16px 24px; font-size: 12px; font-weight: 600; color: var(--agri-text-muted); text-transform: uppercase; border: none;">ID</th>
+                        <th style="padding: 16px 24px; font-size: 12px; font-weight: 600; color: var(--agri-text-muted); text-transform: uppercase; border: none;">Reply</th>
+                        <th style="padding: 16px 24px; font-size: 12px; font-weight: 600; color: var(--agri-text-muted); text-transform: uppercase; border: none;">Thread</th>
+                        <th style="padding: 16px 24px; font-size: 12px; font-weight: 600; color: var(--agri-text-muted); text-transform: uppercase; border: none;">Reporter</th>
+                        <th style="padding: 16px 24px; font-size: 12px; font-weight: 600; color: var(--agri-text-muted); text-transform: uppercase; border: none;">Reason</th>
+                        <th style="padding: 16px 24px; font-size: 12px; font-weight: 600; color: var(--agri-text-muted); text-transform: uppercase; border: none;">Status</th>
+                        <th class="text-end" style="padding: 16px 24px; font-size: 12px; font-weight: 600; color: var(--agri-text-muted); text-transform: uppercase; border: none;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse($flags as $flag)
+                        @php $thread = $flag->reply?->thread; @endphp
+                        <tr>
+                            <td class="px-4 py-3">{{ $flag->id }}</td>
+                            <td class="px-4 py-3">{{ \Illuminate\Support\Str::limit(strip_tags($flag->reply->body ?? 'Reply deleted'), 45) }}</td>
+                            <td class="px-4 py-3">{{ $thread ? \Illuminate\Support\Str::limit($thread->title, 35) : 'Deleted thread' }}</td>
+                            <td class="px-4 py-3">{{ optional($flag->reporter)->name ?? '—' }}</td>
+                            <td class="px-4 py-3">{{ \Illuminate\Support\Str::limit($flag->reason, 30) }}</td>
+                            <td class="px-4 py-3">
+                                @php($st = strtolower((string) $flag->status))
+                                <span class="badge rounded-pill {{ $st === 'pending' ? 'bg-warning text-dark' : ($st === 'reviewed' ? 'bg-success' : 'bg-secondary') }}">{{ strtoupper($st) }}</span>
+                            </td>
+                            <td class="px-4 py-3">
+                                <div class="text-end" style="display: flex; justify-content: flex-end; gap: 8px;">
                                     @if($thread)
-                                        <a href="{{ route('admin.forum.threads.show', $thread->id) }}" style="font-size: 13px; font-weight: 700; color: var(--agri-primary); text-decoration: none;" title="{{ $thread->title }}">
-                                            {{ Str::limit($thread->title, 55) }}
-                                        </a>
-                                    @else
-                                        <span style="font-size: 13px; color: var(--agri-text-muted); font-style: italic;">Thread deleted</span>
+                                        <a href="{{ route('admin.forum.threads.show', $thread->id) }}" class="btn-agri" style="padding: 8px; background: var(--agri-bg); color: #2563eb; border-radius: 999px;" title="View"><i class="fas fa-eye"></i></a>
                                     @endif
-                                </td>
-                                <td style="padding: 18px 24px;">
-                                    <div style="font-size: 14px; font-weight: 700; color: var(--agri-text-main);">{{ optional($flag->reporter)->name ?? '—' }}</div>
-                                    @if($flag->reporter?->email)
-                                        <div style="font-size: 12px; color: var(--agri-text-muted); margin-top: 2px;">{{ $flag->reporter->email }}</div>
+                                    @if($flag->status === 'pending')
+                                        <form method="POST" action="{{ route('admin.forum.flags.confirm', $flag->id) }}" class="d-inline">
+                                            @csrf
+                                            <button type="submit" class="btn-agri" style="padding: 8px; background: #fef2f2; color: #ef4444; border-radius: 999px; border: none;" title="Confirm"><i class="fas fa-check"></i></button>
+                                        </form>
+                                        <form method="POST" action="{{ route('admin.forum.flags.dismiss', $flag->id) }}" class="d-inline">
+                                            @csrf
+                                            <button type="submit" class="btn-agri" style="padding: 8px; background: #f3f4f6; color: #4b5563; border-radius: 999px; border: none;" title="Dismiss"><i class="fas fa-times"></i></button>
+                                        </form>
                                     @endif
-                                </td>
-                                <td style="padding: 18px 24px;">
-                                    <span style="background: var(--agri-bg); border: 1px solid var(--agri-border); color: var(--agri-text-heading); padding: 4px 8px; border-radius: 6px; font-size: 12px; font-weight: 600;" title="{{ $flag->reason }}">
-                                        {{ Str::limit($flag->reason, 30) }}
-                                    </span>
-                                </td>
-                                <td style="padding: 18px 24px;">
-                                    <span style="background: {{ $sc[0] }}; color: {{ $sc[1] }}; padding: 4px 10px; border-radius: 100px; font-size: 11px; font-weight: 800; border: 1px solid {{ $sc[0] }};">
-                                        {{ ucfirst($flag->status) }}
-                                    </span>
-                                </td>
-                                <td style="padding: 18px 24px;">
-                                    <div style="font-size: 12px; color: var(--agri-text-muted); margin-bottom: 4px;">{{ $flag->created_at->format('d M Y, H:i') }}</div>
-                                    @if($flag->reviewer)
-                                        <div style="font-size: 11px; color: var(--agri-text-main); font-weight: 600;">
-                                            <i class="fa fa-user" style="font-size: 9px; margin-right: 4px;"></i> {{ $flag->reviewer->name }}
-                                        </div>
-                                    @endif
-                                </td>
-                                <td style="padding: 18px 24px; text-align: end;">
-                                    <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 8px;">
-                                        @if($flag->status === 'pending')
-                                            <div style="display: flex; gap: 6px;">
-                                                <form method="POST" action="{{ route('admin.forum.flags.confirm', $flag->id) }}" class="d-inline">
-                                                    @csrf
-                                                    <button type="submit" class="btn-agri" style="padding: 6px 10px; background: #FEF2F2; color: #DC2626; border: 1px solid #FECACA; font-size: 11px; font-weight: 700;" title="Confirm flag — reply stays flagged">
-                                                        <i class="fa fa-check"></i> Confirm
-                                                    </button>
-                                                </form>
-                                                <form method="POST" action="{{ route('admin.forum.flags.dismiss', $flag->id) }}" class="d-inline">
-                                                    @csrf
-                                                    <button type="submit" class="btn-agri" style="padding: 6px 10px; background: var(--agri-bg); color: var(--agri-text-muted); border: 1px solid var(--agri-border); font-size: 11px; font-weight: 700;" title="Dismiss — reply restored to visible">
-                                                        <i class="fa fa-times"></i> Dismiss
-                                                    </button>
-                                                </form>
-                                            </div>
-                                        @elseif($flag->status === 'reviewed')
-                                            <span style="font-size: 12px; font-weight: 700; color: #059669;"><i class="fa fa-check-circle me-1"></i>Confirmed</span>
-                                        @else
-                                            <span style="font-size: 12px; font-weight: 600; color: var(--agri-text-muted);"><i class="fa fa-ban me-1"></i>Dismissed</span>
-                                        @endif
-
-                                        @if($thread)
-                                            <a href="{{ route('admin.forum.threads.show', $thread->id) }}" class="btn-agri btn-agri-primary" style="padding: 4px 10px; font-size: 11px; font-weight: 600; text-decoration: none;">
-                                                <i class="fa fa-eye"></i> View Thread
-                                            </a>
-                                        @endif
-                                    </div>
-                                </td>
-                            </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                @endif
-            </div>
-            @if($flags->hasPages())
-            <div style="padding: 24px; border-top: 1px solid var(--agri-border); display: flex; justify-content: center;">
-                {{ $flags->links() }}
-            </div>
-            @endif
+                                </div>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr><td colspan="7" class="text-center py-5" style="color: var(--agri-text-muted);">No flag reports found.</td></tr>
+                    @endforelse
+                </tbody>
+            </table>
         </div>
 
-        {{-- Legend --}}
-        <div style="margin-top: 24px; font-size: 13px; color: var(--agri-text-muted); display: flex; align-items: center; gap: 16px; flex-wrap: wrap;">
-            <div style="display: flex; align-items: center; gap: 8px;">
-                <span style="background: #FEF3C7; color: #92400E; padding: 2px 8px; border-radius: 6px; font-size: 11px; font-weight: 700;">Pending</span>
-                <span>Awaiting admin review</span>
+        @if($flags->hasPages())
+            <div style="padding: 24px; background: white; border-top: 1px solid var(--agri-border); display: flex; justify-content: center;">
+                {{ $flags->withQueryString()->links('pagination::bootstrap-5') }}
             </div>
-            <div style="width: 1px; height: 14px; background: var(--agri-border);"></div>
-            <div style="display: flex; align-items: center; gap: 8px;">
-                <span style="background: #D1FAE5; color: #065F46; padding: 2px 8px; border-radius: 6px; font-size: 11px; font-weight: 700;">Reviewed</span>
-                <span>Flag confirmed, reply remains flagged</span>
-            </div>
-            <div style="width: 1px; height: 14px; background: var(--agri-border);"></div>
-            <div style="display: flex; align-items: center; gap: 8px;">
-                <span style="background: #F3F4F6; color: #4B5563; padding: 2px 8px; border-radius: 6px; font-size: 11px; font-weight: 700;">Dismissed</span>
-                <span>Flag dismissed, reply restored to visible</span>
-            </div>
-        </div>
-
+        @endif
     </div>
-
+</div>
 @endsection
