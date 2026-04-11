@@ -68,6 +68,7 @@
     <!-- AgriTech Redesign: Core Design System -->
     <link href="{{ asset('css/agritech-redesign.css') }}" rel="stylesheet">
     <link href="{{ asset('css/admin-customer-unified.css') }}" rel="stylesheet">
+    <link href="{{ asset('css/panel-unified.css') }}" rel="stylesheet">
 
     <style>
         /* Modern structure overrides */
@@ -124,7 +125,7 @@
 
 </head>
 
-<body class="admin-sidebar-lock admin-unified-ui">
+<body class="admin-sidebar-lock admin-unified-ui panel-unified-ui">
 
 
 
