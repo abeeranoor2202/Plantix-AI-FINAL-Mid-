@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreProductRequest;
 use App\Http\Requests\Admin\UpdateProductRequest;
+use App\Models\Brand;
 use App\Models\Category;
 use App\Models\Product;
 use App\Models\ProductImage;
@@ -41,6 +42,7 @@ class AdminProductController extends Controller
     {
         return view('admin.products.create', [
             'categories' => Category::orderBy('name')->get(),
+            'brands'     => Brand::active()->orderBy('name')->get(['id', 'name']),
             'vendors'    => Vendor::orderBy('title')->get(),
         ]);
     }
@@ -98,6 +100,7 @@ class AdminProductController extends Controller
         return view('admin.products.edit', [
             'product'    => $product,
             'categories' => Category::orderBy('name')->get(),
+            'brands'     => Brand::active()->orderBy('name')->get(['id', 'name']),
             'vendors'    => Vendor::orderBy('title')->get(),
         ]);
     }
