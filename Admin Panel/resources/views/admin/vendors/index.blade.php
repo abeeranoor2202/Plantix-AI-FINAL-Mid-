@@ -1,162 +1,104 @@
-﻿@extends('layouts.app')
+@extends('layouts.app')
 
 @section('content')
 <div class="container-fluid" style="padding-top: 24px; padding-bottom: 40px;">
-
-    {{-- Header Section --}}
     <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 32px;">
         <div>
             <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
-                <a href="{{url('/dashboard')}}" style="text-decoration: none; color: var(--agri-text-muted); font-size: 14px; font-weight: 600;">Ecosystem</a>
+                <a href="{{ url('/dashboard') }}" style="text-decoration: none; color: var(--agri-text-muted); font-size: 14px; font-weight: 600;">Dashboard</a>
                 <i class="fas fa-chevron-right" style="font-size: 10px; color: var(--agri-text-muted);"></i>
-                <span style="color: var(--agri-primary); font-size: 14px; font-weight: 600;">Stakeholder Management</span>
+                <span style="color: var(--agri-primary); font-size: 14px; font-weight: 600;">Vendors</span>
             </div>
-            <h1 style="font-size: 28px; font-weight: 700; color: var(--agri-primary-dark); margin: 0;">
-                @if(request()->is('vendors/approved'))
-                    Verified Agriculture Experts
-                @elseif(request()->is('vendors/pending'))
-                    Pending Verification Queue
-                @else
-                    Service Partner Ecosystem
-                @endif
-            </h1>
-            <p style="color: var(--agri-text-muted); margin: 4px 0 0 0;">Orchestrate and verify the credentials of agriculture consultants and vendors.</p>
+            <h1 style="font-size: 28px; font-weight: 700; color: var(--agri-primary-dark); margin: 0;">Vendors</h1>
+            <p style="color: var(--agri-text-muted); margin: 4px 0 0 0;">Manage and verify service partners.</p>
         </div>
-        <div style="display: flex; gap: 12px;">
-            <div style="background: white; padding: 10px 20px; border-radius: 14px; border: 1px solid var(--agri-border); font-size: 13px; font-weight: 800; color: var(--agri-primary); display: flex; align-items: center; gap: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.03);">
-                <i class="fas fa-certificate"></i>
-                QUALITY ASSURED PARTNERS
-            </div>
-        </div>
+        <a href="{{ route('admin.vendors.create') }}" class="btn-agri btn-agri-primary" style="height: 44px; border: none; font-weight: 700; display: inline-flex; align-items: center; gap: 8px; text-decoration: none;">
+            <i class="fas fa-plus"></i> Add Vendor
+        </a>
     </div>
 
-    {{-- Strategy Card --}}
-    <div class="card-agri" style="padding: 0; overflow: hidden; background: white; border: none; box-shadow: 0 10px 30px rgba(0,0,0,0.04);">
-        <div style="padding: 24px 32px; border-bottom: 1px solid var(--agri-border); display: flex; justify-content: space-between; align-items: center; background: white;">
-            <div style="display: flex; gap: 8px; background: var(--agri-bg); padding: 6px; border-radius: 16px; border: 1px solid var(--agri-border);">
-                <a href="{{ route('admin.vendors') }}" class="btn-agri {{ !request()->filled('status') && !request()->filled('approval') ? 'btn-agri-primary' : '' }}" style="padding: 8px 24px; font-size: 12px; text-decoration: none; font-weight: 800; border-radius: 12px; border: none; background: {{ !request()->filled('status') && !request()->filled('approval') ? 'var(--agri-primary)' : 'transparent' }}; color: {{ !request()->filled('status') && !request()->filled('approval') ? 'white' : 'var(--agri-text-muted)' }};">
-                    All Vendors
-                </a>
-                <a href="{{ route('admin.vendors', ['approval' => 'approved']) }}" class="btn-agri {{ request()->query('approval') === 'approved' ? 'btn-agri-primary' : '' }}" style="padding: 8px 24px; font-size: 12px; text-decoration: none; font-weight: 800; border-radius: 12px; border: none; background: {{ request()->query('approval') === 'approved' ? 'var(--agri-primary)' : 'transparent' }}; color: {{ request()->query('approval') === 'approved' ? 'white' : 'var(--agri-text-muted)' }};">
-                    Approved
-                </a>
-                <a href="{{ route('admin.vendors', ['approval' => 'pending']) }}" class="btn-agri {{ request()->query('approval') === 'pending' ? 'btn-agri-primary' : '' }}" style="padding: 8px 24px; font-size: 12px; text-decoration: none; font-weight: 800; border-radius: 12px; border: none; background: {{ request()->query('approval') === 'pending' ? 'var(--agri-primary)' : 'transparent' }}; color: {{ request()->query('approval') === 'pending' ? 'white' : 'var(--agri-text-muted)' }};">
-                    Pending
-                </a>
-            </div>
-            
-            <div style="display: flex; align-items: center; gap: 20px;">
-                <div style="position: relative;">
-                    <i class="fas fa-search" style="position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: var(--agri-primary); font-size: 14px; opacity: 0.7;"></i>
-                    <form method="GET" action="{{ route('admin.vendors') }}" style="display: inline;">
-                        <input type="text" name="search" placeholder="Search vendors..." class="form-agri" value="{{ request('search') }}" style="padding-left: 44px; width: 300px; height: 44px; font-size: 14px; font-weight: 600;">
-                    </form>
-                </div>
-
-                @if(in_array('vendors', json_decode(session('admin_permissions', '[]'), true)))
-                    <button id="deleteAll" class="btn-agri" style="color: var(--agri-error); font-size: 13px; font-weight: 800; border: none; border-radius: 12px; padding: 12px 20px; background: #FEF2F2; display: flex; align-items: center; gap: 8px;">
-                        <i class="fas fa-trash-alt"></i> Bulk Delete
-                    </button>
-                @endif
-            </div>
-        </div>
-
-        <div id="data-table_processing" class="dataTables_processing" style="display: none; background: rgba(255,255,255,0.95); position: absolute; top: 0; left: 0; right: 0; bottom: 0; align-items: center; justify-content: center; z-index: 100;">
-            <div style="text-align: center;">
-                <div class="spinner-border text-success" role="status" style="width: 3rem; height: 3rem;"></div>
-                <div style="margin-top: 16px; font-weight: 800; color: var(--agri-primary); letter-spacing: 1px;">SYNCING REGISTRY...</div>
+    <div class="card-agri" style="padding: 0; overflow: hidden;">
+        <div class="card-header bg-white border-bottom-0 pt-4 pb-3 px-4 d-flex justify-content-between align-items-center">
+            <h4 class="mb-0 fw-bold text-dark" style="font-size: 18px;">Vendor List</h4>
+            <div class="input-group" style="width: 320px;">
+                <span class="input-group-text bg-white border-end-0" style="border-radius: 10px 0 0 10px;">
+                    <i class="fas fa-search" style="color: var(--agri-text-muted); font-size: 14px;"></i>
+                </span>
+                <input type="text" id="search-input" class="form-agri border-start-0" placeholder="Search vendors..." style="margin-bottom: 0; border-radius: 0 10px 10px 0; height: 42px;">
             </div>
         </div>
 
         <div class="table-responsive">
-            <table class="table mb-0" style="vertical-align: middle; width: 100%;">
+            <table id="vendorTable" class="table mb-0" style="vertical-align: middle;">
                 <thead style="background: var(--agri-bg);">
                     <tr>
-                        <th style="padding: 20px 32px; font-size: 11px; font-weight: 800; color: var(--agri-text-muted); text-transform: uppercase; letter-spacing: 1px; border: none;">Vendor Name</th>
-                        <th style="padding: 20px 32px; font-size: 11px; font-weight: 800; color: var(--agri-text-muted); text-transform: uppercase; letter-spacing: 1px; border: none;">Owner</th>
-                        <th style="padding: 20px 32px; font-size: 11px; font-weight: 800; color: var(--agri-text-muted); text-transform: uppercase; letter-spacing: 1px; border: none;">Phone</th>
-                        <th style="padding: 20px 32px; font-size: 11px; font-weight: 800; color: var(--agri-text-muted); text-transform: uppercase; letter-spacing: 1px; border: none;" class="text-center">Approval</th>
-                        <th style="padding: 20px 32px; font-size: 11px; font-weight: 800; color: var(--agri-text-muted); text-transform: uppercase; letter-spacing: 1px; border: none;" class="text-center">Status</th>
-                        <th style="padding: 20px 32px; font-size: 11px; font-weight: 800; color: var(--agri-text-muted); text-transform: uppercase; letter-spacing: 1px; border: none;" class="text-end">Actions</th>
+                        <th style="padding: 16px 24px; font-size: 12px; font-weight: 600; color: var(--agri-text-muted); text-transform: uppercase; border: none;">Vendor</th>
+                        <th style="padding: 16px 24px; font-size: 12px; font-weight: 600; color: var(--agri-text-muted); text-transform: uppercase; border: none;">Owner</th>
+                        <th style="padding: 16px 24px; font-size: 12px; font-weight: 600; color: var(--agri-text-muted); text-transform: uppercase; border: none;">Phone</th>
+                        <th style="padding: 16px 24px; font-size: 12px; font-weight: 600; color: var(--agri-text-muted); text-transform: uppercase; border: none;">Approval</th>
+                        <th style="padding: 16px 24px; font-size: 12px; font-weight: 600; color: var(--agri-text-muted); text-transform: uppercase; border: none;">Status</th>
+                        <th class="text-end" style="padding: 16px 24px; font-size: 12px; font-weight: 600; color: var(--agri-text-muted); text-transform: uppercase; border: none;">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
                     @forelse($vendors as $vendor)
-                        <tr style="border-bottom: 1px solid var(--agri-border);">
-                            <td style="padding: 16px 32px;">
-                                <div style="font-weight: 700; color: var(--agri-primary-dark); font-size: 14px;">
-                                    {{ $vendor->title }}
-                                </div>
-                                <div style="font-size: 12px; color: var(--agri-text-muted); margin-top: 4px;">
-                                    {{ \Illuminate\Support\Str::limit($vendor->description, 50) }}
-                                </div>
+                        <tr>
+                            <td class="px-4 py-3">
+                                <div style="font-weight: 700; color: var(--agri-text-heading);">{{ $vendor->title }}</div>
+                                <div style="font-size: 12px; color: var(--agri-text-muted);">{{ \Illuminate\Support\Str::limit($vendor->description, 55) }}</div>
                             </td>
-                            <td style="padding: 16px 32px; font-size: 14px;">
-                                {{ $vendor->author?->name ?? 'N/A' }}
+                            <td class="px-4 py-3">
+                                <div style="font-size: 14px; color: var(--agri-text-heading);">{{ $vendor->author?->name ?? 'N/A' }}</div>
                             </td>
-                            <td style="padding: 16px 32px; font-size: 14px;">
-                                {{ $vendor->phone }}
+                            <td class="px-4 py-3">
+                                <div style="font-size: 14px; color: var(--agri-text-main);">{{ $vendor->phone }}</div>
                             </td>
-                            <td style="padding: 16px 32px; text-align: center;">
-                                <span style="display: inline-block; padding: 6px 12px; border-radius: 8px; background: {{ $vendor->is_approved ? '#d4edda' : '#fff3cd' }}; color: {{ $vendor->is_approved ? '#155724' : '#856404' }}; font-weight: 600; font-size: 12px;">
-                                    {{ $vendor->is_approved ? '✓ Approved' : '⏳ Pending' }}
-                                </span>
+                            <td class="px-4 py-3">
+                                <span class="badge rounded-pill {{ $vendor->is_approved ? 'bg-success' : 'bg-warning' }}">{{ $vendor->is_approved ? 'Approved' : 'Pending' }}</span>
                             </td>
-                            <td style="padding: 16px 32px; text-align: center;">
-                                <span style="display: inline-block; padding: 6px 12px; border-radius: 8px; background: {{ $vendor->is_active ? '#d4edda' : '#f8d7da' }}; color: {{ $vendor->is_active ? '#155724' : '#721c24' }}; font-weight: 600; font-size: 12px;">
-                                    {{ $vendor->is_active ? '✓ Active' : '✗ Inactive' }}
-                                </span>
+                            <td class="px-4 py-3">
+                                <span class="badge rounded-pill {{ $vendor->is_active ? 'bg-success' : 'bg-secondary' }}">{{ $vendor->is_active ? 'Active' : 'Inactive' }}</span>
                             </td>
-                            <td style="padding: 16px 32px; text-align: right;">
-                                <div style="display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap;">
-                                    <a href="{{ route('admin.vendors.view', $vendor->id) }}" class="btn-agri btn-agri-outline" style="font-size: 12px; padding: 6px 12px; text-decoration: none; background: #EFF6FF; color: #1D4ED8; border-color: #BFDBFE;">
-                                        <i class="fas fa-eye"></i> View
-                                    </a>
-                                    
-                                    @if(!$vendor->is_approved)
-                                        <form method="POST" action="{{ route('admin.vendors.toggle', $vendor->id) }}" style="display: inline;">
-                                            @csrf
-                                            <input type="hidden" name="action" value="approve">
-                                            <button type="submit" class="btn-agri btn-agri-primary" style="font-size: 12px; padding: 6px 12px;" title="Approve this vendor">
-                                                <i class="fas fa-check"></i> Approve
-                                            </button>
-                                        </form>
-                                        <form method="POST" action="{{ route('admin.vendors.toggle', $vendor->id) }}" style="display: inline;">
-                                            @csrf
-                                            <input type="hidden" name="action" value="reject">
-                                            <button type="submit" class="btn-agri" style="font-size: 12px; padding: 6px 12px; background: #FEF2F2; color: #991B1B; border: 1px solid #FECACA;" title="Reject this vendor" onclick="return confirm('Are you sure you want to reject this vendor?');">
-                                                <i class="fas fa-times"></i> Reject
-                                            </button>
-                                        </form>
-                                    @else
-                                        <a href="{{ route('admin.vendors.edit', $vendor->id) }}" class="btn-agri btn-agri-primary" style="font-size: 12px; padding: 6px 12px; text-decoration: none;">
-                                            <i class="fas fa-edit"></i> Edit
-                                        </a>
-                                    @endif
+                            <td class="px-4 py-3">
+                                <div class="text-end" style="display: flex; justify-content: flex-end; gap: 8px;">
+                                    <a href="{{ route('admin.vendors.view', $vendor->id) }}" class="btn-agri" style="padding: 8px; background: var(--agri-bg); color: #2563eb; border-radius: 999px;" title="View"><i class="fas fa-eye"></i></a>
+                                    <a href="{{ route('admin.vendors.edit', $vendor->id) }}" class="btn-agri" style="padding: 8px; background: var(--agri-bg); color: var(--agri-primary); border-radius: 999px;" title="Edit"><i class="fas fa-pen"></i></a>
+                                    <form method="POST" action="{{ route('admin.vendors.delete', $vendor->id) }}" style="display: inline;" onsubmit="return confirm('Delete this vendor? If the vendor has orders, it will be archived instead.');">
+                                        @csrf
+                                        <button type="submit" class="btn-agri" style="padding: 8px; background: #fef2f2; color: #ef4444; border-radius: 999px; border: none;" title="Delete">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </form>
                                 </div>
                             </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="6" style="padding: 40px; text-align: center; color: var(--agri-text-muted); font-weight: 700;">
-                                No vendors found
-                            </td>
+                            <td colspan="6" class="text-center py-5" style="color: var(--agri-text-muted);">No vendors found</td>
                         </tr>
                     @endforelse
                 </tbody>
             </table>
         </div>
 
-        {{-- Pagination --}}
         @if($vendors->hasPages())
-            <div style="padding: 24px 32px; border-top: 1px solid var(--agri-border); display: flex; justify-content: between; align-items: center;">
-                {{ $vendors->links() }}
-            </div>
+            <div class="px-4 py-3 bg-white border-top">{{ $vendors->links() }}</div>
         @endif
     </div>
 </div>
 
-<style>
-    .form-check-input:checked { background-color: var(--agri-primary); border-color: var(--agri-primary); }
-</style>
+@endsection
+
+@section('scripts')
+<script>
+$(document).ready(function () {
+    $('#search-input').on('keyup', function () {
+        var val = $(this).val().toLowerCase();
+        $('#vendorTable tbody tr').filter(function () {
+            $(this).toggle($(this).text().toLowerCase().indexOf(val) > -1);
+        });
+    });
+
+});
+</script>
 @endsection
