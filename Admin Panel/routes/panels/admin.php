@@ -85,6 +85,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         // ── Vendor Management ─────────────────────────────────────────────────
         Route::middleware(['permission:vendors,vendors'])->group(function () {
             Route::get('/vendors', [\App\Http\Controllers\UserController::class, 'vendors'])->name('vendors');
+            Route::get('/vendors/create', [\App\Http\Controllers\UserController::class, 'vendorCreate'])->name('vendors.create');
         });
         Route::middleware(['permission:vendors,vendors.view'])->group(function () {
             Route::get('/vendors/view/{id}', [\App\Http\Controllers\UserController::class, 'vendorView'])->name('vendors.view');
@@ -92,6 +93,9 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::middleware(['permission:vendors,vendors.edit'])->group(function () {
             Route::get('/vendors/edit/{id}', [\App\Http\Controllers\UserController::class, 'vendorEdit'])->name('vendors.edit');
         });
+        Route::post('/vendors/store', [\App\Http\Controllers\UserController::class, 'vendorStore'])->name('vendors.store');
+        Route::post('/vendors/update/{id}', [\App\Http\Controllers\UserController::class, 'vendorUpdate'])->name('vendors.update');
+        Route::post('/vendors/delete/{id}', [\App\Http\Controllers\UserController::class, 'vendorDelete'])->name('vendors.delete');
         Route::middleware(['permission:vendors,vendors.toggle'])->group(function () {
             Route::post('/vendors/{id}/toggle', [\App\Http\Controllers\UserController::class, 'vendorToggle'])->name('vendors.toggle');
         });
@@ -176,6 +180,8 @@ Route::prefix('admin')->name('admin.')->group(function () {
         // ── Expert Management ─────────────────────────────────────────────────
         Route::prefix('/experts')->name('experts.')->group(function () {
             Route::get('/',                  [\App\Http\Controllers\Admin\AdminExpertController::class, 'index'])->name('index');
+            Route::get('/create',            [\App\Http\Controllers\Admin\AdminExpertController::class, 'create'])->name('create');
+            Route::post('/',                 [\App\Http\Controllers\Admin\AdminExpertController::class, 'store'])->name('store');
             Route::get('/export',            [\App\Http\Controllers\Admin\AdminExpertController::class, 'export'])->name('export');
 
             // ── Applications sub-group ────────────────────────────────────
@@ -188,6 +194,9 @@ Route::prefix('admin')->name('admin.')->group(function () {
 
             // ── Individual expert actions ─────────────────────────────────
             Route::get('/{id}',              [\App\Http\Controllers\Admin\AdminExpertController::class, 'show'])->name('show');
+            Route::get('/{id}/edit',         [\App\Http\Controllers\Admin\AdminExpertController::class, 'edit'])->name('edit');
+            Route::put('/{id}',              [\App\Http\Controllers\Admin\AdminExpertController::class, 'update'])->name('update');
+            Route::delete('/{id}',           [\App\Http\Controllers\Admin\AdminExpertController::class, 'destroy'])->name('destroy');
             Route::get('/{id}/logs',         [\App\Http\Controllers\Admin\AdminExpertController::class, 'logs'])->name('logs');
             Route::post('/{id}/under-review',[\App\Http\Controllers\Admin\AdminExpertController::class, 'markUnderReview'])->name('under-review');
             Route::post('/{id}/approve',     [\App\Http\Controllers\Admin\AdminExpertController::class, 'approve'])->name('approve');
