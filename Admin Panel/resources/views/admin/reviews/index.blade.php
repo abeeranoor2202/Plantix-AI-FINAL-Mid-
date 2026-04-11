@@ -2,141 +2,91 @@
 
 @section('content')
 <div class="container-fluid" style="padding-top: 24px; padding-bottom: 40px;">
-
-    {{-- Header Section --}}
-    <div style="margin-bottom: 32px;">
-        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
-            <a href="{{url('/dashboard')}}" style="text-decoration: none; color: var(--agri-text-muted); font-size: 14px; font-weight: 600;">{{trans('lang.dashboard')}}</a>
-            <i class="fas fa-chevron-right" style="font-size: 10px; color: var(--agri-text-muted);"></i>
-            <span style="color: var(--agri-primary); font-size: 14px; font-weight: 600;">Social Proof</span>
+    <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 32px;">
+        <div>
+            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
+                <a href="{{ url('/dashboard') }}" style="text-decoration: none; color: var(--agri-text-muted); font-size: 14px; font-weight: 600;">Dashboard</a>
+                <i class="fas fa-chevron-right" style="font-size: 10px; color: var(--agri-text-muted);"></i>
+                <span style="color: var(--agri-primary); font-size: 14px; font-weight: 600;">Reviews</span>
+            </div>
+            <h1 style="font-size: 28px; font-weight: 700; color: var(--agri-primary-dark); margin: 0;">Reviews & Ratings</h1>
+            <p style="color: var(--agri-text-muted); margin: 4px 0 0 0;">Moderate and analyze product feedback.</p>
         </div>
-        <h1 style="font-size: 28px; font-weight: 700; color: var(--agri-primary-dark); margin: 0;">Reviews & Ratings</h1>
-        <p style="color: var(--agri-text-muted); margin: 4px 0 0 0;">Moderate and analyze user sentiment across all product listings.</p>
     </div>
 
-    @if(session('success'))
-        <div class="card-agri mb-4" style="background: var(--agri-primary-light); border: 1px solid var(--agri-primary); border-radius: 12px; padding: 12px 20px;">
-            <div style="display: flex; align-items: center; justify-content: space-between;">
-                <div style="display: flex; align-items: center; gap: 12px; color: var(--agri-primary-hover);">
-                    <i class="fas fa-check-circle"></i>
-                    <span style="font-weight: 600;">{{ session('success') }}</span>
-                </div>
-                <button type="button" class="btn-close" data-bs-dismiss="alert" style="background:none; border:none; opacity: 0.5;"></button>
-            </div>
-        </div>
-    @endif
-
-    {{-- Advanced Filter Bar --}}
-    <div class="card-agri mb-4" style="padding: 24px; background: white;">
-        <form method="GET" action="{{ route('admin.reviews') }}" class="row g-3 align-items-end">
-            <div class="col-md-5">
-                <label class="agri-label">Search Context</label>
-                <div style="position: relative;">
-                    <i class="fas fa-search" style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--agri-text-muted); font-size: 14px;"></i>
-                    <input type="text" name="search" class="form-agri" style="padding-left: 40px; height: 44px;"
-                           placeholder="Search by Product name or Customer..." value="{{ request('search') }}">
-                </div>
-            </div>
-            <div class="col-md-3">
-                <label class="agri-label">Rating Filter</label>
-                <select name="rating" class="form-agri" style="height: 44px;">
-                    <option value="">All Star Ratings</option>
+    <div class="card-agri" style="padding: 0; overflow: hidden;">
+        <div class="card-header bg-white border-bottom-0 pt-4 pb-3 px-4 d-flex justify-content-between align-items-center" style="gap: 10px; flex-wrap: wrap;">
+            <h4 class="mb-0 fw-bold text-dark" style="font-size: 18px;">Review List</h4>
+            <form method="GET" action="{{ route('admin.reviews') }}" style="display: flex; align-items: center; gap: 10px;">
+                <select name="rating" class="form-agri" style="height: 42px; min-width: 140px; margin-bottom: 0;">
+                    <option value="">All Ratings</option>
                     @foreach([5,4,3,2,1] as $r)
                         <option value="{{ $r }}" {{ request('rating') == $r ? 'selected' : '' }}>{{ $r }} Stars</option>
                     @endforeach
                 </select>
-            </div>
-            <div class="col-md-4 d-flex gap-2">
-                <button type="submit" class="btn-agri btn-agri-primary" style="flex: 1; height: 44px; font-weight: 700;">Filter Feedback</button>
-                <a href="{{ route('admin.reviews') }}" class="btn-agri btn-agri-outline" style="min-width: 100px; height: 44px; text-decoration: none; display: flex; align-items: center; justify-content: center;">Reset</a>
-            </div>
-        </form>
-    </div>
-
-    {{-- Review Ledger Tables --}}
-    <div class="card-agri" style="padding: 0; overflow: hidden; background: white;">
-        <div style="padding: 20px 24px; border-bottom: 1px solid var(--agri-border); background: white; display: flex; justify-content: space-between; align-items: center;">
-            <h4 style="font-size: 16px; font-weight: 700; color: var(--agri-text-heading); margin: 0;">Sentiment Registry</h4>
-            <div style="font-size: 13px; font-weight: 600; color: var(--agri-text-muted);">
-                Showing {{ $reviews->count() }} of {{ $reviews->total() }} recorded feedbacks
-            </div>
+                <div class="input-group" style="width: 320px;">
+                    <span class="input-group-text bg-white border-end-0" style="border-radius: 10px 0 0 10px;">
+                        <i class="fas fa-search" style="color: var(--agri-text-muted); font-size: 14px;"></i>
+                    </span>
+                    <input type="text" name="search" class="form-agri border-start-0" placeholder="Search reviews..." value="{{ request('search') }}" style="margin-bottom: 0; border-radius: 0 10px 10px 0; height: 42px;">
+                </div>
+                <button type="submit" class="btn-agri btn-agri-primary" style="height: 42px; padding: 0 16px;">Filter</button>
+            </form>
         </div>
 
         <div class="table-responsive">
             <table class="table mb-0" style="vertical-align: middle;">
                 <thead style="background: var(--agri-bg);">
                     <tr>
-                        <th style="padding: 16px 24px; font-size: 11px; font-weight: 700; color: var(--agri-text-muted); text-transform: uppercase; letter-spacing: 0.5px; border: none;">Customer Feed</th>
-                        <th style="padding: 16px 24px; font-size: 11px; font-weight: 700; color: var(--agri-text-muted); text-transform: uppercase; letter-spacing: 0.5px; border: none;">Associated Product</th>
-                        <th style="padding: 16px 24px; font-size: 11px; font-weight: 700; color: var(--agri-text-muted); text-transform: uppercase; letter-spacing: 0.5px; border: none;">Sentiment (Rating)</th>
-                        <th style="padding: 16px 24px; font-size: 11px; font-weight: 700; color: var(--agri-text-muted); text-transform: uppercase; letter-spacing: 0.5px; border: none;">Commentary</th>
-                        <th style="padding: 16px 24px; font-size: 11px; font-weight: 700; color: var(--agri-text-muted); text-transform: uppercase; letter-spacing: 0.5px; border: none;" class="text-end">Actions</th>
+                        <th style="padding: 16px 24px; font-size: 12px; font-weight: 600; color: var(--agri-text-muted); text-transform: uppercase; border: none;">Customer</th>
+                        <th style="padding: 16px 24px; font-size: 12px; font-weight: 600; color: var(--agri-text-muted); text-transform: uppercase; border: none;">Product</th>
+                        <th style="padding: 16px 24px; font-size: 12px; font-weight: 600; color: var(--agri-text-muted); text-transform: uppercase; border: none;">Rating</th>
+                        <th style="padding: 16px 24px; font-size: 12px; font-weight: 600; color: var(--agri-text-muted); text-transform: uppercase; border: none;">Comment</th>
+                        <th class="text-end" style="padding: 16px 24px; font-size: 12px; font-weight: 600; color: var(--agri-text-muted); text-transform: uppercase; border: none;">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
                     @forelse($reviews as $review)
-                    <tr style="border-bottom: 1px solid var(--agri-border); transition: 0.2s;">
-                        <td style="padding: 20px 24px;">
-                            <div style="display: flex; align-items: center; gap: 12px;">
-                                <div style="width: 40px; height: 40px; border-radius: 10px; background: var(--agri-primary-light); color: var(--agri-primary); display: flex; align-items: center; justify-content: center; font-weight: 700;">
-                                    {{ substr($review->user->name ?? 'U', 0, 1) }}
-                                </div>
-                                <div>
-                                    <div style="font-weight: 700; color: var(--agri-text-heading); font-size: 14px;">{{ $review->user->name ?? 'Deleted User' }}</div>
-                                    <div style="font-size: 11px; color: var(--agri-text-muted); font-weight: 500;">{{ $review->created_at->format('M d, Y') }}</div>
-                                </div>
-                            </div>
-                        </td>
-                        <td style="padding: 20px 24px;">
-                            <a href="{{ route('admin.products.show', $review->product_id) }}" style="text-decoration: none;">
-                                <div style="font-weight: 600; color: var(--agri-primary); font-size: 14px;">{{ $review->product->name ?? 'Unknown Product' }}</div>
-                                <div style="font-size: 11px; color: var(--agri-text-muted); font-weight: 500;">Provider: {{ $review->vendor->name ?? 'Marketplace' }}</div>
-                            </a>
-                        </td>
-                        <td style="padding: 20px 24px;">
-                            <div style="display: flex; gap: 2px;">
+                        <tr>
+                            <td class="px-4 py-3">
+                                <div style="font-weight: 700; color: var(--agri-text-heading);">{{ $review->user->name ?? 'Deleted User' }}</div>
+                                <small class="text-muted">{{ $review->created_at->format('M d, Y') }}</small>
+                            </td>
+                            <td class="px-4 py-3">
+                                <div style="font-weight: 700; color: var(--agri-primary);">{{ $review->product->name ?? 'Unknown Product' }}</div>
+                                <small class="text-muted">{{ $review->vendor->title ?? 'Marketplace' }}</small>
+                            </td>
+                            <td class="px-4 py-3">
                                 @for($i = 1; $i <= 5; $i++)
-                                    <i class="fas fa-star" style="font-size: 12px; color: {{ $i <= $review->rating ? '#FBBF24' : '#E5E7EB' }};"></i>
+                                    <i class="fas fa-star" style="font-size: 12px; color: {{ $i <= $review->rating ? '#fbbf24' : '#e5e7eb' }};"></i>
                                 @endfor
-                            </div>
-                            <div style="font-size: 11px; font-weight: 700; color: var(--agri-text-muted); margin-top: 4px;">{{ $review->rating }}.0 Quality Score</div>
-                        </td>
-                        <td style="padding: 20px 24px;">
-                            <div style="font-size: 13px; color: var(--agri-text-main); line-height: 1.5; max-width: 300px;">
-                                "{{ $review->comment }}"
-                            </div>
-                        </td>
-                        <td style="padding: 20px 24px;" class="text-end">
-                            <form action="{{ route('admin.reviews.destroy', $review->id) }}" method="POST" onsubmit="return confirm('Moderator action: Permanently delete this review?')">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" class="btn-agri" style="padding: 10px; color: var(--agri-error); background: #FEF2F2; border: none; border-radius: 10px;" title="Moderation: Delete">
-                                    <i class="fas fa-trash-alt"></i>
-                                </button>
-                            </form>
-                        </td>
-                    </tr>
+                            </td>
+                            <td class="px-4 py-3">{{ \Illuminate\Support\Str::limit($review->comment, 80) }}</td>
+                            <td class="px-4 py-3">
+                                <div class="text-end" style="display: flex; justify-content: flex-end; gap: 8px;">
+                                    <a href="{{ route('admin.products.show', $review->product_id) }}" class="btn-agri" style="padding: 8px; background: var(--agri-bg); color: #2563eb; border-radius: 999px;" title="View"><i class="fas fa-eye"></i></a>
+                                    <form action="{{ route('admin.reviews.destroy', $review->id) }}" method="POST" onsubmit="return confirm('Delete this review?')" class="d-inline">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="btn-agri" style="padding: 8px; background: #fef2f2; color: #ef4444; border-radius: 999px; border: none;" title="Delete">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
                     @empty
-                    <tr>
-                        <td colspan="5" class="text-center py-5">
-                            <div style="color: var(--agri-border); font-size: 48px; margin-bottom: 20px;"><i class="fas fa-comment-slash"></i></div>
-                            <div style="font-weight: 700; color: var(--agri-text-muted);">No product reviews found in the registry.</div>
-                        </td>
-                    </tr>
+                        <tr><td colspan="5" class="text-center py-5" style="color: var(--agri-text-muted);">No reviews found.</td></tr>
                     @endforelse
                 </tbody>
             </table>
         </div>
 
         @if($reviews->hasPages())
-        <div style="padding: 24px; background: white; border-top: 1px solid var(--agri-border); display: flex; justify-content: center;">
-            {{ $reviews->appends(request()->query())->links() }}
-        </div>
+            <div style="padding: 24px; background: white; border-top: 1px solid var(--agri-border); display: flex; justify-content: center;">
+                {{ $reviews->appends(request()->query())->links() }}
+            </div>
         @endif
     </div>
 </div>
-
-<style>
-    .agri-label { font-size: 11px; font-weight: 700; color: var(--agri-text-muted); margin-bottom: 10px; display: block; text-transform: uppercase; letter-spacing: 0.5px; }
-</style>
 @endsection
