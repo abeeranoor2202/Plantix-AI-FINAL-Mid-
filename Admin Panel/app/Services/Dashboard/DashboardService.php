@@ -120,11 +120,11 @@ class DashboardService
         return Cache::remember("dashboard:admin:top_vendors:{$limit}", self::TTL_LONG, function () use ($limit) {
             return DB::table('orders')
                 ->join('vendors', 'orders.vendor_id', '=', 'vendors.id')
-                ->selectRaw('vendors.id, vendors.name, COUNT(orders.id) as total_orders, SUM(orders.total) as total_revenue')
+                ->selectRaw('vendors.id, vendors.title as name, COUNT(orders.id) as total_orders, SUM(orders.total) as total_revenue')
                 ->whereNull('orders.deleted_at')
                 ->whereNull('vendors.deleted_at')
                 ->whereNotIn('orders.status', ['cancelled', 'refunded'])
-                ->groupBy('vendors.id', 'vendors.name')
+                ->groupBy('vendors.id', 'vendors.title')
                 ->orderByDesc('total_revenue')
                 ->limit($limit)
                 ->get()
