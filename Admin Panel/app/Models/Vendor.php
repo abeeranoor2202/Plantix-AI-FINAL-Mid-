@@ -124,6 +124,11 @@ class Vendor extends Model
     // Computed
     // -------------------------------------------------------------------------
 
+    public function getNameAttribute(): string
+    {
+        return (string) ($this->attributes['title'] ?? '');
+    }
+
     public function recalculateRating(): void
     {
         $avg   = $this->reviews()->where('is_active', true)->avg('rating') ?? 0;
