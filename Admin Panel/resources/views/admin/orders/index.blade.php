@@ -4,192 +4,90 @@
 
 @section('content')
 <div class="container-fluid" style="padding-top: 24px; padding-bottom: 40px;">
-
-    {{-- Header Section --}}
     <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 32px;">
         <div>
             <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
-                <a href="{{url('/dashboard')}}" style="text-decoration: none; color: var(--agri-text-muted); font-size: 14px; font-weight: 600;">Dashboard</a>
+                <a href="{{ url('/dashboard') }}" style="text-decoration: none; color: var(--agri-text-muted); font-size: 14px; font-weight: 600;">Dashboard</a>
                 <i class="fas fa-chevron-right" style="font-size: 10px; color: var(--agri-text-muted);"></i>
                 <span style="color: var(--agri-primary); font-size: 14px; font-weight: 600;">Orders</span>
             </div>
             <h1 style="font-size: 28px; font-weight: 700; color: var(--agri-primary-dark); margin: 0;">Orders</h1>
             <p style="color: var(--agri-text-muted); margin: 4px 0 0 0;">Manage and track all customer orders.</p>
         </div>
-        <div style="display: flex; gap: 16px;">
-            <div style="background: white; padding: 10px 20px; border-radius: 14px; border: 1px solid var(--agri-border); font-size: 13px; font-weight: 800; color: var(--agri-primary); display: flex; align-items: center; gap: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.03);">
-                <i class="fas fa-satellite-dish"></i>
-                TOTAL ORDERS: {{ $orders->total() }}
-            </div>
+    </div>
+
+    <div class="card-agri" style="padding: 0; overflow: hidden;">
+        <div class="card-header bg-white border-bottom-0 pt-4 pb-3 px-4 d-flex justify-content-between align-items-center" style="gap: 10px; flex-wrap: wrap;">
+            <h4 class="mb-0 fw-bold text-dark" style="font-size: 18px;">Order List</h4>
+            <form method="GET" action="{{ route('admin.orders.index') }}" style="display: flex; align-items: center; gap: 10px;">
+                <select name="status" class="form-agri" style="height: 42px; min-width: 150px; margin-bottom: 0;">
+                    <option value="">All Statuses</option>
+                    @foreach($statuses as $s)
+                        <option value="{{ $s }}" @selected(request('status') === $s)>{{ strtoupper(str_replace('_', ' ', $s)) }}</option>
+                    @endforeach
+                </select>
+                <div class="input-group" style="width: 320px;">
+                    <span class="input-group-text bg-white border-end-0" style="border-radius: 10px 0 0 10px;">
+                        <i class="fas fa-search" style="color: var(--agri-text-muted); font-size: 14px;"></i>
+                    </span>
+                    <input type="text" name="search" class="form-agri border-start-0" placeholder="Search orders..." value="{{ request('search') }}" style="margin-bottom: 0; border-radius: 0 10px 10px 0; height: 42px;">
+                </div>
+                <button type="submit" class="btn-agri btn-agri-primary" style="height: 42px; padding: 0 16px;">Filter</button>
+            </form>
         </div>
-    </div>
 
-    {{-- Strategy Filters --}}
-    <div class="card-agri mb-4" style="padding: 24px 32px; border: none; box-shadow: 0 10px 30px rgba(0,0,0,0.04); background: white;">
-        <form method="GET" action="{{ route('admin.orders.index') }}">
-            <div class="row g-4">
-                <div class="col-lg-4">
-                    <label class="agri-filter-label">Order ID / User</label>
-                    <div style="position: relative;">
-                        <i class="fas fa-search" style="position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: var(--agri-primary); opacity: 0.6;"></i>
-                        <input type="text" name="search" class="form-agri" style="padding-left: 44px; font-size: 14px; font-weight: 600;"
-                               placeholder="Search Order ID or Account Name..." value="{{ request('search') }}">
-                    </div>
-                </div>
-                <div class="col-lg-3">
-                    <label class="agri-filter-label">Order Status</label>
-                    <select name="status" class="form-agri" style="font-size: 14px; font-weight: 600;">
-                        <option value="">All Statuses</option>
-                        @foreach($statuses as $s)
-                            <option value="{{ $s }}" @selected(request('status') === $s)>
-                                {{ strtoupper(str_replace('_', ' ', $s)) }}
-                            </option>
-                        @endforeach
-                    </select>
-                </div>
-                <div class="col-lg-2">
-                    <label class="agri-filter-label">Vendor ID</label>
-                    <input type="number" name="vendor_id" class="form-agri" style="font-size: 14px; font-weight: 600;"
-                           placeholder="Filter by Vendor ID" value="{{ request('vendor_id') }}">
-                </div>
-                <div class="col-lg-3 d-flex align-items-end gap-2">
-                    <button type="submit" class="btn-agri btn-agri-primary" style="flex: 1; font-weight: 800; letter-spacing: 0.5px;">
-                        FILTER
-                    </button>
-                    <a href="{{ route('admin.orders.index') }}" class="btn-agri btn-agri-outline" style="min-width: 90px; text-decoration: none; font-weight: 800; display: flex; align-items: center; justify-content: center;">
-                        RESET
-                    </a>
-                </div>
-            </div>
-        </form>
-    </div>
-
-    {{-- Fulfillment Ledger Table Card --}}
-    <div class="card-agri" style="padding: 0; overflow: hidden; border: none; box-shadow: 0 10px 30px rgba(0,0,0,0.04); background: white;">
         <div class="table-responsive">
             <table class="table mb-0" style="vertical-align: middle;">
                 <thead style="background: var(--agri-bg);">
                     <tr>
-                        <th style="padding: 20px 32px; font-size: 11px; font-weight: 800; color: var(--agri-text-muted); text-transform: uppercase; letter-spacing: 1px; border: none;">Order Details</th>
-                        <th style="padding: 20px 32px; font-size: 11px; font-weight: 800; color: var(--agri-text-muted); text-transform: uppercase; letter-spacing: 1px; border: none;">Customer & Vendor</th>
-                        <th style="padding: 20px 32px; font-size: 11px; font-weight: 800; color: var(--agri-text-muted); text-transform: uppercase; letter-spacing: 1px; border: none;" class="text-center">Items</th>
-                        <th style="padding: 20px 32px; font-size: 11px; font-weight: 800; color: var(--agri-text-muted); text-transform: uppercase; letter-spacing: 1px; border: none;">Amount</th>
-                        <th style="padding: 20px 32px; font-size: 11px; font-weight: 800; color: var(--agri-text-muted); text-transform: uppercase; letter-spacing: 1px; border: none;" class="text-center">Payment Status</th>
-                        <th style="padding: 20px 32px; font-size: 11px; font-weight: 800; color: var(--agri-text-muted); text-transform: uppercase; letter-spacing: 1px; border: none;" class="text-center">Order Status</th>
-                        <th style="padding: 20px 32px; font-size: 11px; font-weight: 800; color: var(--agri-text-muted); text-transform: uppercase; letter-spacing: 1px; border: none;" class="text-end">Action</th>
+                        <th style="padding: 16px 24px; font-size: 12px; font-weight: 600; color: var(--agri-text-muted); text-transform: uppercase; border: none;">Order ID</th>
+                        <th style="padding: 16px 24px; font-size: 12px; font-weight: 600; color: var(--agri-text-muted); text-transform: uppercase; border: none;">Customer</th>
+                        <th style="padding: 16px 24px; font-size: 12px; font-weight: 600; color: var(--agri-text-muted); text-transform: uppercase; border: none;">Vendor</th>
+                        <th style="padding: 16px 24px; font-size: 12px; font-weight: 600; color: var(--agri-text-muted); text-transform: uppercase; border: none;">Amount</th>
+                        <th style="padding: 16px 24px; font-size: 12px; font-weight: 600; color: var(--agri-text-muted); text-transform: uppercase; border: none;">Payment</th>
+                        <th style="padding: 16px 24px; font-size: 12px; font-weight: 600; color: var(--agri-text-muted); text-transform: uppercase; border: none;">Order Status</th>
+                        <th class="text-end" style="padding: 16px 24px; font-size: 12px; font-weight: 600; color: var(--agri-text-muted); text-transform: uppercase; border: none;">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
                     @forelse($orders as $order)
-                        <tr class="order-row" style="border-bottom: 1px solid var(--agri-border); transition: 0.2s;">
-                            <td style="padding: 24px 32px;">
-                                <a href="{{ route('admin.orders.show', $order->id) }}" style="text-decoration: none; display: flex; align-items: center; gap: 12px;">
-                                    <div style="width: 44px; height: 44px; background: var(--agri-bg); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: var(--agri-primary); border: 1px solid var(--agri-border);">
-                                        <i class="fas fa-hashtag"></i>
-                                    </div>
-                                    <div>
-                                        <div style="font-weight: 800; color: var(--agri-primary-dark); font-size: 15px;">{{ $order->order_number }}</div>
-                                        <div style="font-size: 11px; color: var(--agri-text-muted); font-weight: 700; margin-top: 4px; text-transform: uppercase;">{{ $order->created_at->format('M d, Y • H:i') }}</div>
-                                    </div>
-                                </a>
+                        <tr>
+                            <td class="px-4 py-3">
+                                <div style="font-weight: 700; color: var(--agri-primary-dark);">{{ $order->order_number }}</div>
+                                <small class="text-muted">{{ $order->created_at->format('M d, Y') }}</small>
                             </td>
-                            <td style="padding: 24px 32px;">
-                                <div style="display: flex; flex-direction: column; gap: 8px;">
-                                    <div style="display: flex; align-items: center; gap: 8px;">
-                                        <div style="width: 20px; height: 20px; background: var(--agri-primary-light); border-radius: 5px; display: flex; align-items: center; justify-content: center; color: var(--agri-primary);">
-                                            <i class="fas fa-user" style="font-size: 10px;"></i>
-                                        </div>
-                                        <span style="font-weight: 700; color: var(--agri-text-heading); font-size: 13px;">{{ $order->user->name ?? 'Deleted User' }}</span>
-                                    </div>
-                                    <div style="display: flex; align-items: center; gap: 8px;">
-                                        <div style="width: 20px; height: 20px; background: var(--agri-bg); border-radius: 5px; display: flex; align-items: center; justify-content: center; color: var(--agri-secondary);">
-                                            <i class="fas fa-store" style="font-size: 10px;"></i>
-                                        </div>
-                                        <span style="font-size: 12px; font-weight: 700; color: var(--agri-text-muted);">{{ $order->vendor->name ?? 'No Vendor' }}</span>
-                                    </div>
+                            <td class="px-4 py-3">{{ $order->user->name ?? 'Deleted User' }}</td>
+                            <td class="px-4 py-3">{{ $order->vendor->title ?? 'No Vendor' }}</td>
+                            <td class="px-4 py-3"><strong>{{ config('plantix.currency_symbol', 'PKR') }}{{ number_format($order->total, 2) }}</strong></td>
+                            <td class="px-4 py-3">
+                                @php($ps = strtolower((string) $order->payment_status))
+                                <span class="badge rounded-pill {{ $ps === 'paid' ? 'bg-success' : ($ps === 'pending' ? 'bg-warning' : 'bg-danger') }}">{{ strtoupper($ps) }}</span>
+                            </td>
+                            <td class="px-4 py-3">
+                                <span class="badge rounded-pill bg-info">{{ strtoupper(str_replace('_', ' ', (string) $order->status)) }}</span>
+                            </td>
+                            <td class="px-4 py-3">
+                                <div class="text-end" style="display: flex; justify-content: flex-end; gap: 8px;">
+                                    <a href="{{ route('admin.orders.show', $order->id) }}" class="btn-agri" style="padding: 8px; background: var(--agri-bg); color: #2563eb; border-radius: 999px;" title="View"><i class="fas fa-eye"></i></a>
+                                    <a href="{{ route('admin.orders.show', $order->id) }}" class="btn-agri" style="padding: 8px; background: var(--agri-bg); color: var(--agri-primary); border-radius: 999px;" title="Edit"><i class="fas fa-pen"></i></a>
+                                    <button type="button" class="btn-agri" style="padding: 8px; background: #fef2f2; color: #ef4444; border-radius: 999px; border: none; opacity: .6; cursor: not-allowed;" title="Delete unavailable on this page" disabled>
+                                        <i class="fas fa-trash"></i>
+                                    </button>
                                 </div>
-                            </td>
-                            <td style="padding: 24px 32px;" class="text-center">
-                                <div style="background: var(--agri-bg); color: var(--agri-primary-dark); padding: 6px 14px; border-radius: 12px; font-size: 12px; font-weight: 800; display: inline-flex; align-items: center; gap: 8px; border: 1px solid var(--agri-border);">
-                                    <i class="fas fa-box" style="font-size: 10px; opacity: 0.5;"></i> {{ $order->items->count() }} Items
-                                </div>
-                            </td>
-                            <td style="padding: 24px 32px;">
-                                <div style="font-weight: 900; color: var(--agri-primary-dark); font-size: 16px; letter-spacing: -0.5px;">
-                                    <span style="font-size: 12px; font-weight: 700; opacity: 0.6; margin-right: 2px;">{{ config('plantix.currency_symbol', 'PKR') }}</span>{{ number_format($order->total, 2) }}
-                                </div>
-                            </td>
-                            <td style="padding: 24px 32px;" class="text-center">
-                                @php
-                                    $ps = $order->payment_status;
-                                    $pColor = $ps === 'paid' ? '#059669' : ($ps === 'pending' ? '#B45309' : '#DC2626');
-                                    $pBg = $ps === 'paid' ? '#D1FAE5' : ($ps === 'pending' ? '#FEF3C7' : '#FEE2E2');
-                                    $pIcon = $ps === 'paid' ? 'fa-check-circle' : ($ps === 'pending' ? 'fa-clock' : 'fa-times-circle');
-                                @endphp
-                                <div style="background: {{ $pBg }}; color: {{ $pColor }}; padding: 6px 14px; border-radius: 100px; font-size: 10px; font-weight: 900; text-transform: uppercase; display: inline-flex; align-items: center; gap: 6px; border: 1px solid {{ $pColor }}30;">
-                                    <i class="fas {{ $pIcon }}"></i> {{ $ps }}
-                                </div>
-                            </td>
-                            <td style="padding: 24px 32px;" class="text-center">
-                                @php
-                                    $bc = [
-                                        'pending'         => ['#B45309', '#FEF3C7'],
-                                        'accepted'        => ['#1D4ED8', '#DBEAFE'],
-                                        'preparing'       => ['#6D28D9', '#EDE9FE'],
-                                        'ready'           => ['#4338CA', '#E0E7FF'],
-
-                                        'picked_up'       => ['#047857', '#D1FAE5'],
-                                        'delivered'       => ['#047857', '#D1FAE5'],
-                                        'rejected'        => ['#B91C1C', '#FEE2E2'],
-                                        'cancelled'       => ['#B91C1C', '#FEE2E2'],
-                                    ];
-                                    $currentStatus = $bc[$order->status] ?? ['#4B5563', '#F3F4F6'];
-                                @endphp
-                                <div style="display: inline-flex; align-items: center; gap: 8px; color: {{ $currentStatus[0] }}; background: {{ $currentStatus[1] }}; padding: 6px 16px; border-radius: 12px; font-size: 11px; font-weight: 900; border: 1px solid {{ $currentStatus[0] }}40; text-transform: uppercase;">
-                                    <span style="width: 6px; height: 6px; border-radius: 50%; background: {{ $currentStatus[0] }}; box-shadow: 0 0 0 2px {{ $currentStatus[0] }}30;"></span>
-                                    {{ str_replace('_', ' ', $order->status) }}
-                                </div>
-                            </td>
-                            <td style="padding: 24px 32px;" class="text-end">
-                                <a href="{{ route('admin.orders.show', $order->id) }}" class="btn-agri" style="padding: 10px 16px; background: var(--agri-primary-light); color: var(--agri-primary); border-radius: 12px; text-decoration: none; font-size: 12px; font-weight: 800; display: inline-flex; align-items: center; gap: 8px;">
-                                    VIEW <i class="fas fa-arrow-right" style="font-size: 10px;"></i>
-                                </a>
                             </td>
                         </tr>
                     @empty
-                        <tr>
-                            <td colspan="7" style="padding: 100px 32px; text-align: center;">
-                                <div style="display: flex; flex-direction: column; align-items: center; gap: 20px;">
-                                    <div style="width: 80px; height: 80px; background: var(--agri-bg); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--agri-text-muted); font-size: 32px;">
-                                        <i class="fas fa-satellite" style="opacity: 0.4;"></i>
-                                    </div>
-                                    <div>
-                                        <h4 style="margin: 0; font-weight: 800; color: var(--agri-text-heading);">No Orders Found</h4>
-                                        <p style="margin: 8px 0 0 0; font-size: 14px; color: var(--agri-text-muted); max-width: 400px;">No orders found matching your search filters.</p>
-                                    </div>
-                                </div>
-                            </td>
-                        </tr>
+                        <tr><td colspan="7" class="text-center py-5" style="color: var(--agri-text-muted);">No orders found.</td></tr>
                     @endforelse
                 </tbody>
             </table>
         </div>
+
+        @if($orders->hasPages())
+            <div style="padding: 24px; background: white; border-top: 1px solid var(--agri-border); display: flex; justify-content: center;">
+                {{ $orders->links('pagination::bootstrap-5') }}
+            </div>
+        @endif
     </div>
-
-    {{-- Pagination Section --}}
-    @if($orders->hasPages())
-        <div style="margin-top: 32px; display: flex; justify-content: center;">
-            {{ $orders->links('pagination::bootstrap-5') }}
-        </div>
-    @endif
-
 </div>
-
-<style>
-    .agri-filter-label { font-size: 11px; font-weight: 800; color: var(--agri-text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px; display: block; }
-    .order-row:hover { background: var(--agri-bg); }
-    .pagination { gap: 8px; border: none; }
-    .page-link { border-radius: 12px !important; border: 1px solid var(--agri-border) !important; color: var(--agri-text-heading) !important; font-weight: 700 !important; padding: 10px 18px !important; }
-    .page-item.active .page-link { background: var(--agri-primary) !important; border-color: var(--agri-primary) !important; color: white !important; }
-</style>
 @endsection
