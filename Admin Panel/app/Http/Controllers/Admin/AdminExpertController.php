@@ -3,12 +3,16 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\User;
 use App\Models\Expert;
+use App\Models\ExpertProfile;
 use App\Models\ExpertApplication;
 use App\Services\Expert\ExpertApprovalService;
 use App\Services\Expert\ExpertApplicationService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
@@ -60,6 +64,157 @@ class AdminExpertController extends Controller
         ];
 
         return view('admin.experts.index', compact('experts', 'stats', 'statuses'));
+    }
+
+    public function create(): View
+    {
+        return view('admin.experts.form', [
+            'expert' => new Expert([
+                'status' => Expert::STATUS_PENDING,
+                'is_available' => true,
+            ]),
+        ]);
+    }
+
+    public function store(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'name'       => ['required', 'string', 'max:255'],
+            'email'      => ['required', 'email', 'max:255', 'unique:users,email'],
+            'phone'      => ['required', 'string', 'max:30', 'unique:users,phone'],
+            'password'   => ['required', 'string', 'min:8', 'confirmed'],
+            'specialty'  => ['nullable', 'string', 'max:255'],
+            'bio'        => ['nullable', 'string'],
+            'hourly_rate'=> ['nullable', 'numeric', 'min:0'],
+            'account_type' => ['required', 'in:individual,agency'],
+            'agency_name'   => ['nullable', 'string', 'max:255'],
+            'experience_years' => ['nullable', 'integer', 'min:0', 'max:60'],
+            'city'       => ['nullable', 'string', 'max:255'],
+            'country'    => ['nullable', 'string', 'max:100'],
+            'consultation_price' => ['nullable', 'numeric', 'min:0'],
+            'website'    => ['nullable', 'url', 'max:255'],
+            'linkedin'   => ['nullable', 'url', 'max:255'],
+            'contact_phone' => ['nullable', 'string', 'max:30'],
+            'certifications' => ['nullable', 'string'],
+        ]);
+
+        DB::transaction(function () use ($validated) {
+            $user = User::create([
+                'name'     => $validated['name'],
+                'email'    => $validated['email'],
+                'phone'    => $validated['phone'],
+                'password' => Hash::make($validated['password']),
+                'role'     => 'expert',
+                'active'   => true,
+            ]);
+
+            $expert = Expert::create([
+                'user_id'                      => $user->id,
+                'status'                       => Expert::STATUS_APPROVED,
+                'specialty'                    => $validated['specialty'] ?? null,
+                'bio'                          => $validated['bio'] ?? null,
+                'is_available'                 => true,
+                'hourly_rate'                  => $validated['hourly_rate'] ?? 0,
+                'consultation_price'           => $validated['consultation_price'] ?? null,
+                'consultation_duration_minutes'=> 60,
+            ]);
+
+            if ($expert) {
+                ExpertProfile::create([
+                    'expert_id'        => $expert->id,
+                    'agency_name'      => $validated['account_type'] === 'agency' ? ($validated['agency_name'] ?? null) : null,
+                    'specialization'   => $validated['specialty'] ?? null,
+                    'experience_years' => $validated['experience_years'] ?? 0,
+                    'certifications'   => $validated['certifications'] ?? null,
+                    'website'          => $validated['website'] ?? null,
+                    'linkedin'         => $validated['linkedin'] ?? null,
+                    'contact_phone'    => $validated['contact_phone'] ?? null,
+                    'city'             => $validated['city'] ?? null,
+                    'country'          => $validated['country'] ?? 'Pakistan',
+                    'account_type'     => $validated['account_type'],
+                    'approval_status'  => Expert::STATUS_APPROVED,
+                ]);
+            }
+        });
+
+        return redirect()->route('admin.experts.index')->with('success', 'Expert created successfully.');
+    }
+
+    public function edit(int $id): View
+    {
+        $expert = Expert::with(['user', 'profile'])->findOrFail($id);
+        return view('admin.experts.form', compact('expert'));
+    }
+
+    public function update(Request $request, int $id): RedirectResponse
+    {
+        $expert = Expert::with(['user', 'profile'])->findOrFail($id);
+
+        $validated = $request->validate([
+            'name'                  => ['required', 'string', 'max:255'],
+            'email'                 => ['required', 'email', 'max:255', 'unique:users,email,' . $expert->user_id],
+            'phone'                 => ['nullable', 'string', 'max:30'],
+            'specialty'             => ['nullable', 'string', 'max:255'],
+            'bio'                   => ['nullable', 'string'],
+            'hourly_rate'           => ['nullable', 'numeric', 'min:0'],
+            'consultation_price'    => ['nullable', 'numeric', 'min:0'],
+            'consultation_duration_minutes' => ['nullable', 'integer', 'min:15'],
+            'approval_status'       => ['nullable', 'in:pending,under_review,approved,suspended,rejected,inactive'],
+            'is_available'          => ['nullable', 'boolean'],
+            'account_type'          => ['nullable', 'in:individual,agency'],
+            'agency_name'           => ['nullable', 'string', 'max:255'],
+            'experience_years'      => ['nullable', 'integer', 'min:0', 'max:60'],
+            'city'                  => ['nullable', 'string', 'max:255'],
+            'country'               => ['nullable', 'string', 'max:100'],
+            'website'               => ['nullable', 'url', 'max:255'],
+            'linkedin'              => ['nullable', 'url', 'max:255'],
+            'contact_phone'         => ['nullable', 'string', 'max:30'],
+            'certifications'        => ['nullable', 'string'],
+        ]);
+
+        DB::transaction(function () use ($expert, $validated, $request) {
+            $expert->user?->update([
+                'name'  => $validated['name'],
+                'email' => $validated['email'],
+                'phone' => $validated['phone'] ?? $expert->user?->phone,
+            ]);
+
+            $expert->update([
+                'specialty'                    => $validated['specialty'] ?? $expert->specialty,
+                'bio'                          => $validated['bio'] ?? $expert->bio,
+                'hourly_rate'                  => $validated['hourly_rate'] ?? $expert->hourly_rate,
+                'consultation_price'           => $validated['consultation_price'] ?? $expert->consultation_price,
+                'consultation_duration_minutes' => $validated['consultation_duration_minutes'] ?? $expert->consultation_duration_minutes,
+                'status'                       => $validated['approval_status'] ?? $expert->status,
+                'is_available'                 => $request->boolean('is_available', $expert->is_available),
+            ]);
+
+            if ($expert->profile) {
+                $expert->profile->update([
+                    'agency_name'      => $validated['account_type'] === 'agency' ? ($validated['agency_name'] ?? null) : null,
+                    'specialization'   => $validated['specialty'] ?? $expert->profile->specialization,
+                    'experience_years' => $validated['experience_years'] ?? $expert->profile->experience_years,
+                    'certifications'   => $validated['certifications'] ?? $expert->profile->certifications,
+                    'website'          => $validated['website'] ?? $expert->profile->website,
+                    'linkedin'         => $validated['linkedin'] ?? $expert->profile->linkedin,
+                    'contact_phone'    => $validated['contact_phone'] ?? $expert->profile->contact_phone,
+                    'city'             => $validated['city'] ?? $expert->profile->city,
+                    'country'          => $validated['country'] ?? $expert->profile->country,
+                    'account_type'     => $validated['account_type'] ?? $expert->profile->account_type,
+                    'approval_status'  => $validated['approval_status'] ?? $expert->profile->approval_status,
+                    'admin_notes'      => $request->input('admin_notes', $expert->profile->admin_notes),
+                ]);
+            }
+        });
+
+        return back()->with('success', 'Expert updated successfully.');
+    }
+
+    public function destroy(int $id): RedirectResponse
+    {
+        $expert = Expert::with('user')->findOrFail($id);
+        $expert->delete();
+        return redirect()->route('admin.experts.index')->with('success', 'Expert archived successfully.');
     }
 
     public function show(int $id): View
