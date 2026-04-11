@@ -21,7 +21,7 @@ class AdminAlertMail extends PlantixBaseMail
         public readonly ?string $actionUrl  = null,
         public readonly ?string $actionLabel = null,
         public readonly ?string $extraHtml  = null,
-        public readonly string  $adminEmail = '',
+        public string  $adminEmail = '',
     ) {
         parent::__construct();
         // Critical alerts go to a dedicated high-priority queue
