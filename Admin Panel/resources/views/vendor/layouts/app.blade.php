@@ -269,9 +269,10 @@
 
         @yield('extra-css')
     </style>
+    <link href="{{ asset('css/panel-unified.css') }}" rel="stylesheet">
     @stack('styles')
 </head>
-<body>
+<body class="panel-unified-ui vendor-unified-ui">
 
 {{-- Sidebar --}}
 <aside class="sidebar" id="vendorSidebar">
