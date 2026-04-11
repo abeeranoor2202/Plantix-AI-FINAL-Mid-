@@ -319,7 +319,7 @@ class UserController extends Controller
 
     public function vendorView(int $id)
     {
-        $vendor = Vendor::with('author', 'category', 'products', 'orders')->findOrFail($id);
+        $vendor = Vendor::with('author', 'category', 'products', 'orders', 'coupons')->findOrFail($id);
         return view('admin.vendors.view', compact('vendor'));
     }
 
@@ -329,35 +329,71 @@ class UserController extends Controller
         return view('admin.vendors.edit', compact('vendor'));
     }
 
+    public function vendorCreate()
+    {
+        return view('admin.vendors.create');
+    }
+
     public function vendorStore(Request $request)
     {
         $validated = $request->validate([
             'name'       => ['required', 'string', 'max:255'],
             'email'      => ['required', 'email', 'max:255', 'unique:users,email'],
-            'phone'      => ['required', 'string', 'max:30', 'unique:users,phone'],
+            'phone'      => ['required', 'string', 'regex:/^(\\+92|0)?3[0-9]{2}[0-9]{7}$/', 'max:30', 'unique:users,phone'],
             'store_name' => ['required', 'string', 'max:255', 'unique:vendors,title'],
             'password'   => ['required', 'string', 'min:8', 'confirmed'],
+            'address_line1' => ['nullable', 'string', 'max:255'],
+            'address_line2' => ['nullable', 'string', 'max:255'],
+            'city'          => ['nullable', 'string', 'max:100'],
+            'state'         => ['nullable', 'string', 'max:100'],
+            'zip'           => ['nullable', 'string', 'max:20'],
+            'country'       => ['nullable', 'string', 'max:100'],
+            'image'         => ['nullable', 'image', 'max:2048'],
+            'is_active'     => ['nullable', 'boolean'],
+        ], [
+            'phone.regex'      => 'Please enter a valid Pakistani phone number (e.g., 03001234567).',
+            'store_name.unique'=> 'This store name is already registered.',
         ]);
 
-        DB::transaction(function () use ($validated) {
+        $isActive = $request->boolean('is_active');
+
+        $addressParts = array_filter([
+            $validated['address_line1'] ?? null,
+            $validated['address_line2'] ?? null,
+            $validated['city'] ?? null,
+            $validated['state'] ?? null,
+            $validated['zip'] ?? null,
+            $validated['country'] ?? null,
+        ], fn ($part) => filled($part));
+
+        $vendorAddress = ! empty($addressParts) ? implode(', ', $addressParts) : null;
+
+        $vendorImage = null;
+        if ($request->hasFile('image')) {
+            $vendorImage = $request->file('image')->store('vendors', 'public');
+        }
+
+        DB::transaction(function () use ($validated, $isActive, $vendorAddress, $vendorImage) {
             $user = User::create([
                 'name'     => $validated['name'],
                 'email'    => $validated['email'],
                 'phone'    => $validated['phone'],
                 'password' => Hash::make($validated['password']),
                 'role'     => 'vendor',
-                'active'   => false,
+                'active'   => $isActive,
             ]);
 
             Vendor::create([
                 'author_id'   => $user->id,
                 'title'       => $validated['store_name'],
-                'is_active'   => false,
+                'address'     => $vendorAddress,
+                'image'       => $vendorImage,
+                'is_active'   => $isActive,
                 'is_approved' => false,
             ]);
         });
 
-        return back()->with('success', 'Vendor created successfully. Awaiting approval.');
+        return redirect()->route('admin.vendors')->with('success', 'Vendor created successfully. Awaiting approval.');
     }
 
     public function vendorUpdate(Request $request, int $id)
