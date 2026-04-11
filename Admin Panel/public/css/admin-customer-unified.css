@@ -102,7 +102,7 @@ body.admin-unified-ui .page-wrapper .table-light th {
 body.admin-unified-ui .page-wrapper .table tbody td {
     border-top: 1px solid var(--admin-divider);
     vertical-align: middle;
-    padding: 16px 24px;
+    padding: 18px 24px;
 }
 
 body.admin-unified-ui .page-wrapper .table tbody tr:hover {
@@ -138,6 +138,27 @@ body.admin-unified-ui .page-wrapper .input-group-text {
     background: var(--agri-white);
     border-color: var(--admin-divider);
     color: var(--agri-text-muted);
+}
+
+body.admin-unified-ui .page-wrapper .input-group {
+    align-items: stretch;
+}
+
+body.admin-unified-ui .page-wrapper .input-group .input-group-text,
+body.admin-unified-ui .page-wrapper .input-group .form-control,
+body.admin-unified-ui .page-wrapper .input-group .form-agri {
+    min-height: 44px;
+}
+
+body.admin-unified-ui .page-wrapper .input-group .input-group-text {
+    border-radius: 12px 0 0 12px;
+    padding-left: 14px;
+    padding-right: 14px;
+}
+
+body.admin-unified-ui .page-wrapper .input-group .form-control,
+body.admin-unified-ui .page-wrapper .input-group .form-agri {
+    border-radius: 0 12px 12px 0;
 }
 
 body.admin-unified-ui .page-wrapper .form-control::placeholder,
@@ -292,6 +313,10 @@ body.admin-unified-ui .page-wrapper .badge.bg-danger {
 
 body.admin-unified-ui .page-wrapper .badge.rounded-pill {
     padding: 6px 12px;
+}
+
+body.admin-unified-ui .page-wrapper .table-responsive {
+    border-radius: 0 0 var(--admin-radius-lg) var(--admin-radius-lg);
 }
 
 body.admin-unified-ui .page-wrapper .alert {
@@ -644,6 +669,83 @@ body.admin-unified-ui .page-wrapper .dataTables_wrapper .dataTables_paginate .pa
     border-color: var(--agri-primary) !important;
     background: var(--agri-primary) !important;
     color: #fff !important;
+}
+
+body.admin-unified-ui .page-wrapper .card-agri > .card-header,
+body.admin-unified-ui .page-wrapper .card-agri > div:first-child,
+body.admin-unified-ui .page-wrapper .card-agri > div:first-of-type {
+    border-bottom: 1px solid var(--admin-divider);
+}
+
+body.admin-unified-ui .page-wrapper .card-agri .table thead {
+    background: #f8fafc;
+}
+
+body.admin-unified-ui .page-wrapper .card-agri .table thead th {
+    border-bottom: 1px solid var(--admin-divider);
+    padding-top: 18px;
+    padding-bottom: 18px;
+}
+
+body.admin-unified-ui .page-wrapper .card-agri .table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+body.admin-unified-ui .page-wrapper .card-agri .table tbody td:first-child {
+    padding-left: 24px;
+}
+
+body.admin-unified-ui .page-wrapper .card-agri .table tbody td:last-child {
+    padding-right: 24px;
+}
+
+body.admin-unified-ui .page-wrapper .card-agri .table tbody td a.btn-agri,
+body.admin-unified-ui .page-wrapper .card-agri .table tbody td button.btn-agri {
+    width: 34px;
+    height: 34px;
+    padding: 0;
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: none;
+}
+
+body.admin-unified-ui .page-wrapper .card-agri .table tbody td a.btn-agri i,
+body.admin-unified-ui .page-wrapper .card-agri .table tbody td button.btn-agri i {
+    font-size: 14px;
+    line-height: 1;
+}
+
+body.admin-unified-ui .page-wrapper .card-agri .table tbody td .text-end {
+    gap: 10px;
+}
+
+body.admin-unified-ui .page-wrapper .card-agri .table tbody td .text-end > * + * {
+    margin-left: 0;
+}
+
+body.admin-unified-ui .page-wrapper .card-agri .table tbody td .text-end {
+    display: flex !important;
+    align-items: center;
+}
+
+body.admin-unified-ui .page-wrapper .card-agri .table tbody td .switch {
+    transform: translateY(1px);
+}
+
+body.admin-unified-ui .page-wrapper .card-agri .table tbody td .small,
+body.admin-unified-ui .page-wrapper .card-agri .table tbody td small {
+    color: var(--admin-subtitle) !important;
+}
+
+body.admin-unified-ui .page-wrapper .card-agri .table tbody td .fw-bold,
+body.admin-unified-ui .page-wrapper .card-agri .table tbody td .fw-semibold {
+    color: var(--admin-title);
+}
+
+body.admin-unified-ui .page-wrapper .card-agri .table tbody td img {
+    background: #f8fafc;
 }
 
 body.admin-unified-ui .page-wrapper [style*='border-radius: 10px'],
