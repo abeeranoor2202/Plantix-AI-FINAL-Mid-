@@ -96,9 +96,14 @@ class AdminExpertController extends Controller
             'linkedin'   => ['nullable', 'url', 'max:255'],
             'contact_phone' => ['nullable', 'string', 'max:30'],
             'certifications' => ['nullable', 'string'],
+            'profile_image'  => ['nullable', 'image', 'max:2048'],
         ]);
 
-        DB::transaction(function () use ($validated) {
+        $profileImagePath = $request->hasFile('profile_image')
+            ? $request->file('profile_image')->store('experts', 'public')
+            : null;
+
+        DB::transaction(function () use ($validated, $profileImagePath) {
             $user = User::create([
                 'name'     => $validated['name'],
                 'email'    => $validated['email'],
@@ -113,6 +118,7 @@ class AdminExpertController extends Controller
                 'status'                       => Expert::STATUS_APPROVED,
                 'specialty'                    => $validated['specialty'] ?? null,
                 'bio'                          => $validated['bio'] ?? null,
+                'profile_image'                => $profileImagePath,
                 'is_available'                 => true,
                 'hourly_rate'                  => $validated['hourly_rate'] ?? 0,
                 'consultation_price'           => $validated['consultation_price'] ?? null,
@@ -170,9 +176,14 @@ class AdminExpertController extends Controller
             'linkedin'              => ['nullable', 'url', 'max:255'],
             'contact_phone'         => ['nullable', 'string', 'max:30'],
             'certifications'        => ['nullable', 'string'],
+            'profile_image'         => ['nullable', 'image', 'max:2048'],
         ]);
 
-        DB::transaction(function () use ($expert, $validated, $request) {
+        $profileImagePath = $request->hasFile('profile_image')
+            ? $request->file('profile_image')->store('experts', 'public')
+            : null;
+
+        DB::transaction(function () use ($expert, $validated, $request, $profileImagePath) {
             $expert->user?->update([
                 'name'  => $validated['name'],
                 'email' => $validated['email'],
@@ -182,6 +193,7 @@ class AdminExpertController extends Controller
             $expert->update([
                 'specialty'                    => $validated['specialty'] ?? $expert->specialty,
                 'bio'                          => $validated['bio'] ?? $expert->bio,
+                'profile_image'                => $profileImagePath ?? $expert->profile_image,
                 'hourly_rate'                  => $validated['hourly_rate'] ?? $expert->hourly_rate,
                 'consultation_price'           => $validated['consultation_price'] ?? $expert->consultation_price,
                 'consultation_duration_minutes' => $validated['consultation_duration_minutes'] ?? $expert->consultation_duration_minutes,
@@ -203,6 +215,22 @@ class AdminExpertController extends Controller
                     'account_type'     => $validated['account_type'] ?? $expert->profile->account_type,
                     'approval_status'  => $validated['approval_status'] ?? $expert->profile->approval_status,
                     'admin_notes'      => $request->input('admin_notes', $expert->profile->admin_notes),
+                ]);
+            } else {
+                ExpertProfile::create([
+                    'expert_id'        => $expert->id,
+                    'agency_name'      => $validated['account_type'] === 'agency' ? ($validated['agency_name'] ?? null) : null,
+                    'specialization'   => $validated['specialty'] ?? null,
+                    'experience_years' => $validated['experience_years'] ?? 0,
+                    'certifications'   => $validated['certifications'] ?? null,
+                    'website'          => $validated['website'] ?? null,
+                    'linkedin'         => $validated['linkedin'] ?? null,
+                    'contact_phone'    => $validated['contact_phone'] ?? null,
+                    'city'             => $validated['city'] ?? null,
+                    'country'          => $validated['country'] ?? 'Pakistan',
+                    'account_type'     => $validated['account_type'] ?? 'individual',
+                    'approval_status'  => $validated['approval_status'] ?? ($expert->status ?? Expert::STATUS_PENDING),
+                    'admin_notes'      => $request->input('admin_notes'),
                 ]);
             }
         });
