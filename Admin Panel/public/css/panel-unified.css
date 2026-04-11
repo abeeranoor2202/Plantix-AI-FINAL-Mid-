@@ -1,0 +1,297 @@
+/*
+ * Panel Unified Design System
+ * Applies a single UI language across admin, vendor, and expert panels.
+ */
+
+.panel-unified-ui {
+    --panel-bg: #f6f8fa;
+    --panel-surface: #ffffff;
+    --panel-border: #e6edf2;
+    --panel-muted: #8ea0b8;
+    --panel-text: #1f2937;
+    --panel-title: #065f46;
+    --panel-primary: #10b981;
+    --panel-primary-dark: #059669;
+    --panel-primary-soft: #dff2e9;
+    --panel-danger-soft: #fef2f2;
+    --panel-danger: #ef4444;
+    --panel-shadow: 0 8px 24px rgba(15, 23, 42, 0.05);
+}
+
+.panel-unified-ui,
+.panel-unified-ui body,
+.panel-unified-ui .page-wrapper,
+.panel-unified-ui .content-body,
+.panel-unified-ui .main-wrapper {
+    background: var(--panel-bg);
+}
+
+.panel-unified-ui .topbar,
+.panel-unified-ui .topbar-agri,
+.panel-unified-ui .navbar-header,
+.panel-unified-ui .navbar-collapse {
+    background: var(--panel-surface) !important;
+    border-bottom: 1px solid var(--panel-border);
+}
+
+.panel-unified-ui .left-sidebar,
+.panel-unified-ui .sidebar {
+    background: var(--panel-surface);
+    border-right: 1px solid var(--panel-border);
+}
+
+.panel-unified-ui .sidebar-brand,
+.panel-unified-ui .admin-brand {
+    border-bottom: 1px solid var(--panel-border);
+}
+
+.panel-unified-ui .nav-link-agri {
+    min-height: 50px;
+    border-radius: 14px;
+    color: #64748b;
+    font-weight: 600;
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.panel-unified-ui .nav-link-agri:hover {
+    background: #eef8f3;
+    color: var(--panel-primary-dark);
+}
+
+.panel-unified-ui .nav-link-agri.active {
+    background: var(--panel-primary-soft);
+    color: var(--panel-primary-dark);
+}
+
+.panel-unified-ui .nav-link-agri i {
+    font-size: 1.2rem;
+    opacity: 0.9;
+}
+
+.panel-unified-ui .topbar-title,
+.panel-unified-ui h1,
+.panel-unified-ui h2,
+.panel-unified-ui h3,
+.panel-unified-ui h4,
+.panel-unified-ui h5,
+.panel-unified-ui h6 {
+    color: var(--panel-title);
+    font-weight: 700;
+}
+
+.panel-unified-ui p,
+.panel-unified-ui .text-muted {
+    color: var(--panel-muted) !important;
+}
+
+.panel-unified-ui .card,
+.panel-unified-ui .card-agri,
+.panel-unified-ui .modal-content {
+    background: var(--panel-surface);
+    border: 1px solid var(--panel-border) !important;
+    border-radius: 20px;
+    box-shadow: var(--panel-shadow);
+}
+
+.panel-unified-ui .card-header,
+.panel-unified-ui .card-footer,
+.panel-unified-ui .modal-header,
+.panel-unified-ui .modal-footer {
+    border-color: var(--panel-border);
+    background: var(--panel-surface);
+}
+
+.panel-unified-ui .table {
+    margin-bottom: 0;
+}
+
+.panel-unified-ui .table thead th {
+    background: #f8fafc;
+    color: var(--panel-muted);
+    border: none;
+    border-bottom: 1px solid var(--panel-border);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 16px 24px;
+}
+
+.panel-unified-ui .table tbody td {
+    border-top: 1px solid var(--panel-border);
+    padding: 18px 24px;
+    vertical-align: middle;
+}
+
+.panel-unified-ui .table tbody tr {
+    transition: background-color 0.2s ease;
+}
+
+.panel-unified-ui .table tbody tr:hover {
+    background: #f1f9f5;
+}
+
+.panel-unified-ui .form-control,
+.panel-unified-ui .form-select,
+.panel-unified-ui .form-agri {
+    border: 1px solid var(--panel-border);
+    border-radius: 12px;
+    min-height: 42px;
+    box-shadow: none;
+    background: #fff;
+}
+
+.panel-unified-ui .form-control::placeholder,
+.panel-unified-ui .form-select::placeholder,
+.panel-unified-ui .form-agri::placeholder {
+    color: var(--panel-muted);
+}
+
+.panel-unified-ui .form-control:focus,
+.panel-unified-ui .form-select:focus,
+.panel-unified-ui .form-agri:focus {
+    border-color: var(--panel-primary);
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.14);
+}
+
+.panel-unified-ui .input-group-text {
+    border-color: var(--panel-border);
+    background: #fff;
+    color: var(--panel-muted);
+}
+
+.panel-unified-ui .btn,
+.panel-unified-ui .btn-agri {
+    border-radius: 12px;
+    font-weight: 700;
+    transition: all 0.2s ease;
+}
+
+.panel-unified-ui .btn-primary,
+.panel-unified-ui .btn-success,
+.panel-unified-ui .btn-agri-primary {
+    background: var(--panel-primary);
+    border-color: var(--panel-primary);
+    color: #fff;
+    box-shadow: 0 6px 18px rgba(5, 150, 105, 0.2);
+}
+
+.panel-unified-ui .btn-primary:hover,
+.panel-unified-ui .btn-success:hover,
+.panel-unified-ui .btn-agri-primary:hover {
+    background: var(--panel-primary-dark);
+    border-color: var(--panel-primary-dark);
+    color: #fff;
+}
+
+.panel-unified-ui .btn-outline-secondary,
+.panel-unified-ui .btn-outline-primary,
+.panel-unified-ui .btn-agri-outline {
+    border-color: var(--panel-border);
+    color: var(--panel-text);
+    background: #fff;
+}
+
+.panel-unified-ui .btn-outline-secondary:hover,
+.panel-unified-ui .btn-outline-primary:hover,
+.panel-unified-ui .btn-agri-outline:hover {
+    background: #f8fafc;
+    border-color: var(--panel-border);
+    color: var(--panel-text);
+}
+
+.panel-unified-ui .badge {
+    border-radius: 999px;
+    font-weight: 700;
+    padding: 6px 12px;
+}
+
+.panel-unified-ui .badge.bg-success,
+.panel-unified-ui .badge-success-agri {
+    background: #d1fae5 !important;
+    color: #065f46 !important;
+    border: 1px solid #b7ebd4;
+}
+
+.panel-unified-ui .badge.bg-warning,
+.panel-unified-ui .badge-warning-agri {
+    background: #fef3c7 !important;
+    color: #92400e !important;
+    border: 1px solid #f5df96;
+}
+
+.panel-unified-ui .badge.bg-danger,
+.panel-unified-ui .badge-danger-agri {
+    background: #fee2e2 !important;
+    color: #991b1b !important;
+    border: 1px solid #fecaca;
+}
+
+.panel-unified-ui .switch {
+    position: relative;
+    display: inline-block;
+    width: 46px;
+    height: 24px;
+    margin-bottom: 0;
+}
+
+.panel-unified-ui .switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.panel-unified-ui .switch .slider {
+    position: absolute;
+    cursor: pointer;
+    inset: 0;
+    background: #d1dbe5;
+    border-radius: 999px;
+    transition: 0.2s ease;
+}
+
+.panel-unified-ui .switch .slider:before {
+    content: "";
+    position: absolute;
+    width: 18px;
+    height: 18px;
+    left: 3px;
+    bottom: 3px;
+    background: #fff;
+    border-radius: 50%;
+    transition: 0.2s ease;
+    box-shadow: 0 2px 6px rgba(15, 23, 42, 0.18);
+}
+
+.panel-unified-ui .switch input:checked + .slider {
+    background: var(--panel-primary);
+}
+
+.panel-unified-ui .switch input:checked + .slider:before {
+    transform: translateX(22px);
+}
+
+.panel-unified-ui .table .text-end .btn-agri,
+.panel-unified-ui .table .text-end .btn {
+    width: 34px;
+    height: 34px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 999px;
+    padding: 0;
+    box-shadow: none;
+}
+
+.panel-unified-ui .table .text-end {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+.panel-unified-ui .table .text-end .btn-danger,
+.panel-unified-ui .table .text-end [style*='color: #ef4444'] {
+    background: var(--panel-danger-soft) !important;
+    color: var(--panel-danger) !important;
+}
