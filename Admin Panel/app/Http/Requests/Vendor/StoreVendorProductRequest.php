@@ -23,6 +23,7 @@ class StoreVendorProductRequest extends FormRequest
             'gallery.*'      => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
             'is_active'      => 'boolean',
             'is_returnable'  => 'boolean',
+            'is_refundable'  => 'boolean',
             'return_window_days' => 'nullable|integer|min:0|max:365',
             'stock_quantity' => 'nullable|integer|min:0',
             'track_stock'    => 'boolean',
@@ -34,6 +35,7 @@ class StoreVendorProductRequest extends FormRequest
         $this->merge([
             'is_active'   => $this->boolean('is_active', true),
             'is_returnable' => $this->boolean('is_returnable', true),
+            'is_refundable' => $this->boolean('is_refundable', true),
             'track_stock' => $this->boolean('track_stock', true),
         ]);
     }
