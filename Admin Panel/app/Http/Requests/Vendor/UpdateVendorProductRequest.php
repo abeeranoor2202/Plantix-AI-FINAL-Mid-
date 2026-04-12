@@ -22,8 +22,24 @@ class UpdateVendorProductRequest extends FormRequest
             'image'          => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
             'gallery.*'      => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
             'is_active'      => 'boolean',
+            'is_returnable'  => 'boolean',
+            'return_window_days' => 'nullable|integer|min:0|max:365',
             'stock_quantity' => 'nullable|integer|min:0',
             'track_stock'    => 'boolean',
         ];
+    }
+
+    public function prepareForValidation(): void
+    {
+        $merge = [
+            'track_stock' => $this->boolean('track_stock', true),
+        ];
+
+        if ($this->hasAny(['is_active', 'is_returnable'])) {
+            $merge['is_active'] = $this->boolean('is_active');
+            $merge['is_returnable'] = $this->boolean('is_returnable');
+        }
+
+        $this->merge($merge);
     }
 }
