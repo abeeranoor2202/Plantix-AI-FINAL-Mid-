@@ -138,11 +138,10 @@
                                     <h6 class="fw-bold m-0 text-dark">Visibility Status</h6>
                                     <p class="text-muted small m-0">Show or hide on storefront</p>
                                 </div>
-                                <div class="form-check form-switch m-0" style="font-size: 1.25rem;">
-                                    <input type="checkbox" name="is_active" id="is_active"
-                                           class="form-check-input shadow-none cursor-pointer" style="margin-top: 0;" value="1"
-                                           {{ old('is_active', $product->is_active ?? true) ? 'checked' : '' }}>
-                                </div>
+                                <label class="switch">
+                                    <input type="checkbox" name="is_active" id="is_active" value="1" {{ old('is_active', $product->is_active ?? true) ? 'checked' : '' }}>
+                                    <span class="slider"></span>
+                                </label>
                             </div>
                             <div class="mt-4 pt-3 border-top border-muted">
                                 <div class="d-flex gap-3 align-items-start">
@@ -157,11 +156,10 @@
                                         <h6 class="fw-bold m-0 text-dark">Returnable</h6>
                                         <p class="text-muted small m-0">Allow customer return requests</p>
                                     </div>
-                                    <div class="form-check form-switch m-0" style="font-size: 1.25rem;">
-                                        <input type="checkbox" name="is_returnable" id="is_returnable"
-                                               class="form-check-input shadow-none cursor-pointer" style="margin-top: 0;" value="1"
-                                               {{ old('is_returnable', $product->is_returnable ?? true) ? 'checked' : '' }}>
-                                    </div>
+                                    <label class="switch">
+                                        <input type="checkbox" name="is_returnable" id="is_returnable" value="1" {{ old('is_returnable', $product->is_returnable ?? true) ? 'checked' : '' }}>
+                                        <span class="slider"></span>
+                                    </label>
                                 </div>
 
                                 <label class="form-label text-dark fw-bold small mb-2">Return Window (Days)</label>
@@ -254,4 +252,47 @@
         document.getElementById('is_active').closest('.bg-light').style.borderLeft = document.getElementById('is_active').checked ? '4px solid var(--agri-primary)' : '4px solid transparent';
     });
 </script>
+<style>
+    .switch {
+        position: relative;
+        display: inline-block;
+        width: 46px;
+        height: 24px;
+        margin-bottom: 0;
+    }
+    .switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+    .slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #e2e8f0;
+        transition: .4s;
+        border-radius: 24px;
+    }
+    .slider:before {
+        position: absolute;
+        content: "";
+        height: 18px;
+        width: 18px;
+        left: 3px;
+        bottom: 3px;
+        background-color: white;
+        transition: .4s;
+        border-radius: 50%;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .switch input:checked + .slider {
+        background-color: var(--agri-primary);
+    }
+    .switch input:checked + .slider:before {
+        transform: translateX(22px);
+    }
+</style>
 @endpush
