@@ -90,6 +90,11 @@ class Order extends Model
         return $this->belongsTo(Vendor::class);
     }
 
+    public function driver(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'driver_id');
+    }
+
     public function coupon(): BelongsTo
     {
         return $this->belongsTo(Coupon::class);
