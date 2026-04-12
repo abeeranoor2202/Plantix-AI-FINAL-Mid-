@@ -5,14 +5,17 @@ namespace App\Http\Controllers\Vendor;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Vendor\StoreVendorProductRequest;
 use App\Http\Requests\Vendor\UpdateVendorProductRequest;
+use App\Models\Attribute;
 use App\Models\Category;
 use App\Models\Product;
+use App\Models\ProductAttribute;
 use App\Models\ProductImage;
 use App\Services\Shared\StockService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
 class VendorProductController extends Controller
@@ -47,13 +50,17 @@ class VendorProductController extends Controller
 
     public function create(): View
     {
-        $categories = Category::orderBy('name')->get();
-        return view('vendor.products.form', compact('categories'));
+        $categories = Category::with(['attributes.values'])->orderBy('name')->get();
+
+        return view('vendor.products.form', [
+            'categories' => $categories,
+            'attributeMap' => $this->buildCategoryAttributeMap(),
+        ]);
     }
 
     public function show(int $id): View
     {
-        $product = Product::with(['category', 'images', 'stock'])
+        $product = Product::with(['category', 'images', 'stock', 'attributes.attribute'])
             ->where('vendor_id', $this->vendorId())
             ->findOrFail($id);
 
@@ -69,6 +76,12 @@ class VendorProductController extends Controller
             $data['vendor_id'] = $vendorId;
 
             $product = Product::create($data);
+
+            $this->syncProductAttributes(
+                $product,
+                (int) ($data['category_id'] ?? 0),
+                (array) $request->input('attribute_values', [])
+            );
 
             if ($request->hasFile('image')) {
                 $path = $request->file('image')->store('products', 'public');
@@ -95,10 +108,14 @@ class VendorProductController extends Controller
 
     public function edit(int $id): View
     {
-        $product = Product::where('vendor_id', $this->vendorId())->findOrFail($id);
+        $product = Product::with('attributes.attribute')
+            ->where('vendor_id', $this->vendorId())
+            ->findOrFail($id);
+
         return view('vendor.products.form', [
             'product'    => $product,
-            'categories' => Category::orderBy('name')->get(),
+            'categories' => Category::with(['attributes.values'])->orderBy('name')->get(),
+            'attributeMap' => $this->buildCategoryAttributeMap(),
         ]);
     }
 
@@ -117,6 +134,12 @@ class VendorProductController extends Controller
 
             $product->update($data);
 
+            $this->syncProductAttributes(
+                $product,
+                (int) ($data['category_id'] ?? $product->category_id),
+                (array) $request->input('attribute_values', [])
+            );
+
             if (isset($data['stock_quantity'])) {
                 $this->stock->setStock($product, (int) $data['stock_quantity'], $product->vendor_id);
             }
@@ -131,5 +154,126 @@ class VendorProductController extends Controller
         Product::where('vendor_id', $this->vendorId())->findOrFail($id)->delete();
         return redirect()->route('vendor.products.index')
                          ->with('success', 'Product deleted.');
+    }
+
+    private function buildCategoryAttributeMap(): array
+    {
+        return Category::with(['attributes.values'])
+            ->get()
+            ->mapWithKeys(function (Category $category) {
+                return [
+                    $category->id => $category->attributes
+                        ->sortBy('pivot.sort_order')
+                        ->values()
+                        ->map(function (Attribute $attribute) {
+                            return [
+                                'id' => $attribute->id,
+                                'name' => $attribute->name ?: $attribute->title,
+                                'type' => $attribute->type,
+                                'unit' => $attribute->unit,
+                                'is_required' => (bool) ($attribute->pivot->is_required ?? false),
+                                'values' => $attribute->values->pluck('value')->values()->all(),
+                            ];
+                        })
+                        ->all(),
+                ];
+            })
+            ->all();
+    }
+
+    private function syncProductAttributes(Product $product, int $categoryId, array $inputValues): void
+    {
+        if ($categoryId <= 0) {
+            $product->attributes()->delete();
+            return;
+        }
+
+        $category = Category::with(['attributes.values'])->find($categoryId);
+        if (! $category) {
+            $product->attributes()->delete();
+            return;
+        }
+
+        $errors = [];
+        $rows = [];
+
+        foreach ($category->attributes as $attribute) {
+            $attributeName = $attribute->name ?: $attribute->title;
+            $attributeInput = $inputValues[$attribute->id] ?? null;
+            $isRequired = (bool) ($attribute->pivot->is_required ?? false);
+
+            if ($attribute->type === Attribute::TYPE_MULTI_SELECT) {
+                $selectedValues = collect(is_array($attributeInput) ? $attributeInput : [])
+                    ->map(fn ($value) => trim((string) $value))
+                    ->filter()
+                    ->values();
+
+                if ($isRequired && $selectedValues->isEmpty()) {
+                    $errors["attribute_values.{$attribute->id}"] = "{$attributeName} is required.";
+                    continue;
+                }
+
+                if ($selectedValues->isNotEmpty()) {
+                    $allowed = $attribute->values->pluck('value')->all();
+                    foreach ($selectedValues as $selected) {
+                        if (! in_array($selected, $allowed, true)) {
+                            $errors["attribute_values.{$attribute->id}"] = "Invalid value selected for {$attributeName}.";
+                            continue 2;
+                        }
+                    }
+
+                    $rows[] = [
+                        'product_id' => $product->id,
+                        'attribute_id' => $attribute->id,
+                        'value' => json_encode($selectedValues->all(), JSON_UNESCAPED_UNICODE),
+                        'value_type' => $attribute->type,
+                    ];
+                }
+
+                continue;
+            }
+
+            $value = is_array($attributeInput)
+                ? ''
+                : trim((string) ($attributeInput ?? ''));
+
+            if ($isRequired && $value === '') {
+                $errors["attribute_values.{$attribute->id}"] = "{$attributeName} is required.";
+                continue;
+            }
+
+            if ($value === '') {
+                continue;
+            }
+
+            if ($attribute->type === Attribute::TYPE_NUMBER && ! is_numeric($value)) {
+                $errors["attribute_values.{$attribute->id}"] = "{$attributeName} must be numeric.";
+                continue;
+            }
+
+            if ($attribute->type === Attribute::TYPE_SELECT) {
+                $allowed = $attribute->values->pluck('value')->all();
+                if (! in_array($value, $allowed, true)) {
+                    $errors["attribute_values.{$attribute->id}"] = "Invalid value selected for {$attributeName}.";
+                    continue;
+                }
+            }
+
+            $rows[] = [
+                'product_id' => $product->id,
+                'attribute_id' => $attribute->id,
+                'value' => $value,
+                'value_type' => $attribute->type,
+            ];
+        }
+
+        if (! empty($errors)) {
+            throw ValidationException::withMessages($errors);
+        }
+
+        ProductAttribute::where('product_id', $product->id)->delete();
+        if (! empty($rows)) {
+            ProductAttribute::insert($rows);
+        }
     }
 }
