@@ -99,7 +99,7 @@ class CartController extends Controller
             'quantity'   => 'required|integer|min:1|max:99',
         ]);
 
-        $product = Product::where('is_active', true)->active()->inStock()->findOrFail($request->product_id);
+        $product = Product::with('stock')->where('is_active', true)->active()->findOrFail($request->product_id);
         $cart    = $this->getOrCreateCart();
 
         $existing = CartItem::where('cart_id', $cart->id)
