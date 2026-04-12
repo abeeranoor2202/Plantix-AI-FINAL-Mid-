@@ -11,7 +11,7 @@
             <span style="color: var(--agri-primary); font-size: 14px; font-weight: 600;">Permission Registry</span>
         </div>
         <h1 style="font-size: 28px; font-weight: 700; color: var(--agri-primary-dark); margin: 0;">Access Node Registry</h1>
-        <p style="color: var(--agri-text-muted); margin: 4px 0 0 0;">Manage the granular functional permissions that drive the RBAC ecosystem.</p>
+        <p style="color: var(--agri-text-muted); margin: 4px 0 0 0;">Manage detailed permissions for role-based access control.</p>
     </div>
 
     @if(session('success'))
