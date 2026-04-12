@@ -114,11 +114,11 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasMany(Order::class, 'user_id');
     }
 
-    // /** Orders this driver is assigned to */
-    // public function drivenOrders(): HasMany
-    // {
-    //     return $this->hasMany(Order::class, 'driver_id');
-    // }
+    /** Orders this driver is assigned to */
+    public function drivenOrders(): HasMany
+    {
+        return $this->hasMany(Order::class, 'driver_id');
+    }
 
     public function walletTransactions(): HasMany
     {
