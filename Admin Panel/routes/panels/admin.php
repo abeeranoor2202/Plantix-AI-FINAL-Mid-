@@ -110,6 +110,8 @@ Route::prefix('admin')->name('admin.')->group(function () {
             Route::put('/{id}',      [\App\Http\Controllers\Admin\AdminProductController::class, 'update'])->name('update');
             Route::delete('/{id}',   [\App\Http\Controllers\Admin\AdminProductController::class, 'destroy'])->name('destroy');
             Route::post('/{id}/toggle-featured', [\App\Http\Controllers\Admin\AdminProductController::class, 'toggleFeatured'])->name('toggle-featured');
+            Route::post('/{id}/toggle-active', [\App\Http\Controllers\Admin\AdminProductController::class, 'toggleActive'])->name('toggle-active');
+            Route::post('/{id}/toggle-returnable', [\App\Http\Controllers\Admin\AdminProductController::class, 'toggleReturnable'])->name('toggle-returnable');
         });
 
         // ── Categories ────────────────────────────────────────────────────────
