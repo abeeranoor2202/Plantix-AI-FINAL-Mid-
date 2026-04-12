@@ -4,6 +4,7 @@ namespace App\Services\Shared;
 
 use App\Models\Cart;
 use App\Models\Coupon;
+use App\Models\CouponUsage;
 use App\Models\CouponUserUsage;
 use App\Models\Order;
 use App\Models\OrderItem;
@@ -22,7 +23,7 @@ use Stripe\PaymentIntent;
 use Stripe\Stripe;
 
 /**
- * CartCheckoutService — production-ready Stripe payment flow.
+ * CartCheckoutService ΓÇö production-ready Stripe payment flow.
  *
  * Correct Stripe flow:
  *  1. Validate cart + stock (optimistic pre-check)
@@ -44,8 +45,8 @@ use Stripe\Stripe;
  *  - Both create orders.
  *  - Both get Stripe intents.
  *  - Both pay.
- *  - First webhook transaction acquires lockForUpdate — decrements to 0.
- *  - Second webhook transaction acquires lock — sees stock_quantity < needed.
+ *  - First webhook transaction acquires lockForUpdate ΓÇö decrements to 0.
+ *  - Second webhook transaction acquires lock ΓÇö sees stock_quantity < needed.
  *  - Second order moved to cancelled + payment marked pending_refund.
  *  - Admin alert sent. Stripe refund issued separately.
  */
@@ -53,11 +54,12 @@ class CartCheckoutService
 {
     public function __construct(
         private readonly StockService $stock,
+        private readonly CouponService $couponService,
     ) {}
 
-    // ─────────────────────────────────────────────────────────────────────────
+    // ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
     // Step 1-5: Initiate checkout (create order + Stripe PI)
-    // ─────────────────────────────────────────────────────────────────────────
+    // ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
 
     /**
      * Create an order in pending_payment state and a Stripe PaymentIntent.
@@ -98,7 +100,7 @@ class CartCheckoutService
 
         if (! empty($data['coupon_code'])) {
             $coupon         = $this->validateCoupon($data['coupon_code'], $user, $cart);
-            $discountAmount = $this->calculateDiscount($coupon, (float) $cart->subtotal);
+            $discountAmount = $this->calculateDiscount($coupon, $cart);
         }
 
         // Create order (no stock deduction)
@@ -143,6 +145,13 @@ class CartCheckoutService
                     'coupon_id' => $coupon->id,
                     'user_id'   => $user->id,
                     'order_id'  => $order->id,
+                ]);
+                CouponUsage::create([
+                    'coupon_id'       => $coupon->id,
+                    'user_id'         => $user->id,
+                    'order_id'        => $order->id,
+                    'discount_amount' => $discountAmount,
+                    'used_at'         => now(),
                 ]);
             }
 
@@ -203,9 +212,9 @@ class CartCheckoutService
         ];
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
+    // ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
     // Step 6-11: Confirm after webhook
-    // ─────────────────────────────────────────────────────────────────────────
+    // ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
 
     /**
      * Confirm payment after payment_intent.succeeded webhook.
@@ -239,7 +248,7 @@ class CartCheckoutService
                 $locked = Product::lockForUpdate()->findOrFail($item->product_id);
 
                 if ($locked->track_stock && $locked->stock_quantity < $item->quantity) {
-                    // Stock exhausted after payment — cancel + alert admin
+                    // Stock exhausted after payment ΓÇö cancel + alert admin
                     $order->update([
                         'status'         => Order::STATUS_CANCELLED,
                         'payment_status' => 'pending_refund',
@@ -317,9 +326,9 @@ class CartCheckoutService
         });
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
+    // ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
     // Status transition (Admin/Vendor)
-    // ─────────────────────────────────────────────────────────────────────────
+    // ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
 
     /**
      * @throws \DomainException
@@ -395,9 +404,9 @@ class CartCheckoutService
         return $freshOrder;
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
+    // ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
     // COD order placement
-    // ─────────────────────────────────────────────────────────────────────────
+    // ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
 
     /**
      * Place a COD order. Stock deducted immediately.
@@ -426,7 +435,7 @@ class CartCheckoutService
 
         if (! empty($data['coupon_code'])) {
             $coupon         = $this->validateCoupon($data['coupon_code'], $user, $cart);
-            $discountAmount = $this->calculateDiscount($coupon, (float) $cart->subtotal);
+            $discountAmount = $this->calculateDiscount($coupon, $cart);
         }
 
         $order = DB::transaction(function () use ($user, $cart, $data, $coupon, $discountAmount) {
@@ -480,6 +489,13 @@ class CartCheckoutService
                     'user_id'   => $user->id,
                     'order_id'  => $order->id,
                 ]);
+                CouponUsage::create([
+                    'coupon_id'       => $coupon->id,
+                    'user_id'         => $user->id,
+                    'order_id'        => $order->id,
+                    'discount_amount' => $discountAmount,
+                    'used_at'         => now(),
+                ]);
             }
 
             OrderStatusHistory::create([
@@ -504,73 +520,17 @@ class CartCheckoutService
         return $order->fresh(['items', 'vendor']);
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
+    // ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
     // Private helpers
-    // ─────────────────────────────────────────────────────────────────────────
+    // ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
 
     private function validateCoupon(string $code, User $user, Cart $cart): Coupon
     {
-        $coupon = Coupon::where('code', strtoupper(trim($code)))->first();
-
-        if (! $coupon) {
-            throw ValidationException::withMessages([
-                'coupon_code' => 'Invalid coupon code.',
-            ]);
-        }
-
-        if (! $coupon->isValid()) {
-            $message = 'This coupon has expired or is not yet valid.';
-            if ($coupon->expires_at && now()->gt($coupon->expires_at)) {
-                $message = 'This coupon has expired.';
-            }
-            throw ValidationException::withMessages([
-                'coupon_code' => $message,
-            ]);
-        }
-
-        $perUserLimit = (int) ($coupon->per_user_limit ?? 1);
-        if ($coupon->usageCountForUser($user->id) >= $perUserLimit) {
-            throw ValidationException::withMessages([
-                'coupon_code' => 'You have used this coupon the maximum number of times.',
-            ]);
-        }
-
-        // Enhanced store-specific coupon handling
-        if ($coupon->vendor_id && $cart->items->isNotEmpty()) {
-            // Get all unique vendors from cart items
-            $cartVendorIds = $cart->load('items.product')
-                                ->items
-                                ->pluck('product.vendor_id')
-                                ->unique()
-                                ->filter()
-                                ->values();
-
-            // Only allow if cart has items from the coupon's store
-            if ($cartVendorIds->isNotEmpty() && ! $cartVendorIds->contains($coupon->vendor_id)) {
-                throw ValidationException::withMessages([
-                    'coupon_code' => 'This coupon is only valid for items from a specific store that are not in your cart.',
-                ]);
-            }
-        }
-
-        if ($coupon->min_order && (float) $cart->subtotal < (float) $coupon->min_order) {
-            throw ValidationException::withMessages([
-                'coupon_code' => "Minimum order of " . number_format($coupon->min_order, 2) . " required.",
-            ]);
-        }
-
-        return $coupon;
+        return $this->couponService->findAndValidateForCart($code, $user, $cart);
     }
 
-    private function calculateDiscount(Coupon $coupon, float $subtotal): float
+    private function calculateDiscount(Coupon $coupon, Cart $cart): float
     {
-        if ($coupon->type === 'percentage') {
-            $discount = $subtotal * ((float) $coupon->value / 100);
-            return $coupon->max_discount
-                ? min($discount, (float) $coupon->max_discount)
-                : round($discount, 2);
-        }
-
-        return min(round((float) $coupon->value, 2), $subtotal);
+        return $this->couponService->calculateDiscountForCart($coupon, $cart);
     }
 }
