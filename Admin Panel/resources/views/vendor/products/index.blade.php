@@ -6,7 +6,37 @@
 <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
     <div>
         <h4 class="mb-1 fw-bold text-dark"><i class="fas fa-boxes me-2 text-primary"></i>Product Catalog</h4>
+    @if(session('success'))
+    <div class="modal fade" id="successModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0" style="border-radius: 20px; box-shadow: 0 24px 60px rgba(0,0,0,0.15);">
+                <div class="modal-body p-4 text-center">
+                    <div style="width: 68px; height: 68px; border-radius: 50%; background: #D1FAE5; color: #059669; display: inline-flex; align-items: center; justify-content: center; font-size: 28px; margin-bottom: 16px;">
+                        <i class="fas fa-check"></i>
+                    </div>
+                    <h4 style="font-weight: 800; color: var(--agri-text-heading); margin-bottom: 10px;">Success</h4>
+                    <p style="margin: 0; color: var(--agri-text-muted); font-weight: 600;">{{ session('success') }}</p>
+                </div>
+                <div class="modal-footer border-top-0 justify-content-center pb-4 pt-0">
+                    <button type="button" class="btn-agri btn-agri-primary px-4" data-bs-dismiss="modal">OK</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    @endif
+
         <span class="text-muted small fw-medium">{{ $products->total() }} product(s) available</span>
+
+    @if(session('success'))
+    @push('scripts')
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var modal = new bootstrap.Modal(document.getElementById('successModal'));
+            modal.show();
+        });
+    </script>
+    @endpush
+    @endif
     </div>
     <a href="{{ route('vendor.products.create') }}" class="btn-agri btn-agri-primary shadow-sm px-4">
         <i class="fas fa-plus-circle me-2"></i> List New Product
