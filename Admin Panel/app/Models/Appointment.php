@@ -61,8 +61,9 @@ class Appointment extends Model
 
     protected $fillable = [
         'user_id', 'expert_id', 'admin_id',
+        'type',
         'scheduled_at', 'scheduled_date', 'start_time', 'end_time', 'duration_minutes',
-        'status', 'notes', 'admin_notes', 'expert_response_notes', 'cancellation_reason',
+        'status', 'notes', 'location', 'admin_notes', 'expert_response_notes', 'cancellation_reason',
         'fee', 'payment_status',
         'customer_rating', 'customer_review', 'rated_at',
         'stripe_payment_intent_id', 'stripe_payment_status',
@@ -264,5 +265,36 @@ class Appointment extends Model
             self::STATUS_RESCHEDULED             => 'secondary',
             default                              => 'light',
         };
+    }
+
+    public function getDisplayStatusLabelAttribute(): string
+    {
+        return match ($this->status) {
+            self::STATUS_PENDING_EXPERT_APPROVAL => 'Pending',
+            self::STATUS_CONFIRMED               => 'Accepted',
+            self::STATUS_REJECTED                => 'Rejected',
+            self::STATUS_COMPLETED               => 'Completed',
+            self::STATUS_CANCELLED               => 'Cancelled',
+            self::STATUS_RESCHEDULE_REQUESTED    => 'Rescheduled',
+            self::STATUS_PENDING_PAYMENT         => 'Pending Payment',
+            self::STATUS_PAYMENT_FAILED          => 'Payment Failed',
+            self::STATUS_DRAFT                   => 'Draft',
+            default                              => ucfirst(str_replace('_', ' ', (string) $this->status)),
+        };
+    }
+
+    public function getTypeLabelAttribute(): string
+    {
+        return $this->type === 'physical' ? 'Physical' : 'Online';
+    }
+
+    public function isPhysical(): bool
+    {
+        return $this->type === 'physical';
+    }
+
+    public function isOnline(): bool
+    {
+        return $this->type === 'online';
     }
 }
