@@ -150,6 +150,27 @@
                                     <p class="text-muted small mb-0" style="line-height: 1.6;">Turn off to hide this product from customers while preserving its data. It will not appear in search results or category pages.</p>
                                 </div>
                             </div>
+
+                            <div class="mt-4 pt-3 border-top border-muted">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <div>
+                                        <h6 class="fw-bold m-0 text-dark">Returnable</h6>
+                                        <p class="text-muted small m-0">Allow customer return requests</p>
+                                    </div>
+                                    <div class="form-check form-switch m-0" style="font-size: 1.25rem;">
+                                        <input type="checkbox" name="is_returnable" id="is_returnable"
+                                               class="form-check-input shadow-none cursor-pointer" style="margin-top: 0;" value="1"
+                                               {{ old('is_returnable', $product->is_returnable ?? true) ? 'checked' : '' }}>
+                                    </div>
+                                </div>
+
+                                <label class="form-label text-dark fw-bold small mb-2">Return Window (Days)</label>
+                                <input type="number" min="0" max="365" name="return_window_days"
+                                       class="form-agri @error('return_window_days') border-danger @enderror"
+                                       value="{{ old('return_window_days', $product->return_window_days ?? 7) }}"
+                                       placeholder="7">
+                                @error('return_window_days')<div class="text-danger small mt-1"><i class="fas fa-exclamation-circle me-1"></i>{{ $message }}</div>@enderror
+                            </div>
                         </div>
                     </div>
 
