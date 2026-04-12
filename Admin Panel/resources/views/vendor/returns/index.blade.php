@@ -79,8 +79,8 @@
                                 </div>
                             </td>
                             <td>
-                                <span class="text-muted small d-inline-block text-truncate" style="max-width: 200px;" title="{{ $ret->reason->reason ?? $ret->description ?? '' }}">
-                                    {{ Str::limit($ret->reason->reason ?? $ret->description ?? '—', 40) }}
+                                <span class="text-muted small d-inline-block text-truncate" style="max-width: 200px;" title="{{ $ret->reason->title ?? $ret->reason->reason ?? $ret->notes ?? '' }}">
+                                    {{ Str::limit($ret->reason->title ?? $ret->reason->reason ?? $ret->notes ?? '—', 40) }}
                                 </span>
                             </td>
                             <td class="text-center">
@@ -89,13 +89,15 @@
                                         'pending'  => 'warning text-dark',
                                         'approved' => 'success',
                                         'rejected' => 'danger',
-                                        'refunded' => 'info',
+                                        'refund_processing' => 'primary',
+                                        'completed' => 'info',
                                     ];
                                     $iconMap = [
                                         'pending'  => 'bi-hourglass-split',
                                         'approved' => 'bi-check-circle-fill',
                                         'rejected' => 'bi-x-circle-fill',
-                                        'refunded' => 'bi-cash-coin',
+                                        'refund_processing' => 'bi-arrow-repeat',
+                                        'completed' => 'bi-cash-coin',
                                     ];
                                     $badge = $badgeMap[$ret->status] ?? 'secondary';
                                     $icon = $iconMap[$ret->status] ?? 'bi-info-circle';
