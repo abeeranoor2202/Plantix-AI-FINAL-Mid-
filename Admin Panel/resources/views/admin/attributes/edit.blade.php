@@ -28,10 +28,28 @@
                     <div style="margin-bottom: 32px;">
                         <h4 style="font-size: 18px; font-weight: 700; color: var(--agri-text-heading); margin-bottom: 24px;">Modify Attribute Details</h4>
                         <div class="row g-4">
-                            <div class="col-12">
+                            <div class="col-md-6">
                                 <label style="font-size: 13px; font-weight: 600; color: var(--agri-text-heading); margin-bottom: 8px; display: block;">{{trans('lang.attribute_name')}} <span class="text-danger">*</span></label>
                                 <input type="text" class="form-agri attribute-name" placeholder="e.g. Color, Size, Voltage, Material">
                                 <div style="font-size: 11px; color: var(--agri-text-muted); margin-top: 6px;">{{ trans("lang.attribute_name_help") }}</div>
+                            </div>
+                            <div class="col-md-6">
+                                <label style="font-size: 13px; font-weight: 600; color: var(--agri-text-heading); margin-bottom: 8px; display: block;">Attribute Type <span class="text-danger">*</span></label>
+                                <select class="form-agri attribute-type">
+                                    <option value="text">Text</option>
+                                    <option value="number">Number</option>
+                                    <option value="select">Select</option>
+                                    <option value="multi-select">Multi-Select</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label style="font-size: 13px; font-weight: 600; color: var(--agri-text-heading); margin-bottom: 8px; display: block;">Unit (Optional)</label>
+                                <input type="text" class="form-agri attribute-unit" placeholder="e.g. kg, %, ml">
+                            </div>
+                            <div class="col-12" id="attribute-values-wrap" style="display:none;">
+                                <label style="font-size: 13px; font-weight: 600; color: var(--agri-text-heading); margin-bottom: 8px; display: block;">Predefined Values</label>
+                                <textarea class="form-agri attribute-values" rows="4" placeholder="One value per line"></textarea>
+                                <div style="font-size: 11px; color: var(--agri-text-muted); margin-top: 6px;">Used for select and multi-select attributes.</div>
                             </div>
                         </div>
                     </div>
@@ -55,15 +73,31 @@
 <script>
     var csrfToken = '{{ csrf_token() }}';
     var attributeId = '{{ $attribute->id }}';
+    var existingType = '{{ $attribute->type ?? "text" }}';
+    var existingUnit = '{{ addslashes($attribute->unit ?? "") }}';
+    var existingValues = @json($attribute->values->pluck('value')->values());
 
     $(document).ready(function () {
         // Pre-fill existing title
-        $(".attribute-name").val('{{ addslashes($attribute->title) }}');
+        $(".attribute-name").val('{{ addslashes($attribute->name ?: $attribute->title) }}');
+        $(".attribute-type").val(existingType);
+        $(".attribute-unit").val(existingUnit);
+        $(".attribute-values").val(existingValues.join("\n"));
 
-        $(".save-form-btn").click(function () {
-            var title = $(".attribute-name").val().trim();
-            if (!title) {
+        $(".edit-form-btn").click(function () {
+            var name = $(".attribute-name").val().trim();
+            var type = $(".attribute-type").val();
+            var unit = $(".attribute-unit").val().trim();
+            var values = $(".attribute-values").val().split('\n').map(function(v){ return v.trim(); }).filter(Boolean);
+
+            if (!name) {
                 $(".error_top").show().html("<p>Please enter an attribute title.</p>");
+                window.scrollTo(0, 0);
+                return;
+            }
+
+            if ((type === 'select' || type === 'multi-select') && values.length === 0) {
+                $(".error_top").show().html("<p>Please add at least one predefined value for this type.</p>");
                 window.scrollTo(0, 0);
                 return;
             }
@@ -72,7 +106,7 @@
             $.ajax({
                 url: '{{ url("admin/attributes/update") }}/' + attributeId,
                 method: 'POST',
-                data: { _token: csrfToken, title: title },
+                data: { _token: csrfToken, name: name, type: type, unit: unit, values: values },
                 success: function (res) {
                     jQuery("#data-table_processing").hide();
                     if (res.success) {
@@ -90,6 +124,14 @@
                 }
             });
         });
+
+        function toggleValuesInput() {
+            var type = $(".attribute-type").val();
+            $("#attribute-values-wrap").toggle(type === 'select' || type === 'multi-select');
+        }
+
+        $(".attribute-type").on('change', toggleValuesInput);
+        toggleValuesInput();
     });
 </script>
 @endsection
