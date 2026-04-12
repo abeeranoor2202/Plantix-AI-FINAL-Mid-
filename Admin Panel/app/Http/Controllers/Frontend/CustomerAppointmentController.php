@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Frontend;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Frontend\StoreAppointmentRequest;
 use App\Models\Appointment;
 use App\Models\AppointmentReschedule;
 use App\Models\Expert;
@@ -25,25 +26,19 @@ class CustomerAppointmentController extends Controller
     public function index(): View
     {
         $user         = auth('web')->user();
-        $appointments = $user->appointments()->with('expert.user')->latest()->paginate(10);
+        $appointments = $user->appointments()->with(['expert.user', 'expert.profile'])->latest()->paginate(10);
 
         return view('customer.appointments', compact('appointments'));
     }
 
     public function create(): View
     {
-        $experts = Expert::with('user')->available()->get();
+        $experts = Expert::with(['user', 'profile'])->available()->get();
         return view('customer.appointment-book', compact('experts'));
     }
 
-    public function store(Request $request): RedirectResponse
+    public function store(StoreAppointmentRequest $request): RedirectResponse
     {
-        $request->validate([
-            'expert_id'    => 'nullable|exists:experts,id',
-            'scheduled_at' => 'required|date|after:now',
-            'notes'        => 'nullable|string|max:500',
-        ]);
-
         $user = auth('web')->user();
         $this->service->book($user, $request->validated());
 
@@ -55,7 +50,7 @@ class CustomerAppointmentController extends Controller
     {
         $user        = auth('web')->user();
         $appointment = $user->appointments()
-            ->with(['expert.user', 'reschedules' => fn ($q) => $q->where('status', 'pending')])
+            ->with(['expert.user', 'expert.profile', 'reschedules' => fn ($q) => $q->where('status', 'pending')])
             ->findOrFail($id);
 
         return view('customer.appointment-details', compact('appointment'));
