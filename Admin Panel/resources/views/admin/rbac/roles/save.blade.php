@@ -11,7 +11,7 @@
             <span style="color: var(--agri-primary); font-size: 14px; font-weight: 600;">Create Access Unit</span>
         </div>
         <h1 style="font-size: 28px; font-weight: 700; color: var(--agri-primary-dark); margin: 0;">{{ trans('lang.create_role') }}</h1>
-        <p style="color: var(--agri-text-muted); margin: 4px 0 0 0;">Instantiate a new administrative role with specific functional boundaries.</p>
+        <p style="color: var(--agri-text-muted); margin: 4px 0 0 0;">Create a new admin role with specific permissions.</p>
     </div>
 
     <div class="row justify-content-center">
