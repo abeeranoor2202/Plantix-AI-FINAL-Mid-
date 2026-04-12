@@ -134,6 +134,16 @@
                             @endif
 
                             {{-- Coupon --}}
+                            @if(!empty($globalCoupons) && $globalCoupons->isNotEmpty() && !session('coupon_code'))
+                                <div class="mb-3 small text-muted">
+                                    <div class="fw-bold text-dark mb-2"><i class="fas fa-ticket-alt text-success me-1"></i>Suggested coupons</div>
+                                    <div class="d-flex flex-wrap gap-2">
+                                        @foreach($globalCoupons as $coupon)
+                                            <span class="badge bg-success-subtle text-success border border-success">{{ $coupon->code }}</span>
+                                        @endforeach
+                                    </div>
+                                </div>
+                            @endif
                             @if(session('coupon_code'))
                                 <input type="hidden" name="coupon_code" value="{{ session('coupon_code') }}">
                                 <div class="mb-4">
