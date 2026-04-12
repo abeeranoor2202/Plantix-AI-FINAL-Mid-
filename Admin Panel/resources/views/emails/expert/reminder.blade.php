@@ -37,7 +37,7 @@
     @if($isExpert)
         <a href="{{ route('expert.appointments.show', $appointment->id) }}" class="btn">📅 View Appointment</a>
     @else
-        <a href="{{ route('customer.appointments.show', $appointment->id) }}" class="btn">📅 View Appointment</a>
+        <a href="{{ route('appointment.details', $appointment->id) }}" class="btn">📅 View Appointment</a>
     @endif
 </div>
 @endsection
