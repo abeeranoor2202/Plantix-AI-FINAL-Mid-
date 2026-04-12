@@ -64,6 +64,7 @@ class Appointment extends Model
         'scheduled_at', 'scheduled_date', 'start_time', 'end_time', 'duration_minutes',
         'status', 'notes', 'admin_notes', 'expert_response_notes', 'cancellation_reason',
         'fee', 'payment_status',
+        'customer_rating', 'customer_review', 'rated_at',
         'stripe_payment_intent_id', 'stripe_payment_status',
         'is_refunded', 'refunded_at', 'stripe_refund_id', 'refund_amount',
         'topic', 'meeting_link',
