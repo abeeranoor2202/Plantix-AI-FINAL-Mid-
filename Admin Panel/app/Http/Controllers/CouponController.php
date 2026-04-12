@@ -8,6 +8,7 @@ use App\Models\Product;
 use App\Models\Vendor;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 class CouponController extends Controller
 {
@@ -66,7 +67,9 @@ class CouponController extends Controller
             'vendor_ids.*'    => 'integer|exists:vendors,id',
         ]);
         $data['is_active'] = $request->boolean('is_active');
-        $data['is_visible_to_all'] = $request->boolean('is_visible_to_all');
+        if (Schema::hasColumn('coupons', 'is_visible_to_all')) {
+            $data['is_visible_to_all'] = $request->boolean('is_visible_to_all');
+        }
         $data['code']      = strtoupper(trim($data['code']));
         
         // Provide defaults for nullable numeric fields
@@ -116,7 +119,9 @@ class CouponController extends Controller
             'vendor_ids.*'    => 'integer|exists:vendors,id',
         ]);
         $data['is_active'] = $request->boolean('is_active');
-        $data['is_visible_to_all'] = $request->boolean('is_visible_to_all');
+        if (Schema::hasColumn('coupons', 'is_visible_to_all')) {
+            $data['is_visible_to_all'] = $request->boolean('is_visible_to_all');
+        }
         $data['code']      = strtoupper(trim($data['code']));
         
         // Provide defaults for nullable numeric fields
