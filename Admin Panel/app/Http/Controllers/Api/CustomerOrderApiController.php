@@ -65,8 +65,10 @@ class CustomerOrderApiController extends Controller
     public function requestReturn(Request $request, int $id): JsonResponse
     {
         $request->validate([
-            'return_reason_id' => 'nullable|exists:return_reasons,id',
-            'description'      => 'required|string|max:1000',
+            'reason_id' => 'required|exists:return_reasons,id',
+            'notes'     => 'required|string|max:1000',
+            'items'     => 'required|array',
+            'items.*'   => 'nullable|integer|min:0',
         ]);
 
         $order = Order::forCustomer($request->user()->id)
