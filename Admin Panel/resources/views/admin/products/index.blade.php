@@ -113,6 +113,25 @@
         </div>
     </div>
 
+    @if(session('success'))
+    <div class="modal fade" id="successModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0" style="border-radius: 20px; box-shadow: 0 24px 60px rgba(0,0,0,0.15);">
+                <div class="modal-body p-4 text-center">
+                    <div style="width: 68px; height: 68px; border-radius: 50%; background: #D1FAE5; color: #059669; display: inline-flex; align-items: center; justify-content: center; font-size: 28px; margin-bottom: 16px;">
+                        <i class="fas fa-check"></i>
+                    </div>
+                    <h4 style="font-weight: 800; color: var(--agri-text-heading); margin-bottom: 10px;">Success</h4>
+                    <p style="margin: 0; color: var(--agri-text-muted); font-weight: 600;">{{ session('success') }}</p>
+                </div>
+                <div class="modal-footer border-top-0 justify-content-center pb-4 pt-0">
+                    <button type="button" class="btn-agri btn-agri-primary px-4" data-bs-dismiss="modal">OK</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    @endif
+
     @if($products->hasPages())
         <div style="margin-top: 24px; display: flex; justify-content: center;">
             {{ $products->appends($filters)->links('pagination::bootstrap-5') }}
@@ -163,4 +182,16 @@
         transform: translateX(22px);
     }
 </style>
+
+@endsection
+
+@section('scripts')
+@if(session('success'))
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var modal = new bootstrap.Modal(document.getElementById('successModal'));
+        modal.show();
+    });
+</script>
+@endif
 @endsection
