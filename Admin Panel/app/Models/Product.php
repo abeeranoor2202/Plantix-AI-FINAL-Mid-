@@ -22,7 +22,7 @@ class Product extends Model
         'vendor_id', 'category_id', 'brand_id', 'name', 'sku', 'slug', 'description',
         'short_description', 'unit', 'low_stock_threshold',
         'price', 'discount_price', 'tax_rate', 'image', 'is_active', 'is_featured',
-        'is_returnable', 'return_window_days',
+        'is_returnable', 'is_refundable', 'return_window_days',
         'status', 'sort_order', 'stock_quantity', 'track_stock',
         'rating_avg', 'rating_count',
     ];
@@ -31,6 +31,7 @@ class Product extends Model
         'is_active'      => 'boolean',
         'is_featured'    => 'boolean',
         'is_returnable'  => 'boolean',
+        'is_refundable'  => 'boolean',
         'track_stock'    => 'boolean',
         'price'          => 'decimal:2',
         'discount_price' => 'decimal:2',
@@ -152,7 +153,8 @@ class Product extends Model
 
     public function scopeActive($query)
     {
-        return $query->where('status', self::STATUS_ACTIVE);
+        return $query->where('status', self::STATUS_ACTIVE)
+                     ->where('is_active', true);
     }
 
     public function scopeFeatured($query)
