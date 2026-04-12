@@ -34,6 +34,10 @@
                 <thead style="background: var(--agri-bg);">
                     <tr>
                         <th style="padding: 16px 24px; font-size: 12px; font-weight: 600; color: var(--agri-text-muted); text-transform: uppercase; border: none;">{{ trans('lang.attribute_name') }}</th>
+                        <th style="padding: 16px 24px; font-size: 12px; font-weight: 600; color: var(--agri-text-muted); text-transform: uppercase; border: none;">Type</th>
+                        <th style="padding: 16px 24px; font-size: 12px; font-weight: 600; color: var(--agri-text-muted); text-transform: uppercase; border: none;">Unit</th>
+                        <th style="padding: 16px 24px; font-size: 12px; font-weight: 600; color: var(--agri-text-muted); text-transform: uppercase; border: none;">Values</th>
+                        <th style="padding: 16px 24px; font-size: 12px; font-weight: 600; color: var(--agri-text-muted); text-transform: uppercase; border: none;">Categories</th>
                         <th class="text-end" style="padding: 16px 24px; font-size: 12px; font-weight: 600; color: var(--agri-text-muted); text-transform: uppercase; border: none;">{{ trans('lang.actions') }}</th>
                     </tr>
                 </thead>
@@ -41,7 +45,19 @@
                 @forelse($attributes as $attribute)
                     <tr>
                         <td class="px-4 py-3">
-                            <div style="font-weight: 700; color: var(--agri-text-heading);">{{ $attribute->title }}</div>
+                            <div style="font-weight: 700; color: var(--agri-text-heading);">{{ $attribute->name ?: $attribute->title }}</div>
+                        </td>
+                        <td class="px-4 py-3">
+                            <span class="badge rounded-pill bg-light text-dark" style="font-weight:700;">{{ strtoupper($attribute->type ?? 'text') }}</span>
+                        </td>
+                        <td class="px-4 py-3">
+                            <span style="font-weight: 700; color: var(--agri-text-heading);">{{ $attribute->unit ?: '—' }}</span>
+                        </td>
+                        <td class="px-4 py-3">
+                            <span style="font-weight: 700; color: var(--agri-text-heading);">{{ $attribute->values_count }}</span>
+                        </td>
+                        <td class="px-4 py-3">
+                            <span style="font-weight: 700; color: var(--agri-text-heading);">{{ $attribute->categories_count }}</span>
                         </td>
                         <td class="px-4 py-3">
                             <div class="text-end" style="display: flex; justify-content: flex-end; gap: 8px;">
@@ -58,12 +74,31 @@
                         </td>
                     </tr>
                 @empty
-                    <tr><td colspan="2" class="text-center py-5" style="color: var(--agri-text-muted);">No attributes found.</td></tr>
+                    <tr><td colspan="6" class="text-center py-5" style="color: var(--agri-text-muted);">No attributes found.</td></tr>
                 @endforelse
                 </tbody>
             </table>
         </div>
     </div>
+
+    @if(session('success'))
+    <div class="modal fade" id="successModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0" style="border-radius: 20px; box-shadow: 0 24px 60px rgba(0,0,0,0.15);">
+                <div class="modal-body p-4 text-center">
+                    <div style="width: 68px; height: 68px; border-radius: 50%; background: #D1FAE5; color: #059669; display: inline-flex; align-items: center; justify-content: center; font-size: 28px; margin-bottom: 16px;">
+                        <i class="fas fa-check"></i>
+                    </div>
+                    <h4 style="font-weight: 800; color: var(--agri-text-heading); margin-bottom: 10px;">Success</h4>
+                    <p style="margin: 0; color: var(--agri-text-muted); font-weight: 600;">{{ session('success') }}</p>
+                </div>
+                <div class="modal-footer border-top-0 justify-content-center pb-4 pt-0">
+                    <button type="button" class="btn-agri btn-agri-primary px-4" data-bs-dismiss="modal">OK</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    @endif
 </div>
 @endsection
 
@@ -76,6 +111,11 @@ $(document).ready(function () {
             $(this).toggle($(this).text().toLowerCase().indexOf(val) > -1);
         });
     });
+
+    @if(session('success'))
+    var modal = new bootstrap.Modal(document.getElementById('successModal'));
+    modal.show();
+    @endif
 });
 </script>
 @endsection
