@@ -150,15 +150,24 @@
                         <div class="row g-4" style="margin-bottom: 8px;">
                             <div class="col-md-4" style="display:flex; align-items:center; justify-content:space-between;">
                                 <span style="font-size: 14px; font-weight: 600; color: var(--agri-text-heading);">Active</span>
-                                <input type="checkbox" name="is_active" value="1" class="user_active" style="width: 44px; height: 22px; cursor: pointer; accent-color: var(--agri-primary);" @checked(old('is_active', true))>
+                                <label class="switch">
+                                    <input type="checkbox" name="is_active" value="1" @checked(old('is_active', true))>
+                                    <span class="slider"></span>
+                                </label>
                             </div>
                             <div class="col-md-4" style="display:flex; align-items:center; justify-content:space-between;">
                                 <span style="font-size: 14px; font-weight: 600; color: var(--agri-text-heading);">Featured</span>
-                                <input type="checkbox" name="is_featured" value="1" class="user_active" style="width: 44px; height: 22px; cursor: pointer; accent-color: var(--agri-primary);" @checked(old('is_featured', false))>
+                                <label class="switch">
+                                    <input type="checkbox" name="is_featured" value="1" @checked(old('is_featured', false))>
+                                    <span class="slider"></span>
+                                </label>
                             </div>
                             <div class="col-md-4" style="display:flex; align-items:center; justify-content:space-between;">
                                 <span style="font-size: 14px; font-weight: 600; color: var(--agri-text-heading);">Returnable</span>
-                                <input type="checkbox" name="is_returnable" value="1" class="user_active" style="width: 44px; height: 22px; cursor: pointer; accent-color: var(--agri-primary);" @checked(old('is_returnable', true))>
+                                <label class="switch">
+                                    <input type="checkbox" name="is_returnable" value="1" @checked(old('is_returnable', true))>
+                                    <span class="slider"></span>
+                                </label>
                             </div>
                         </div>
 
@@ -212,4 +221,47 @@ $(document).ready(function () {
     });
 });
 </script>
+<style>
+    .switch {
+        position: relative;
+        display: inline-block;
+        width: 46px;
+        height: 24px;
+        margin-bottom: 0;
+    }
+    .switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+    .slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #e2e8f0;
+        transition: .4s;
+        border-radius: 24px;
+    }
+    .slider:before {
+        position: absolute;
+        content: "";
+        height: 18px;
+        width: 18px;
+        left: 3px;
+        bottom: 3px;
+        background-color: white;
+        transition: .4s;
+        border-radius: 50%;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .switch input:checked + .slider {
+        background-color: var(--agri-primary);
+    }
+    .switch input:checked + .slider:before {
+        transform: translateX(22px);
+    }
+</style>
 @endsection
