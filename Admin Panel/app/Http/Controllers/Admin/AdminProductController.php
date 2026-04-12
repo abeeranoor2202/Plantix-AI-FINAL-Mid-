@@ -183,6 +183,14 @@ class AdminProductController extends Controller
         return back()->with('success', 'Returnable status updated.');
     }
 
+    public function toggleRefundable(int $id): RedirectResponse
+    {
+        $product = Product::findOrFail($id);
+        $product->update(['is_refundable' => ! $product->is_refundable]);
+
+        return back()->with('success', 'Refundable status updated.');
+    }
+
     public function reviews(Request $request): View
     {
         $query = \App\Models\Review::with(['user', 'product', 'vendor'])->orderBy('created_at', 'desc');
