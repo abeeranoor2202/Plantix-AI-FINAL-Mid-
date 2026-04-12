@@ -153,7 +153,7 @@ class VendorProductController extends Controller
     {
         Product::where('vendor_id', $this->vendorId())->findOrFail($id)->delete();
         return redirect()->route('vendor.products.index')
-                         ->with('success', 'Product deleted.');
+                         ->with('success', 'Product deleted successfully.');
     }
 
     private function buildCategoryAttributeMap(): array
@@ -227,6 +227,9 @@ class VendorProductController extends Controller
                         'attribute_id' => $attribute->id,
                         'value' => json_encode($selectedValues->all(), JSON_UNESCAPED_UNICODE),
                         'value_type' => $attribute->type,
+                        'name' => $attributeName,
+                        'type' => 'multiple',
+                        'price' => 0,
                     ];
                 }
 
@@ -264,6 +267,9 @@ class VendorProductController extends Controller
                 'attribute_id' => $attribute->id,
                 'value' => $value,
                 'value_type' => $attribute->type,
+                'name' => $attributeName,
+                'type' => 'single',
+                'price' => 0,
             ];
         }
 
