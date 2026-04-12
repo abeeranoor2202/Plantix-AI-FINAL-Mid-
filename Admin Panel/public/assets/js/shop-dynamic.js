@@ -7,6 +7,7 @@ const products   = Array.isArray(SHOP.products) ? SHOP.products : [];
 const allBrands  = Array.isArray(SHOP.brands)   ? SHOP.brands   : [];
 const allVendors = Array.isArray(SHOP.vendors)  ? SHOP.vendors  : [];
 const PRICE_RANGE = SHOP.priceRange || { min: 0, max: 50000 };
+const productById = new Map(products.map(p => [String(p.id), p]));
 
 // State
 let selectedCategories = [];
@@ -233,6 +234,9 @@ function renderProductGrid(prods) {
                         style="font-size:11px;text-transform:uppercase;">${escapeHtml(p.category ?? '')}</span>
                     ${p.vendor ? `<span class="text-muted" style="font-size:11px;white-space:nowrap;"><i class="fas fa-store me-1"></i>${escapeHtml(p.vendor)}</span>` : ''}
                 </div>
+                <div class="mb-2">
+                    <span class="badge rounded-pill ${statusBadgeClass(p)}">${escapeHtml(String(statusLabel(p)).toUpperCase())}</span>
+                </div>
                 <h5 class="fw-bold text-dark mb-1">
                     <a href="${p.url ?? '#'}" class="text-decoration-none text-dark">${escapeHtml(p.name)}</a></h5>
                 ${p.subtitle ? `<div class="text-muted small mb-2">${escapeHtml(p.subtitle)}</div>` : ''}
@@ -246,10 +250,13 @@ function renderProductGrid(prods) {
                         <span class="fw-bold text-success fs-5">PKR ${formatPrice(p.effective_price)}</span>
                     </div>
                     <div class="d-flex gap-2">
-                        <button class="btn-agri btn-agri-primary flex-grow-1"
-                            style="padding:8px 10px;font-size:14px;" onclick="addToCart(${p.id})">
-                            <i class="fas fa-shopping-cart me-1"></i> Add
-                        </button>
+                        ${canPurchase(p)
+                            ? `<button class="btn-agri btn-agri-primary flex-grow-1"
+                                style="padding:8px 10px;font-size:14px;" onclick="addToCart(${p.id})">
+                                <i class="fas fa-shopping-cart me-1"></i> Add
+                            </button>`
+                            : `<button class="btn-agri flex-grow-1" style="padding:8px 10px;font-size:14px;background:#e5e7eb;color:#9ca3af;cursor:not-allowed;" disabled>${escapeHtml(statusLabel(p))}</button>`
+                        }
                         <a class="btn-agri btn-agri-outline text-center" style="padding:8px 12px;font-size:14px;"
                             href="${p.url ?? '#'}" title="View details"><i class="far fa-eye"></i></a>
                     </div>
@@ -285,6 +292,11 @@ function changePage(page) {
 function formatPrice(p) { return new Intl.NumberFormat('en-PK').format(p ?? 0); }
 
 function addToCart(productId) {
+    const product = productById.get(String(productId));
+    if (product && !canPurchase(product)) {
+        showToast(statusLabel(product));
+        return;
+    }
     if (window.CartManager && typeof window.CartManager.addToCart === 'function') {
         window.CartManager.addToCart(productId, 1);
     } else {
@@ -309,4 +321,39 @@ function showToast(msg) {
 
 function escapeHtml(str) {
     return String(str ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function stockState(product) {
+    const trackStock = product?.track_stock !== false;
+    const isAvailable = product?.is_available !== false;
+    const quantity = Number(product?.stock_quantity ?? 0);
+
+    if (!trackStock) {
+        return 'In Stock';
+    }
+
+    if (!isAvailable) {
+        return 'Unavailable';
+    }
+
+    if (quantity <= 0) {
+        return 'Out of Stock';
+    }
+
+    return 'In Stock';
+}
+
+function statusLabel(product) {
+    return stockState(product);
+}
+
+function statusBadgeClass(product) {
+    const state = stockState(product);
+    if (state === 'Unavailable') return 'bg-secondary';
+    if (state === 'Out of Stock') return 'bg-danger';
+    return 'bg-success';
+}
+
+function canPurchase(product) {
+    return stockState(product) === 'In Stock';
 }
