@@ -20,7 +20,8 @@
                     'pending' => ['bg' => '#fffbeb', 'color' => '#d97706', 'icon' => 'clock'],
                     'approved' => ['bg' => 'var(--agri-primary-light)', 'color' => 'var(--agri-primary)', 'icon' => 'check-circle'],
                     'rejected' => ['bg' => '#FEF2F2', 'color' => 'var(--agri-error)', 'icon' => 'times-circle'],
-                    'refunded' => ['bg' => 'var(--agri-success-light)', 'color' => 'var(--agri-success)', 'icon' => 'wallet']
+                    'refund_processing' => ['bg' => '#eff6ff', 'color' => '#2563eb', 'icon' => 'spinner'],
+                    'completed' => ['bg' => 'var(--agri-success-light)', 'color' => 'var(--agri-success)', 'icon' => 'wallet']
                 ];
                 $st = $statusMap[$return->status] ?? ['bg' => 'var(--agri-bg)', 'color' => 'var(--agri-text-muted)', 'icon' => 'info-circle'];
             @endphp
@@ -71,17 +72,45 @@
                 <div style="margin-top: 32px; padding-top: 32px; border-top: 1px solid var(--agri-border);">
                     <h6 style="font-size: 14px; font-weight: 800; color: var(--agri-text-heading); margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Reason for Return</h6>
                     <div style="font-size: 15px; font-weight: 600; color: var(--agri-text-main); line-height: 1.6; background: #fffbeb; padding: 16px; border-radius: 12px; border-left: 4px solid #d97706;">
-                        {{ $return->reason->reason ?? $return->reason_text ?? 'The customer did not specify a primary reason.' }}
+                        {{ $return->reason->title ?? $return->reason->reason ?? $return->notes ?? 'The customer did not specify a primary reason.' }}
                     </div>
                     
-                    @if($return->customer_notes)
+                    @if($return->notes)
                     <div style="margin-top: 24px;">
                         <h6 style="font-size: 14px; font-weight: 800; color: var(--agri-text-heading); margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Customer Comments</h6>
                         <div style="font-size: 14px; color: var(--agri-text-main); line-height: 1.6; background: var(--agri-bg); padding: 16px; border-radius: 12px; border: 1px solid var(--agri-border);">
-                            "{{ $return->customer_notes }}"
+                            "{{ $return->notes }}"
                         </div>
                     </div>
                     @endif
+                </div>
+            </div>
+
+            <div class="card-agri" style="padding: 32px; background: white; margin-bottom: 24px;">
+                <h5 style="font-size: 18px; font-weight: 700; color: var(--agri-primary-dark); margin-bottom: 20px;">Requested Items</h5>
+                <div class="table-responsive">
+                    <table class="table align-middle mb-0">
+                        <thead>
+                            <tr>
+                                <th class="text-muted text-uppercase small fw-bold">Product</th>
+                                <th class="text-end text-muted text-uppercase small fw-bold">Requested Qty</th>
+                                <th class="text-end text-muted text-uppercase small fw-bold">Order Qty</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse($return->items as $item)
+                                <tr>
+                                    <td class="fw-semibold text-dark">{{ $item->product->name ?? 'Unknown product' }}</td>
+                                    <td class="text-end">{{ $item->quantity }}</td>
+                                    <td class="text-end text-muted">{{ optional($return->order->items->firstWhere('product_id', $item->product_id))->quantity ?? '—' }}</td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="3" class="text-center text-muted py-4">No item breakdown was captured for this return.</td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
                 </div>
             </div>
 
@@ -140,7 +169,8 @@
                                 <label class="agri-label">DISBURSEMENT METHOD</label>
                                 <select name="method" class="form-agri" style="height: 52px; font-weight: 700;">
                                     <option value="original_payment">Original Payment Method</option>
-                                    <option value="bank_transfer">Direct Bank Transfer</option>
+                                    <option value="wallet">Wallet Credit</option>
+                                    <option value="manual">Manual Settlement</option>
                                 </select>
                             </div>
                             <div class="col-md-3">
@@ -172,7 +202,7 @@
                 <div style="display: flex; flex-direction: column; gap: 16px;">
                     <div style="display: flex; justify-content: space-between; align-items: center;">
                         <span style="font-size: 13px; font-weight: 600; color: var(--agri-text-muted);">Payment Channel</span>
-                        <span style="font-size: 13px; font-weight: 700; color: var(--agri-text-heading);">{{ ucfirst($return->refund->method ?? 'Wallet') }}</span>
+                        <span style="font-size: 13px; font-weight: 700; color: var(--agri-text-heading);">{{ $return->refund->method_label ?? $return->refund->methodLabel ?? ucfirst($return->refund->method ?? 'Wallet') }}</span>
                     </div>
                     <div style="display: flex; justify-content: space-between; align-items: center;">
                         <span style="font-size: 13px; font-weight: 600; color: var(--agri-text-muted);">Transaction ID</span>
