@@ -355,7 +355,18 @@
                                 </div>
                             </div>
                             <h6 class="fw-bold" style="font-size: 15px;">{{ $review->product->name ?? 'Product' }}</h6>
+                            @if($review->comment)
                             <p class="text-muted mb-0" style="font-size: 14px; font-style: italic;">"{{ $review->comment }}"</p>
+                            @endif
+                            @if(!empty($review->review_images))
+                                <div class="d-flex flex-wrap gap-2 mt-3">
+                                    @foreach($review->review_images as $image)
+                                        <a href="{{ asset('storage/' . $image) }}" target="_blank" rel="noopener noreferrer">
+                                            <img src="{{ asset('storage/' . $image) }}" alt="Review image" style="width:64px;height:64px;object-fit:cover;border-radius:10px;border:1px solid #e5e7eb;">
+                                        </a>
+                                    @endforeach
+                                </div>
+                            @endif
                         </div>
                     </div>
                 @endforeach
