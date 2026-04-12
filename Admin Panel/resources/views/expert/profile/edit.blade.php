@@ -56,9 +56,19 @@
                                    value="{{ old('city', $profile?->city) }}">
                         </div>
                         <div class="col-sm-6 col-md-4">
+                            <label class="form-label text-dark fw-bold small mb-2">Address</label>
+                            <input type="text" name="address" class="form-agri"
+                                   value="{{ old('address', $profile?->address) }}" placeholder="Street address or clinic location">
+                        </div>
+                        <div class="col-sm-6 col-md-4">
                             <label class="form-label text-dark fw-bold small mb-2">Country</label>
                             <input type="text" name="country" class="form-agri"
                                    value="{{ old('country', $profile?->country) }}">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label text-dark fw-bold small mb-2">Map Link</label>
+                            <input type="url" name="map_link" class="form-agri"
+                                   value="{{ old('map_link', $profile?->map_link) }}" placeholder="https://maps.google.com/...">
                         </div>
                         <div class="col-12 col-md-4 px-3 py-2 bg-light rounded border border-dashed d-flex flex-column justify-content-center">
                             <label class="form-label text-muted text-uppercase fw-bold small mb-2" style="font-size: 11px; letter-spacing: 0.5px;">Booking Status</label>
