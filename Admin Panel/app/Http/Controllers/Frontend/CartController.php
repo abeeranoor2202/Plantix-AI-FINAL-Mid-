@@ -10,6 +10,7 @@ use App\Models\Coupon;
 use App\Models\Product;
 use App\Services\Shared\CartCheckoutService;
 use App\Services\Shared\CouponService;
+use App\Services\Shared\StockService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -20,6 +21,7 @@ class CartController extends Controller
     public function __construct(
         private readonly CartCheckoutService $checkout,
         private readonly CouponService $couponService,
+        private readonly StockService $stockService,
     ) {}
 
     // ── JSON helpers (public — no auth gate, return 0 for guests) ─────────────
@@ -104,6 +106,13 @@ class CartController extends Controller
                             ->where('product_id', $product->id)
                             ->first();
 
+        $this->stockService->reserveStock(
+            product: $product,
+            qty: (int) $request->quantity,
+            reference: 'cart:' . $cart->id,
+            initiatedBy: auth('web')->id(),
+        );
+
         if ($existing) {
             $existing->increment('quantity', $request->quantity);
         } else {
@@ -126,12 +135,24 @@ class CartController extends Controller
     {
         $request->validate(['quantity' => 'required|integer|min:0|max:99']);
 
-        $item = CartItem::findOrFail($itemId);
+        $item = CartItem::with('product')->findOrFail($itemId);
+        $oldQty = (int) $item->quantity;
+        $newQty = (int) $request->quantity;
+        $ref = 'cart:' . $item->cart_id;
 
-        if ($request->quantity === 0) {
+        if ($newQty === 0) {
+            if ($item->product) {
+                $this->stockService->releaseReservedStock($item->product, $oldQty, $ref, auth('web')->id());
+            }
             $item->delete();
         } else {
-            $item->update(['quantity' => $request->quantity]);
+            $delta = $newQty - $oldQty;
+            if ($delta > 0 && $item->product) {
+                $this->stockService->reserveStock($item->product, $delta, $ref, auth('web')->id());
+            } elseif ($delta < 0 && $item->product) {
+                $this->stockService->releaseReservedStock($item->product, abs($delta), $ref, auth('web')->id());
+            }
+            $item->update(['quantity' => $newQty]);
         }
 
         return $request->expectsJson()
@@ -141,7 +162,16 @@ class CartController extends Controller
 
     public function remove(string $itemId): JsonResponse|RedirectResponse
     {
-        CartItem::findOrFail($itemId)->delete();
+        $item = CartItem::with('product')->findOrFail($itemId);
+        if ($item->product) {
+            $this->stockService->releaseReservedStock(
+                product: $item->product,
+                qty: (int) $item->quantity,
+                reference: 'cart:' . $item->cart_id,
+                initiatedBy: auth('web')->id(),
+            );
+        }
+        $item->delete();
 
         return request()->expectsJson()
             ? response()->json(['success' => true])
@@ -153,6 +183,16 @@ class CartController extends Controller
         $user = auth('web')->user();
         Cart::where('user_id', $user->id)->with('items')->get()
             ->each(function ($cart) {
+                foreach ($cart->items as $item) {
+                    if ($item->product) {
+                        $this->stockService->releaseReservedStock(
+                            product: $item->product,
+                            qty: (int) $item->quantity,
+                            reference: 'cart:' . $cart->id,
+                            initiatedBy: auth('web')->id(),
+                        );
+                    }
+                }
                 $cart->items()->delete();
                 $cart->delete();
             });
