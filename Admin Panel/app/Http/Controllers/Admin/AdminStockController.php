@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\Product;
 use App\Models\Stock;
 use App\Models\Vendor;
 use App\Services\Shared\InventoryService;
@@ -16,7 +15,7 @@ use Illuminate\View\View;
  * AdminStockController
  *
  * Gives administrators a global view of all product stock levels across all
- * vendors, with the ability to adjust quantities and set low-stock thresholds.
+ * vendors, with the ability to update quantities and set low-stock thresholds.
  */
 class AdminStockController extends Controller
 {
@@ -50,8 +49,16 @@ class AdminStockController extends Controller
             };
         }
 
-        $stocks  = $query->latest()->paginate(30)->withQueryString();
-        $vendors = Vendor::orderBy('title')->get(['id', 'title as name']);
+        $stocks = $query->latest()->paginate(30)->withQueryString();
+
+        $vendors = Vendor::query()
+            ->whereIn('id', Stock::query()->select('vendor_id')->distinct())
+            ->orderByRaw('COALESCE(NULLIF(title, ""), NULLIF(owner_name, ""), id)')
+            ->get(['id', 'title', 'owner_name'])
+            ->map(function (Vendor $vendor) {
+                $vendor->name = trim((string) ($vendor->title ?: $vendor->owner_name ?: ('Vendor #' . $vendor->id)));
+                return $vendor;
+            });
 
         $summary = $this->inventory->analytics();
         $movements = $this->inventory->recentMovements(25);
@@ -99,36 +106,4 @@ class AdminStockController extends Controller
                          ->with('success', "Stock for \"{$stock->product->name}\" updated.");
     }
 
-    /**
-     * Manually adjust (increment / decrement) stock quantity.
-     * Route: POST /admin/stock/{id}/adjust
-     */
-    public function adjust(Request $request, int $id): RedirectResponse
-    {
-        $request->validate([
-            'adjustment' => 'required|integer',   // positive = add, negative = subtract
-            'note'       => 'nullable|string|max:500',
-        ]);
-
-        $stock = Stock::with('product')->findOrFail($id);
-        $delta = (int) $request->adjustment;
-
-        if ($delta >= 0) {
-            $this->stockService->restock($stock->product, $delta, (int) $stock->vendor_id, auth('admin')->id());
-        } else {
-            $newQty = max(0, (int) $stock->quantity + $delta);
-            $this->stockService->setStock(
-                product: $stock->product,
-                qty: $newQty,
-                vendorId: (int) $stock->vendor_id,
-                initiatedBy: auth('admin')->id(),
-                threshold: (int) $stock->low_stock_threshold,
-            );
-        }
-
-        $fresh = Stock::find($stock->id);
-        $newQty = (int) ($fresh?->quantity ?? 0);
-
-        return back()->with('success', "Stock adjusted. New quantity: {$newQty}.");
-    }
 }
