@@ -34,8 +34,9 @@ class CustomerOrderController extends Controller
         $order = Order::with(['vendor', 'items.product', 'statusHistory', 'returnRequest', 'refund'])
                       ->forCustomer($user->id)
                       ->findOrFail($id);
+        $canReturn = $this->returnService->orderIsReturnable($order);
 
-        return view('customer.order-details', compact('order'));
+        return view('customer.order-details', compact('order', 'canReturn'));
     }
 
     public function success(int $id): View
@@ -59,6 +60,8 @@ class CustomerOrderController extends Controller
         $order = Order::forCustomer($user->id)
                       ->where('status', 'delivered')
                       ->findOrFail($id);
+
+        abort_unless($this->returnService->orderIsReturnable($order), 403, 'This product is not returnable');
 
         $this->returnService->requestReturn($user, $order, $request->validated());
 
