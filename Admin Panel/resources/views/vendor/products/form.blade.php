@@ -162,6 +162,17 @@
                                     </label>
                                 </div>
 
+                                <div class="d-flex justify-content-between align-items-center mb-3 mt-3 pt-3 border-top border-muted">
+                                    <div>
+                                        <h6 class="fw-bold m-0 text-dark">Refundable</h6>
+                                        <p class="text-muted small m-0">Allow financial reversal after approval</p>
+                                    </div>
+                                    <label class="switch">
+                                        <input type="checkbox" name="is_refundable" id="is_refundable" value="1" {{ old('is_refundable', $product->is_refundable ?? true) ? 'checked' : '' }}>
+                                        <span class="slider"></span>
+                                    </label>
+                                </div>
+
                                 <label class="form-label text-dark fw-bold small mb-2">Return Window (Days)</label>
                                 <input type="number" min="0" max="365" name="return_window_days"
                                        class="form-agri @error('return_window_days') border-danger @enderror"
