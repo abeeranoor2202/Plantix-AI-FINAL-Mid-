@@ -269,6 +269,10 @@ window.CART_ROUTES = {
 
                     <!-- Reviews Tab -->
                     <div class="tab-pane fade" id="review" role="tabpanel">
+                        @php
+                            $allowTextReview = (bool) data_get($product, 'category.text_review_enabled', true);
+                            $allowImageReview = (bool) data_get($product, 'category.image_review_enabled', false);
+                        @endphp
                         <div class="row g-5">
                             <div class="col-lg-7 border-end">
                                 <h4 class="fw-bold text-dark mb-4">Customer Reviews</h4>
@@ -286,7 +290,18 @@ window.CART_ROUTES = {
                                     @if($review->title)
                                     <h6 class="fw-bold text-dark mb-2">{{ $review->title }}</h6>
                                     @endif
+                                    @if($review->comment)
                                     <p class="text-muted mb-0">{{ $review->comment }}</p>
+                                    @endif
+                                    @if(!empty($review->review_images))
+                                    <div class="d-flex flex-wrap gap-2 mt-3">
+                                        @foreach($review->review_images as $image)
+                                            <a href="{{ asset('storage/' . $image) }}" target="_blank" rel="noopener noreferrer">
+                                                <img src="{{ asset('storage/' . $image) }}" alt="Review image" style="width:72px;height:72px;object-fit:cover;border-radius:12px;border:1px solid #e5e7eb;">
+                                            </a>
+                                        @endforeach
+                                    </div>
+                                    @endif
                                 </div>
                                 @empty
                                 <p class="text-muted">No reviews yet. Be the first to review this product!</p>
@@ -296,8 +311,25 @@ window.CART_ROUTES = {
                             <div class="col-lg-5">
                                 <h4 class="fw-bold text-dark mb-4">Write a Review</h4>
                                 @auth('web')
-                                <form method="POST" action="{{ route('reviews.store', $product->id) }}">
+                                <form method="POST" action="{{ route('reviews.store', $product->id) }}" enctype="multipart/form-data">
                                     @csrf
+                                    @if($eligibleOrders->isEmpty())
+                                    <div class="alert alert-warning small">
+                                        You can only review this product after a delivered or completed order is available.
+                                    </div>
+                                    @else
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold text-dark" style="font-size: 13px;">Order *</label>
+                                        <select name="order_id" class="form-agri" required>
+                                            <option value="">Select an order</option>
+                                            @foreach($eligibleOrders as $order)
+                                                <option value="{{ $order->id }}" @selected(old('order_id') == $order->id)>
+                                                    {{ $order->order_number }} - {{ ucfirst($order->status) }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    @endif
                                     <div class="mb-3">
                                         <label class="form-label fw-bold text-dark" style="font-size: 13px;">Your Rating *</label>
                                         <div class="d-flex gap-1 fs-4" id="starPicker">
@@ -311,10 +343,22 @@ window.CART_ROUTES = {
                                         <label class="form-label fw-bold text-dark" style="font-size: 13px;">Title</label>
                                         <input type="text" name="title" class="form-agri" placeholder="Summary of your review" value="{{ old('title') }}">
                                     </div>
+                                    @if($allowTextReview)
                                     <div class="mb-3">
-                                        <label class="form-label fw-bold text-dark" style="font-size: 13px;">Your Review *</label>
-                                        <textarea name="comment" class="form-agri" rows="4" placeholder="Share your experience..." required>{{ old('comment') }}</textarea>
+                                        <label class="form-label fw-bold text-dark" style="font-size: 13px;">Your Review</label>
+                                        <textarea name="comment" class="form-agri" rows="4" placeholder="Share your experience...">{{ old('comment') }}</textarea>
                                     </div>
+                                    @elseif(! $allowImageReview)
+                                    <div class="alert alert-info small mb-3">
+                                        This category does not allow written or image reviews. You can still submit the star rating.
+                                    </div>
+                                    @endif
+                                    @if($allowImageReview)
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold text-dark" style="font-size: 13px;">Review Photos</label>
+                                        <input type="file" name="review_images[]" class="form-control" accept="image/*" multiple>
+                                    </div>
+                                    @endif
                                     <button type="submit" class="btn-agri btn-agri-primary w-100">Submit Review</button>
                                 </form>
                                 <script>
