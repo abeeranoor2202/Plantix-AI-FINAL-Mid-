@@ -17,11 +17,12 @@ class Review extends Model
 
     protected $fillable = [
         'user_id', 'vendor_id', 'product_id', 'order_id',
-        'rating', 'comment', 'is_active', 'status', 'edit_locked_at',
+        'title', 'rating', 'comment', 'review_images', 'is_active', 'status', 'edit_locked_at',
     ];
 
     protected $casts = [
         'rating'         => 'integer',
+        'review_images'  => 'array',
         'is_active'      => 'boolean',
         'edit_locked_at' => 'datetime',
     ];
