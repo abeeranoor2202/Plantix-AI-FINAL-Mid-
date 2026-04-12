@@ -102,7 +102,7 @@ class Product extends Model
 
     public function stock(): HasOne
     {
-        return $this->hasOne(ProductStock::class);
+        return $this->hasOne(Stock::class);
     }
 
     public function reviews(): HasMany
