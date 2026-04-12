@@ -36,7 +36,7 @@ class SendVendorStatusEmailListener implements ShouldQueue
         }
 
         // Admin alert on new vendor registration or suspension
-        $adminTriggers = ['pending', 'suspended', 'rejected'];
+        $adminTriggers = ['pending', 'under_review', 'suspended', 'rejected'];
         if (in_array($status, $adminTriggers)) {
             $alertType  = $status === 'pending' ? 'new_vendor' : 'vendor_violation';
             $adminEmail = Config::get('plantix.admin_email', config('mail.from.address'));
@@ -46,6 +46,7 @@ class SendVendorStatusEmailListener implements ShouldQueue
                     alertType:  $alertType,
                     headline:   match ($status) {
                         'pending'   => "New vendor registration: {$vendor->business_name}.",
+                        'under_review' => "Vendor application under review: {$vendor->business_name}.",
                         'suspended' => "Vendor {$vendor->business_name} has been suspended.",
                         default     => "Vendor {$vendor->business_name} status changed to {$status}.",
                     },
