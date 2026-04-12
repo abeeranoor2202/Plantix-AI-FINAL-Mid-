@@ -35,8 +35,9 @@ class CustomerOrderController extends Controller
                       ->forCustomer($user->id)
                       ->findOrFail($id);
         $canReturn = $this->returnService->orderIsReturnable($order);
+        $returnReasons = ReturnReason::active()->orderBy('title')->get();
 
-        return view('customer.order-details', compact('order', 'canReturn'));
+        return view('customer.order-details', compact('order', 'canReturn', 'returnReasons'));
     }
 
     public function success(int $id): View
@@ -52,8 +53,10 @@ class CustomerOrderController extends Controller
     public function requestReturn(Request $request, int $id): RedirectResponse
     {
         $request->validate([
-            'return_reason_id' => 'nullable|exists:return_reasons,id',
-            'description'      => 'required|string|max:1000',
+            'reason_id' => 'required|exists:return_reasons,id',
+            'notes'     => 'required|string|max:1000',
+            'items'     => 'required|array',
+            'items.*'   => 'nullable|integer|min:0',
         ]);
 
         $user  = auth('web')->user();
