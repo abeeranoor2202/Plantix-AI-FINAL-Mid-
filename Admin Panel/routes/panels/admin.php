@@ -87,6 +87,14 @@ Route::prefix('admin')->name('admin.')->group(function () {
             Route::get('/vendors', [\App\Http\Controllers\UserController::class, 'vendors'])->name('vendors');
             Route::get('/vendors/create', [\App\Http\Controllers\UserController::class, 'vendorCreate'])->name('vendors.create');
         });
+        Route::prefix('/vendor-applications')->name('vendor-applications.')->group(function () {
+            Route::get('/', [\App\Http\Controllers\Admin\VendorApplicationController::class, 'index'])->name('index');
+            Route::get('/{application}', [\App\Http\Controllers\Admin\VendorApplicationController::class, 'show'])->name('show');
+            Route::post('/{application}/under-review', [\App\Http\Controllers\Admin\VendorApplicationController::class, 'underReview'])->name('under-review');
+            Route::post('/{application}/approve', [\App\Http\Controllers\Admin\VendorApplicationController::class, 'approve'])->name('approve');
+            Route::post('/{application}/reject', [\App\Http\Controllers\Admin\VendorApplicationController::class, 'reject'])->name('reject');
+            Route::post('/{application}/suspend', [\App\Http\Controllers\Admin\VendorApplicationController::class, 'suspend'])->name('suspend');
+        });
         Route::middleware(['permission:vendors,vendors.view'])->group(function () {
             Route::get('/vendors/view/{id}', [\App\Http\Controllers\UserController::class, 'vendorView'])->name('vendors.view');
         });
@@ -160,6 +168,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         // Coupon CRUD (no-Firebase)
         Route::post('/coupons/store',         [\App\Http\Controllers\CouponController::class, 'store'])->name('coupons.store');
         Route::post('/coupons/update/{id}',   [\App\Http\Controllers\CouponController::class, 'update'])->name('coupons.update');
+        Route::post('/coupons/toggle/{id}',   [\App\Http\Controllers\CouponController::class, 'toggle'])->name('coupons.toggle');
         Route::delete('/coupons/delete/{id}', [\App\Http\Controllers\CouponController::class, 'destroy'])->name('coupons.destroy');
 
         // ── Orders ────────────────────────────────────────────────────────────
@@ -173,6 +182,10 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::prefix('/appointments')->name('appointments.')->group(function () {
             Route::get('/',                [\App\Http\Controllers\Admin\AdminAppointmentController::class, 'index'])->name('index');
             Route::get('/{id}',            [\App\Http\Controllers\Admin\AdminAppointmentController::class, 'show'])->name('show');
+            Route::get('/{id}/edit',       [\App\Http\Controllers\Admin\AdminAppointmentController::class, 'edit'])->name('edit');
+            Route::put('/{id}',            [\App\Http\Controllers\Admin\AdminAppointmentController::class, 'update'])->name('update');
+            Route::delete('/{id}',         [\App\Http\Controllers\Admin\AdminAppointmentController::class, 'destroy'])->name('destroy');
+            Route::post('/{id}/status',    [\App\Http\Controllers\Admin\AdminAppointmentController::class, 'updateStatus'])->name('status');
             Route::post('/{id}/confirm',   [\App\Http\Controllers\Admin\AdminAppointmentController::class, 'confirm'])->name('confirm');
             Route::post('/{id}/cancel',    [\App\Http\Controllers\Admin\AdminAppointmentController::class, 'cancel'])->name('cancel');
             Route::post('/{id}/complete',  [\App\Http\Controllers\Admin\AdminAppointmentController::class, 'complete'])->name('complete');
@@ -213,13 +226,13 @@ Route::prefix('admin')->name('admin.')->group(function () {
         // ── Returns & Refunds ─────────────────────────────────────────────────
         Route::prefix('/returns')->name('returns.')->group(function () {
             Route::get('/',                [\App\Http\Controllers\Admin\AdminReturnController::class, 'index'])->name('index');
-            Route::get('/{id}',            [\App\Http\Controllers\Admin\AdminReturnController::class, 'show'])->name('show');
-            Route::post('/{id}/approve',   [\App\Http\Controllers\Admin\AdminReturnController::class, 'approve'])->name('approve');
-            Route::post('/{id}/reject',    [\App\Http\Controllers\Admin\AdminReturnController::class, 'reject'])->name('reject');
-            Route::post('/{id}/refund',    [\App\Http\Controllers\Admin\AdminReturnController::class, 'processRefund'])->name('refund');
             Route::get('/reasons',         [\App\Http\Controllers\Admin\AdminReturnController::class, 'reasons'])->name('reasons');
             Route::post('/reasons',        [\App\Http\Controllers\Admin\AdminReturnController::class, 'storeReason'])->name('reasons.store');
-            Route::delete('/reasons/{id}', [\App\Http\Controllers\Admin\AdminReturnController::class, 'destroyReason'])->name('reasons.destroy');
+            Route::delete('/reasons/{id}', [\App\Http\Controllers\Admin\AdminReturnController::class, 'destroyReason'])->whereNumber('id')->name('reasons.destroy');
+            Route::get('/{id}',            [\App\Http\Controllers\Admin\AdminReturnController::class, 'show'])->whereNumber('id')->name('show');
+            Route::post('/{id}/approve',   [\App\Http\Controllers\Admin\AdminReturnController::class, 'approve'])->whereNumber('id')->name('approve');
+            Route::post('/{id}/reject',    [\App\Http\Controllers\Admin\AdminReturnController::class, 'reject'])->whereNumber('id')->name('reject');
+            Route::post('/{id}/refund',    [\App\Http\Controllers\Admin\AdminReturnController::class, 'processRefund'])->whereNumber('id')->name('refund');
         });
 
         // ── Product Reviews & Ratings ─────────────────────────────────────────
@@ -234,8 +247,10 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::prefix('/stock')->name('stock.')->group(function () {
             Route::get('/',             [\App\Http\Controllers\Admin\AdminStockController::class, 'index'])->name('index');
             Route::get('/{id}/edit',    [\App\Http\Controllers\Admin\AdminStockController::class, 'edit'])->name('edit');
+            Route::get('/{id}',         [\App\Http\Controllers\Admin\AdminStockController::class, 'show'])->name('show');
+            Route::patch('/{id}/toggle',[\App\Http\Controllers\Admin\AdminStockController::class, 'toggle'])->name('toggle');
             Route::put('/{id}',         [\App\Http\Controllers\Admin\AdminStockController::class, 'update'])->name('update');
-            Route::post('/{id}/adjust', [\App\Http\Controllers\Admin\AdminStockController::class, 'adjust'])->name('adjust');
+            Route::delete('/{id}',      [\App\Http\Controllers\Admin\AdminStockController::class, 'destroy'])->name('destroy');
         });
 
         // ── Roles & Permissions (RBAC) ────────────────────────────────────────
