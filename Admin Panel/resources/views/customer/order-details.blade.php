@@ -41,7 +41,7 @@
                             <button class="btn-agri text-danger" style="padding: 8px 16px; background: rgba(239, 68, 68, 0.1); border: none;" onclick="return confirm('Are you sure you want to cancel this order?')">Cancel Order</button>
                         </form>
                         @endif
-                        @if($order->status === 'delivered' && !$order->returnRequest)
+                        @if($canReturn && !$order->returnRequest)
                         <button class="btn-agri btn-agri-outline text-dark border-dark" style="padding: 8px 16px;" data-bs-toggle="modal" data-bs-target="#returnModal">Return Items</button>
                         @endif
                         <a href="{{ route('shop') }}" class="btn-agri btn-agri-primary" style="padding: 8px 16px;">Buy Again</a>
@@ -139,7 +139,7 @@
 </div>
 
 {{-- Return Modal --}}
-@if($order->status === 'delivered' && !isset($order->returnRequest))
+@if($canReturn && !isset($order->returnRequest))
 <div class="modal fade" id="returnModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content" style="border-radius: var(--agri-radius-md); border: none;">
