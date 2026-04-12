@@ -49,11 +49,61 @@ class AdminAppointmentController extends Controller
 
     public function show(int $id): View
     {
-        $appointment = Appointment::with(['user', 'expert.user', 'statusHistory', 'logs', 'reschedules'])
+        $appointment = Appointment::with(['user', 'expert.user', 'expert.profile', 'statusHistory', 'logs', 'reschedules'])
             ->findOrFail($id);
         $experts = Expert::with('user')->available()->get();
 
         return view('admin.appointments.show', compact('appointment', 'experts'));
+    }
+
+    // ── Edit functionality ────────────────────────────────────────────────────
+
+    public function edit(int $id): View
+    {
+        $appointment = Appointment::with(['user', 'expert.user', 'expert.profile'])
+            ->findOrFail($id);
+        $experts = Expert::with('user')->available()->get();
+
+        return view('admin.appointments.edit', compact('appointment', 'experts'));
+    }
+
+    public function update(Request $request, int $id): RedirectResponse
+    {
+        $appointment = Appointment::findOrFail($id);
+
+        $request->validate([
+            'expert_id'     => 'nullable|exists:experts,id',
+            'scheduled_at'  => 'nullable|date_format:Y-m-d H:i',
+            'fee'           => 'nullable|numeric|min:0',
+            'topic'         => 'nullable|string|max:255',
+            'notes'         => 'nullable|string|max:1000',
+            'meeting_link'  => ($appointment->type === 'online' ? 'required' : 'nullable') . '|url|max:500',
+            'location'      => ($appointment->type === 'physical' ? 'required' : 'nullable') . '|string|max:500',
+        ]);
+
+        $appointment->update($request->only([
+            'expert_id', 'scheduled_at', 'fee', 'topic', 'notes', 'meeting_link', 'location'
+        ]));
+
+        return redirect()->route('admin.appointments.show', $appointment->id)
+            ->with('success', 'Appointment updated successfully.');
+    }
+
+    // ── Delete functionality ──────────────────────────────────────────────────
+
+    public function destroy(int $id): RedirectResponse
+    {
+        $appointment = Appointment::findOrFail($id);
+
+        // Prevent deletion of completed appointments
+        if ($appointment->status === Appointment::STATUS_COMPLETED) {
+            return back()->withErrors(['error' => 'Cannot delete completed appointments. Please refund and cancel instead.']);
+        }
+
+        $appointment->delete();
+
+        return redirect()->route('admin.appointments.index')
+            ->with('success', 'Appointment deleted successfully.');
     }
 
     // ── Status transitions ────────────────────────────────────────────────────
@@ -63,13 +113,13 @@ class AdminAppointmentController extends Controller
      */
     public function confirm(Request $request, int $id): RedirectResponse
     {
+        $appointment = Appointment::findOrFail($id);
+
         $request->validate([
             'expert_id' => 'nullable|exists:experts,id',
-            'meeting_link' => 'nullable|url|max:500',
+            'meeting_link' => ($appointment->type === 'online' ? 'required' : 'nullable') . '|url|max:500',
             'notes'     => 'nullable|string|max:1000',
         ]);
-
-        $appointment = Appointment::findOrFail($id);
 
         try {
             $this->service->confirm(
