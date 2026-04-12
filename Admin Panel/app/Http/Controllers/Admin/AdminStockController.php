@@ -77,6 +77,16 @@ class AdminStockController extends Controller
     }
 
     /**
+     * Show a read-only stock record.
+     * Route: GET /admin/stock/{id}
+     */
+    public function show(int $id): View
+    {
+        $stock = Stock::with(['product', 'vendor'])->findOrFail($id);
+        return view('admin.stock.show', compact('stock'));
+    }
+
+    /**
      * Update a stock record.
      * Route: PUT /admin/stock/{id}
      */
@@ -104,6 +114,26 @@ class AdminStockController extends Controller
 
         return redirect()->route('admin.stock.index')
                          ->with('success', "Stock for \"{$stock->product->name}\" updated.");
+    }
+
+    /**
+     * Delete a stock record.
+     * Route: DELETE /admin/stock/{id}
+     */
+    public function destroy(int $id): RedirectResponse
+    {
+        $stock = Stock::with('product')->findOrFail($id);
+
+        $hasQuantity = (int) $stock->quantity > 0;
+        $productActive = (bool) ($stock->product?->is_active ?? false);
+
+        if ($hasQuantity || $productActive) {
+            return back()->with('error', 'Stock can only be deleted when quantity is zero and the product is inactive.');
+        }
+
+        $stock->delete();
+
+        return back()->with('success', 'Stock deleted successfully.');
     }
 
 }
