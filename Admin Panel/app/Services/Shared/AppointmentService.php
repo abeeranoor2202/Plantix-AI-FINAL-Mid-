@@ -19,6 +19,7 @@ use App\Notifications\Appointment\AdminPaymentFailureNotification;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Notification;
+use Carbon\Carbon;
 use Illuminate\Validation\ValidationException;
 use Stripe\PaymentIntent;
 
@@ -43,7 +44,13 @@ class AppointmentService
     public function __construct(
         private readonly StripeService       $stripe,
         private readonly AvailabilityService $availability,
+        private readonly ScheduleService     $schedule,
     ) {}
+
+    public function book(User $user, array $data): array
+    {
+        return $this->initiateBooking($user, $data);
+    }
 
     // =========================================================================
     // STEP 1 — Customer creates a draft appointment and gets a Stripe PaymentIntent
@@ -70,7 +77,13 @@ class AppointmentService
         $expert = Expert::findOrFail($data['expert_id']);
         $this->availability->assertExpertAvailable($expert);
 
-        return DB::transaction(function () use ($user, $expert, $data) {
+        $scheduledAt = Carbon::parse($data['scheduled_at']);
+        $type        = $data['type'] ?? 'online';
+        $duration    = (int) ($data['duration_minutes'] ?? $expert->consultation_duration_minutes ?? 60);
+        $this->schedule->assertBookingAllowed($expert, $scheduledAt, $type, $duration);
+        $location = $type === 'physical' ? $this->schedule->resolveLocation($expert) : null;
+
+        return DB::transaction(function () use ($user, $expert, $data, $scheduledAt, $type, $location) {
             // Lock the slot — throws DomainException on conflict
             $slot = null;
             if (! empty($data['slot_id'])) {
@@ -78,17 +91,18 @@ class AppointmentService
                 $appointment = Appointment::create([
                     'user_id'          => $user->id,
                     'expert_id'        => $expert->id,
+                    'type'             => $type,
                     'status'           => Appointment::STATUS_DRAFT,
                     'fee'              => $expert->consultation_fee ?? $expert->hourly_rate ?? 0,
                     'duration_minutes' => $data['duration_minutes'] ?? 60,
                     'notes'            => $data['notes'] ?? null,
                     'topic'            => $data['topic'] ?? null,
+                    'location'         => $location,
                 ]);
 
                 $slot = $this->availability->lockSlot((int) $data['slot_id'], $appointment);
             } else {
                 // Fallback: no slot system — use scheduled_at + overlap check
-                $scheduledAt = $data['scheduled_at'];
                 $expertId    = $expert->id;
 
                 $conflict = Appointment::where('expert_id', $expertId)
@@ -106,12 +120,14 @@ class AppointmentService
                 $appointment = Appointment::create([
                     'user_id'          => $user->id,
                     'expert_id'        => $expert->id,
+                    'type'             => $type,
                     'scheduled_at'     => $scheduledAt,
                     'status'           => Appointment::STATUS_DRAFT,
                     'fee'              => $expert->consultation_fee ?? $expert->hourly_rate ?? 0,
                     'duration_minutes' => $data['duration_minutes'] ?? 60,
                     'notes'            => $data['notes'] ?? null,
                     'topic'            => $data['topic'] ?? null,
+                    'location'         => $location,
                 ]);
             }
 
@@ -217,11 +233,11 @@ class AppointmentService
      * Admin or service confirms an appointment after payment.
      * Also used by admin to force-confirm.
      */
-    public function confirm(Appointment $appointment, ?int $expertId = null, ?string $adminNotes = null, bool $isAdmin = false, ?int $adminUserId = null): Appointment
+    public function confirm(Appointment $appointment, ?int $expertId = null, ?string $adminNotes = null, bool $isAdmin = false, ?int $adminUserId = null, ?string $meetingLink = null): Appointment
     {
         $appointment->assertCanTransitionTo(Appointment::STATUS_CONFIRMED, $isAdmin);
 
-        return DB::transaction(function () use ($appointment, $expertId, $adminNotes, $isAdmin, $adminUserId) {
+        return DB::transaction(function () use ($appointment, $expertId, $adminNotes, $isAdmin, $adminUserId, $meetingLink) {
             $from = $appointment->status;
             $appointment->update([
                 'status'      => Appointment::STATUS_CONFIRMED,
@@ -229,6 +245,7 @@ class AppointmentService
                 'admin_id'    => $adminUserId ?? $appointment->admin_id,
                 'admin_notes' => $adminNotes ?? $appointment->admin_notes,
                 'accepted_at' => now(),
+                'meeting_link' => $meetingLink ?? $appointment->meeting_link,
             ]);
 
             $this->recordStatusHistory($appointment, null, $from, Appointment::STATUS_CONFIRMED, $adminUserId, $adminNotes);
@@ -329,6 +346,60 @@ class AppointmentService
             AppointmentLog::record($appointment, 'completed', $byUserId, $from, Appointment::STATUS_COMPLETED);
 
             return $appointment->fresh();
+        });
+    }
+
+    /**
+     * Admin-driven generic status update that still respects the appointment state machine.
+     */
+    public function updateStatus(Appointment $appointment, string $targetStatus, ?int $adminUserId = null, ?string $notes = null): Appointment
+    {
+        $appointment->assertCanTransitionTo($targetStatus, true);
+
+        return DB::transaction(function () use ($appointment, $targetStatus, $adminUserId, $notes) {
+            $from = $appointment->status;
+            $payload = [
+                'status'    => $targetStatus,
+                'admin_id'  => $adminUserId ?? $appointment->admin_id,
+            ];
+
+            if ($notes !== null && $notes !== '') {
+                $payload['admin_notes'] = $notes;
+            }
+
+            if ($targetStatus === Appointment::STATUS_CONFIRMED) {
+                $payload['accepted_at'] = now();
+            } elseif ($targetStatus === Appointment::STATUS_COMPLETED) {
+                $payload['completed_at'] = now();
+            } elseif ($targetStatus === Appointment::STATUS_CANCELLED) {
+                $payload['cancelled_at'] = now();
+                $payload['cancellation_reason'] = $notes ?? $appointment->cancellation_reason;
+            } elseif ($targetStatus === Appointment::STATUS_REJECTED) {
+                $payload['rejected_at'] = now();
+                $payload['reject_reason'] = $notes ?? $appointment->reject_reason;
+                $payload['expert_response_notes'] = $notes ?? $appointment->expert_response_notes;
+            } elseif ($targetStatus === Appointment::STATUS_RESCHEDULE_REQUESTED) {
+                $payload['reschedule_requested_at'] = now();
+            }
+
+            $appointment->update($payload);
+
+            $this->recordStatusHistory($appointment, null, $from, $targetStatus, $adminUserId, $notes);
+            AppointmentLog::record($appointment, 'admin_status_updated', $adminUserId, $from, $targetStatus, $notes);
+
+            if ($targetStatus === Appointment::STATUS_CONFIRMED) {
+                $this->notifyCustomer('confirmed', $appointment);
+            } elseif ($targetStatus === Appointment::STATUS_REJECTED) {
+                $this->availability->releaseSlot($appointment);
+                $this->attemptAutoRefund($appointment, $adminUserId);
+                $this->notifyCustomer('rejected', $appointment);
+            } elseif ($targetStatus === Appointment::STATUS_CANCELLED) {
+                $this->availability->releaseSlot($appointment);
+                $this->attemptAutoRefund($appointment, $adminUserId);
+                $this->notifyCustomer('cancelled', $appointment);
+            }
+
+            return $appointment->fresh(['expert.user', 'user']);
         });
     }
 

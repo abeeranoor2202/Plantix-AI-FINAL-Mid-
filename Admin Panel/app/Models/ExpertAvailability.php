@@ -16,16 +16,21 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  */
 class ExpertAvailability extends Model
 {
+    protected $table = 'expert_availability';
+
     protected $fillable = [
         'expert_id',
+        'day',
         'day_of_week',
         'start_time',
         'end_time',
+        'slot_duration',
         'label',
         'is_active',
     ];
 
     protected $casts = [
+        'slot_duration' => 'integer',
         'day_of_week' => 'integer',
         'is_active'   => 'boolean',
     ];
@@ -41,6 +46,10 @@ class ExpertAvailability extends Model
 
     public function getDayNameAttribute(): string
     {
+        if (! empty($this->day)) {
+            return ucfirst((string) $this->day);
+        }
+
         $days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
         return $days[$this->day_of_week] ?? 'Unknown';
     }
