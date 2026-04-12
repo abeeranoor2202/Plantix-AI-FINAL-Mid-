@@ -17,6 +17,7 @@ use App\Http\Controllers\Api\AdminOrdersController;
 use App\Http\Controllers\Api\AdminPayoutsController;
 use App\Http\Controllers\Api\AdminCategoriesController;
 use App\Http\Controllers\Api\AdminEmailTemplatesController;
+use App\Http\Controllers\Admin\VendorApplicationController;
 
 /*
 |--------------------------------------------------------------------------
@@ -136,6 +137,12 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'role:admin,staff'])->group(
 
     // Vendors
     Route::get('/vendors/top',              [AdminVendorsController::class, 'top'])->name('api.admin.vendors.top');
+    Route::get('/vendor-applications',      [VendorApplicationController::class, 'index'])->name('api.admin.vendor-applications.index');
+    Route::get('/vendor-applications/{application}', [VendorApplicationController::class, 'show'])->name('api.admin.vendor-applications.show');
+    Route::post('/vendor-applications/{application}/under-review', [VendorApplicationController::class, 'underReview'])->name('api.admin.vendor-applications.under-review');
+    Route::post('/vendor-applications/{application}/approve', [VendorApplicationController::class, 'approve'])->name('api.admin.vendor-applications.approve');
+    Route::post('/vendor-applications/{application}/reject', [VendorApplicationController::class, 'reject'])->name('api.admin.vendor-applications.reject');
+    Route::post('/vendor-applications/{application}/suspend', [VendorApplicationController::class, 'suspend'])->name('api.admin.vendor-applications.suspend');
 
     // Orders (full CRUD + status management)
     Route::get('/orders',                   [AdminOrdersController::class, 'index'])->name('api.admin.orders.index');
