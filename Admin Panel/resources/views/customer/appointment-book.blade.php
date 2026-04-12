@@ -48,6 +48,11 @@
                             </div>
                         @endif
 
+                        @php
+                            $selectedExpertId = (int) old('expert_id', $experts->first()?->id ?? 0);
+                            $selectedType = old('type', 'online');
+                        @endphp
+
                         <form method="POST" action="{{ route('appointment.store') }}">
                             @csrf
                             <div class="row g-4">
@@ -55,10 +60,13 @@
                                 <div class="col-md-6">
                                     <label class="form-label fw-bold text-dark" style="font-size: 14px;">Select Expert</label>
                                     <div class="position-relative">
-                                        <select name="expert_id" class="form-agri pe-5" style="appearance: none; cursor: pointer; background-color: white;">
+                                        <select name="expert_id" id="expertSelect" class="form-agri pe-5" style="appearance: none; cursor: pointer; background-color: white;">
                                             <option value="">Any available expert</option>
                                             @foreach($experts as $expert)
-                                            <option value="{{ $expert->id }}" {{ old('expert_id') == $expert->id ? 'selected' : '' }}>
+                                            <option value="{{ $expert->id }}"
+                                                    data-location="{{ trim(($expert->profile?->address ? $expert->profile->address . ', ' : '') . ($expert->profile?->city ? $expert->profile->city . ', ' : '') . ($expert->profile?->country ?? '')) }}"
+                                                    data-map-link="{{ $expert->profile?->map_link }}"
+                                                    {{ $selectedExpertId === $expert->id ? 'selected' : '' }}>
                                                 {{ $expert->user->name ?? 'Expert #'.$expert->id }}
                                                 @if($expert->specialization) &mdash; {{ $expert->specialization }}@endif
                                             </option>
@@ -69,6 +77,16 @@
                                     @error('expert_id')<div class="text-danger mt-1 small">{{ $message }}</div>@enderror
                                 </div>
 
+                                <!-- Appointment Type -->
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold text-dark" style="font-size: 14px;">Appointment Type <span class="text-danger">*</span></label>
+                                    <select name="type" id="appointmentType" class="form-agri" style="cursor: pointer; background-color: white;">
+                                        <option value="physical" {{ $selectedType === 'physical' ? 'selected' : '' }}>Physical</option>
+                                        <option value="online" {{ $selectedType === 'online' ? 'selected' : '' }}>Online</option>
+                                    </select>
+                                    @error('type')<div class="text-danger mt-1 small">{{ $message }}</div>@enderror
+                                </div>
+
                                 <!-- Date & Time -->
                                 <div class="col-md-6">
                                     <label class="form-label fw-bold text-dark" style="font-size: 14px;">Date &amp; Time <span class="text-danger">*</span></label>
@@ -76,6 +94,21 @@
                                            value="{{ old('scheduled_at') }}"
                                            min="{{ now()->addHour()->format('Y-m-d\TH:i') }}" required style="cursor: pointer; background-color: white;">
                                     @error('scheduled_at')<div class="text-danger mt-1 small">{{ $message }}</div>@enderror
+                                </div>
+
+                                <!-- Physical Location -->
+                                <div class="col-12 {{ $selectedType === 'physical' ? '' : 'd-none' }}" id="physicalBlock">
+                                    <label class="form-label fw-bold text-dark" style="font-size: 14px;">Location</label>
+                                    <input type="text" id="locationPreview" class="form-agri bg-light" value="" readonly>
+                                    <input type="hidden" name="location" id="locationInput" value="{{ old('location') }}">
+                                    <small class="text-muted d-block mt-2">This will be auto-filled from the expert profile.</small>
+                                </div>
+
+                                <!-- Online Note -->
+                                <div class="col-12 {{ $selectedType === 'online' ? '' : 'd-none' }}" id="onlineBlock">
+                                    <div class="alert alert-light border mb-0" style="border-radius: var(--agri-radius-sm);">
+                                        Meeting link will be provided after confirmation.
+                                    </div>
                                 </div>
 
                                 <!-- Notes -->
@@ -100,4 +133,35 @@
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const expertSelect = document.getElementById('expertSelect');
+    const typeSelect = document.getElementById('appointmentType');
+    const physicalBlock = document.getElementById('physicalBlock');
+    const onlineBlock = document.getElementById('onlineBlock');
+    const locationPreview = document.getElementById('locationPreview');
+    const locationInput = document.getElementById('locationInput');
+
+    function updateLocation() {
+        const selected = expertSelect?.selectedOptions?.[0];
+        const location = selected?.dataset?.location || '';
+        if (locationPreview) locationPreview.value = location || 'Expert location will appear here.';
+        if (locationInput) locationInput.value = location;
+    }
+
+    function updateTypeVisibility() {
+        const isPhysical = typeSelect?.value === 'physical';
+        physicalBlock?.classList.toggle('d-none', !isPhysical);
+        onlineBlock?.classList.toggle('d-none', isPhysical);
+        if (!isPhysical && locationInput) locationInput.value = '';
+        if (isPhysical) updateLocation();
+    }
+
+    expertSelect?.addEventListener('change', updateLocation);
+    typeSelect?.addEventListener('change', updateTypeVisibility);
+    updateLocation();
+    updateTypeVisibility();
+});
+</script>
 @endsection
