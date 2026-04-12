@@ -88,7 +88,7 @@ class AttributeController extends Controller
     public function destroy($id)
     {
         Attribute::findOrFail($id)->delete();
-        return response()->json(['success' => true]);
+        return redirect()->route('admin.attributes')->with('success', 'Attribute deleted successfully.');
     }
 
     private function syncAttributeValues(Attribute $attribute, array $values): void
