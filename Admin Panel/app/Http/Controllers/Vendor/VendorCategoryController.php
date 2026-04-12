@@ -32,7 +32,11 @@ class VendorCategoryController extends Controller
      */
     public function attributes(): View
     {
-        $attributes = Attribute::orderBy('title')->paginate(30);
+        $attributes = Attribute::withCount('values')
+            ->orderBy('name')
+            ->orderBy('title')
+            ->paginate(30);
+
         return view('vendor.attributes.index', compact('attributes'));
     }
 }
