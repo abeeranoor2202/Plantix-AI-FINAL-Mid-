@@ -102,6 +102,17 @@ window.CART_ROUTES = {
                         </div>
                         @endif
 
+                        <div class="d-flex flex-wrap gap-2 mb-3">
+                            <span class="badge {{ $product->is_returnable ? 'bg-success' : 'bg-danger' }} px-3 py-2"
+                                  style="font-size: 12px; letter-spacing: 0.5px; text-transform: uppercase;">
+                                {{ $product->is_returnable ? 'Returnable' : 'Not Returnable' }}
+                            </span>
+                            <span class="badge {{ $product->is_refundable ? 'bg-info' : 'bg-secondary' }} px-3 py-2"
+                                  style="font-size: 12px; letter-spacing: 0.5px; text-transform: uppercase;">
+                                {{ $product->is_refundable ? 'Refundable' : 'Not Refundable' }}
+                            </span>
+                        </div>
+
                         <h2 class="fw-bold mb-3 text-dark display-6">{{ $product->name }}</h2>
 
                         @if($product->rating_avg > 0)
