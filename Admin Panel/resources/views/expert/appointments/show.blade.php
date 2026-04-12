@@ -14,6 +14,9 @@
                 <span class="badge-agri border border-{{ $appointment->status_badge }} border-opacity-25 bg-{{ $appointment->status_badge }} bg-opacity-10 text-{{ $appointment->status_badge }} ms-2 shadow-sm" style="font-size: 14px; padding: 0.3em 1em;">
                     {{ ucfirst($appointment->status) }}
                 </span>
+                <span class="badge-agri border border-{{ $appointment->type === 'physical' ? 'success' : 'primary' }} border-opacity-25 bg-{{ $appointment->type === 'physical' ? 'success' : 'primary' }} bg-opacity-10 text-{{ $appointment->type === 'physical' ? 'success' : 'primary' }} shadow-sm" style="font-size: 14px; padding: 0.3em 1em;">
+                    {{ strtoupper($appointment->type_label) }}
+                </span>
             </h4>
         </div>
     </div>
@@ -103,6 +106,22 @@
                             <a href="{{ $appointment->meeting_link }}" target="_blank" class="btn-agri btn-agri-primary shadow-sm px-4">
                                 <i class="fas fa-video me-2"></i> Join Session
                             </a>
+                        </div>
+                    </div>
+                    @endif
+
+                    @if($appointment->isPhysical())
+                    <div class="col-12">
+                        <div class="bg-light border p-4 rounded-3 d-flex flex-column flex-sm-row justify-content-between align-items-center gap-3">
+                            <div>
+                                <div class="text-muted small text-uppercase fw-bold mb-1" style="font-size: 11px; letter-spacing: 0.5px;">Physical Location</div>
+                                <div class="fw-bold text-dark">{{ $appointment->location ?: trim(($appointment->expert?->profile?->address ? $appointment->expert->profile->address . ', ' : '') . ($appointment->expert?->profile?->city ? $appointment->expert->profile->city . ', ' : '') . ($appointment->expert?->profile?->country ?? '')) }}</div>
+                            </div>
+                            @if($appointment->expert?->profile?->map_link)
+                                <a href="{{ $appointment->expert->profile->map_link }}" target="_blank" class="btn-agri btn-agri-outline shadow-sm px-4">
+                                    <i class="fas fa-map-marker-alt me-2"></i>Visit Location
+                                </a>
+                            @endif
                         </div>
                     </div>
                     @endif
@@ -232,8 +251,8 @@
                     <p class="small text-muted mb-4 pb-3 border-bottom">You are about to accept this consultation request. Once accepted, the farmer will be notified.</p>
                     <div class="mb-3">
                         <label class="form-label fw-bold small text-dark">Meeting Link <span class="text-muted fw-normal">(optional)</span></label>
-                        <input type="url" name="meeting_link" class="form-agri" placeholder="e.g. https://meet.google.com/..." >
-                        <div class="form-text mt-2 small"><i class="fas fa-info-circle me-1"></i>You can add this later if you haven't created the link yet.</div>
+                            <input type="url" name="meeting_link" class="form-agri" placeholder="e.g. https://meet.google.com/..." {{ $appointment->type === 'online' ? 'required' : '' }}>
+                            <div class="form-text mt-2 small"><i class="fas fa-info-circle me-1"></i>{{ $appointment->type === 'online' ? 'Online consultations require a meeting link before acceptance.' : 'You can add this later if you have not created the link yet.' }}</div>
                     </div>
                 </div>
                 <div class="modal-footer bg-light border-top">
