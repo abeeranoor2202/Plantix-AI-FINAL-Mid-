@@ -23,6 +23,15 @@
         </div>
     @endif
 
+    @if(session('error'))
+        <div class="card-agri mb-4" style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 12px; padding: 12px 20px;">
+            <div style="display: flex; align-items: center; gap: 12px; color: #b91c1c;">
+                <i class="fas fa-exclamation-circle"></i>
+                <span style="font-weight: 700;">{{ session('error') }}</span>
+            </div>
+        </div>
+    @endif
+
     <div class="card-agri" style="padding: 0; overflow: hidden;">
         <div class="card-header bg-white border-bottom-0 pt-4 pb-3 px-4 d-flex justify-content-between align-items-center" style="gap: 10px; flex-wrap: wrap;">
             <h4 class="mb-0 fw-bold text-dark" style="font-size: 18px;">Inventory List</h4>
@@ -36,7 +45,7 @@
                 <select name="vendor_id" class="form-agri" style="height: 42px; min-width: 170px; margin-bottom: 0;">
                     <option value="">All Vendors</option>
                     @foreach($vendors as $v)
-                        <option value="{{ $v->id }}" @selected(request('vendor_id') == $v->id)>{{ $v->name }}</option>
+                        <option value="{{ $v->id }}" @selected(request('vendor_id') == $v->id)>{{ $v->name ?? $v->title ?? $v->owner_name ?? ('Vendor #' . $v->id) }}</option>
                     @endforeach
                 </select>
                 <select name="stock_status" class="form-agri" style="height: 42px; min-width: 170px; margin-bottom: 0;">
@@ -74,48 +83,36 @@
                             <td class="px-4 py-3">{{ (int) $stock->reserved_quantity }}</td>
                             <td class="px-4 py-3">{{ $stock->low_stock_threshold ?? '—' }}</td>
                             <td class="px-4 py-3">
-                                @if($stock->quantity <= 0)
-                                    <span class="badge rounded-pill bg-danger">OUT OF STOCK</span>
-                                @elseif($stock->isLow())
-                                    <span class="badge rounded-pill bg-warning text-dark">LOW STOCK</span>
-                                @else
-                                    <span class="badge rounded-pill bg-success">IN STOCK</span>
-                                @endif
+                                <div style="display: flex; align-items: center; gap: 12px; flex-wrap: nowrap;">
+                                    @if(! $stock->is_available)
+                                        <span class="badge rounded-pill bg-secondary">UNAVAILABLE</span>
+                                    @elseif($stock->quantity <= 0)
+                                        <span class="badge rounded-pill bg-danger">OUT OF STOCK</span>
+                                    @elseif($stock->isLow())
+                                        <span class="badge rounded-pill bg-warning text-dark">LOW STOCK</span>
+                                    @else
+                                        <span class="badge rounded-pill bg-success">IN STOCK</span>
+                                    @endif
+
+                                    <form method="POST" action="{{ route('admin.stock.toggle', $stock->id) }}" style="margin: 0;">
+                                        @csrf
+                                        @method('PATCH')
+                                        <label class="switch" title="{{ $stock->is_available ? 'Mark unavailable' : 'Mark in stock' }}">
+                                            <input type="checkbox" onchange="this.form.submit()" {{ $stock->is_available ? 'checked' : '' }}>
+                                            <span class="slider"></span>
+                                        </label>
+                                    </form>
+                                </div>
                             </td>
                             <td class="px-4 py-3">
                                 <div class="text-end" style="display: flex; justify-content: flex-end; gap: 8px;">
+                                    <a href="{{ route('admin.stock.show', $stock->id) }}" class="btn-agri" style="padding: 8px; background: var(--agri-bg); color: #2563eb; border-radius: 999px;" title="View"><i class="fas fa-eye"></i></a>
                                     <a href="{{ route('admin.stock.edit', $stock->id) }}" class="btn-agri" style="padding: 8px; background: var(--agri-bg); color: #2563eb; border-radius: 999px;" title="Edit"><i class="fas fa-pen"></i></a>
-                                    <button type="button" class="btn-agri" style="padding: 8px; background: var(--agri-primary-light); color: var(--agri-primary); border-radius: 999px; border: none;" data-bs-toggle="modal" data-bs-target="#adjustModal{{ $stock->id }}" title="Adjust">
-                                        <i class="fas fa-sliders-h"></i>
-                                    </button>
-                                </div>
-
-                                <div class="modal fade" id="adjustModal{{ $stock->id }}" tabindex="-1" aria-hidden="true">
-                                    <div class="modal-dialog modal-dialog-centered modal-sm">
-                                        <div class="modal-content" style="border-radius: 20px; border: none; box-shadow: 0 18px 40px rgba(0,0,0,0.12);">
-                                            <div class="modal-header" style="border: none; padding: 20px 20px 0;">
-                                                <h5 class="modal-title" style="font-weight: 700; color: var(--agri-text-heading); font-size: 16px;">Adjust Stock</h5>
-                                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                            </div>
-                                            <form method="POST" action="{{ route('admin.stock.adjust', $stock->id) }}">
-                                                @csrf
-                                                <div class="modal-body" style="padding: 20px;">
-                                                    <div class="mb-3">
-                                                        <label class="form-label" style="font-size: 12px; font-weight: 700; color: var(--agri-text-muted);">Quantity Delta</label>
-                                                        <input type="number" name="adjustment" class="form-agri" required placeholder="Use negative to reduce">
-                                                    </div>
-                                                    <div>
-                                                        <label class="form-label" style="font-size: 12px; font-weight: 700; color: var(--agri-text-muted);">Note</label>
-                                                        <input type="text" name="note" class="form-agri" placeholder="Adjustment note (optional)">
-                                                    </div>
-                                                </div>
-                                                <div class="modal-footer" style="border: none; padding: 0 20px 20px; display: flex; gap: 10px;">
-                                                    <button type="button" class="btn-agri btn-agri-outline" data-bs-dismiss="modal" style="flex: 1; height: 40px;">Cancel</button>
-                                                    <button type="submit" class="btn-agri btn-agri-primary" style="flex: 1; height: 40px;">Save</button>
-                                                </div>
-                                            </form>
-                                        </div>
-                                    </div>
+                                    <form method="POST" action="{{ route('admin.stock.destroy', $stock->id) }}" style="margin: 0;" onsubmit="return confirm('Are you sure you want to delete this stock?');">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="btn-agri" style="padding: 8px; background: #fef2f2; color: #ef4444; border-radius: 999px; border: none;" title="Delete"><i class="fas fa-trash"></i></button>
+                                    </form>
                                 </div>
                             </td>
                         </tr>
@@ -165,4 +162,48 @@
         </div>
     </div>
 </div>
+
+<style>
+    .switch {
+        position: relative;
+        display: inline-block;
+        width: 46px;
+        height: 24px;
+        margin-bottom: 0;
+    }
+    .switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+    .slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #e2e8f0;
+        transition: .4s;
+        border-radius: 24px;
+    }
+    .slider:before {
+        position: absolute;
+        content: "";
+        height: 18px;
+        width: 18px;
+        left: 3px;
+        bottom: 3px;
+        background-color: white;
+        transition: .4s;
+        border-radius: 50%;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .switch input:checked + .slider {
+        background-color: var(--agri-primary);
+    }
+    .switch input:checked + .slider:before {
+        transform: translateX(22px);
+    }
+</style>
 @endsection
