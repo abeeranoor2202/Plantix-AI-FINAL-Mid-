@@ -150,10 +150,34 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body p-4">
-                    <p class="text-muted mb-4 fs-sm">Please tell us why you are returning your order. We will process your request within 24-48 hours.</p>
+                    <p class="text-muted mb-4 fs-sm">Select the item quantities you want to return. Only eligible items can be requested.</p>
                     <div class="mb-3">
-                        <label class="form-label fw-bold text-dark text-sm">Reason for return <span class="text-danger">*</span></label>
-                        <textarea name="description" class="form-agri" rows="4" placeholder="Describe the issue with your items" required></textarea>
+                        <label class="form-label fw-bold text-dark text-sm">Return Reason <span class="text-danger">*</span></label>
+                        <select name="reason_id" class="form-agri" required>
+                            <option value="">Choose a reason</option>
+                            @foreach($returnReasons ?? [] as $reason)
+                                <option value="{{ $reason->id }}">{{ $reason->title ?? $reason->reason }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold text-dark text-sm">Notes <span class="text-danger">*</span></label>
+                        <textarea name="notes" class="form-agri" rows="3" placeholder="Describe the issue with your items" required></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold text-dark text-sm">Return Items <span class="text-danger">*</span></label>
+                        <div style="border: 1px solid var(--agri-border); border-radius: 12px; overflow: hidden;">
+                            @foreach($order->items as $item)
+                                @php $remaining = max(0, (int) $item->quantity - (int) ($item->returned_quantity ?? 0)); @endphp
+                                <div style="display:flex; justify-content:space-between; align-items:center; gap:16px; padding:12px 14px; border-bottom:1px solid var(--agri-border); background:white;">
+                                    <div>
+                                        <div class="fw-bold text-dark">{{ $item->product->name ?? $item->product_name }}</div>
+                                        <small class="text-muted">Remaining: {{ $remaining }} of {{ $item->quantity }}</small>
+                                    </div>
+                                    <input type="number" min="0" max="{{ $remaining }}" name="items[{{ $item->product_id }}]" value="0" class="form-agri" style="max-width: 110px; margin-bottom: 0;">
+                                </div>
+                            @endforeach
+                        </div>
                     </div>
                 </div>
                 <div class="modal-footer border-top-0 pt-0 pb-4 px-4">
