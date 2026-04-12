@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Frontend;
 
 use App\Http\Controllers\Controller;
+use App\Models\Attribute;
+use App\Models\Order;
 use App\Models\Product;
 use App\Models\Category;
 use App\Models\Vendor;
@@ -18,6 +20,10 @@ class ShopController extends Controller
             ->where('is_active', true)
             ->active()
             ->inStock();
+
+        $rawAttrFilters = (array) $request->input('attr', []);
+        $rawAttrMin = (array) $request->input('attr_min', []);
+        $rawAttrMax = (array) $request->input('attr_max', []);
 
         if ($request->filled('search')) {
             $query->where(function ($q) use ($request) {
@@ -42,6 +48,55 @@ class ShopController extends Controller
             $query->where('price', '<=', $request->max_price);
         }
 
+        foreach ($rawAttrFilters as $attributeId => $value) {
+            $attributeId = (int) $attributeId;
+            if ($attributeId <= 0) {
+                continue;
+            }
+
+            $value = is_array($value) ? '' : trim((string) $value);
+            if ($value === '') {
+                continue;
+            }
+
+            $query->whereHas('attributes', function ($attributeQuery) use ($attributeId, $value) {
+                $attributeQuery
+                    ->where('attribute_id', $attributeId)
+                    ->where(function ($valueQuery) use ($value) {
+                        $valueQuery->where('value', $value)
+                            ->orWhere('value', 'like', '%"' . $value . '"%');
+                    });
+            });
+        }
+
+        foreach ($rawAttrMin as $attributeId => $minimum) {
+            $attributeId = (int) $attributeId;
+            if ($attributeId <= 0 || $minimum === null || $minimum === '') {
+                continue;
+            }
+
+            $minNumber = (float) $minimum;
+            $query->whereHas('attributes', function ($attributeQuery) use ($attributeId, $minNumber) {
+                $attributeQuery
+                    ->where('attribute_id', $attributeId)
+                    ->whereRaw('CAST(value AS DECIMAL(12,4)) >= ?', [$minNumber]);
+            });
+        }
+
+        foreach ($rawAttrMax as $attributeId => $maximum) {
+            $attributeId = (int) $attributeId;
+            if ($attributeId <= 0 || $maximum === null || $maximum === '') {
+                continue;
+            }
+
+            $maxNumber = (float) $maximum;
+            $query->whereHas('attributes', function ($attributeQuery) use ($attributeId, $maxNumber) {
+                $attributeQuery
+                    ->where('attribute_id', $attributeId)
+                    ->whereRaw('CAST(value AS DECIMAL(12,4)) <= ?', [$maxNumber]);
+            });
+        }
+
         $sort = match ($request->sort) {
             'price_asc'  => ['price', 'asc'],
             'price_desc' => ['price', 'desc'],
@@ -53,6 +108,11 @@ class ShopController extends Controller
         $products   = $query->orderBy(...$sort)->with(['category', 'primaryImage', 'vendor'])->get();
         $categories = Category::orderBy('name')->get();
         $vendors    = Vendor::where('is_active', true)->where('is_approved', true)->orderBy('title')->get();
+        $filterAttributes = Attribute::with('values')
+            ->whereHas('categories')
+            ->orderBy('name')
+            ->orderBy('title')
+            ->get();
 
         $shopData = $products->map(fn ($p) => [
             'id'              => $p->id,
@@ -80,7 +140,8 @@ class ShopController extends Controller
 
         return view('customer.shop', compact(
             'products', 'categories', 'vendors',
-            'shopData', 'priceMin', 'priceMax', 'vendorList', 'brandList'
+            'shopData', 'priceMin', 'priceMax', 'vendorList', 'brandList',
+            'filterAttributes', 'rawAttrFilters', 'rawAttrMin', 'rawAttrMax'
         ));
     }
 
@@ -88,8 +149,18 @@ class ShopController extends Controller
     {
         $product  = Product::with([
             'vendor', 'category', 'images',
-            'attributes', 'approvedReviews.user', 'stock',
+            'attributes.attribute', 'approvedReviews.user', 'stock',
         ])->where('is_active', true)->active()->findOrFail($id);
+
+        $eligibleOrders = collect();
+        if (auth('web')->check()) {
+            $eligibleOrders = Order::query()
+                ->where('user_id', auth('web')->id())
+                ->whereIn('status', [Order::STATUS_DELIVERED, Order::STATUS_COMPLETED])
+                ->whereHas('items', fn ($query) => $query->where('product_id', $product->id))
+                ->latest()
+                ->get(['id', 'order_number', 'status', 'created_at']);
+        }
 
         $related = Product::active()
                           ->where('is_active', true)
@@ -99,6 +170,6 @@ class ShopController extends Controller
                           ->limit(4)
                           ->get();
 
-        return view('customer.shop-single', compact('product', 'related'));
+        return view('customer.shop-single', compact('product', 'related', 'eligibleOrders'));
     }
 }
