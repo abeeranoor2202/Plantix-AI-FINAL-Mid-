@@ -35,8 +35,9 @@ class AdminReturnController extends Controller
     {
         $return  = ReturnRequest::with(['user', 'order.items.product', 'reason', 'refund'])->findOrFail($id);
         $reasons = ReturnReason::active()->get();
+        $canRefund = $this->service->orderIsRefundable($return->order);
 
-        return view('admin.returns.show', compact('return', 'reasons'));
+        return view('admin.returns.show', compact('return', 'reasons', 'canRefund'));
     }
 
     public function approve(Request $request, int $id): RedirectResponse
@@ -71,6 +72,8 @@ class AdminReturnController extends Controller
         $return = ReturnRequest::findOrFail($id);
         /** @var \App\Models\User $admin */
         $admin = auth('admin')->user();
+
+        abort_unless($this->service->orderIsRefundable($return->order), 403, 'Refund not allowed for this product');
 
         $this->service->processRefund($return, $request->validated(), $admin);
 
