@@ -31,6 +31,7 @@ class UpdateProductRequest extends FormRequest
             'is_active'       => 'boolean',
             'is_featured'     => 'boolean',
             'is_returnable'   => 'boolean',
+            'is_refundable'   => 'boolean',
             'return_window_days' => 'nullable|integer|min:0|max:365',
             'tax_rate'        => 'nullable|numeric|min:0|max:100',
             'low_stock_threshold' => 'nullable|integer|min:0',
@@ -46,10 +47,11 @@ class UpdateProductRequest extends FormRequest
             'track_stock' => $this->boolean('track_stock', true),
         ];
 
-        if ($this->hasAny(['is_active', 'is_featured', 'is_returnable'])) {
+        if ($this->hasAny(['is_active', 'is_featured', 'is_returnable', 'is_refundable'])) {
             $merge['is_active'] = $this->boolean('is_active');
             $merge['is_featured'] = $this->boolean('is_featured');
             $merge['is_returnable'] = $this->boolean('is_returnable');
+            $merge['is_refundable'] = $this->boolean('is_refundable');
         }
 
         $this->merge($merge);
