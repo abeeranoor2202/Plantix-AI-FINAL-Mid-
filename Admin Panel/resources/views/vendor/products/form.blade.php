@@ -82,6 +82,15 @@
                         @error('category_id')<div class="text-danger small mt-1"><i class="fas fa-exclamation-circle me-1"></i>{{ $message }}</div>@enderror
                     </div>
 
+                    <div class="col-12">
+                        <div class="bg-light p-4 rounded-3 border border-dashed">
+                            <h6 class="fw-bold text-dark mb-3"><i class="fas fa-sliders-h text-muted me-2"></i>Category Attributes</h6>
+                            <div id="vendor-attribute-fields" class="row g-3">
+                                <div class="col-12 text-muted small">Select a category to load its attributes.</div>
+                            </div>
+                        </div>
+                    </div>
+
                     {{-- SKU --}}
                     <div class="col-md-6">
                         <label class="form-label text-dark fw-bold small mb-2">SKU (Stock Keeping Unit)</label>
@@ -236,6 +245,92 @@
 @push('scripts')
 <script>
     document.addEventListener('DOMContentLoaded', function() {
+        const attributeMap = @json($attributeMap ?? []);
+        const existingValues = @json(isset($product) ? ($product->attributes ?? collect())->mapWithKeys(function($attr){
+            return [$attr->attribute_id => $attr->value];
+        }) : []);
+
+        function esc(value) {
+            return String(value ?? '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
+        function normalizeMulti(raw) {
+            if (!raw) return [];
+            try {
+                const parsed = JSON.parse(raw);
+                return Array.isArray(parsed) ? parsed.map(String) : [];
+            } catch (_) {
+                return [];
+            }
+        }
+
+        function renderAttributes(categoryId) {
+            const wrap = document.getElementById('vendor-attribute-fields');
+            const attrs = attributeMap[categoryId] || [];
+
+            if (!attrs.length) {
+                wrap.innerHTML = '<div class="col-12 text-muted small">No attributes assigned to this category.</div>';
+                return;
+            }
+
+            const html = attrs.map(attr => {
+                const required = attr.is_required ? 'required' : '';
+                const requiredMark = attr.is_required ? ' <span class="text-danger">*</span>' : '';
+                const unitHint = attr.unit ? ` <small class="text-muted">(${esc(attr.unit)})</small>` : '';
+                const fieldName = `attribute_values[${attr.id}]`;
+                const current = existingValues[attr.id] || '';
+
+                if (attr.type === 'multi-select') {
+                    const selected = normalizeMulti(current);
+                    const options = (attr.values || []).map(v => {
+                        const pick = selected.includes(String(v)) ? 'selected' : '';
+                        return `<option value="${esc(v)}" ${pick}>${esc(v)}</option>`;
+                    }).join('');
+
+                    return `<div class="col-md-6">
+                        <label class="form-label text-dark fw-bold small mb-2">${esc(attr.name)}${requiredMark}${unitHint}</label>
+                        <select name="${fieldName}[]" class="form-agri" multiple ${required}>${options}</select>
+                    </div>`;
+                }
+
+                if (attr.type === 'select') {
+                    const options = (attr.values || []).map(v => {
+                        const pick = String(current) === String(v) ? 'selected' : '';
+                        return `<option value="${esc(v)}" ${pick}>${esc(v)}</option>`;
+                    }).join('');
+
+                    return `<div class="col-md-6">
+                        <label class="form-label text-dark fw-bold small mb-2">${esc(attr.name)}${requiredMark}${unitHint}</label>
+                        <select name="${fieldName}" class="form-agri" ${required}>
+                            <option value="">Select value</option>
+                            ${options}
+                        </select>
+                    </div>`;
+                }
+
+                const type = attr.type === 'number' ? 'number" step="any' : 'text';
+                return `<div class="col-md-6">
+                    <label class="form-label text-dark fw-bold small mb-2">${esc(attr.name)}${requiredMark}${unitHint}</label>
+                    <input type="${type}" name="${fieldName}" value="${esc(current)}" class="form-agri" ${required}>
+                </div>`;
+            }).join('');
+
+            wrap.innerHTML = html;
+        }
+
+        const categorySelect = document.querySelector('select[name="category_id"]');
+        if (categorySelect) {
+            categorySelect.addEventListener('change', function () {
+                renderAttributes(this.value);
+            });
+            renderAttributes(categorySelect.value);
+        }
+
         const trackCheck = document.getElementById('track_stock');
         const qtyWrap    = document.getElementById('stock_qty_wrap');
         const qtyInput   = document.getElementById('stock_quantity_input');
