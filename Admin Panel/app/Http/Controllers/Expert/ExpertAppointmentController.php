@@ -46,7 +46,7 @@ class ExpertAppointmentController extends Controller
         $expert = $this->currentExpert();
         abort_unless((int) $appointment->expert_id === (int) $expert->id, 403);
 
-        $appointment->load(['user', 'statusHistory.changedBy', 'reschedules.requestedBy']);
+        $appointment->load(['user', 'expert.profile', 'statusHistory.changedBy', 'reschedules.requestedBy']);
 
         return view('expert.appointments.show', compact('appointment'));
     }
