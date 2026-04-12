@@ -168,7 +168,7 @@ class AdminProductController extends Controller
         $this->products->delete($product);
 
         return redirect()->route('admin.products.index')
-                         ->with('success', 'Product deleted.');
+                         ->with('success', 'Product deleted successfully.');
     }
 
     public function toggleFeatured(int $id): RedirectResponse
