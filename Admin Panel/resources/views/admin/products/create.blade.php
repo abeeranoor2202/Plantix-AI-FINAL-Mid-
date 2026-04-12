@@ -129,6 +129,15 @@
                     </div>
 
                     <div style="margin-bottom: 40px; background: var(--agri-bg); padding: 24px; border-radius: 16px; border: 1px solid var(--agri-border);">
+                        <h4 style="font-size: 16px; font-weight: 700; color: var(--agri-text-heading); margin-bottom: 16px; display: flex; align-items: center; gap: 10px;">
+                            <i class="fas fa-sliders-h"></i> Category Attributes
+                        </h4>
+                        <div id="admin-attribute-fields" class="row g-4">
+                            <div class="col-12 text-muted" style="font-size: 13px;">Select a category to load dynamic attributes.</div>
+                        </div>
+                    </div>
+
+                    <div style="margin-bottom: 40px; background: var(--agri-bg); padding: 24px; border-radius: 16px; border: 1px solid var(--agri-border);">
                         <h4 style="font-size: 16px; font-weight: 700; color: var(--agri-text-heading); margin-bottom: 16px;">Product Media</h4>
                         <div style="display: flex; align-items: center; gap: 20px; margin-bottom: 18px;">
                             <div class="product_image_preview" style="width: 80px; height: 80px; border-radius: 12px; background: white; border: 2px dashed var(--agri-border); display: flex; align-items: center; justify-content: center; overflow: hidden;">
@@ -209,6 +218,72 @@
 @section('scripts')
 <script>
 $(document).ready(function () {
+    var attributeMap = @json($attributeMap ?? []);
+
+    function esc(value) {
+        return String(value ?? '')
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+    }
+
+    function renderAttributeFields(categoryId) {
+        var wrap = $('#admin-attribute-fields');
+        var list = attributeMap[categoryId] || [];
+
+        if (!list.length) {
+            wrap.html('<div class="col-12 text-muted" style="font-size:13px;">No attributes assigned to this category.</div>');
+            return;
+        }
+
+        var html = '';
+        list.forEach(function(attr) {
+            var required = attr.is_required ? 'required' : '';
+            var requiredMark = attr.is_required ? ' <span class="text-danger">*</span>' : '';
+            var unitHint = attr.unit ? ' <small class="text-muted">(' + esc(attr.unit) + ')</small>' : '';
+            var fieldName = 'attribute_values[' + attr.id + ']';
+
+            if (attr.type === 'multi-select') {
+                html += '<div class="col-md-6">'
+                    + '<label class="agri-label">' + esc(attr.name) + requiredMark + unitHint + '</label>'
+                    + '<select name="' + fieldName + '[]" class="form-agri" multiple ' + required + '>';
+                (attr.values || []).forEach(function(value) {
+                    html += '<option value="' + esc(value) + '">' + esc(value) + '</option>';
+                });
+                html += '</select></div>';
+                return;
+            }
+
+            if (attr.type === 'select') {
+                html += '<div class="col-md-6">'
+                    + '<label class="agri-label">' + esc(attr.name) + requiredMark + unitHint + '</label>'
+                    + '<select name="' + fieldName + '" class="form-agri" ' + required + '>'
+                    + '<option value="">Select value</option>';
+                (attr.values || []).forEach(function(value) {
+                    html += '<option value="' + esc(value) + '">' + esc(value) + '</option>';
+                });
+                html += '</select></div>';
+                return;
+            }
+
+            var inputType = attr.type === 'number' ? 'number" step="any' : 'text';
+            html += '<div class="col-md-6">'
+                + '<label class="agri-label">' + esc(attr.name) + requiredMark + unitHint + '</label>'
+                + '<input type="' + inputType + '" name="' + fieldName + '" class="form-agri" ' + required + '>'
+                + '</div>';
+        });
+
+        wrap.html(html);
+    }
+
+    var categorySelect = $('select[name="category_id"]');
+    categorySelect.on('change', function () {
+        renderAttributeFields($(this).val());
+    });
+    renderAttributeFields(categorySelect.val());
+
     $('#main_product_image').on('change', function (evt) {
         var f = evt.target.files[0];
         if (!f) return;
