@@ -67,6 +67,19 @@
                                 <a href="{{ route('shop') }}" class="btn-agri btn-agri-primary">Browse Shop</a>
                             </div>
                         @else
+                            @if(!empty($globalCoupons) && $globalCoupons->isNotEmpty())
+                                <div class="bg-white border rounded-3 p-3 mb-4">
+                                    <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+                                        <div class="text-dark fw-bold"><i class="fas fa-ticket-alt text-success me-2"></i>Available coupons</div>
+                                        <div class="d-flex flex-wrap gap-2">
+                                            @foreach($globalCoupons as $coupon)
+                                                <span class="badge bg-success-subtle text-success border border-success">{{ $coupon->code }}</span>
+                                            @endforeach
+                                        </div>
+                                    </div>
+                                </div>
+                            @endif
+
                             <div class="table-responsive">
                                 <table class="table align-middle" style="border-collapse: separate; border-spacing: 0;">
                                     <thead style="background: var(--agri-bg);">
@@ -177,6 +190,16 @@
                                     </form>
                                 </div>
                             @else
+                                @if(!empty($globalCoupons) && $globalCoupons->isNotEmpty())
+                                    <div class="mb-3 small text-muted">
+                                        <div class="fw-bold text-dark mb-2"><i class="fas fa-ticket-alt text-success me-1"></i>Suggested coupons</div>
+                                        <div class="d-flex flex-wrap gap-2">
+                                            @foreach($globalCoupons as $coupon)
+                                                <span class="badge bg-success-subtle text-success border border-success">{{ $coupon->code }}</span>
+                                            @endforeach
+                                        </div>
+                                    </div>
+                                @endif
                                 <form method="POST" action="{{ route('cart.coupon.apply') }}" class="m-0 d-flex gap-2">
                                     @csrf
                                     <div class="position-relative flex-grow-1">
