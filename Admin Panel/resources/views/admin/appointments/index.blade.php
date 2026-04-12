@@ -75,6 +75,12 @@
                             <td class="px-4 py-3">
                                 <div class="text-end" style="display: flex; justify-content: flex-end; gap: 8px;">
                                     <a href="{{ route('admin.appointments.show', $appt->id) }}" class="btn-agri" style="padding: 8px; background: var(--agri-bg); color: #2563eb; border-radius: 999px;" title="View"><i class="fas fa-eye"></i></a>
+                                    <a href="{{ route('admin.appointments.edit', $appt->id) }}" class="btn-agri" style="padding: 8px; background: var(--agri-bg); color: #7C3AED; border-radius: 999px;" title="Edit"><i class="fas fa-edit"></i></a>
+                                    <form action="{{ route('admin.appointments.destroy', $appt->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this appointment? This action cannot be undone.')">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="btn-agri" style="padding: 8px; background: var(--agri-bg); color: #DC2626; border-radius: 999px; border: none;" title="Delete"><i class="fas fa-trash"></i></button>
+                                    </form>
                                     @if(in_array($appt->status, ['pending_expert_approval', 'reschedule_requested']))
                                         <form action="{{ route('admin.appointments.confirm', $appt->id) }}" method="POST" class="d-inline">
                                             @csrf
