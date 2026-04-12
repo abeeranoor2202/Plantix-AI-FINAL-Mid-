@@ -13,8 +13,11 @@ class AcceptAppointmentRequest extends FormRequest
 
     public function rules(): array
     {
+        $appointment = $this->route('appointment');
+        $isOnline = (string) ($appointment?->type ?? '') === 'online';
+
         return [
-            'meeting_link' => ['nullable', 'url', 'max:500'],
+            'meeting_link' => [$isOnline ? 'required' : 'nullable', 'url', 'max:500'],
         ];
     }
 }
