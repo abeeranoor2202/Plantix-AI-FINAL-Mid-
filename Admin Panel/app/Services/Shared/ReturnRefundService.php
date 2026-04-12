@@ -24,6 +24,35 @@ class ReturnRefundService
         private readonly StockService $stock,
     ) {}
 
+    public function orderIsReturnable(Order $order): bool
+    {
+        $order->loadMissing('items.product');
+
+        if ($order->status !== 'delivered') {
+            return false;
+        }
+
+        $windowDays = config('plantix.return_window_days', 7);
+        $deliveredAt = $order->delivered_at ?? $order->updated_at;
+
+        if ($deliveredAt->diffInDays(now()) > $windowDays) {
+            return false;
+        }
+
+        return $order->items->every(function ($item) {
+            return (bool) ($item->product?->is_returnable ?? false);
+        });
+    }
+
+    public function orderIsRefundable(Order $order): bool
+    {
+        $order->loadMissing('items.product');
+
+        return $order->items->every(function ($item) {
+            return (bool) ($item->product?->is_refundable ?? false);
+        });
+    }
+
     /**
      * Customer submits a return request.
      *
@@ -34,29 +63,22 @@ class ReturnRefundService
      */
     public function requestReturn(User $user, Order $order, array $data): ReturnRequest
     {
-        // ── 1. Allow only delivered orders ───────────────────────────────────
         if ($order->status !== 'delivered') {
             throw ValidationException::withMessages([
                 'order' => 'Return requests can only be submitted for delivered orders.',
             ]);
         }
 
-        // ── 2. Enforce return window ──────────────────────────────────────────
-        $windowDays = config('plantix.return_window_days', 7);
-        $deliveredAt = $order->delivered_at ?? $order->updated_at;
-
-        if ($deliveredAt->diffInDays(now()) > $windowDays) {
-            throw ValidationException::withMessages([
-                'order' => "Return window has expired. Returns are only accepted within {$windowDays} days of delivery.",
-            ]);
+        if (! $this->orderIsReturnable($order)) {
+            abort(403, 'This product is not returnable');
         }
 
-        // ── 3. Prevent duplicate return for the same order ────────────────────
+        // ── 2. Prevent duplicate return for the same order ────────────────────
         if ($order->returnRequest()->exists()) {
             throw new \RuntimeException('A return request already exists for this order.');
         }
 
-        // ── 4. Store uploaded images securely (private disk) ─────────────────
+        // ── 3. Store uploaded images securely (private disk) ─────────────────
         $storedPaths = null;
         if (! empty($data['images']) && is_array($data['images'])) {
             $storedPaths = [];
@@ -168,6 +190,10 @@ class ReturnRefundService
     {
         if ($return->status !== 'approved') {
             throw new \DomainException('Return must be approved before a refund can be issued.');
+        }
+
+        if (! $this->orderIsRefundable($return->order)) {
+            throw new \DomainException('Refund not allowed for this product');
         }
 
         // Prevent duplicate refund
