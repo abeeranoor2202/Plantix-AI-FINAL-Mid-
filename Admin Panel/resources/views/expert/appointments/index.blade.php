@@ -66,6 +66,7 @@
                     <th class="py-3 px-4 border-0 text-muted text-uppercase fw-bold" style="font-size: 12px;">ID</th>
                     <th class="py-3 border-0 text-muted text-uppercase fw-bold" style="font-size: 12px;">Farmer Details</th>
                     <th class="py-3 border-0 text-muted text-uppercase fw-bold" style="font-size: 12px;">Consultation Topic</th>
+                    <th class="py-3 border-0 text-muted text-uppercase fw-bold" style="font-size: 12px;">Type</th>
                     <th class="py-3 border-0 text-muted text-uppercase fw-bold" style="font-size: 12px;">Scheduled For</th>
                     <th class="py-3 border-0 text-muted text-uppercase fw-bold" style="font-size: 12px;">Status</th>
                     <th class="py-3 border-0 text-muted text-uppercase fw-bold" style="font-size: 12px;">Fee</th>
@@ -95,6 +96,11 @@
                         </div>
                     </td>
                     <td class="py-3">
+                        <span class="badge-agri bg-{{ $appt->type === 'physical' ? 'success' : 'primary' }} bg-opacity-10 text-{{ $appt->type === 'physical' ? 'success' : 'primary' }} border border-{{ $appt->type === 'physical' ? 'success' : 'primary' }} border-opacity-25" style="padding: 0.35em 0.8em;">
+                            {{ strtoupper($appt->type_label) }}
+                        </span>
+                    </td>
+                    <td class="py-3">
                         <div class="fw-bold text-dark mb-1"><i class="far fa-calendar-alt text-primary me-2"></i>{{ $appt->scheduled_at?->format('d M Y') }}</div>
                         <div class="text-muted small fw-medium"><i class="far fa-clock text-muted me-2"></i>{{ $appt->scheduled_at?->format('h:i A') }}</div>
                     </td>
@@ -115,7 +121,7 @@
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="7" class="text-center py-5 border-0">
+                    <td colspan="8" class="text-center py-5 border-0">
                         <div class="d-flex flex-column align-items-center justify-content-center">
                             <div class="bg-light rounded-circle d-flex align-items-center justify-content-center mb-3 border border-dashed" style="width: 80px; height: 80px;">
                                 <i class="far fa-calendar-times fs-2 text-muted opacity-50"></i>
