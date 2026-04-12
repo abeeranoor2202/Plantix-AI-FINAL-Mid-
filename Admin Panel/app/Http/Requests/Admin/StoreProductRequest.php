@@ -18,6 +18,9 @@ class StoreProductRequest extends FormRequest
             'category_id'     => 'required|exists:categories,id',
             'brand_id'        => 'nullable|exists:brands,id',
             'name'            => 'required|string|max:255',
+            'sku'             => 'nullable|string|max:100|unique:products,sku',
+            'short_description' => 'nullable|string|max:255',
+            'unit'            => 'nullable|string|max:50',
             'description'     => 'nullable|string|max:5000',
             'price'           => 'required|numeric|min:0',
             'discount_price'  => 'nullable|numeric|min:0|lt:price',
@@ -25,6 +28,10 @@ class StoreProductRequest extends FormRequest
             'gallery.*'       => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
             'is_active'       => 'boolean',
             'is_featured'     => 'boolean',
+            'is_returnable'   => 'boolean',
+            'return_window_days' => 'nullable|integer|min:0|max:365',
+            'tax_rate'        => 'nullable|numeric|min:0|max:100',
+            'low_stock_threshold' => 'nullable|integer|min:0',
             'sort_order'      => 'integer|min:0',
             'stock_quantity'  => 'nullable|integer|min:0',
             'track_stock'     => 'boolean',
@@ -36,6 +43,7 @@ class StoreProductRequest extends FormRequest
         $this->merge([
             'is_active'   => $this->boolean('is_active', true),
             'is_featured' => $this->boolean('is_featured', false),
+            'is_returnable' => $this->boolean('is_returnable', true),
             'track_stock' => $this->boolean('track_stock', true),
         ]);
     }
