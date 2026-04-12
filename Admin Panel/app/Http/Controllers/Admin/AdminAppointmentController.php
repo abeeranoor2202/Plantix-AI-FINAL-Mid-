@@ -20,7 +20,7 @@ class AdminAppointmentController extends Controller
 
     public function index(Request $request): View
     {
-        $query = Appointment::with(['user', 'expert.user'])->latest();
+        $query = Appointment::with(['user', 'expert.user', 'expert.profile'])->latest();
 
         if ($request->filled('status')) {
             $query->where('status', $request->status);
