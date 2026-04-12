@@ -162,6 +162,27 @@ class AdminProductController extends Controller
         return back()->with('success', 'Featured status updated.');
     }
 
+    public function toggleActive(int $id): RedirectResponse
+    {
+        $product = Product::findOrFail($id);
+        $next = ! $product->is_active;
+
+        $product->update([
+            'is_active' => $next,
+            'status' => $next ? Product::STATUS_ACTIVE : Product::STATUS_INACTIVE,
+        ]);
+
+        return back()->with('success', 'Active status updated.');
+    }
+
+    public function toggleReturnable(int $id): RedirectResponse
+    {
+        $product = Product::findOrFail($id);
+        $product->update(['is_returnable' => ! $product->is_returnable]);
+
+        return back()->with('success', 'Returnable status updated.');
+    }
+
     public function reviews(Request $request): View
     {
         $query = \App\Models\Review::with(['user', 'product', 'vendor'])->orderBy('created_at', 'desc');
