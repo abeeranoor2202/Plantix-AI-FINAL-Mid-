@@ -57,6 +57,7 @@ class CouponController extends Controller
             'expires_at'   => 'nullable|date',
             'starts_at'    => 'nullable|date',
             'is_active'    => 'nullable|boolean',
+            'is_visible_to_all' => 'nullable|boolean',
             'product_ids'     => 'nullable|array',
             'product_ids.*'   => 'integer|exists:products,id',
             'category_ids'    => 'nullable|array',
@@ -65,6 +66,7 @@ class CouponController extends Controller
             'vendor_ids.*'    => 'integer|exists:vendors,id',
         ]);
         $data['is_active'] = $request->boolean('is_active');
+        $data['is_visible_to_all'] = $request->boolean('is_visible_to_all');
         $data['code']      = strtoupper(trim($data['code']));
         
         // Provide defaults for nullable numeric fields
@@ -105,6 +107,7 @@ class CouponController extends Controller
             'expires_at'   => 'nullable|date',
             'starts_at'    => 'nullable|date',
             'is_active'    => 'nullable|boolean',
+            'is_visible_to_all' => 'nullable|boolean',
             'product_ids'     => 'nullable|array',
             'product_ids.*'   => 'integer|exists:products,id',
             'category_ids'    => 'nullable|array',
@@ -113,6 +116,7 @@ class CouponController extends Controller
             'vendor_ids.*'    => 'integer|exists:vendors,id',
         ]);
         $data['is_active'] = $request->boolean('is_active');
+        $data['is_visible_to_all'] = $request->boolean('is_visible_to_all');
         $data['code']      = strtoupper(trim($data['code']));
         
         // Provide defaults for nullable numeric fields
