@@ -11,7 +11,7 @@
             <span style="color: var(--agri-primary); font-size: 14px; font-weight: 600;">{{trans('lang.create_admin')}}</span>
         </div>
         <h1 style="font-size: 28px; font-weight: 700; color: var(--agri-primary-dark); margin: 0;">Register Governance Personnel</h1>
-        <p style="color: var(--agri-text-muted); margin: 4px 0 0 0;">Instantiate a new administrative identity with defined ecosystem authority.</p>
+        <p style="color: var(--agri-text-muted); margin: 4px 0 0 0;">Create a new admin user with the right access level.</p>
     </div>
 
     <div class="row justify-content-center">
@@ -100,7 +100,7 @@
                     {{-- Actions --}}
                     <div style="display: flex; gap: 16px;">
                         <button type="submit" class="btn-agri btn-agri-primary" style="flex: 2; height: 56px; font-size: 16px; font-weight: 800; border-radius: 16px;">
-                            <i class="fas fa-check-circle me-2"></i> Instantiate Registry Entry
+                            <i class="fas fa-check-circle me-2"></i> Create Admin User
                         </button>
                         <a href="{!! route('admin.users') !!}" class="btn-agri btn-agri-outline" style="flex: 1; height: 56px; display: flex; align-items: center; justify-content: center; text-decoration: none; font-size: 16px; font-weight: 700; border-radius: 16px;">
                             {{ trans('lang.cancel')}}
