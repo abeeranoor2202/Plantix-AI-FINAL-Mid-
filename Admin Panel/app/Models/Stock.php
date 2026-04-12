@@ -11,13 +11,14 @@ class Stock extends Model
     protected $table = 'stocks';
 
     protected $fillable = [
-        'product_id', 'vendor_id', 'quantity', 'reserved_quantity', 'low_stock_threshold', 'status',
+        'product_id', 'vendor_id', 'quantity', 'reserved_quantity', 'low_stock_threshold', 'status', 'is_available',
     ];
 
     protected $casts = [
         'quantity' => 'integer',
         'reserved_quantity' => 'integer',
         'low_stock_threshold' => 'integer',
+        'is_available' => 'boolean',
     ];
 
     public function product(): BelongsTo
@@ -49,6 +50,37 @@ class Stock extends Model
     public function isOutOfStock(): bool
     {
         return $this->quantity <= 0 || $this->status === 'out_of_stock';
+    }
+
+    public function isUnavailable(): bool
+    {
+        return ! $this->is_available;
+    }
+
+    public function getDisplayStatusAttribute(): string
+    {
+        if (! $this->is_available) {
+            return 'Unavailable';
+        }
+
+        if ($this->quantity <= 0) {
+            return 'Out of Stock';
+        }
+
+        return 'In Stock';
+    }
+
+    public function getDisplayStatusBadgeClassAttribute(): string
+    {
+        if (! $this->is_available) {
+            return 'bg-secondary';
+        }
+
+        if ($this->quantity <= 0) {
+            return 'bg-danger';
+        }
+
+        return 'bg-success';
     }
 
     public function getSkuAttribute(): ?string
