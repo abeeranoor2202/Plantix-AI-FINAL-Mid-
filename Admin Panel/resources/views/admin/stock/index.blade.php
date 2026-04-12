@@ -56,6 +56,7 @@
                         <th style="padding: 16px 24px; font-size: 12px; font-weight: 600; color: var(--agri-text-muted); text-transform: uppercase; border: none;">Product</th>
                         <th style="padding: 16px 24px; font-size: 12px; font-weight: 600; color: var(--agri-text-muted); text-transform: uppercase; border: none;">Vendor</th>
                         <th style="padding: 16px 24px; font-size: 12px; font-weight: 600; color: var(--agri-text-muted); text-transform: uppercase; border: none;">Quantity</th>
+                        <th style="padding: 16px 24px; font-size: 12px; font-weight: 600; color: var(--agri-text-muted); text-transform: uppercase; border: none;">Reserved</th>
                         <th style="padding: 16px 24px; font-size: 12px; font-weight: 600; color: var(--agri-text-muted); text-transform: uppercase; border: none;">Threshold</th>
                         <th style="padding: 16px 24px; font-size: 12px; font-weight: 600; color: var(--agri-text-muted); text-transform: uppercase; border: none;">Status</th>
                         <th class="text-end" style="padding: 16px 24px; font-size: 12px; font-weight: 600; color: var(--agri-text-muted); text-transform: uppercase; border: none;">Actions</th>
@@ -70,6 +71,7 @@
                             </td>
                             <td class="px-4 py-3">{{ $stock->vendor->title ?? 'Platform Default' }}</td>
                             <td class="px-4 py-3"><strong>{{ (int) $stock->quantity }}</strong></td>
+                            <td class="px-4 py-3">{{ (int) $stock->reserved_quantity }}</td>
                             <td class="px-4 py-3">{{ $stock->low_stock_threshold ?? '—' }}</td>
                             <td class="px-4 py-3">
                                 @if($stock->quantity <= 0)
@@ -118,7 +120,7 @@
                             </td>
                         </tr>
                     @empty
-                        <tr><td colspan="6" class="text-center py-5" style="color: var(--agri-text-muted);">No stock records found.</td></tr>
+                        <tr><td colspan="7" class="text-center py-5" style="color: var(--agri-text-muted);">No stock records found.</td></tr>
                     @endforelse
                 </tbody>
             </table>
@@ -129,6 +131,38 @@
                 {{ $stocks->withQueryString()->links('pagination::bootstrap-5') }}
             </div>
         @endif
+    </div>
+
+    <div class="card-agri" style="margin-top: 24px; padding: 0; overflow: hidden;">
+        <div class="card-header bg-white border-bottom-0 pt-4 pb-3 px-4">
+            <h4 class="mb-0 fw-bold text-dark" style="font-size: 18px;">Recent Stock Movements</h4>
+        </div>
+        <div class="table-responsive">
+            <table class="table mb-0" style="vertical-align: middle; width: 100%;">
+                <thead style="background: var(--agri-bg);">
+                    <tr>
+                        <th style="padding: 16px 24px; font-size: 12px; font-weight: 600; color: var(--agri-text-muted); text-transform: uppercase; border: none;">Time</th>
+                        <th style="padding: 16px 24px; font-size: 12px; font-weight: 600; color: var(--agri-text-muted); text-transform: uppercase; border: none;">Product</th>
+                        <th style="padding: 16px 24px; font-size: 12px; font-weight: 600; color: var(--agri-text-muted); text-transform: uppercase; border: none;">Type</th>
+                        <th style="padding: 16px 24px; font-size: 12px; font-weight: 600; color: var(--agri-text-muted); text-transform: uppercase; border: none;">Quantity</th>
+                        <th style="padding: 16px 24px; font-size: 12px; font-weight: 600; color: var(--agri-text-muted); text-transform: uppercase; border: none;">Reference</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse($movements ?? [] as $movement)
+                        <tr>
+                            <td class="px-4 py-3">{{ $movement->created_at?->format('M d, Y H:i') ?? '—' }}</td>
+                            <td class="px-4 py-3" style="font-weight: 700; color: var(--agri-text-heading);">{{ $movement->product->name ?? 'Deleted Product' }}</td>
+                            <td class="px-4 py-3 text-uppercase">{{ $movement->type }}</td>
+                            <td class="px-4 py-3">{{ (int) $movement->quantity }}</td>
+                            <td class="px-4 py-3">{{ $movement->reference ?? 'manual' }}</td>
+                        </tr>
+                    @empty
+                        <tr><td colspan="5" class="text-center py-4" style="color: var(--agri-text-muted);">No stock movement logs yet.</td></tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>
 @endsection
