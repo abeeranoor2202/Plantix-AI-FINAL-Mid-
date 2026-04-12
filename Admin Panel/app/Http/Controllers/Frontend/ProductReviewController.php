@@ -8,6 +8,7 @@ use App\Models\Product;
 use App\Models\Review;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class ProductReviewController extends Controller
 {
@@ -21,15 +22,21 @@ class ProductReviewController extends Controller
      */
     public function store(Request $request, int $productId): RedirectResponse
     {
+        $product = Product::with('category')->findOrFail($productId);
+        $textReviewEnabled = (bool) data_get($product, 'category.text_review_enabled', true);
+        $imageReviewEnabled = (bool) data_get($product, 'category.image_review_enabled', false);
+
         $request->validate([
             'order_id' => 'required|integer|exists:orders,id',
             'rating'   => 'required|integer|min:1|max:5',
-            'comment'  => 'nullable|string|max:2000',
+            'title'    => 'nullable|string|max:255',
+            'comment'  => $textReviewEnabled ? 'nullable|string|max:2000' : 'prohibited',
+            'review_images'   => $imageReviewEnabled ? 'nullable|array|max:5' : 'prohibited',
+            'review_images.*' => $imageReviewEnabled ? 'image|max:5120' : 'prohibited',
         ]);
 
         /** @var \App\Models\User $user */
         $user    = auth('web')->user();
-        $product = Product::findOrFail($productId);
 
         // ── 1. Verify the order belongs to this user and contains the product ─
         $order = Order::where('id', $request->order_id)
@@ -64,13 +71,35 @@ class ProductReviewController extends Controller
                 ]);
             }
 
+            $reviewImages = $existingReview->review_images ?? [];
+            if ($imageReviewEnabled && $request->hasFile('review_images')) {
+                foreach ((array) $reviewImages as $imagePath) {
+                    Storage::disk('public')->delete($imagePath);
+                }
+
+                $reviewImages = [];
+                foreach ((array) $request->file('review_images') as $uploadedImage) {
+                    $reviewImages[] = $uploadedImage->store('reviews', 'public');
+                }
+            }
+
             $existingReview->update([
-                'rating'  => $request->rating,
-                'comment' => $request->comment,
-                'status'  => Review::STATUS_PENDING, // re-moderate on edit
+                'title'         => $request->input('title'),
+                'rating'        => $request->rating,
+                'comment'       => $textReviewEnabled ? $request->input('comment') : null,
+                'review_images' => $imageReviewEnabled ? $reviewImages : null,
+                'status'        => Review::STATUS_PENDING, // re-moderate on edit
             ]);
 
             return back()->with('success', 'Review updated. It will appear after admin approval.');
+        }
+
+        $reviewImages = null;
+        if ($imageReviewEnabled && $request->hasFile('review_images')) {
+            $reviewImages = [];
+            foreach ((array) $request->file('review_images') as $uploadedImage) {
+                $reviewImages[] = $uploadedImage->store('reviews', 'public');
+            }
         }
 
         Review::create([
@@ -78,8 +107,10 @@ class ProductReviewController extends Controller
             'order_id'   => $order->id,
             'user_id'    => $user->id,
             'vendor_id'  => $product->vendor_id,
+            'title'      => $request->input('title'),
             'rating'     => $request->rating,
-            'comment'    => $request->comment,
+            'comment'    => $textReviewEnabled ? $request->input('comment') : null,
+            'review_images' => $reviewImages,
             'status'     => Review::STATUS_PENDING,
         ]);
 
