@@ -124,8 +124,31 @@
                                 <h4 style="font-size: 18px; font-weight: 800; color: var(--agri-text-heading);">Review Options</h4>
                                 <p style="color: var(--agri-text-muted); max-width: 500px; margin: 8px auto 0 auto; font-size: 13px;">Choose which fields users can rate in product reviews for this category.</p>
                             </div>
-                            <div id="review_attributes_list" class="row g-3">
-                                {{-- Dynamically populated --}}
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <div style="background: var(--agri-bg); border: 1px solid var(--agri-border); border-radius: 16px; padding: 20px; display: flex; align-items: center; justify-content: space-between; gap: 16px;">
+                                        <div>
+                                            <div style="font-size: 14px; font-weight: 700; color: var(--agri-text-heading);">Text Review</div>
+                                            <div style="font-size: 11px; color: var(--agri-text-muted); font-weight: 600;">Show the written review field on product pages.</div>
+                                        </div>
+                                        <label class="switch">
+                                            <input type="checkbox" id="text_review_enabled">
+                                            <span class="slider"></span>
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div style="background: var(--agri-bg); border: 1px solid var(--agri-border); border-radius: 16px; padding: 20px; display: flex; align-items: center; justify-content: space-between; gap: 16px;">
+                                        <div>
+                                            <div style="font-size: 14px; font-weight: 700; color: var(--agri-text-heading);">Picture / Image Review</div>
+                                            <div style="font-size: 11px; color: var(--agri-text-muted); font-weight: 600;">Allow customers to attach review photos.</div>
+                                        </div>
+                                        <label class="switch">
+                                            <input type="checkbox" id="image_review_enabled">
+                                            <span class="slider"></span>
+                                        </label>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -168,11 +191,15 @@
             $(".cat_image").html('<img src="' + existingImage + '" style="width:100px;height:100px;border-radius:12px;object-fit:cover;border:2px solid white;box-shadow:0 10px 20px rgba(0,0,0,0.1);">');
         }
         $("#item_publish").prop('checked', {{ $category->active ? 'true' : 'false' }});
+        $("#text_review_enabled").prop('checked', {{ $category->text_review_enabled ? 'true' : 'false' }});
+        $("#image_review_enabled").prop('checked', {{ $category->image_review_enabled ? 'true' : 'false' }});
 
         $(".edit-form-btn").click(function () {
             var title = $(".cat-name").val().trim();
             var description = $(".category_description").val().trim();
             var active = $("#item_publish").is(":checked") ? 1 : 0;
+            var text_review_enabled = $("#text_review_enabled").is(":checked") ? 1 : 0;
+            var image_review_enabled = $("#image_review_enabled").is(":checked") ? 1 : 0;
 
             if (!title) {
                 $(".error_top").show().html("<p>{{ trans('lang.enter_cat_title_error') }}</p>");
@@ -187,6 +214,8 @@
                 name: title,
                 description: description,
                 active: active,
+                text_review_enabled: text_review_enabled,
+                image_review_enabled: image_review_enabled,
                 image_base64: (photo && !photo.startsWith('http') && photo !== existingImage) ? photo : ''
             };
 
