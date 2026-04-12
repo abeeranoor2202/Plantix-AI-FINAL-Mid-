@@ -1,5 +1,5 @@
 @extends('vendor.layouts.app')
-@section('title', 'Return #{{ $return->id }}')
+@section('title', 'Return #' . $return->id)
 @section('page-title', 'Return Request Detail')
 
 @section('content')
@@ -35,10 +35,10 @@
                     <dd class="col-sm-8 mb-3 fw-medium text-dark"><i class="bi bi-person-circle text-muted me-1"></i>{{ $return->user->name ?? '—' }}</dd>
 
                     <dt class="col-sm-4 text-muted small text-uppercase fw-bold mb-3">Reason</dt>
-                    <dd class="col-sm-8 mb-3 fw-medium text-dark">{{ $return->reason->reason ?? $return->description ?? '—' }}</dd>
+                    <dd class="col-sm-8 mb-3 fw-medium text-dark">{{ $return->reason->title ?? $return->reason->reason ?? $return->notes ?? '—' }}</dd>
 
                     <dt class="col-sm-4 text-muted small text-uppercase fw-bold mb-3">Description</dt>
-                    <dd class="col-sm-8 mb-3 text-muted bg-light p-3 rounded-3">{{ $return->description ?? 'No extra description provided.' }}</dd>
+                    <dd class="col-sm-8 mb-3 text-muted bg-light p-3 rounded-3">{{ $return->notes ?? 'No extra description provided.' }}</dd>
 
                     <dt class="col-sm-4 text-muted small text-uppercase fw-bold mb-3">Status</dt>
                     <dd class="col-sm-8 mb-3">
@@ -47,13 +47,15 @@
                                 'pending'  => 'warning text-dark',
                                 'approved' => 'success',
                                 'rejected' => 'danger',
-                                'refunded' => 'info',
+                                'refund_processing' => 'primary',
+                                'completed' => 'info',
                             ];
                             $iconMap = [
                                 'pending'  => 'bi-hourglass-split',
                                 'approved' => 'bi-check-circle-fill',
                                 'rejected' => 'bi-x-circle-fill',
-                                'refunded' => 'bi-cash-coin',
+                                'refund_processing' => 'bi-arrow-repeat',
+                                'completed' => 'bi-cash-coin',
                             ];
                             $badge = $badgeMap[$return->status] ?? 'secondary';
                             $icon = $iconMap[$return->status] ?? 'bi-info-circle';
@@ -62,6 +64,30 @@
                             <i class="bi {{ $icon }} me-1"></i>{{ ucfirst($return->status) }}
                         </span>
                     </dd>
+
+                    @if($return->items->count())
+                    <dt class="col-sm-4 text-muted small text-uppercase fw-bold mt-4 mb-2">Requested Items</dt>
+                    <dd class="col-sm-8 mt-4 mb-2">
+                        <div class="table-responsive">
+                            <table class="table table-sm align-middle mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th class="small text-muted text-uppercase">Product</th>
+                                        <th class="small text-muted text-uppercase text-end">Qty</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach($return->items as $item)
+                                        <tr>
+                                            <td class="small text-dark fw-medium">{{ $item->product->name ?? 'Unknown Product' }}</td>
+                                            <td class="small text-end text-dark fw-bold">{{ $item->quantity }}</td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    </dd>
+                    @endif
 
                     @if($return->admin_notes)
                     <dt class="col-sm-4 text-muted small text-uppercase fw-bold mt-4 mb-2">Admin Notes</dt>
@@ -164,7 +190,7 @@
             </div>
             <div class="card-body p-0">
                 <ul class="list-group list-group-flush rounded-bottom-4">
-                    @forelse($return->order->items ?? [] as $item)
+                        @forelse($return->order->items ?? [] as $item)
                     <li class="list-group-item d-flex justify-content-between align-items-center px-4 py-3 hover-bg-light transition-all">
                         <div class="d-flex align-items-center">
                             <div class="bg-light rounded-3 d-flex align-items-center justify-content-center me-3 border shadow-sm" style="width: 48px; height: 48px;">
@@ -178,7 +204,7 @@
                                 </div>
                             </div>
                         </div>
-                        <span class="fw-bold text-success">{{ config('plantix.currency_symbol') }}{{ number_format($item->unit_price * $item->quantity, 2) }}</span>
+                                <span class="fw-bold text-success">{{ config('plantix.currency_symbol') }}{{ number_format($item->unit_price * $item->quantity, 2) }}</span>
                     </li>
                     @empty
                     <li class="list-group-item text-muted text-center py-5">
