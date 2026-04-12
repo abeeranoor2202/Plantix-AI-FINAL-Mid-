@@ -65,6 +65,7 @@ class AdminAppointmentController extends Controller
     {
         $request->validate([
             'expert_id' => 'nullable|exists:experts,id',
+            'meeting_link' => 'nullable|url|max:500',
             'notes'     => 'nullable|string|max:1000',
         ]);
 
@@ -76,7 +77,8 @@ class AdminAppointmentController extends Controller
                 $request->expert_id,
                 $request->notes,
                 true,
-                $request->user()->id
+                $request->user()->id,
+                $request->input('meeting_link')
             );
         } catch (\DomainException $e) {
             return back()->withErrors(['error' => $e->getMessage()]);
