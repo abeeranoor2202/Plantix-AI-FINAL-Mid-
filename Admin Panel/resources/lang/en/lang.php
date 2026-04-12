@@ -664,11 +664,11 @@ return [
 
 
 
-    'coupon_code' => 'Code',
+    'coupon_code' => 'Coupon Code',
 
 
 
-    'coupon_code_help' => 'Insert Coupon Code',
+    'coupon_code_help' => 'Enter the coupon code',
 
 
 
@@ -676,11 +676,11 @@ return [
 
 
 
-    'coupon_description' => 'Description',
+    'coupon_description' => 'Notes',
 
 
 
-    'coupon_description_help' => 'Insert Description',
+    'coupon_description_help' => 'Add a short note about the coupon',
 
 
 
@@ -692,7 +692,7 @@ return [
 
 
 
-    'coupon_discount_help' => 'Insert Discount Fixed Amount (Ex: 8 for 8$) or Percent (Ex: 10 for 10%)',
+    'coupon_discount_help' => 'Enter a fixed amount or percentage discount',
 
 
 
@@ -700,7 +700,7 @@ return [
 
 
 
-    'coupon_discount_type_help' => 'Select Discount Type',
+    'coupon_discount_type_help' => 'Choose percentage or fixed amount',
 
 
 
@@ -708,15 +708,15 @@ return [
 
 
 
-    'coupon_enabled' => 'Enabled',
+    'coupon_enabled' => 'Active',
 
 
 
-    'coupon_expires_at' => 'Expires At',
+    'coupon_expires_at' => 'Expiry Date',
 
 
 
-    'coupon_expires_at_help' => 'Insert Expires At',
+    'coupon_expires_at_help' => 'Choose when the coupon ends',
 
 
 
@@ -2196,7 +2196,7 @@ return [
 
 
 
-    'coupon_store_id_help' => 'The coupon will applied on selected stores',
+    'coupon_store_id_help' => 'Apply the coupon to the selected store only',
 
 
 
@@ -3596,7 +3596,7 @@ return [
 
 
 
-    'coupon_public' => 'isPublic',
+    'coupon_public' => 'Visible to all customers',
 
 
 

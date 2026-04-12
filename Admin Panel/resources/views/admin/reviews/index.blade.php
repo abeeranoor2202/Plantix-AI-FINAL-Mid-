@@ -42,6 +42,7 @@
                         <th style="padding: 16px 24px; font-size: 12px; font-weight: 600; color: var(--agri-text-muted); text-transform: uppercase; border: none;">Product</th>
                         <th style="padding: 16px 24px; font-size: 12px; font-weight: 600; color: var(--agri-text-muted); text-transform: uppercase; border: none;">Rating</th>
                         <th style="padding: 16px 24px; font-size: 12px; font-weight: 600; color: var(--agri-text-muted); text-transform: uppercase; border: none;">Comment</th>
+                        <th style="padding: 16px 24px; font-size: 12px; font-weight: 600; color: var(--agri-text-muted); text-transform: uppercase; border: none;">Photos</th>
                         <th class="text-end" style="padding: 16px 24px; font-size: 12px; font-weight: 600; color: var(--agri-text-muted); text-transform: uppercase; border: none;">Actions</th>
                     </tr>
                 </thead>
@@ -63,6 +64,19 @@
                             </td>
                             <td class="px-4 py-3">{{ \Illuminate\Support\Str::limit($review->comment, 80) }}</td>
                             <td class="px-4 py-3">
+                                @if(!empty($review->review_images))
+                                    <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                                        @foreach($review->review_images as $image)
+                                            <a href="{{ asset('storage/' . $image) }}" target="_blank" rel="noopener noreferrer" title="View review image">
+                                                <img src="{{ asset('storage/' . $image) }}" alt="Review image" style="width: 42px; height: 42px; object-fit: cover; border-radius: 10px; border: 1px solid #e5e7eb;">
+                                            </a>
+                                        @endforeach
+                                    </div>
+                                @else
+                                    <span class="text-muted small">No photos</span>
+                                @endif
+                            </td>
+                            <td class="px-4 py-3">
                                 <div class="text-end" style="display: flex; justify-content: flex-end; gap: 8px;">
                                     <a href="{{ route('admin.products.show', $review->product_id) }}" class="btn-agri" style="padding: 8px; background: var(--agri-bg); color: #2563eb; border-radius: 999px;" title="View"><i class="fas fa-eye"></i></a>
                                     <form action="{{ route('admin.reviews.destroy', $review->id) }}" method="POST" onsubmit="return confirm('Delete this review?')" class="d-inline">
@@ -76,7 +90,7 @@
                             </td>
                         </tr>
                     @empty
-                        <tr><td colspan="5" class="text-center py-5" style="color: var(--agri-text-muted);">No reviews found.</td></tr>
+                        <tr><td colspan="6" class="text-center py-5" style="color: var(--agri-text-muted);">No reviews found.</td></tr>
                     @endforelse
                 </tbody>
             </table>
