@@ -42,6 +42,7 @@
                         <th style="padding: 16px 24px; font-size: 12px; font-weight: 600; color: var(--agri-text-muted); text-transform: uppercase; border: none;">No.</th>
                         <th style="padding: 16px 24px; font-size: 12px; font-weight: 600; color: var(--agri-text-muted); text-transform: uppercase; border: none;">Farmer</th>
                         <th style="padding: 16px 24px; font-size: 12px; font-weight: 600; color: var(--agri-text-muted); text-transform: uppercase; border: none;">Expert</th>
+                        <th style="padding: 16px 24px; font-size: 12px; font-weight: 600; color: var(--agri-text-muted); text-transform: uppercase; border: none;">Type</th>
                         <th style="padding: 16px 24px; font-size: 12px; font-weight: 600; color: var(--agri-text-muted); text-transform: uppercase; border: none;">Schedule</th>
                         <th style="padding: 16px 24px; font-size: 12px; font-weight: 600; color: var(--agri-text-muted); text-transform: uppercase; border: none;">Fee</th>
                         <th style="padding: 16px 24px; font-size: 12px; font-weight: 600; color: var(--agri-text-muted); text-transform: uppercase; border: none;">Status</th>
@@ -54,6 +55,9 @@
                             <td class="px-4 py-3">#{{ $appt->id }}</td>
                             <td class="px-4 py-3">{{ $appt->user->name ?? 'N/A' }}</td>
                             <td class="px-4 py-3">{{ optional($appt->expert)->user->name ?? '—' }}</td>
+                            <td class="px-4 py-3">
+                                <span class="badge rounded-pill {{ $appt->type === 'physical' ? 'bg-success' : 'bg-primary' }}">{{ strtoupper($appt->type_label) }}</span>
+                            </td>
                             <td class="px-4 py-3">
                                 @if($appt->scheduled_at)
                                     {{ $appt->scheduled_at->format('M d, Y h:i A') }}
@@ -85,7 +89,7 @@
                             </td>
                         </tr>
                     @empty
-                        <tr><td colspan="7" class="text-center py-5" style="color: var(--agri-text-muted);">No appointments found.</td></tr>
+                        <tr><td colspan="8" class="text-center py-5" style="color: var(--agri-text-muted);">No appointments found.</td></tr>
                     @endforelse
                 </tbody>
             </table>
