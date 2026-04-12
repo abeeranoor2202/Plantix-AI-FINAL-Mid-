@@ -7,13 +7,19 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 class Vendor extends Model
 {
     protected $fillable = [
-        'author_id', 'zone_id', 'category_id', 'title', 'description',
-        'address', 'latitude', 'longitude', 'phone', 'image', 'cover_photo',
-        'rating', 'review_count', 'is_active', 'is_approved',
+        'author_id', 'owner_name', 'business_email', 'business_phone', 'tax_id',
+        'zone_id', 'category_id', 'business_category', 'title', 'description',
+        'address', 'city', 'region', 'latitude', 'longitude', 'phone',
+        'bank_name', 'bank_account_name', 'bank_account_number', 'iban',
+        'cnic_document', 'business_license_document', 'tax_certificate_document',
+        'image', 'cover_photo', 'rating', 'review_count', 'is_active', 'is_approved',
+        'status', 'reviewed_by', 'submitted_at', 'reviewed_at', 'approved_at',
+        'rejected_at', 'suspended_at',
         'open_time', 'close_time', 'delivery_fee', 'min_order_amount',
         'preparation_time', 'commission_rate', 'stripe_account_id',
     ];
@@ -21,6 +27,11 @@ class Vendor extends Model
     protected $casts = [
         'is_active'    => 'boolean',
         'is_approved'  => 'boolean',
+        'submitted_at' => 'datetime',
+        'reviewed_at'  => 'datetime',
+        'approved_at'  => 'datetime',
+        'rejected_at'  => 'datetime',
+        'suspended_at' => 'datetime',
         'rating'       => 'decimal:2',
         'delivery_fee' => 'decimal:2',
         'commission_rate' => 'decimal:2',
@@ -75,6 +86,11 @@ class Vendor extends Model
         return $this->hasMany(Coupon::class);
     }
 
+    public function applicableCoupons(): BelongsToMany
+    {
+        return $this->belongsToMany(Coupon::class, 'coupon_vendor');
+    }
+
     public function payouts(): HasMany
     {
         return $this->hasMany(Payout::class);
@@ -105,6 +121,26 @@ class Vendor extends Model
         return $this->hasMany(DocumentVerification::class);
     }
 
+    public function applications(): HasMany
+    {
+        return $this->hasMany(VendorApplication::class);
+    }
+
+    public function commissions(): HasMany
+    {
+        return $this->hasMany(Commission::class);
+    }
+
+    public function earnings(): HasMany
+    {
+        return $this->hasMany(VendorEarning::class);
+    }
+
+    public function auditLogs(): MorphMany
+    {
+        return $this->morphMany(AuditLog::class, 'auditable')->latest('created_at');
+    }
+
     public function withdrawMethods(): HasMany
     {
         return $this->hasMany(VendorWithdrawMethod::class);
@@ -127,6 +163,16 @@ class Vendor extends Model
     public function getNameAttribute(): string
     {
         return (string) ($this->attributes['title'] ?? '');
+    }
+
+    public function getBusinessNameAttribute(): string
+    {
+        return (string) ($this->attributes['title'] ?? '');
+    }
+
+    public function getOwnerNameAttribute(): string
+    {
+        return (string) ($this->attributes['owner_name'] ?? $this->author?->name ?? '');
     }
 
     public function recalculateRating(): void
