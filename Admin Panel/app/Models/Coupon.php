@@ -13,7 +13,7 @@ class Coupon extends Model
     protected $fillable = [
         'vendor_id', 'code', 'type', 'value', 'min_order',
         'max_discount', 'usage_limit', 'used_count',
-        'starts_at', 'expires_at', 'is_active', 'per_user_limit',
+        'starts_at', 'expires_at', 'is_active', 'is_visible_to_all', 'per_user_limit',
     ];
 
     protected $casts = [
@@ -23,6 +23,7 @@ class Coupon extends Model
         'is_active'   => 'boolean',
         'starts_at'   => 'datetime',
         'expires_at'  => 'datetime',
+        'is_visible_to_all' => 'boolean',
         'per_user_limit' => 'integer',
     ];
 
@@ -100,6 +101,10 @@ class Coupon extends Model
 
     public function hasScopedEligibility(): bool
     {
+        if ($this->is_visible_to_all) {
+            return false;
+        }
+
         return $this->products()->exists()
             || $this->categories()->exists()
             || $this->applicableVendors()->exists()
