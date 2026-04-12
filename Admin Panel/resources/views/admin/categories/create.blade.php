@@ -31,6 +31,11 @@
                                 <i class="fas fa-sliders-h"></i> {{trans('lang.reviewattribute_plural')}}
                             </a>
                         </li>
+                        <li class="nav-item">
+                            <a href="#category_attributes" class="nav-link" data-toggle="tab">
+                                <i class="fas fa-list-check"></i> Category Attributes
+                            </a>
+                        </li>
                     </ul>
                 </div>
 
@@ -119,8 +124,68 @@
                                 </h4>
                                 <p style="color: var(--agri-text-muted); margin: 0; font-size: 13px;">Choose which fields users can rate in product reviews for this category.</p>
                             </div>
-                            <div id="review_attributes_list" class="row g-3">
-                                {{-- Dynamically populated --}}
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <div style="background: var(--agri-bg); border: 1px solid var(--agri-border); border-radius: 16px; padding: 20px; display: flex; align-items: center; justify-content: space-between; gap: 16px;">
+                                        <div>
+                                            <div style="font-size: 14px; font-weight: 700; color: var(--agri-text-heading);">Text Review</div>
+                                            <div style="font-size: 11px; color: var(--agri-text-muted); font-weight: 600;">Show the written review field on product pages.</div>
+                                        </div>
+                                        <label class="switch">
+                                            <input type="checkbox" id="text_review_enabled" checked>
+                                            <span class="slider"></span>
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div style="background: var(--agri-bg); border: 1px solid var(--agri-border); border-radius: 16px; padding: 20px; display: flex; align-items: center; justify-content: space-between; gap: 16px;">
+                                        <div>
+                                            <div style="font-size: 14px; font-weight: 700; color: var(--agri-text-heading);">Picture / Image Review</div>
+                                            <div style="font-size: 11px; color: var(--agri-text-muted); font-weight: 600;">Allow customers to attach review photos.</div>
+                                        </div>
+                                        <label class="switch">
+                                            <input type="checkbox" id="image_review_enabled">
+                                            <span class="slider"></span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div role="tabpanel" class="tab-pane" id="category_attributes">
+                            <div style="margin-bottom: 24px;">
+                                <h4 style="font-size: 18px; font-weight: 700; color: var(--agri-primary-dark); margin-bottom: 8px; display: flex; align-items: center; gap: 10px;">
+                                    <i class="fas fa-list-check"></i> Select Attributes for Category
+                                </h4>
+                                <p style="color: var(--agri-text-muted); margin: 0; font-size: 13px;">Choose which product attributes belong to this category and mark required fields.</p>
+                            </div>
+
+                            <div class="row g-3" id="category_attribute_list">
+                                @forelse($attributes as $attr)
+                                    @php($attrName = $attr->name ?: $attr->title)
+                                    <div class="col-md-6">
+                                        <div style="background: white; border: 1px solid var(--agri-border); border-radius: 14px; padding: 16px;">
+                                            <div style="display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:10px;">
+                                                <label style="display:flex; align-items:center; gap:10px; margin:0; font-weight:700; color:var(--agri-text-heading); cursor:pointer;">
+                                                    <input type="checkbox" class="category-attribute-check" value="{{ $attr->id }}" style="width:16px; height:16px;">
+                                                    <span>{{ $attrName }}</span>
+                                                </label>
+                                                <span style="font-size:11px; font-weight:700; color:var(--agri-text-muted); text-transform:uppercase;">{{ $attr->type }}</span>
+                                            </div>
+                                            <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; padding-top:10px; border-top:1px dashed var(--agri-border);">
+                                                <span style="font-size:12px; color:var(--agri-text-muted);">Required for products</span>
+                                                <label class="switch" style="transform:scale(.9);">
+                                                    <input type="checkbox" class="category-attribute-required" value="{{ $attr->id }}" disabled>
+                                                    <span class="slider"></span>
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                @empty
+                                    <div class="col-12">
+                                        <div style="padding:16px; border-radius:12px; background:#FEF9C3; color:#854D0E; font-weight:600;">No attributes available yet. Create attributes first, then assign them to categories.</div>
+                                    </div>
+                                @endforelse
                             </div>
                         </div>
                     </div>
@@ -241,8 +306,12 @@
         var title = $(".cat-name").val();
         var description = $(".category_description").val();
         var item_publish = $("#item_publish").is(":checked");
-        var review_attributes = [];
-        $('#review_attributes_list input:checked').each(function () { review_attributes.push($(this).val()); });
+        var text_review_enabled = $("#text_review_enabled").is(":checked");
+        var image_review_enabled = $("#image_review_enabled").is(":checked");
+        var category_attributes = [];
+        $('.category-attribute-check:checked').each(function () { category_attributes.push($(this).val()); });
+        var required_attributes = [];
+        $('.category-attribute-required:checked').each(function () { required_attributes.push($(this).val()); });
 
         if (title == '') {
             $(".error_top").show().html("<p>{{trans('lang.enter_cat_title_error')}}</p>");
@@ -260,6 +329,10 @@
                     name: title,
                     description: description,
                     active: item_publish ? 1 : 0,
+                    text_review_enabled: text_review_enabled ? 1 : 0,
+                    image_review_enabled: image_review_enabled ? 1 : 0,
+                    category_attributes: category_attributes,
+                    required_attributes: required_attributes,
                     image_base64: photo || ''
                 },
                 success: function (res) {
@@ -286,6 +359,15 @@
             photo = base64str;
             $(".cat_image").html('<img src="' + photo + '" style="width:100px;height:100px;border-radius:12px;object-fit:cover;border:2px solid white;box-shadow:0 10px 20px rgba(0,0,0,0.1);">');
             $("#uploding_image").text("Image ready");
+        }
+    });
+
+    $('.category-attribute-check').on('change', function () {
+        var id = $(this).val();
+        var req = $('.category-attribute-required[value="' + id + '"]');
+        req.prop('disabled', !$(this).is(':checked'));
+        if (!$(this).is(':checked')) {
+            req.prop('checked', false);
         }
     });
 </script>
