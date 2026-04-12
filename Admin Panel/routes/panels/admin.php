@@ -112,6 +112,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
             Route::post('/{id}/toggle-featured', [\App\Http\Controllers\Admin\AdminProductController::class, 'toggleFeatured'])->name('toggle-featured');
             Route::post('/{id}/toggle-active', [\App\Http\Controllers\Admin\AdminProductController::class, 'toggleActive'])->name('toggle-active');
             Route::post('/{id}/toggle-returnable', [\App\Http\Controllers\Admin\AdminProductController::class, 'toggleReturnable'])->name('toggle-returnable');
+            Route::post('/{id}/toggle-refundable', [\App\Http\Controllers\Admin\AdminProductController::class, 'toggleRefundable'])->name('toggle-refundable');
         });
 
         // ── Categories ────────────────────────────────────────────────────────
