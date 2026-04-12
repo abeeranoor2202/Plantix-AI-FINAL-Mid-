@@ -15,6 +15,7 @@ class ShopController extends Controller
     public function index(Request $request): View
     {
         $query = Product::with(['vendor', 'category', 'primaryImage', 'approvedReviews'])
+            ->where('is_active', true)
             ->active()
             ->inStock();
 
@@ -88,9 +89,10 @@ class ShopController extends Controller
         $product  = Product::with([
             'vendor', 'category', 'images',
             'attributes', 'approvedReviews.user', 'stock',
-        ])->active()->findOrFail($id);
+        ])->where('is_active', true)->active()->findOrFail($id);
 
         $related = Product::active()
+                          ->where('is_active', true)
                           ->inStock()
                           ->where('category_id', $product->category_id)
                           ->where('id', '!=', $product->id)
