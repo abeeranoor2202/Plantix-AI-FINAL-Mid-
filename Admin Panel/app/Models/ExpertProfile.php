@@ -25,6 +25,8 @@ class ExpertProfile extends Model
         'linkedin',
         'contact_phone',
         'city',
+        'address',
+        'map_link',
         'country',
         'account_type',
         'approval_status',
