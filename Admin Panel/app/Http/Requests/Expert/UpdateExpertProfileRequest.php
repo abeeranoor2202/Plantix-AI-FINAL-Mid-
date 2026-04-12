@@ -34,6 +34,8 @@ class UpdateExpertProfileRequest extends FormRequest
             'linkedin'              => ['nullable', 'url', 'max:255'],
             'contact_phone'         => ['nullable', 'string', 'max:30'],
             'city'                  => ['nullable', 'string', 'max:100'],
+            'address'               => ['nullable', 'string', 'max:255'],
+            'map_link'              => ['nullable', 'url', 'max:500'],
             'country'               => ['nullable', 'string', 'max:100'],
             'account_type'          => ['nullable', 'in:individual,agency'],
 
