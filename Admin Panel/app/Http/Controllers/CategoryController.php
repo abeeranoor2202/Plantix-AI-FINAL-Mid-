@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Attribute;
 use App\Models\Category;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -21,7 +22,12 @@ class CategoryController extends Controller
 
     public function create()
     {
-        return view('admin.categories.create');
+        $attributes = Attribute::with('values')
+            ->orderBy('name')
+            ->orderBy('title')
+            ->get();
+
+        return view('admin.categories.create', compact('attributes'));
     }
 
     public function store(Request $request)
@@ -32,6 +38,10 @@ class CategoryController extends Controller
             'active'               => 'nullable|boolean',
             'text_review_enabled'  => 'nullable|boolean',
             'image_review_enabled' => 'nullable|boolean',
+            'category_attributes' => 'nullable|array',
+            'category_attributes.*' => 'integer|exists:attributes,id',
+            'required_attributes' => 'nullable|array',
+            'required_attributes.*' => 'integer|exists:attributes,id',
         ]);
         $data['active'] = $request->boolean('active');
         $data['text_review_enabled'] = $request->boolean('text_review_enabled', true);
@@ -46,14 +56,21 @@ class CategoryController extends Controller
             $data['image'] = $filename;
         }
 
-        Category::create($data);
+        $category = Category::create($data);
+        $this->syncCategoryAttributes($category, $request);
+
         return response()->json(['success' => true, 'redirect' => route('admin.categories')]);
     }
 
     public function edit($id)
     {
-        $category = Category::findOrFail($id);
-        return view('admin.categories.edit', compact('category', 'id'));
+        $category = Category::with('attributes')->findOrFail($id);
+        $attributes = Attribute::with('values')
+            ->orderBy('name')
+            ->orderBy('title')
+            ->get();
+
+        return view('admin.categories.edit', compact('category', 'id', 'attributes'));
     }
 
     public function update(Request $request, $id)
@@ -66,6 +83,10 @@ class CategoryController extends Controller
             'active'               => 'nullable|boolean',
             'text_review_enabled'  => 'nullable|boolean',
             'image_review_enabled' => 'nullable|boolean',
+            'category_attributes' => 'nullable|array',
+            'category_attributes.*' => 'integer|exists:attributes,id',
+            'required_attributes' => 'nullable|array',
+            'required_attributes.*' => 'integer|exists:attributes,id',
         ]);
         $data['active'] = $request->boolean('active');
         $data['text_review_enabled'] = $request->boolean('text_review_enabled', true);
@@ -83,6 +104,8 @@ class CategoryController extends Controller
         }
 
         $category->update($data);
+        $this->syncCategoryAttributes($category, $request);
+
         return response()->json(['success' => true, 'redirect' => route('admin.categories')]);
     }
 
@@ -99,5 +122,30 @@ class CategoryController extends Controller
         if ($category->image) Storage::disk('public')->delete($category->image);
         $category->delete();
         return response()->json(['success' => true]);
+    }
+
+    private function syncCategoryAttributes(Category $category, Request $request): void
+    {
+        $attributeIds = collect($request->input('category_attributes', []))
+            ->map(fn ($id) => (int) $id)
+            ->filter()
+            ->unique()
+            ->values();
+
+        $requiredIds = collect($request->input('required_attributes', []))
+            ->map(fn ($id) => (int) $id)
+            ->filter()
+            ->unique()
+            ->values();
+
+        $syncPayload = [];
+        foreach ($attributeIds as $index => $attributeId) {
+            $syncPayload[$attributeId] = [
+                'is_required' => $requiredIds->contains($attributeId),
+                'sort_order' => $index,
+            ];
+        }
+
+        $category->attributes()->sync($syncPayload);
     }
 }
