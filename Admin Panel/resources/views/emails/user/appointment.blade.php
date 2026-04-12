@@ -61,12 +61,12 @@
 @endif
 
 <div class="btn-wrap">
-    <a href="{{ route('customer.appointments.show', $appointment->id) }}" class="btn">📅 View Appointment</a>
+    <a href="{{ route('appointment.details', $appointment->id) }}" class="btn">📅 View Appointment</a>
 </div>
 
 @if($appointment->status === 'completed')
 <div class="btn-wrap" style="margin-top:-16px">
-    <a href="{{ route('customer.appointments.show', $appointment->id) }}" class="btn btn-secondary">⭐ Leave a Review</a>
+    <a href="{{ route('appointment.details', $appointment->id) . '#review' }}" class="btn btn-secondary">⭐ Leave a Review</a>
 </div>
 @endif
 @endsection
