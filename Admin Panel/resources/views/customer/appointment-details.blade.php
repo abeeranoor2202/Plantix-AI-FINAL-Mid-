@@ -112,6 +112,68 @@
                     </div>
                 </div>
 
+                <div id="review" class="card-agri p-4 border-0 mb-4">
+                    <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-3">
+                        <div>
+                            <h4 class="fw-bold mb-1 text-dark"><i class="fas fa-star text-warning me-2"></i>Appointment Review</h4>
+                            <p class="text-muted mb-0">Share feedback about your consultation with the expert.</p>
+                        </div>
+                        @if($appointment->status === 'completed' && $appointment->customer_rating)
+                            <span class="badge rounded-pill bg-success-subtle text-success border border-success-subtle px-3 py-2">Review submitted</span>
+                        @endif
+                    </div>
+
+                    @if($appointment->status !== 'completed')
+                        <div class="alert alert-light border mb-0">
+                            You can leave a review once the appointment has been completed.
+                        </div>
+                    @else
+                        @if($appointment->customer_rating)
+                            <div class="alert alert-success d-flex align-items-start gap-2 mb-4" role="alert">
+                                <i class="fas fa-check-circle mt-1"></i>
+                                <div>
+                                    <strong>Your review is saved.</strong>
+                                    <div class="small">You can update it below if needed.</div>
+                                </div>
+                            </div>
+                        @endif
+
+                        <form method="POST" action="{{ route('appointment.review.store', $appointment->id) }}">
+                            @csrf
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <label class="form-label fw-semibold">Rating</label>
+                                    <select name="customer_rating" class="form-select @error('customer_rating') is-invalid @enderror" required>
+                                        <option value="">Choose a rating</option>
+                                        @for($rating = 5; $rating >= 1; $rating--)
+                                            <option value="{{ $rating }}" @selected((int) old('customer_rating', $appointment->customer_rating) === $rating)>
+                                                {{ $rating }} Star{{ $rating > 1 ? 's' : '' }}
+                                            </option>
+                                        @endfor
+                                    </select>
+                                    @error('customer_rating')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
+
+                                <div class="col-12">
+                                    <label class="form-label fw-semibold">Written Review</label>
+                                    <textarea name="customer_review" rows="5" class="form-control @error('customer_review') is-invalid @enderror" placeholder="Tell us about the consultation quality, advice, and experience.">{{ old('customer_review', $appointment->customer_review) }}</textarea>
+                                    @error('customer_review')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
+
+                                <div class="col-12 d-flex justify-content-end">
+                                    <button type="submit" class="btn-agri btn-agri-primary" style="padding: 10px 22px;">
+                                        <i class="fas fa-paper-plane me-2"></i>{{ $appointment->customer_rating ? 'Update Review' : 'Submit Review' }}
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    @endif
+                </div>
+
             </div>
         </div>
     </div>
