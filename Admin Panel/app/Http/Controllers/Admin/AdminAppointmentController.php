@@ -9,7 +9,7 @@ use App\Services\Shared\AppointmentService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
-use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule;
 
 class AdminAppointmentController extends Controller
 {
@@ -109,6 +109,38 @@ class AdminAppointmentController extends Controller
 
     // ── Status transitions ────────────────────────────────────────────────────
 
+    public function updateStatus(Request $request, int $id): RedirectResponse
+    {
+        $appointment = Appointment::findOrFail($id);
+
+        $allowedStatuses = array_values(array_unique(array_merge(
+            Appointment::TRANSITIONS[$appointment->status] ?? [],
+            $appointment->status !== Appointment::STATUS_CANCELLED ? [Appointment::STATUS_CANCELLED] : []
+        )));
+
+        if (empty($allowedStatuses)) {
+            return back()->withErrors(['error' => 'No further status changes are available for this appointment.']);
+        }
+
+        $request->validate([
+            'status' => ['required', Rule::in($allowedStatuses)],
+            'notes'  => 'nullable|string|max:500',
+        ]);
+
+        try {
+            $this->service->updateStatus(
+                $appointment,
+                $request->string('status')->toString(),
+                auth('admin')->id(),
+                $request->notes
+            );
+        } catch (\DomainException $e) {
+            return back()->withErrors(['error' => $e->getMessage()]);
+        }
+
+        return back()->with('success', 'Appointment status updated successfully.');
+    }
+
     /**
      * Admin force-confirms an appointment (bypasses state machine's normal path).
      */
@@ -128,7 +160,7 @@ class AdminAppointmentController extends Controller
                 $request->expert_id,
                 $request->notes,
                 true,
-                Auth::id(),
+                auth('admin')->id(),
                 $request->input('meeting_link')
             );
         } catch (\DomainException $e) {
@@ -143,7 +175,7 @@ class AdminAppointmentController extends Controller
         $request->validate(['reason' => 'required|string|max:500']);
 
         $appointment = Appointment::findOrFail($id);
-        $userId = Auth::id();
+        $userId = auth('admin')->id();
 
         $this->service->cancel($appointment, $request->reason, true, $userId);
 
@@ -153,7 +185,7 @@ class AdminAppointmentController extends Controller
     public function complete(Request $request, int $id): RedirectResponse
     {
         $appointment = Appointment::findOrFail($id);
-        $userId = Auth::id();
+        $userId = auth('admin')->id();
 
         try {
             $this->service->complete($appointment, $userId);
@@ -184,7 +216,7 @@ class AdminAppointmentController extends Controller
                 $appointment,
                 $request->refund_type === 'full' ? null : (float) $request->amount,
                 $request->reason,
-                Auth::id()
+                auth('admin')->id()
             );
         } catch (\DomainException $e) {
             return back()->withErrors(['error' => $e->getMessage()]);
@@ -210,7 +242,7 @@ class AdminAppointmentController extends Controller
             $this->service->reassignExpert(
                 $appointment,
                 (int) $request->expert_id,
-                Auth::id(),
+                auth('admin')->id(),
                 $request->reason
             );
         } catch (\DomainException $e) {
