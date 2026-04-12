@@ -96,6 +96,7 @@
                         <tr>
                             <th class="ps-4 fw-semibold text-muted text-uppercase small">Product</th>
                             <th class="text-center fw-semibold text-muted text-uppercase small" style="width: 120px;">Current Qty</th>
+                            <th class="text-center fw-semibold text-muted text-uppercase small" style="width: 120px;">Reserved</th>
                             <th class="text-center fw-semibold text-muted text-uppercase small" style="width: 140px;">Low Threshold</th>
                             <th class="text-center fw-semibold text-muted text-uppercase small">Status</th>
                             <th class="text-center pe-4 fw-semibold text-muted text-uppercase small" style="width: 250px;">Update Stock</th>
@@ -114,6 +115,9 @@
                                 <span class="fs-5 fw-bold {{ $stock->quantity <= 0 ? 'text-danger' : ($stock->isLow() ? 'text-warning' : 'text-success') }}">
                                     {{ $stock->quantity }}
                                 </span>
+                            </td>
+                            <td class="text-center">
+                                <span class="badge bg-light border text-dark fs-6">{{ (int) $stock->reserved_quantity }}</span>
                             </td>
                             <td class="text-center">
                                 <span class="badge bg-light border text-dark fs-6">{{ $stock->low_stock_threshold ?? '—' }}</span>
@@ -153,5 +157,39 @@
             {{ $stocks->links() }}
         </div>
     @endif
+</div>
+
+<div class="card border-0 shadow-sm hover-card mt-4" style="border-radius:16px;">
+    <div class="card-header bg-white border-bottom py-3">
+        <h6 class="mb-0 fw-bold text-dark"><i class="bi bi-clock-history me-2 text-primary fs-5"></i>Recent Stock Movements</h6>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th class="ps-4 fw-semibold text-muted text-uppercase small">Time</th>
+                        <th class="fw-semibold text-muted text-uppercase small">Product</th>
+                        <th class="fw-semibold text-muted text-uppercase small">Type</th>
+                        <th class="fw-semibold text-muted text-uppercase small">Qty</th>
+                        <th class="pe-4 fw-semibold text-muted text-uppercase small">Reference</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse($movements ?? [] as $movement)
+                        <tr>
+                            <td class="ps-4 small text-muted">{{ $movement->created_at?->format('d M, Y H:i') ?? '—' }}</td>
+                            <td class="small fw-medium text-dark">{{ $movement->product->name ?? 'Deleted Product' }}</td>
+                            <td class="small text-uppercase">{{ $movement->type }}</td>
+                            <td class="small fw-bold text-dark">{{ (int) $movement->quantity }}</td>
+                            <td class="pe-4 small text-muted">{{ $movement->reference ?? 'manual' }}</td>
+                        </tr>
+                    @empty
+                        <tr><td colspan="5" class="text-center text-muted py-4">No movement records available.</td></tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+    </div>
 </div>
 @endsection
