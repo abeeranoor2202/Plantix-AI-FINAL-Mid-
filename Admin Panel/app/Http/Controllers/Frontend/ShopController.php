@@ -105,7 +105,7 @@ class ShopController extends Controller
             default      => ['created_at', 'desc'],
         };
 
-        $products   = $query->orderBy(...$sort)->with(['category', 'primaryImage', 'vendor'])->get();
+        $products   = $query->orderBy(...$sort)->with(['category', 'primaryImage', 'vendor', 'stock'])->get();
         $categories = Category::orderBy('name')->get();
         $vendors    = Vendor::where('is_active', true)->where('is_approved', true)->orderBy('title')->get();
         $filterAttributes = Attribute::with('values')
@@ -127,6 +127,14 @@ class ShopController extends Controller
             'vendor'          => $p->vendor?->title,
             'vendor_id'       => $p->vendor_id,
             'rating_avg'      => (float) ($p->rating_avg ?? 0),
+            'track_stock'     => (bool) $p->track_stock,
+            'stock_quantity'  => (int) ($p->stock?->quantity ?? $p->stock_quantity ?? 0),
+            'is_available'    => (bool) ($p->stock?->is_available ?? true),
+            'availability_label' => $p->track_stock
+                ? (($p->stock?->is_available ?? true) === false
+                    ? 'Unavailable'
+                    : ((int) ($p->stock?->quantity ?? $p->stock_quantity ?? 0) <= 0 ? 'Out of Stock' : 'In Stock'))
+                : 'In Stock',
             'image_url'       => $p->primaryImage
                                     ? Storage::url($p->primaryImage->path)
                                     : asset('assets/img/products/urea_sona.png'),
@@ -162,7 +170,7 @@ class ShopController extends Controller
                 ->get(['id', 'order_number', 'status', 'created_at']);
         }
 
-        $related = Product::active()
+        $related = Product::with('stock')->active()
                           ->where('is_active', true)
                           ->inStock()
                           ->where('category_id', $product->category_id)
