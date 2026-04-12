@@ -29,8 +29,9 @@ class AdminAiModuleController extends Controller
             'crop_recommendations'       => CropRecommendation::count(),
             'crop_plans'                 => CropPlan::count(),
             'disease_reports'            => CropDiseaseReport::count(),
-            'disease_pending'            => CropDiseaseReport::pending()->count(),
+            'pending_disease_reports'    => CropDiseaseReport::pending()->count(),
             'fertilizer_recommendations' => FertilizerRecommendation::count(),
+            'seasonal_data'              => SeasonalData::count(),
         ];
 
         $recentDiseaseReports = CropDiseaseReport::with('user:id,name,email')
