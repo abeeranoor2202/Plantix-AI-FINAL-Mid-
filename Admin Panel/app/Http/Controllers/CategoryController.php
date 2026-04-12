@@ -27,11 +27,15 @@ class CategoryController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
-            'name'        => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'active'      => 'nullable|boolean',
+            'name'                 => 'required|string|max:255',
+            'description'          => 'nullable|string',
+            'active'               => 'nullable|boolean',
+            'text_review_enabled'  => 'nullable|boolean',
+            'image_review_enabled' => 'nullable|boolean',
         ]);
         $data['active'] = $request->boolean('active');
+        $data['text_review_enabled'] = $request->boolean('text_review_enabled', true);
+        $data['image_review_enabled'] = $request->boolean('image_review_enabled', false);
 
         if ($request->hasFile('image')) {
             $data['image'] = $request->file('image')->store('categories', 'public');
@@ -57,11 +61,15 @@ class CategoryController extends Controller
         $category = Category::findOrFail($id);
 
         $data = $request->validate([
-            'name'        => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'active'      => 'nullable|boolean',
+            'name'                 => 'required|string|max:255',
+            'description'          => 'nullable|string',
+            'active'               => 'nullable|boolean',
+            'text_review_enabled'  => 'nullable|boolean',
+            'image_review_enabled' => 'nullable|boolean',
         ]);
         $data['active'] = $request->boolean('active');
+        $data['text_review_enabled'] = $request->boolean('text_review_enabled', true);
+        $data['image_review_enabled'] = $request->boolean('image_review_enabled', false);
 
         if ($request->hasFile('image')) {
             if ($category->image) Storage::disk('public')->delete($category->image);
