@@ -86,33 +86,6 @@
                         <a href="{{ route('admin.stock.index') }}" class="btn-agri btn-agri-outline" style="padding: 12px 32px; height: 48px; display: flex; align-items: center; justify-content: center; text-decoration: none; font-weight: 600;">Cancel</a>
                     </div>
                 </form>
-
-                {{-- Separate Quick Adjust Section --}}
-                <div style="margin-top: 48px; padding: 32px; border-radius: 20px; background: #fffbeb; border: 1px solid #fde68a;">
-                    <h5 style="font-size: 16px; font-weight: 800; color: #92400e; margin-bottom: 8px; display: flex; align-items: center; gap: 10px;">
-                        <i class="fas fa-bolt"></i> Quick Inventory Adjustment
-                    </h5>
-                    <p style="font-size: 13px; color: #b45309; font-weight: 600; margin-bottom: 24px;">Use this to quickly add or remove stock without manual recalculation.</p>
-                    
-                    <form method="POST" action="{{ route('admin.stock.adjust', $stock->id) }}">
-                        @csrf
-                        <div class="row g-3">
-                            <div class="col-md-3">
-                                <label class="agri-label" style="color: #92400e;">ADJUSTMENT (+/-)</label>
-                                <input type="number" name="adjustment" class="form-agri" placeholder="e.g. 50 or -10" required 
-                                       style="background: white; border-color: #fde68a; height: 44px; font-weight: 700;">
-                            </div>
-                            <div class="col-md-6">
-                                <label class="agri-label" style="color: #92400e;">REASON FOR ADJUSTMENT</label>
-                                <input type="text" name="note" class="form-agri" placeholder="Restock, inventory count, etc..."
-                                       style="background: white; border-color: #fde68a; height: 44px;">
-                            </div>
-                            <div class="col-md-3 d-flex align-items-end">
-                                <button type="submit" class="btn-agri" style="width: 100%; height: 44px; background: #d97706; color: white; border: none; font-weight: 700; border-radius: 12px;">Apply Adjustment</button>
-                            </div>
-                        </div>
-                    </form>
-                </div>
             </div>
         </div>
     </div>
