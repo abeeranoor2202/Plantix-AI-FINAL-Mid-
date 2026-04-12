@@ -16,7 +16,7 @@ use Carbon\Carbon;
  * ┌─────────────────────┬────────────────────────────┬───────────────────────────┬──────────────────────────────┐
  * │ Name                │ Email                      │ Password                  │ Role                         │
  * ├─────────────────────┼────────────────────────────┼───────────────────────────┼──────────────────────────────┤
- * │ Super Admin         │ admin@plantix.com          │ Admin@123456              │ (null role_id — unrestricted)│
+ * │ Super Admin         │ admin@gmail.com            │ 12345678              │ (null role_id — unrestricted)│
  * │ Bilal Chaudhry      │ catalog@plantix.com        │ Staff@123456              │ Catalog Manager              │
  * │ Sara Ahmed          │ users@plantix.com          │ Staff@123456              │ User & Vendor Manager        │
  * │ Nadia Khan          │ comms@plantix.com          │ Staff@123456              │ Communications Manager       │
@@ -32,11 +32,11 @@ class AdminSuperUserSeeder extends Seeder
         // ── Super Admin ───────────────────────────────────────────────────────
         // role_id = NULL → bypasses ALL permission middleware (unrestricted access).
         DB::table('users')->updateOrInsert(
-            ['email' => 'admin@plantix.com'],
+            ['email' => 'admin@gmail.com'],
             [
                 'name'                => 'Super Admin',
-                'email'               => 'admin@plantix.com',
-                'password'            => Hash::make('Admin@123456'),
+                'email'               => 'admin@gmail.com',
+                'password'            => Hash::make('12345678'),
                 'phone'               => '+923001000001',
                 'role'                => 'admin',
                 'role_id'             => null,
