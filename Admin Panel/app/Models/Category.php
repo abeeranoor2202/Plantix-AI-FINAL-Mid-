@@ -37,4 +37,9 @@ class Category extends Model
             ->withTimestamps()
             ->orderBy('category_attribute.sort_order');
     }
+
+    public function coupons(): BelongsToMany
+    {
+        return $this->belongsToMany(Coupon::class, 'coupon_category');
+    }
 }
