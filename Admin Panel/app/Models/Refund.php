@@ -37,4 +37,14 @@ class Refund extends Model
     // ── Helpers ───────────────────────────────────────────────────────────────
 
     public function isProcessed(): bool { return $this->status === 'processed'; }
+
+    public function getMethodLabelAttribute(): string
+    {
+        return match ($this->method) {
+            'wallet'  => 'Wallet',
+            'original' => 'Original Payment',
+            'manual'  => 'Manual',
+            default   => ucfirst((string) $this->method),
+        };
+    }
 }
