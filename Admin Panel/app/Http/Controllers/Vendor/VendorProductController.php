@@ -98,7 +98,13 @@ class VendorProductController extends Controller
             }
 
             if (! empty($data['stock_quantity'])) {
-                $this->stock->setStock($product, (int) $data['stock_quantity'], $vendorId);
+                $this->stock->setStock(
+                    $product,
+                    (int) $data['stock_quantity'],
+                    $vendorId,
+                    auth('vendor')->id(),
+                    isset($data['low_stock_threshold']) ? (int) $data['low_stock_threshold'] : null,
+                );
             }
         });
 
@@ -141,7 +147,13 @@ class VendorProductController extends Controller
             );
 
             if (isset($data['stock_quantity'])) {
-                $this->stock->setStock($product, (int) $data['stock_quantity'], $product->vendor_id);
+                $this->stock->setStock(
+                    $product,
+                    (int) $data['stock_quantity'],
+                    (int) $product->vendor_id,
+                    auth('vendor')->id(),
+                    isset($data['low_stock_threshold']) ? (int) $data['low_stock_threshold'] : null,
+                );
             }
         });
 
