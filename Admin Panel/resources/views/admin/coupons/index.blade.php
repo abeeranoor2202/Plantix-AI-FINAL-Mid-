@@ -9,16 +9,16 @@
                 <i class="fas fa-chevron-right" style="font-size: 10px; color: var(--agri-text-muted);"></i>
                 <span style="color: var(--agri-primary); font-size: 14px; font-weight: 600;">Coupons</span>
             </div>
-            <h1 style="font-size: 28px; font-weight: 700; color: var(--agri-primary-dark); margin: 0;">Promotional Incentives</h1>
-            <p style="color: var(--agri-text-muted); margin: 4px 0 0 0;">Create and manage promotional discounts and campaigns.</p>
+            <h1 style="font-size: 28px; font-weight: 700; color: var(--agri-primary-dark); margin: 0;">Coupons</h1>
+            <p style="color: var(--agri-text-muted); margin: 4px 0 0 0;">Create and manage discount coupons.</p>
         </div>
         @if($id != '')
             <a href="{{ route('admin.coupons.create') }}/{{ $id }}" class="btn-agri btn-agri-primary" style="text-decoration: none; display: flex; align-items: center; gap: 10px; font-weight: 700;">
-                <i class="fas fa-plus"></i> Generate Campaign
+                <i class="fas fa-plus"></i> Add Coupon
             </a>
         @else
             <a href="{{ route('admin.coupons.create') }}" class="btn-agri btn-agri-primary" style="text-decoration: none; display: flex; align-items: center; gap: 10px; font-weight: 700;">
-                <i class="fas fa-plus"></i> Generate Campaign
+                <i class="fas fa-plus"></i> Add Coupon
             </a>
         @endif
     </div>
@@ -42,6 +42,8 @@
                         <th style="padding: 16px 24px; font-size: 12px; font-weight: 600; color: var(--agri-text-muted); text-transform: uppercase; border: none;">Type</th>
                         <th style="padding: 16px 24px; font-size: 12px; font-weight: 600; color: var(--agri-text-muted); text-transform: uppercase; border: none;">Value</th>
                         <th style="padding: 16px 24px; font-size: 12px; font-weight: 600; color: var(--agri-text-muted); text-transform: uppercase; border: none;">Vendor</th>
+                        <th style="padding: 16px 24px; font-size: 12px; font-weight: 600; color: var(--agri-text-muted); text-transform: uppercase; border: none;">Usage</th>
+                        <th style="padding: 16px 24px; font-size: 12px; font-weight: 600; color: var(--agri-text-muted); text-transform: uppercase; border: none;">Savings</th>
                         <th style="padding: 16px 24px; font-size: 12px; font-weight: 600; color: var(--agri-text-muted); text-transform: uppercase; border: none;">Expiry</th>
                         <th style="padding: 16px 24px; font-size: 12px; font-weight: 600; color: var(--agri-text-muted); text-transform: uppercase; border: none;">Status</th>
                         <th class="text-end" style="padding: 16px 24px; font-size: 12px; font-weight: 600; color: var(--agri-text-muted); text-transform: uppercase; border: none;">Actions</th>
@@ -54,14 +56,22 @@
                             <td class="px-4 py-3">{{ ucfirst($coupon->type) }}</td>
                             <td class="px-4 py-3">{{ $coupon->type === 'percentage' ? $coupon->value.'%' : '$'.number_format($coupon->value, 2) }}</td>
                             <td class="px-4 py-3">{{ $coupon->vendor ? $coupon->vendor->title : 'All' }}</td>
+                            <td class="px-4 py-3">{{ (int) $coupon->used_count }}@if($coupon->usage_limit) / {{ (int) $coupon->usage_limit }} @endif</td>
+                            <td class="px-4 py-3">PKR {{ number_format((float) ($coupon->discount_total ?? 0), 2) }}</td>
                             <td class="px-4 py-3">{{ $coupon->expires_at ? \Carbon\Carbon::parse($coupon->expires_at)->format('d M Y') : '—' }}</td>
                             <td class="px-4 py-3">
-                                <span class="badge rounded-pill {{ $coupon->is_active ? 'bg-success' : 'bg-secondary' }}">{{ $coupon->is_active ? 'Active' : 'Inactive' }}</span>
+                                <div class="d-flex flex-column gap-1">
+                                    <span class="badge rounded-pill {{ $coupon->is_active ? 'bg-success' : 'bg-secondary' }}">{{ $coupon->is_active ? 'Active' : 'Inactive' }}</span>
+                                    <span class="badge rounded-pill {{ $coupon->is_visible_to_all ? 'bg-primary' : 'bg-warning text-dark' }}">{{ $coupon->is_visible_to_all ? 'Global' : 'Restricted' }}</span>
+                                </div>
                             </td>
                             <td class="px-4 py-3">
                                 <div class="text-end" style="display: flex; justify-content: flex-end; gap: 8px;">
                                     <a href="{{ route('admin.coupons.edit', $coupon->id) }}" class="btn-agri" style="padding: 8px; background: var(--agri-bg); color: #2563eb; border-radius: 999px;" title="View"><i class="fas fa-eye"></i></a>
                                     <a href="{{ route('admin.coupons.edit', $coupon->id) }}" class="btn-agri" style="padding: 8px; background: var(--agri-bg); color: var(--agri-primary); border-radius: 999px;" title="Edit"><i class="fas fa-pen"></i></a>
+                                    <button class="btn-agri toggle-coupon-btn" data-id="{{ $coupon->id }}" style="padding: 8px; background: #eff6ff; color: #1d4ed8; border-radius: 999px; border: none;" title="Toggle Status">
+                                        <i class="fas fa-power-off"></i>
+                                    </button>
                                     <button class="btn-agri delete-coupon-btn" data-id="{{ $coupon->id }}" style="padding: 8px; background: #fef2f2; color: #ef4444; border-radius: 999px; border: none;" title="Delete">
                                         <i class="fas fa-trash"></i>
                                     </button>
@@ -69,7 +79,7 @@
                             </td>
                         </tr>
                     @empty
-                        <tr><td colspan="7" class="text-center py-5" style="color: var(--agri-text-muted);">No coupons found.</td></tr>
+                        <tr><td colspan="9" class="text-center py-5" style="color: var(--agri-text-muted);">No coupons found.</td></tr>
                     @endforelse
                 </tbody>
             </table>
@@ -100,6 +110,17 @@ $(document).ready(function () {
                 error: function () { alert('Delete failed.'); }
             });
         }
+    });
+
+    $(document).on('click', '.toggle-coupon-btn', function () {
+        var id = $(this).data('id');
+        $.ajax({
+            url: '{{ route("admin.coupons.toggle", ["id" => "__ID__"]) }}'.replace('__ID__', id),
+            method: 'POST',
+            data: { _token: csrfToken },
+            success: function () { location.reload(); },
+            error: function () { alert('Status update failed.'); }
+        });
     });
 });
 </script>
