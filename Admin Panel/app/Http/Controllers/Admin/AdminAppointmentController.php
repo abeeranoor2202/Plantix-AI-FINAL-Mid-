@@ -9,6 +9,7 @@ use App\Services\Shared\AppointmentService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
+use Illuminate\Support\Facades\Auth;
 
 class AdminAppointmentController extends Controller
 {
@@ -127,7 +128,7 @@ class AdminAppointmentController extends Controller
                 $request->expert_id,
                 $request->notes,
                 true,
-                $request->user()->id,
+                Auth::id(),
                 $request->input('meeting_link')
             );
         } catch (\DomainException $e) {
@@ -142,11 +143,7 @@ class AdminAppointmentController extends Controller
         $request->validate(['reason' => 'required|string|max:500']);
 
         $appointment = Appointment::findOrFail($id);
-        $userId = $request->user()?->id;
-
-        if (!$userId) {
-            return back()->withErrors(['error' => 'User not authenticated.']);
-        }
+        $userId = Auth::id();
 
         $this->service->cancel($appointment, $request->reason, true, $userId);
 
@@ -156,11 +153,7 @@ class AdminAppointmentController extends Controller
     public function complete(Request $request, int $id): RedirectResponse
     {
         $appointment = Appointment::findOrFail($id);
-        $userId = $request->user()?->id;
-
-        if (!$userId) {
-            return back()->withErrors(['error' => 'User not authenticated.']);
-        }
+        $userId = Auth::id();
 
         try {
             $this->service->complete($appointment, $userId);
@@ -186,17 +179,12 @@ class AdminAppointmentController extends Controller
             'reason'      => 'required|string|max:500',
         ]);
 
-        $userId = $request->user()?->id;
-        if (!$userId) {
-            return back()->withErrors(['error' => 'User not authenticated.']);
-        }
-
         try {
             $this->service->adminRefund(
                 $appointment,
                 $request->refund_type === 'full' ? null : (float) $request->amount,
                 $request->reason,
-                $userId
+                Auth::id()
             );
         } catch (\DomainException $e) {
             return back()->withErrors(['error' => $e->getMessage()]);
@@ -218,16 +206,11 @@ class AdminAppointmentController extends Controller
 
         $appointment = Appointment::findOrFail($id);
 
-        $userId = $request->user()?->id;
-        if (!$userId) {
-            return back()->withErrors(['error' => 'User not authenticated.']);
-        }
-
         try {
             $this->service->reassignExpert(
                 $appointment,
                 (int) $request->expert_id,
-                $userId,
+                Auth::id(),
                 $request->reason
             );
         } catch (\DomainException $e) {
