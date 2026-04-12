@@ -311,6 +311,9 @@ class AdminProductController extends Controller
                         'attribute_id' => $attribute->id,
                         'value' => json_encode($selectedValues->all(), JSON_UNESCAPED_UNICODE),
                         'value_type' => $attribute->type,
+                        'name' => $attributeName,
+                        'type' => 'multiple',
+                        'price' => 0,
                     ];
                 }
 
@@ -348,6 +351,9 @@ class AdminProductController extends Controller
                 'attribute_id' => $attribute->id,
                 'value' => $value,
                 'value_type' => $attribute->type,
+                'name' => $attributeName,
+                'type' => 'single',
+                'price' => 0,
             ];
         }
 
