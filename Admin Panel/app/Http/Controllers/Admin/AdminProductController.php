@@ -89,7 +89,13 @@ class AdminProductController extends Controller
 
             // ── Initial stock ─────────────────────────────────────────────────
             if (! empty($data['stock_quantity'])) {
-                $this->stock->setStock($product, (int) $data['stock_quantity'], $data['vendor_id']);
+                $this->stock->setStock(
+                    $product,
+                    (int) $data['stock_quantity'],
+                    (int) $data['vendor_id'],
+                    auth('admin')->id(),
+                    isset($data['low_stock_threshold']) ? (int) $data['low_stock_threshold'] : null,
+                );
             }
         });
 
@@ -154,7 +160,13 @@ class AdminProductController extends Controller
             );
 
             if (isset($data['stock_quantity'])) {
-                $this->stock->setStock($product, (int) $data['stock_quantity'], $product->vendor_id);
+                $this->stock->setStock(
+                    $product,
+                    (int) $data['stock_quantity'],
+                    (int) $product->vendor_id,
+                    auth('admin')->id(),
+                    isset($data['low_stock_threshold']) ? (int) $data['low_stock_threshold'] : null,
+                );
             }
         });
 
