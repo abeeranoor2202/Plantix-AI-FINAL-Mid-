@@ -23,7 +23,7 @@
             <form method="GET" action="{{ route('admin.returns.index') }}" style="display: flex; align-items: center; gap: 10px;">
                 <select name="status" class="form-agri" style="height: 42px; min-width: 180px; margin-bottom: 0;">
                     <option value="">All Statuses</option>
-                    @foreach(['pending','approved','rejected','refunded'] as $s)
+                    @foreach(['pending','approved','rejected','refund_processing','completed'] as $s)
                         <option value="{{ $s }}" @selected(request('status') === $s)>{{ ucfirst($s) }}</option>
                     @endforeach
                 </select>
@@ -58,7 +58,7 @@
                                 <a href="{{ route('admin.orders.show', $return->order_id) }}" style="text-decoration: none; color: var(--agri-primary); font-weight: 700;">#{{ $return->order_id }}</a>
                             </td>
                             <td class="px-4 py-3">{{ $return->user->name ?? 'External User' }}</td>
-                            <td class="px-4 py-3">{{ \Illuminate\Support\Str::limit($return->reason->reason ?? $return->reason_text ?? 'Not Specified', 60) }}</td>
+                            <td class="px-4 py-3">{{ \Illuminate\Support\Str::limit($return->reason->title ?? $return->reason->reason ?? $return->notes ?? 'Not Specified', 60) }}</td>
                             <td class="px-4 py-3">
                                 @if($return->refund)
                                     <span style="font-weight: 700; color: var(--agri-text-heading);">{{ config('plantix.currency_symbol') }}{{ number_format($return->refund->amount, 2) }}</span>
@@ -68,7 +68,7 @@
                             </td>
                             <td class="px-4 py-3">
                                 @php($st = strtolower((string) $return->status))
-                                <span class="badge rounded-pill {{ $st === 'refunded' ? 'bg-success' : ($st === 'approved' ? 'bg-info' : ($st === 'pending' ? 'bg-warning text-dark' : 'bg-danger')) }}">
+                                <span class="badge rounded-pill {{ in_array($st, ['completed']) ? 'bg-success' : ($st === 'approved' ? 'bg-info' : ($st === 'pending' ? 'bg-warning text-dark' : ($st === 'refund_processing' ? 'bg-primary' : 'bg-danger'))) }}">
                                     {{ strtoupper($st) }}
                                 </span>
                             </td>
