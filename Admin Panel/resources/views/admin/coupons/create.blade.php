@@ -79,7 +79,7 @@
                             <div style="width: 32px; height: 32px; background: #ECFDF5; color: #059669; border-radius: 8px; display: flex; align-items: center; justify-content: center;">
                                 <i class="fas fa-crosshairs"></i>
                             </div>
-                            Ecosystem Targeting & Governance
+                            Targeting & Control
                         </h4>
 
                         <div class="row g-4">
@@ -100,8 +100,8 @@
                                 <div style="background: var(--agri-bg); padding: 20px; border-radius: 12px; border: 1px solid var(--agri-border); transition: 0.2s; cursor: pointer;" onclick="document.getElementById('coupon_public').click();" onmouseover="this.style.borderColor='var(--agri-primary)'" onmouseout="this.style.borderColor='var(--agri-border)'">
                                     <div class="form-check form-switch" style="padding-left: 0; display: flex; justify-content: space-between; align-items: center; margin: 0; pointer-events: none;">
                                         <label class="agri-label mb-0" style="margin-bottom: 0;">
-                                            <div style="font-weight: 800; color: var(--agri-text-heading); font-size: 14px; text-transform: none;">Global Ecosystem Visibility</div>
-                                            <div style="font-size: 11px; font-weight: 600; color: var(--agri-text-muted); margin-top: 4px; text-transform: none; letter-spacing: 0;">Broadcast to all authenticated user nodes.</div>
+                                            <div style="font-weight: 800; color: var(--agri-text-heading); font-size: 14px; text-transform: none;">Show to all users</div>
+                                            <div style="font-size: 11px; font-weight: 600; color: var(--agri-text-muted); margin-top: 4px; text-transform: none; letter-spacing: 0;">Apply this coupon to all logged-in users.</div>
                                         </label>
                                         <input type="checkbox" class="form-check-input coupon_public" id="coupon_public" style="width: 44px; height: 24px; pointer-events: auto;">
                                     </div>
