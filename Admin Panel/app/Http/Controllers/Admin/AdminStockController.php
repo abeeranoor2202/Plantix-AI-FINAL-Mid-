@@ -136,4 +136,17 @@ class AdminStockController extends Controller
         return back()->with('success', 'Stock deleted successfully.');
     }
 
+    /**
+     * Toggle stock availability.
+     * Route: PATCH /admin/stock/{id}/toggle
+     */
+    public function toggle(int $id): RedirectResponse
+    {
+        $stock = Stock::findOrFail($id);
+        $stock->is_available = ! $stock->is_available;
+        $stock->save();
+
+        return back()->with('success', 'Stock status updated');
+    }
+
 }
