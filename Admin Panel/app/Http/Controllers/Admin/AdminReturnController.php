@@ -26,7 +26,7 @@ class AdminReturnController extends Controller
         }
 
         $returns  = $query->paginate(20)->withQueryString();
-        $statuses = ['pending', 'approved', 'rejected', 'refunded'];
+        $statuses = ['pending', 'approved', 'rejected', 'refund_processing', 'completed'];
 
         return view('admin.returns.index', compact('returns', 'statuses'));
     }
@@ -45,7 +45,7 @@ class AdminReturnController extends Controller
         $request->validate(['admin_notes' => 'nullable|string|max:1000']);
 
         $return = ReturnRequest::findOrFail($id);
-        $this->service->approve($return, $request->admin_notes);
+        $this->service->forceApprove($return, $request->admin_notes, auth('admin')->user());
 
         return back()->with('success', 'Return request approved.');
     }
@@ -55,7 +55,7 @@ class AdminReturnController extends Controller
         $request->validate(['admin_notes' => 'required|string|max:1000']);
 
         $return = ReturnRequest::findOrFail($id);
-        $this->service->reject($return, $request->admin_notes);
+        $this->service->forceReject($return, $request->admin_notes, auth('admin')->user());
 
         return back()->with('success', 'Return request rejected.');
     }
@@ -63,8 +63,8 @@ class AdminReturnController extends Controller
     public function processRefund(Request $request, int $id): RedirectResponse
     {
         $request->validate([
-            'amount'          => 'required|numeric|min:0.01',
-            'method'          => 'required|in:original_payment,bank_transfer',
+            'amount'          => 'nullable|numeric|min:0.01',
+            'method'          => 'required|in:wallet,original,manual,original_payment,bank_transfer',
             'transaction_ref' => 'nullable|string|max:191',
             'notes'           => 'nullable|string|max:500',
         ]);
