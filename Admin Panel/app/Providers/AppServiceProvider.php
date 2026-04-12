@@ -14,6 +14,7 @@ use App\Services\Admin\ZoneService;
 // ── Shared (multi-panel) services ─────────────────────────────────────────────
 use App\Services\Shared\AppointmentService;
 use App\Services\Shared\CartCheckoutService;
+use App\Services\Shared\CouponService;
 use App\Services\Shared\NotificationService;
 use App\Services\Shared\OrderService;
 use App\Services\Shared\ReturnRefundService;
@@ -50,6 +51,7 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton(NotificationService::class);
         $this->app->singleton(WalletService::class);
         $this->app->singleton(StockService::class);
+        $this->app->singleton(CouponService::class);
         $this->app->singleton(AppointmentService::class);
         $this->app->singleton(ReturnRefundService::class);
 
@@ -63,6 +65,7 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton(CartCheckoutService::class, function ($app) {
             return new CartCheckoutService(
                 $app->make(StockService::class),
+                $app->make(CouponService::class),
             );
         });
 
