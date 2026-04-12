@@ -282,6 +282,54 @@ window.CART_ROUTES = {
                         <div id="vendorFilters" class="d-flex flex-column filter-scroll mt-2"></div>
                     </div>
 
+                    {{-- Dynamic Attribute Filters --}}
+                    @if(isset($filterAttributes) && $filterAttributes->count())
+                    <div class="sidebar-section mt-4 pt-3 border-top">
+                        <h4><i class="fas fa-sliders-h me-2 text-success" style="font-size:14px;"></i>Attribute Filters</h4>
+                        <form method="GET" action="{{ route('shop') }}" class="mt-2 d-flex flex-column gap-3">
+                            @if(request()->filled('search'))
+                                <input type="hidden" name="search" value="{{ request('search') }}">
+                            @endif
+                            @if(request()->filled('category'))
+                                <input type="hidden" name="category" value="{{ request('category') }}">
+                            @endif
+                            @if(request()->filled('vendor'))
+                                <input type="hidden" name="vendor" value="{{ request('vendor') }}">
+                            @endif
+                            @if(request()->filled('min_price'))
+                                <input type="hidden" name="min_price" value="{{ request('min_price') }}">
+                            @endif
+                            @if(request()->filled('max_price'))
+                                <input type="hidden" name="max_price" value="{{ request('max_price') }}">
+                            @endif
+
+                            @foreach($filterAttributes as $attribute)
+                                @php($attrName = $attribute->name ?: $attribute->title)
+                                <div>
+                                    <label class="fw-bold" style="font-size: 12px; color: var(--agri-text-heading); margin-bottom: 6px; display:block;">{{ $attrName }}</label>
+                                    @if($attribute->type === 'number')
+                                        <div class="price-inputs" style="gap:6px;">
+                                            <input type="number" step="any" name="attr_min[{{ $attribute->id }}]" value="{{ $rawAttrMin[$attribute->id] ?? '' }}" placeholder="Min">
+                                            <input type="number" step="any" name="attr_max[{{ $attribute->id }}]" value="{{ $rawAttrMax[$attribute->id] ?? '' }}" placeholder="Max">
+                                        </div>
+                                    @elseif(in_array($attribute->type, ['select', 'multi-select'], true))
+                                        <select name="attr[{{ $attribute->id }}]" class="form-agri" style="margin-bottom:0; font-size:13px;">
+                                            <option value="">Any</option>
+                                            @foreach($attribute->values as $option)
+                                                <option value="{{ $option->value }}" @selected(($rawAttrFilters[$attribute->id] ?? '') === $option->value)>{{ $option->value }}</option>
+                                            @endforeach
+                                        </select>
+                                    @else
+                                        <input type="text" name="attr[{{ $attribute->id }}]" class="form-agri" style="margin-bottom:0; font-size:13px;" value="{{ $rawAttrFilters[$attribute->id] ?? '' }}" placeholder="Enter value">
+                                    @endif
+                                </div>
+                            @endforeach
+
+                            <button type="submit" class="price-apply-btn w-100"><i class="fas fa-filter me-1"></i> Apply Attribute Filters</button>
+                        </form>
+                    </div>
+                    @endif
+
                     <div class="mt-4 pt-3 border-top">
                         <button id="clearFilters" class="clear-filters-btn w-100 border-0"><i class="fas fa-sync-alt me-2"></i> Clear All Filters</button>
                     </div>
