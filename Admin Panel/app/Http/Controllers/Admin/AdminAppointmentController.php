@@ -142,8 +142,13 @@ class AdminAppointmentController extends Controller
         $request->validate(['reason' => 'required|string|max:500']);
 
         $appointment = Appointment::findOrFail($id);
+        $userId = $request->user()?->id;
 
-        $this->service->cancel($appointment, $request->reason, true, $request->user()->id);
+        if (!$userId) {
+            return back()->withErrors(['error' => 'User not authenticated.']);
+        }
+
+        $this->service->cancel($appointment, $request->reason, true, $userId);
 
         return back()->with('success', 'Appointment cancelled.');
     }
@@ -151,9 +156,14 @@ class AdminAppointmentController extends Controller
     public function complete(Request $request, int $id): RedirectResponse
     {
         $appointment = Appointment::findOrFail($id);
+        $userId = $request->user()?->id;
+
+        if (!$userId) {
+            return back()->withErrors(['error' => 'User not authenticated.']);
+        }
 
         try {
-            $this->service->complete($appointment, $request->user()->id);
+            $this->service->complete($appointment, $userId);
         } catch (\DomainException $e) {
             return back()->withErrors(['error' => $e->getMessage()]);
         }
@@ -176,12 +186,17 @@ class AdminAppointmentController extends Controller
             'reason'      => 'required|string|max:500',
         ]);
 
+        $userId = $request->user()?->id;
+        if (!$userId) {
+            return back()->withErrors(['error' => 'User not authenticated.']);
+        }
+
         try {
             $this->service->adminRefund(
                 $appointment,
                 $request->refund_type === 'full' ? null : (float) $request->amount,
                 $request->reason,
-                $request->user()->id
+                $userId
             );
         } catch (\DomainException $e) {
             return back()->withErrors(['error' => $e->getMessage()]);
@@ -203,11 +218,16 @@ class AdminAppointmentController extends Controller
 
         $appointment = Appointment::findOrFail($id);
 
+        $userId = $request->user()?->id;
+        if (!$userId) {
+            return back()->withErrors(['error' => 'User not authenticated.']);
+        }
+
         try {
             $this->service->reassignExpert(
                 $appointment,
                 (int) $request->expert_id,
-                $request->user()->id,
+                $userId,
                 $request->reason
             );
         } catch (\DomainException $e) {
