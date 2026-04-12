@@ -66,7 +66,10 @@
                     </div>
                     <div class="col-sm-6">
                         <div class="text-muted small text-uppercase fw-bold mb-1" style="font-size: 11px; letter-spacing: 0.5px;">Location</div>
-                        <div class="fw-bold text-dark"><i class="fas fa-map-marker-alt text-danger me-2"></i>{{ $profile?->city ?? 'City' }}, {{ $profile?->country ?? 'Country' }}</div>
+                        <div class="fw-bold text-dark"><i class="fas fa-map-marker-alt text-danger me-2"></i>{{ trim(($profile?->address ? $profile->address . ', ' : '') . ($profile?->city ?? 'City') . ', ' . ($profile?->country ?? 'Country')) }}</div>
+                        @if($profile?->map_link)
+                            <a href="{{ $profile->map_link }}" target="_blank" class="small text-primary text-decoration-none">Open map link</a>
+                        @endif
                     </div>
                     <div class="col-sm-6">
                         <div class="text-muted small text-uppercase fw-bold mb-1" style="font-size: 11px; letter-spacing: 0.5px;">Current Availability</div>
