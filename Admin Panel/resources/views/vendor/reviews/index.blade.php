@@ -86,6 +86,7 @@
                             <th class="fw-semibold text-muted text-uppercase small">Customer</th>
                             <th class="text-center fw-semibold text-muted text-uppercase small">Rating</th>
                             <th class="fw-semibold text-muted text-uppercase small">Comment</th>
+                            <th class="fw-semibold text-muted text-uppercase small">Photos</th>
                             <th class="fw-semibold text-muted text-uppercase small">Date</th>
                             <th class="text-end pe-4 fw-semibold text-muted text-uppercase small">Action</th>
                         </tr>
@@ -119,6 +120,19 @@
                                         <i class="text-muted opacity-50">No comment provided</i>
                                     @endif
                                 </span>
+                            </td>
+                            <td>
+                                @if(!empty($review->review_images))
+                                    <div class="d-flex flex-wrap gap-2">
+                                        @foreach($review->review_images as $image)
+                                            <a href="{{ asset('storage/' . $image) }}" target="_blank" rel="noopener noreferrer" title="View review image">
+                                                <img src="{{ asset('storage/' . $image) }}" alt="Review image" style="width: 40px; height: 40px; object-fit: cover; border-radius: 10px; border: 1px solid #e5e7eb;">
+                                            </a>
+                                        @endforeach
+                                    </div>
+                                @else
+                                    <span class="text-muted small">No photos</span>
+                                @endif
                             </td>
                             <td>
                                 <div class="d-flex align-items-center text-muted small fw-medium">
