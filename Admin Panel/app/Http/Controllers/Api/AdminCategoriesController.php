@@ -81,6 +81,8 @@ class AdminCategoriesController extends Controller
                     'description' => $category->description,
                     'image' => $category->image ? asset('storage/' . $category->image) : null,
                     'is_active' => $category->is_active ?? true,
+                    'text_review_enabled' => $category->text_review_enabled ?? true,
+                    'image_review_enabled' => $category->image_review_enabled ?? false,
                 ]
             ]);
         } catch (\Exception $e) {
@@ -102,12 +104,16 @@ class AdminCategoriesController extends Controller
                 'description' => 'nullable|string',
                 'image' => 'nullable|image|max:2048',
                 'is_active' => 'nullable|boolean',
+                'text_review_enabled' => 'nullable|boolean',
+                'image_review_enabled' => 'nullable|boolean',
             ]);
 
             $category = new Category();
             $category->name = $validated['name'];
             $category->description = $validated['description'] ?? '';
             $category->is_active = $validated['is_active'] ?? true;
+            $category->text_review_enabled = $validated['text_review_enabled'] ?? true;
+            $category->image_review_enabled = $validated['image_review_enabled'] ?? false;
 
             if ($request->hasFile('image')) {
                 $path = $request->file('image')->store('categories', 'public');
@@ -124,6 +130,8 @@ class AdminCategoriesController extends Controller
                     'description' => $category->description,
                     'image' => $category->image ? asset('storage/' . $category->image) : null,
                     'is_active' => $category->is_active,
+                    'text_review_enabled' => $category->text_review_enabled,
+                    'image_review_enabled' => $category->image_review_enabled,
                 ]
             ], 201);
         } catch (\Illuminate\Validation\ValidationException $e) {
@@ -160,6 +168,8 @@ class AdminCategoriesController extends Controller
                 'description' => 'nullable|string',
                 'image' => 'nullable|image|max:2048',
                 'is_active' => 'nullable|boolean',
+                'text_review_enabled' => 'nullable|boolean',
+                'image_review_enabled' => 'nullable|boolean',
             ]);
 
             if (isset($validated['name'])) {
@@ -170,6 +180,12 @@ class AdminCategoriesController extends Controller
             }
             if (isset($validated['is_active'])) {
                 $category->is_active = $validated['is_active'];
+            }
+            if (array_key_exists('text_review_enabled', $validated)) {
+                $category->text_review_enabled = $validated['text_review_enabled'];
+            }
+            if (array_key_exists('image_review_enabled', $validated)) {
+                $category->image_review_enabled = $validated['image_review_enabled'];
             }
 
             if ($request->hasFile('image')) {
@@ -190,6 +206,8 @@ class AdminCategoriesController extends Controller
                     'description' => $category->description,
                     'image' => $category->image ? asset('storage/' . $category->image) : null,
                     'is_active' => $category->is_active,
+                    'text_review_enabled' => $category->text_review_enabled,
+                    'image_review_enabled' => $category->image_review_enabled,
                 ]
             ]);
         } catch (\Illuminate\Validation\ValidationException $e) {
