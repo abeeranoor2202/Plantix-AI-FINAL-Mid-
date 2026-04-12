@@ -38,6 +38,7 @@ class UpdateProductRequest extends FormRequest
             'sort_order'      => 'integer|min:0',
             'stock_quantity'  => 'nullable|integer|min:0',
             'track_stock'     => 'boolean',
+            'attribute_values' => 'nullable|array',
         ];
     }
 
