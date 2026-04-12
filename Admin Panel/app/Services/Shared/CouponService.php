@@ -21,6 +21,12 @@ class CouponService
             ]);
         }
 
+        if (! $coupon->is_active) {
+            throw ValidationException::withMessages([
+                'coupon_code' => 'Coupon is inactive.',
+            ]);
+        }
+
         if (! $coupon->isValid()) {
             $message = 'This coupon has expired or is not yet valid.';
             if ($coupon->expires_at && now()->gt($coupon->expires_at)) {
@@ -59,6 +65,10 @@ class CouponService
 
         if ($cart->items->isEmpty()) {
             return 0.0;
+        }
+
+        if ($coupon->is_visible_to_all) {
+            return (float) $cart->items->sum(fn ($item) => $item->unit_price * $item->quantity);
         }
 
         $productIds = $coupon->products->pluck('id')->all();
