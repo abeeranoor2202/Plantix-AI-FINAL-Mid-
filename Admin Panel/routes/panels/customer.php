@@ -135,6 +135,7 @@ Route::middleware(['customer', 'verified'])->group(function () {
     Route::post('/appointment/{id}/cancel',  [\App\Http\Controllers\Frontend\CustomerAppointmentController::class, 'cancel'])->name('appointment.cancel');
     Route::get('/appointment/{id}/pay',      [\App\Http\Controllers\Frontend\CustomerAppointmentController::class, 'payPage'])->name('appointment.pay');
     Route::post('/appointment/{id}/pay',     [\App\Http\Controllers\Frontend\CustomerAppointmentController::class, 'processPayment'])->name('appointment.pay.process');
+    Route::post('/appointment/{id}/review',   [\App\Http\Controllers\Frontend\CustomerAppointmentController::class, 'review'])->name('appointment.review.store');
     // Section 6 – customer accepts or rejects a reschedule proposed by an expert
     Route::post('/appointment/{id}/reschedule-response', [\App\Http\Controllers\Frontend\CustomerAppointmentController::class, 'rescheduleResponse'])->name('appointment.reschedule.response');
 
