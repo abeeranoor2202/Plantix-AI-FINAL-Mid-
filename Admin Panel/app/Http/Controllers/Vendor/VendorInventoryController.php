@@ -4,7 +4,8 @@ namespace App\Http\Controllers\Vendor;
 
 use App\Http\Controllers\Controller;
 use App\Models\Product;
-use App\Models\ProductStock;
+use App\Models\Stock;
+use App\Services\Shared\InventoryService;
 use App\Services\Shared\StockService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -19,6 +20,7 @@ class VendorInventoryController extends Controller
 {
     public function __construct(
         private readonly StockService $stockService,
+        private readonly InventoryService $inventory,
     ) {}
 
     private function vendorId(): int
@@ -34,7 +36,7 @@ class VendorInventoryController extends Controller
     {
         $vendorId = $this->vendorId();
 
-        $query = ProductStock::with(['product'])
+        $query = Stock::with(['product'])
             ->where('vendor_id', $vendorId);
 
         if ($request->filled('search')) {
@@ -52,17 +54,14 @@ class VendorInventoryController extends Controller
 
         $stocks = $query->latest()->paginate(25)->withQueryString();
 
-        $summary = [
-            'total_products'    => ProductStock::where('vendor_id', $vendorId)->count(),
-            'out_of_stock'      => ProductStock::where('vendor_id', $vendorId)->where('quantity', '<=', 0)->count(),
-            'low_stock'         => ProductStock::where('vendor_id', $vendorId)->whereRaw('quantity > 0 AND quantity <= low_stock_threshold')->count(),
-            'total_stock_value' => ProductStock::where('vendor_id', $vendorId)
-                ->join('products', 'product_stocks.product_id', '=', 'products.id')
-                ->selectRaw('SUM(product_stocks.quantity * products.price) as total')
-                ->value('total') ?? 0,
-        ];
+        $summary = $this->inventory->analytics($vendorId);
+        $summary['total_stock_value'] = Stock::where('vendor_id', $vendorId)
+            ->join('products', 'stocks.product_id', '=', 'products.id')
+            ->selectRaw('SUM(stocks.quantity * products.price) as total')
+            ->value('total') ?? 0;
+        $movements = $this->inventory->recentMovements(20, $vendorId);
 
-        return view('vendor.inventory.index', compact('stocks', 'summary'));
+        return view('vendor.inventory.index', compact('stocks', 'summary', 'movements'));
     }
 
     /**
@@ -76,14 +75,18 @@ class VendorInventoryController extends Controller
             'low_stock_threshold' => 'nullable|integer|min:0',
         ]);
 
-        $stock = ProductStock::where('product_id', $productId)
-                             ->where('vendor_id', $this->vendorId())
-                             ->firstOrFail();
+        $stock = Stock::where('product_id', $productId)
+            ->where('vendor_id', $this->vendorId())
+            ->with('product')
+            ->firstOrFail();
 
-        $stock->update(array_filter([
-            'quantity'            => $request->quantity,
-            'low_stock_threshold' => $request->low_stock_threshold,
-        ], fn ($v) => $v !== null));
+        $this->stockService->setStock(
+            product: $stock->product,
+            qty: (int) $request->quantity,
+            vendorId: (int) $stock->vendor_id,
+            initiatedBy: auth('vendor')->id(),
+            threshold: $request->filled('low_stock_threshold') ? (int) $request->low_stock_threshold : null,
+        );
 
         return back()->with('success', 'Stock updated successfully.');
     }
