@@ -31,6 +31,8 @@
                         <tr>
                             <th class="ps-4 fw-semibold text-muted text-uppercase small" style="width: 80px;">#</th>
                             <th class="fw-semibold text-muted text-uppercase small">Attribute Name</th>
+                            <th class="fw-semibold text-muted text-uppercase small">Type</th>
+                            <th class="fw-semibold text-muted text-uppercase small">Options</th>
                             <th class="pe-4 fw-semibold text-muted text-uppercase small">Used on Your Products</th>
                         </tr>
                     </thead>
@@ -45,14 +47,21 @@
                                     <div class="bg-primary bg-opacity-10 rounded d-flex align-items-center justify-content-center flex-shrink-0" style="width:34px;height:34px;">
                                         <i class="bi bi-tag text-primary"></i>
                                     </div>
-                                    <span class="fw-bold text-dark">{{ $attr->title }}</span>
+                                    <span class="fw-bold text-dark">{{ $attr->name ?: $attr->title }}</span>
                                 </div>
+                            </td>
+                            <td>
+                                <span class="badge bg-light text-dark border">{{ strtoupper($attr->type ?? 'text') }}</span>
+                            </td>
+                            <td>
+                                <span class="text-muted small fw-semibold">{{ $attr->values_count }}</span>
                             </td>
                             <td class="pe-4">
                                 @php
                                     $vendorId = optional(auth('vendor')->user()->vendor)->id ?? 0;
                                     $usageCount = \App\Models\ProductAttribute::whereHas('product', fn($q) => $q->where('vendor_id', $vendorId))
-                                        ->where('name', $attr->title)->count();
+                                        ->where('attribute_id', $attr->id)
+                                        ->count();
                                 @endphp
                                 @if($usageCount > 0)
                                     <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 rounded-pill px-3 py-1">{{ $usageCount }} product(s)</span>
