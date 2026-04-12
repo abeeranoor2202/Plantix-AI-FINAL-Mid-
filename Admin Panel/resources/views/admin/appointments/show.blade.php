@@ -30,6 +30,21 @@
 
     $currency = config('plantix.currency_symbol', 'PKR');
     $expert   = optional(optional($appointment->expert)->user);
+    $statusLabels = [
+        Appointment::STATUS_DRAFT                => 'Draft',
+        Appointment::STATUS_PENDING_PAYMENT      => 'Pending Payment',
+        Appointment::STATUS_PAYMENT_FAILED       => 'Payment Failed',
+        Appointment::STATUS_PENDING_EXPERT_APPROVAL => 'Awaiting Expert',
+        Appointment::STATUS_CONFIRMED            => 'Confirmed',
+        Appointment::STATUS_REJECTED             => 'Rejected',
+        Appointment::STATUS_COMPLETED            => 'Completed',
+        Appointment::STATUS_CANCELLED            => 'Cancelled',
+        Appointment::STATUS_RESCHEDULE_REQUESTED => 'Reschedule Requested',
+    ];
+    $statusOptions = array_values(array_unique(array_merge(
+        Appointment::TRANSITIONS[$appointment->status] ?? [],
+        $appointment->status !== Appointment::STATUS_CANCELLED ? [Appointment::STATUS_CANCELLED] : []
+    )));
 @endphp
 
 <div class="container-fluid" style="padding-top: 24px; padding-bottom: 48px;">
@@ -52,6 +67,9 @@
                     <span style="width: 6px; height: 6px; border-radius: 50%; background: {{ $s[0] }}; box-shadow: 0 0 0 2px {{ $s[0] }}30;"></span>
                     {{ $s[2] }}
                 </div>
+                    <div style="display: inline-flex; align-items: center; gap: 8px; color: {{ $appointment->type === 'physical' ? '#059669' : '#2563EB' }}; background: {{ $appointment->type === 'physical' ? '#D1FAE5' : '#DBEAFE' }}; padding: 6px 16px; border-radius: 12px; font-size: 12px; font-weight: 700; border: 1px solid {{ $appointment->type === 'physical' ? '#059669' : '#2563EB' }}40; text-transform: uppercase; letter-spacing: 0.5px;">
+                        {{ strtoupper($appointment->type_label) }}
+                    </div>
             </div>
             <p style="color: var(--agri-text-muted); margin: 8px 0 0 0; font-size: 14px;">
                 Booked {{ $appointment->created_at?->diffForHumans() ?? '—' }}
@@ -379,6 +397,31 @@
                     <h6 style="margin: 0; font-weight: 800; color: var(--agri-text-heading); font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;">Admin Actions</h6>
                 </div>
 
+                {{-- Status Update --}}
+                <form action="{{ route('admin.appointments.status', $appointment->id) }}" method="POST" class="mb-3">
+                    @csrf
+                    <div style="margin-bottom: 10px;">
+                        <label style="font-size: 12px; font-weight: 700; color: var(--agri-text-muted); text-transform: uppercase; margin-bottom: 6px; display: block;">Change Status</label>
+                        <select name="status" class="form-agri" @disabled(empty($statusOptions))>
+                            @if(empty($statusOptions))
+                                <option value="">No status changes available</option>
+                            @else
+                                <option value="" selected disabled>Select new status</option>
+                                @foreach($statusOptions as $statusValue)
+                                    <option value="{{ $statusValue }}">{{ $statusLabels[$statusValue] ?? ucwords(str_replace('_', ' ', $statusValue)) }}</option>
+                                @endforeach
+                            @endif
+                        </select>
+                    </div>
+                    <div style="margin-bottom: 10px;">
+                        <label style="font-size: 12px; font-weight: 700; color: var(--agri-text-muted); text-transform: uppercase; margin-bottom: 6px; display: block;">Status Notes (optional)</label>
+                        <textarea name="notes" rows="2" class="form-agri" placeholder="Add an admin note for this transition..."></textarea>
+                    </div>
+                    <button type="submit" class="btn-agri btn-agri-primary w-100" style="justify-content: center; gap: 8px;">
+                        <i class="fas fa-random"></i> Update Status
+                    </button>
+                </form>
+
                 {{-- Confirm --}}
                 @if(in_array($appointment->status, [
                     \App\Models\Appointment::STATUS_PENDING_EXPERT_APPROVAL,
@@ -386,6 +429,12 @@
                 ]))
                 <form action="{{ route('admin.appointments.confirm', $appointment->id) }}" method="POST" class="mb-3">
                     @csrf
+                    @if($appointment->type === 'online')
+                        <div style="margin-bottom: 10px;">
+                            <label style="font-size: 12px; font-weight: 700; color: var(--agri-text-muted); text-transform: uppercase; margin-bottom: 6px; display: block;">Meeting Link</label>
+                            <input type="url" name="meeting_link" class="form-agri" placeholder="https://meet.google.com/..." required>
+                        </div>
+                    @endif
                     <div style="margin-bottom: 10px;">
                         <label style="font-size: 12px; font-weight: 700; color: var(--agri-text-muted); text-transform: uppercase; margin-bottom: 6px; display: block;">Admin Notes (optional)</label>
                         <textarea name="notes" rows="2" class="form-agri" placeholder="Notes for customer..."></textarea>
