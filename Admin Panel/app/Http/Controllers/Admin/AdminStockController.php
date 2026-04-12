@@ -4,8 +4,9 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Product;
-use App\Models\ProductStock;
+use App\Models\Stock;
 use App\Models\Vendor;
+use App\Services\Shared\InventoryService;
 use App\Services\Shared\StockService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -21,6 +22,7 @@ class AdminStockController extends Controller
 {
     public function __construct(
         private readonly StockService $stockService,
+        private readonly InventoryService $inventory,
     ) {}
 
     /**
@@ -29,7 +31,7 @@ class AdminStockController extends Controller
      */
     public function index(Request $request): View
     {
-        $query = ProductStock::with(['product.category', 'vendor']);
+        $query = Stock::with(['product.category', 'vendor']);
 
         if ($request->filled('search')) {
             $query->whereHas('product', fn ($q) => $q->where('name', 'like', "%{$request->search}%"));
@@ -51,13 +53,10 @@ class AdminStockController extends Controller
         $stocks  = $query->latest()->paginate(30)->withQueryString();
         $vendors = Vendor::orderBy('title')->get(['id', 'title as name']);
 
-        $summary = [
-            'total_products' => ProductStock::count(),
-            'out_of_stock'   => ProductStock::where('quantity', '<=', 0)->count(),
-            'low_stock'      => ProductStock::whereRaw('quantity > 0 AND quantity <= low_stock_threshold')->count(),
-        ];
+        $summary = $this->inventory->analytics();
+        $movements = $this->inventory->recentMovements(25);
 
-        return view('admin.stock.index', compact('stocks', 'vendors', 'summary'));
+        return view('admin.stock.index', compact('stocks', 'vendors', 'summary', 'movements'));
     }
 
     /**
@@ -66,7 +65,7 @@ class AdminStockController extends Controller
      */
     public function edit(int $id): View
     {
-        $stock = ProductStock::with(['product', 'vendor'])->findOrFail($id);
+        $stock = Stock::with(['product', 'vendor'])->findOrFail($id);
         return view('admin.stock.edit', compact('stock'));
     }
 
@@ -82,12 +81,14 @@ class AdminStockController extends Controller
             'sku'                 => 'nullable|string|max:100',
         ]);
 
-        $stock = ProductStock::findOrFail($id);
-        $stock->update(array_filter([
-            'quantity'            => $request->quantity,
-            'low_stock_threshold' => $request->low_stock_threshold,
-            'sku'                 => $request->sku,
-        ], fn ($v) => $v !== null));
+        $stock = Stock::with('product')->findOrFail($id);
+        $this->stockService->setStock(
+            product: $stock->product,
+            qty: (int) $request->quantity,
+            vendorId: (int) $stock->vendor_id,
+            initiatedBy: auth('admin')->id(),
+            threshold: $request->filled('low_stock_threshold') ? (int) $request->low_stock_threshold : null,
+        );
 
         return redirect()->route('admin.stock.index')
                          ->with('success', "Stock for \"{$stock->product->name}\" updated.");
@@ -104,9 +105,24 @@ class AdminStockController extends Controller
             'note'       => 'nullable|string|max:500',
         ]);
 
-        $stock = ProductStock::findOrFail($id);
-        $newQty = max(0, $stock->quantity + (int) $request->adjustment);
-        $stock->update(['quantity' => $newQty]);
+        $stock = Stock::with('product')->findOrFail($id);
+        $delta = (int) $request->adjustment;
+
+        if ($delta >= 0) {
+            $this->stockService->restock($stock->product, $delta, (int) $stock->vendor_id, auth('admin')->id());
+        } else {
+            $newQty = max(0, (int) $stock->quantity + $delta);
+            $this->stockService->setStock(
+                product: $stock->product,
+                qty: $newQty,
+                vendorId: (int) $stock->vendor_id,
+                initiatedBy: auth('admin')->id(),
+                threshold: (int) $stock->low_stock_threshold,
+            );
+        }
+
+        $fresh = Stock::find($stock->id);
+        $newQty = (int) ($fresh?->quantity ?? 0);
 
         return back()->with('success', "Stock adjusted. New quantity: {$newQty}.");
     }
