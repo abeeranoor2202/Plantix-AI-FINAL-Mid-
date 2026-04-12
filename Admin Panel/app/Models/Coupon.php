@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Models\CouponUserUsage;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Coupon extends Model
@@ -33,6 +34,26 @@ class Coupon extends Model
     public function orders(): HasMany
     {
         return $this->hasMany(Order::class);
+    }
+
+    public function usages(): HasMany
+    {
+        return $this->hasMany(CouponUsage::class);
+    }
+
+    public function products(): BelongsToMany
+    {
+        return $this->belongsToMany(Product::class, 'coupon_product');
+    }
+
+    public function categories(): BelongsToMany
+    {
+        return $this->belongsToMany(Category::class, 'coupon_category');
+    }
+
+    public function applicableVendors(): BelongsToMany
+    {
+        return $this->belongsToMany(Vendor::class, 'coupon_vendor');
     }
 
     /**
@@ -75,5 +96,13 @@ class Coupon extends Model
         }
 
         return round(min($discount, $subtotal), 2);
+    }
+
+    public function hasScopedEligibility(): bool
+    {
+        return $this->products()->exists()
+            || $this->categories()->exists()
+            || $this->applicableVendors()->exists()
+            || (int) ($this->vendor_id ?? 0) > 0;
     }
 }
