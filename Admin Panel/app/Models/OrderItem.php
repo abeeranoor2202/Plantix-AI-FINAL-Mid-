@@ -9,13 +9,14 @@ class OrderItem extends Model
 {
     protected $fillable = [
         'order_id', 'product_id', 'product_name',
-        'quantity', 'unit_price', 'total_price', 'addons',
+        'quantity', 'returned_quantity', 'unit_price', 'total_price', 'addons',
     ];
 
     protected $casts = [
         'unit_price'  => 'decimal:2',
         'total_price' => 'decimal:2',
         'addons'      => 'array',
+        'returned_quantity' => 'integer',
     ];
 
     public function order(): BelongsTo
@@ -26,5 +27,10 @@ class OrderItem extends Model
     public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class);
+    }
+
+    public function remainingReturnQuantity(): int
+    {
+        return max(0, (int) $this->quantity - (int) $this->returned_quantity);
     }
 }
