@@ -24,6 +24,9 @@
                             <span class="badge rounded-pill fw-medium fs-6" style="background: {{ $appointment->status === 'completed' ? 'rgba(16, 185, 129, 0.1); color: #10B981;' : ($appointment->status === 'cancelled' ? 'rgba(239, 68, 68, 0.1); color: #EF4444;' : 'rgba(245, 158, 11, 0.1); color: #F59E0B;') }} padding: 6px 12px; font-size: 14px; vertical-align: middle;">
                                 {{ ucwords(str_replace('_', ' ', $appointment->status)) }}
                             </span>
+                            <span class="badge rounded-pill fw-medium fs-6" style="background: {{ $appointment->type === 'physical' ? 'rgba(16, 185, 129, 0.1); color: #10B981;' : 'rgba(37, 99, 235, 0.1); color: #2563EB;' }} padding: 6px 12px; font-size: 14px; vertical-align: middle;">
+                                {{ strtoupper($appointment->type_label) }}
+                            </span>
                         </h2>
                     </div>
                     
@@ -100,6 +103,39 @@
                                         <p class="text-muted mb-0 small">{{ auth('web')->user()->email }}</p>
                                     </div>
                                 </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row g-0 border-top">
+                        <div class="col-md-6 border-end border-bottom">
+                            <div class="p-4 h-100">
+                                <h6 class="text-uppercase text-muted fw-bold mb-3" style="font-size: 13px; letter-spacing: 0.5px;">Consultation Type</h6>
+                                <div class="fw-bold text-dark">{{ $appointment->type_label }}</div>
+                                <p class="text-muted mb-0 small mt-2">
+                                    {{ $appointment->isOnline() ? 'Meeting link will be provided after confirmation.' : 'Visit the expert location after confirmation.' }}
+                                </p>
+                            </div>
+                        </div>
+                        <div class="col-md-6 border-bottom">
+                            <div class="p-4 h-100">
+                                <h6 class="text-uppercase text-muted fw-bold mb-3" style="font-size: 13px; letter-spacing: 0.5px;">Location / Meeting</h6>
+                                @if($appointment->meeting_link)
+                                    <a href="{{ $appointment->meeting_link }}" target="_blank" class="btn-agri btn-agri-primary text-decoration-none d-inline-flex align-items-center gap-2" style="padding: 8px 16px;">
+                                        <i class="fas fa-video"></i> Join Meeting
+                                    </a>
+                                @elseif($appointment->isPhysical())
+                                    <div class="fw-bold text-dark mb-2">
+                                        {{ $appointment->location ?: trim(($appointment->expert?->profile?->address ? $appointment->expert->profile->address . ', ' : '') . ($appointment->expert?->profile?->city ? $appointment->expert->profile->city . ', ' : '') . ($appointment->expert?->profile?->country ?? '')) }}
+                                    </div>
+                                    @if($appointment->expert?->profile?->map_link)
+                                        <a href="{{ $appointment->expert->profile->map_link }}" target="_blank" class="btn-agri btn-agri-outline text-decoration-none d-inline-flex align-items-center gap-2" style="padding: 8px 16px;">
+                                            <i class="fas fa-map-marker-alt"></i> Visit Location
+                                        </a>
+                                    @endif
+                                @else
+                                    <span class="text-muted">No location or meeting link yet.</span>
+                                @endif
                             </div>
                         </div>
                     </div>
