@@ -8,15 +8,23 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::table('stocks', function (Blueprint $table) {
-            $table->boolean('is_available')->default(true)->after('status');
-        });
+        if (! Schema::hasTable('stocks')) {
+            return;
+        }
+
+        if (! Schema::hasColumn('stocks', 'is_available')) {
+            Schema::table('stocks', function (Blueprint $table) {
+                $table->boolean('is_available')->default(true)->after('status');
+            });
+        }
     }
 
     public function down(): void
     {
-        Schema::table('stocks', function (Blueprint $table) {
-            $table->dropColumn('is_available');
-        });
+        if (Schema::hasTable('stocks') && Schema::hasColumn('stocks', 'is_available')) {
+            Schema::table('stocks', function (Blueprint $table) {
+                $table->dropColumn('is_available');
+            });
+        }
     }
 };
