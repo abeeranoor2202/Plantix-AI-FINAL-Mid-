@@ -73,28 +73,20 @@
                                 <span class="badge rounded-pill {{ $product->is_active ? 'bg-success' : 'bg-secondary' }}">{{ $product->is_active ? 'Active' : 'Inactive' }}</span>
                                 <form method="POST" action="{{ route('admin.products.toggle-active', $product->id) }}" class="mt-2">
                                     @csrf
-                                    <div class="form-check form-switch" style="padding-left: 0; margin-bottom: 0;">
-                                        <input
-                                            type="checkbox"
-                                            class="form-check-input"
-                                            style="width: 40px; height: 20px; margin-left: 0; cursor: pointer;"
-                                            {{ $product->is_active ? 'checked' : '' }}
-                                            onchange="this.form.submit()">
-                                    </div>
+                                    <label class="switch">
+                                        <input type="checkbox" {{ $product->is_active ? 'checked' : '' }} onchange="this.form.submit()">
+                                        <span class="slider"></span>
+                                    </label>
                                 </form>
                             </td>
                             <td class="px-4 py-3">
                                 <span class="badge rounded-pill {{ $product->is_returnable ? 'bg-success' : 'bg-secondary' }}">{{ $product->is_returnable ? 'Yes' : 'No' }}</span>
                                 <form method="POST" action="{{ route('admin.products.toggle-returnable', $product->id) }}" class="mt-2">
                                     @csrf
-                                    <div class="form-check form-switch" style="padding-left: 0; margin-bottom: 0;">
-                                        <input
-                                            type="checkbox"
-                                            class="form-check-input"
-                                            style="width: 40px; height: 20px; margin-left: 0; cursor: pointer;"
-                                            {{ $product->is_returnable ? 'checked' : '' }}
-                                            onchange="this.form.submit()">
-                                    </div>
+                                    <label class="switch">
+                                        <input type="checkbox" {{ $product->is_returnable ? 'checked' : '' }} onchange="this.form.submit()">
+                                        <span class="slider"></span>
+                                    </label>
                                 </form>
                             </td>
                             <td class="px-4 py-3">
@@ -127,4 +119,48 @@
         </div>
     @endif
 </div>
+
+<style>
+    .switch {
+        position: relative;
+        display: inline-block;
+        width: 46px;
+        height: 24px;
+        margin-bottom: 0;
+    }
+    .switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+    .slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #e2e8f0;
+        transition: .4s;
+        border-radius: 24px;
+    }
+    .slider:before {
+        position: absolute;
+        content: "";
+        height: 18px;
+        width: 18px;
+        left: 3px;
+        bottom: 3px;
+        background-color: white;
+        transition: .4s;
+        border-radius: 50%;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .switch input:checked + .slider {
+        background-color: var(--agri-primary);
+    }
+    .switch input:checked + .slider:before {
+        transform: translateX(22px);
+    }
+</style>
 @endsection
