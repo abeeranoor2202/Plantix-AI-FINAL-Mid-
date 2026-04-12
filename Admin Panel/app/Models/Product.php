@@ -87,7 +87,7 @@ class Product extends Model
 
     public function attributes(): HasMany
     {
-        return $this->hasMany(ProductAttribute::class);
+        return $this->hasMany(ProductAttribute::class)->with('attribute.values');
     }
 
     public function images(): HasMany
@@ -128,6 +128,11 @@ class Product extends Model
     public function cartItems(): HasMany
     {
         return $this->hasMany(CartItem::class);
+    }
+
+    public function coupons(): BelongsToMany
+    {
+        return $this->belongsToMany(Coupon::class, 'coupon_product');
     }
 
     // ── Accessors ─────────────────────────────────────────────────────────────
