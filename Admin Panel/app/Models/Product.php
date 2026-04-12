@@ -20,7 +20,9 @@ class Product extends Model
 
     protected $fillable = [
         'vendor_id', 'category_id', 'brand_id', 'name', 'sku', 'slug', 'description',
-        'price', 'discount_price', 'image', 'is_active', 'is_featured',
+        'short_description', 'unit', 'low_stock_threshold',
+        'price', 'discount_price', 'tax_rate', 'image', 'is_active', 'is_featured',
+        'is_returnable', 'return_window_days',
         'status', 'sort_order', 'stock_quantity', 'track_stock',
         'rating_avg', 'rating_count',
     ];
@@ -28,10 +30,14 @@ class Product extends Model
     protected $casts = [
         'is_active'      => 'boolean',
         'is_featured'    => 'boolean',
+        'is_returnable'  => 'boolean',
         'track_stock'    => 'boolean',
         'price'          => 'decimal:2',
         'discount_price' => 'decimal:2',
+        'tax_rate'       => 'decimal:2',
         'stock_quantity' => 'integer',
+        'low_stock_threshold' => 'integer',
+        'return_window_days' => 'integer',
         'rating_avg'     => 'decimal:2',
         'rating_count'   => 'integer',
     ];
