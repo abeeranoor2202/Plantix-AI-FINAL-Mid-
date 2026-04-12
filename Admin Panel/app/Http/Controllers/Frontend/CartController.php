@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Frontend\CheckoutRequest;
 use App\Models\Cart;
 use App\Models\CartItem;
+use App\Models\Coupon;
 use App\Models\Product;
 use App\Services\Shared\CartCheckoutService;
 use App\Services\Shared\CouponService;
@@ -71,7 +72,22 @@ class CartController extends Controller
     public function index(): View
     {
         $cart = $this->getOrCreateCart();
-        return view('customer.cart', ['cart' => $cart->load('items.product.primaryImage')]);
+        $globalCoupons = Coupon::where('is_active', true)
+            ->where('is_visible_to_all', true)
+            ->where(function ($query) {
+                $query->whereNull('starts_at')->orWhere('starts_at', '<=', now());
+            })
+            ->where(function ($query) {
+                $query->whereNull('expires_at')->orWhere('expires_at', '>=', now());
+            })
+            ->orderByRaw('CASE WHEN expires_at IS NULL THEN 1 ELSE 0 END, expires_at ASC')
+            ->limit(3)
+            ->get(['id', 'code']);
+
+        return view('customer.cart', [
+            'cart' => $cart->load('items.product.primaryImage'),
+            'globalCoupons' => $globalCoupons,
+        ]);
     }
 
     public function add(Request $request): JsonResponse|RedirectResponse
@@ -199,10 +215,22 @@ class CartController extends Controller
     {
         $user = auth('web')->user();
         $cart = Cart::with('items.product.primaryImage')->where('user_id', $user->id)->firstOrFail();
+        $globalCoupons = Coupon::where('is_active', true)
+            ->where('is_visible_to_all', true)
+            ->where(function ($query) {
+                $query->whereNull('starts_at')->orWhere('starts_at', '<=', now());
+            })
+            ->where(function ($query) {
+                $query->whereNull('expires_at')->orWhere('expires_at', '>=', now());
+            })
+            ->orderByRaw('CASE WHEN expires_at IS NULL THEN 1 ELSE 0 END, expires_at ASC')
+            ->limit(3)
+            ->get(['id', 'code']);
 
         return view('customer.checkout', [
             'cart'      => $cart,
             'addresses' => $user->addresses,
+            'globalCoupons' => $globalCoupons,
         ]);
     }
 
