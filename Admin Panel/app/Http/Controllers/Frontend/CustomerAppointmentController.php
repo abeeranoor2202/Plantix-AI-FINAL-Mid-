@@ -7,6 +7,7 @@ use App\Models\Appointment;
 use App\Models\AppointmentReschedule;
 use App\Models\Expert;
 use App\Notifications\AppointmentRescheduledNotification;
+use App\Services\Expert\RatingService;
 use App\Services\Shared\AppointmentService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -18,6 +19,7 @@ class CustomerAppointmentController extends Controller
 {
     public function __construct(
         private readonly AppointmentService $service,
+        private readonly RatingService $ratingService,
     ) {}
 
     public function index(): View
@@ -197,6 +199,44 @@ class CustomerAppointmentController extends Controller
             : 'Reschedule rejected. Your appointment remains at the original time.';
 
         return redirect()->route('appointment.details', $id)->with('success', $message);
+    }
+
+    public function review(Request $request, int $id): RedirectResponse
+    {
+        $request->validate([
+            'customer_rating' => 'required|integer|min:1|max:5',
+            'customer_review'  => 'nullable|string|max:2000',
+        ]);
+
+        $user        = auth('web')->user();
+        $appointment = $user->appointments()->findOrFail($id);
+
+        if ($appointment->status !== Appointment::STATUS_COMPLETED) {
+            return back()->withErrors([
+                'customer_rating' => 'You can only review a completed appointment.',
+            ]);
+        }
+
+        try {
+            $this->ratingService->submitRating(
+                $appointment,
+                (int) $request->input('customer_rating'),
+                $request->input('customer_review')
+            );
+        } catch (\Throwable $e) {
+            Log::error('Appointment review submission failed', [
+                'appointment_id' => $appointment->id,
+                'user_id' => $user->id,
+                'error' => $e->getMessage(),
+            ]);
+
+            return back()->withErrors([
+                'customer_rating' => 'We could not save your review right now. Please try again.',
+            ]);
+        }
+
+        return redirect()->route('appointment.details', $id)
+            ->with('success', 'Your review has been saved successfully.');
     }
 }
 
