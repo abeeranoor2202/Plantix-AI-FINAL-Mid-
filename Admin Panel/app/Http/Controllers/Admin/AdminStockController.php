@@ -82,6 +82,11 @@ class AdminStockController extends Controller
         ]);
 
         $stock = Stock::with('product')->findOrFail($id);
+
+        if ($request->filled('sku')) {
+            $stock->product?->update(['sku' => (string) $request->sku]);
+        }
+
         $this->stockService->setStock(
             product: $stock->product,
             qty: (int) $request->quantity,
