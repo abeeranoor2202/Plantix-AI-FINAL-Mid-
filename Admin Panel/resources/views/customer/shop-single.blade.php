@@ -140,18 +140,28 @@ window.CART_ROUTES = {
                         </div>
 
                         @php
-                            $inStock = !$product->track_stock || $product->stock_quantity > 0;
+                            $stockRecord = $product->stock;
+                            $statusLabel = ! $product->track_stock
+                                ? 'In Stock'
+                                : (($stockRecord?->is_available ?? true) === false
+                                    ? 'Unavailable'
+                                    : ((int) ($stockRecord?->quantity ?? $product->stock_quantity ?? 0) <= 0 ? 'Out of Stock' : 'In Stock'));
+                            $statusBadge = $statusLabel === 'Unavailable'
+                                ? 'bg-secondary'
+                                : ($statusLabel === 'Out of Stock' ? 'bg-danger' : 'bg-success');
+                            $inStock = $statusLabel === 'In Stock';
                         @endphp
                         <div class="d-flex align-items-center gap-2 mb-4">
-                            @if($inStock)
-                                <i class="fas fa-check-circle text-success fs-5"></i>
-                                <span class="fw-bold text-dark">In Stock</span>
-                                @if($product->track_stock)
-                                <span class="text-muted ms-2">&mdash; {{ $product->stock_quantity }} units available</span>
-                                @endif
-                            @else
+                            @if($statusLabel === 'Unavailable')
+                                <i class="fas fa-minus-circle text-secondary fs-5"></i>
+                            @elseif($statusLabel === 'Out of Stock')
                                 <i class="fas fa-times-circle text-danger fs-5"></i>
-                                <span class="fw-bold text-danger">Out of Stock</span>
+                            @else
+                                <i class="fas fa-check-circle text-success fs-5"></i>
+                            @endif
+                            <span class="badge rounded-pill {{ $statusBadge }}">{{ strtoupper($statusLabel) }}</span>
+                            @if($product->track_stock && $statusLabel === 'In Stock')
+                                <span class="text-muted ms-2">&mdash; {{ (int) ($stockRecord?->quantity ?? $product->stock_quantity ?? 0) }} units available</span>
                             @endif
                         </div>
 
@@ -167,13 +177,14 @@ window.CART_ROUTES = {
                         <div class="d-flex align-items-center gap-3 mb-4 flex-wrap">
                             <div class="d-flex align-items-center bg-light rounded-3 p-1 border" style="width: 130px;">
                                 <button type="button" class="btn btn-sm border-0 text-muted fs-5 px-3 py-2 bg-transparent"
-                                        onclick="document.getElementById('productQty').stepDown()">−</button>
+                                        onclick="document.getElementById('productQty').stepDown()" {{ $inStock ? '' : 'disabled' }}>−</button>
                                 <input type="number" id="productQty" data-product-qty="{{ $product->id }}"
                                        class="form-control border-0 text-center fw-bold bg-transparent px-0"
-                                       value="1" min="1" max="{{ $product->track_stock ? $product->stock_quantity : 99 }}"
+                                       value="1" min="1" max="{{ $product->track_stock ? (int) ($stockRecord?->quantity ?? $product->stock_quantity ?? 0) : 99 }}"
+                                       {{ $inStock ? '' : 'disabled' }}
                                        style="box-shadow: none;">
                                 <button type="button" class="btn btn-sm border-0 text-muted fs-5 px-3 py-2 bg-transparent"
-                                        onclick="document.getElementById('productQty').stepUp()">+</button>
+                                        onclick="document.getElementById('productQty').stepUp()" {{ $inStock ? '' : 'disabled' }}>+</button>
                             </div>
                             @if($inStock)
                             <button class="btn-agri btn-agri-primary flex-grow-1" style="padding: 14px 24px; font-size: 16px;"
@@ -182,7 +193,7 @@ window.CART_ROUTES = {
                             </button>
                             @else
                             <button class="btn-agri flex-grow-1" style="padding: 14px 24px; font-size: 16px; background: #e5e7eb; color: #9ca3af; cursor: not-allowed;" disabled>
-                                Out of Stock
+                                {{ $statusLabel }}
                             </button>
                             @endif
                         </div>
@@ -258,8 +269,8 @@ window.CART_ROUTES = {
                                     @endif
                                     @foreach($product->attributes as $attr)
                                     <tr>
-                                        <th class="bg-light fw-medium text-muted w-25 px-4 py-3">{{ $attr->name }}</th>
-                                        <td class="px-4 py-3 fw-medium text-dark">{{ $attr->value }}</td>
+                                        <th class="bg-light fw-medium text-muted w-25 px-4 py-3">{{ $attr->attribute?->name ?: $attr->attribute?->title ?: 'Attribute' }}</th>
+                                        <td class="px-4 py-3 fw-medium text-dark">{{ $attr->display_value ?: '—' }}</td>
                                     </tr>
                                     @endforeach
                                 </tbody>
@@ -392,6 +403,15 @@ window.CART_ROUTES = {
                 <h4 class="fw-bold text-dark mb-4">Related Products</h4>
                 <div class="row g-4">
                     @foreach($related as $rel)
+                    @php
+                        $relStock = $rel->stock;
+                        $relStatusLabel = ! $rel->track_stock
+                            ? 'In Stock'
+                            : (($relStock?->is_available ?? true) === false
+                                ? 'Unavailable'
+                                : ((int) ($relStock?->quantity ?? $rel->stock_quantity ?? 0) <= 0 ? 'Out of Stock' : 'In Stock'));
+                        $relInStock = $relStatusLabel === 'In Stock';
+                    @endphp
                     <div class="col-sm-6 col-lg-3">
                         <div class="card-agri border-0 h-100 d-flex flex-column">
                             <div class="p-4 text-center" style="background: var(--agri-bg); border-radius: var(--agri-radius-md) var(--agri-radius-md) 0 0;">
@@ -405,12 +425,21 @@ window.CART_ROUTES = {
                             </div>
                             <div class="p-3 d-flex flex-column flex-grow-1">
                                 <h6 class="fw-bold mb-1"><a href="{{ route('shop.single', $rel->id) }}" class="text-dark text-decoration-none">{{ $rel->name }}</a></h6>
+                                <div class="mb-2">
+                                    <span class="badge rounded-pill {{ $relStatusLabel === 'Unavailable' ? 'bg-secondary' : ($relStatusLabel === 'Out of Stock' ? 'bg-danger' : 'bg-success') }}">{{ strtoupper($relStatusLabel) }}</span>
+                                </div>
                                 <div class="mt-auto d-flex justify-content-between align-items-center pt-2 border-top">
                                     <span class="fw-bold text-success">PKR {{ number_format($rel->effective_price) }}</span>
-                                    <button class="btn-agri btn-agri-outline" style="padding: 4px 12px; font-size: 13px;"
-                                            data-add-to-cart="{{ $rel->id }}">
-                                        <i class="fas fa-cart-plus"></i>
-                                    </button>
+                                    @if($relInStock)
+                                        <button class="btn-agri btn-agri-outline" style="padding: 4px 12px; font-size: 13px;"
+                                                data-add-to-cart="{{ $rel->id }}">
+                                            <i class="fas fa-cart-plus"></i>
+                                        </button>
+                                    @else
+                                        <button class="btn-agri" style="padding: 4px 12px; font-size: 13px; background: #e5e7eb; color: #9ca3af; cursor: not-allowed;" disabled>
+                                            {{ $relStatusLabel }}
+                                        </button>
+                                    @endif
                                 </div>
                             </div>
                         </div>
