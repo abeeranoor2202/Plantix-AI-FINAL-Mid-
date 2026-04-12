@@ -126,29 +126,35 @@
                 <h5 style="font-size: 18px; font-weight: 700; color: #166534; margin-bottom: 24px; display: flex; align-items: center; gap: 10px;">
                     <i class="fas fa-undo-alt"></i> Financial Reversal (Refund)
                 </h5>
-                <form action="{{ route('admin.returns.refund', $return->id) }}" method="POST">
-                    @csrf
-                    <div class="row g-4 align-items-end">
-                        <div class="col-md-5">
-                            <label class="agri-label">REFUNDABLE AMOUNT ({{ config('plantix.currency_symbol') }})</label>
-                            <div style="position: relative;">
-                                <input type="number" name="amount" step="0.01" min="0" class="form-agri" value="{{ $return->order->grand_total }}" required style="padding-left: 20px; font-size: 18px; font-weight: 800; height: 52px;">
+                @if($canRefund)
+                    <form action="{{ route('admin.returns.refund', $return->id) }}" method="POST">
+                        @csrf
+                        <div class="row g-4 align-items-end">
+                            <div class="col-md-5">
+                                <label class="agri-label">REFUNDABLE AMOUNT ({{ config('plantix.currency_symbol') }})</label>
+                                <div style="position: relative;">
+                                    <input type="number" name="amount" step="0.01" min="0" class="form-agri" value="{{ $return->order->grand_total }}" required style="padding-left: 20px; font-size: 18px; font-weight: 800; height: 52px;">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="agri-label">DISBURSEMENT METHOD</label>
+                                <select name="method" class="form-agri" style="height: 52px; font-weight: 700;">
+                                    <option value="original_payment">Original Payment Method</option>
+                                    <option value="bank_transfer">Direct Bank Transfer</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <button type="submit" class="btn-agri btn-agri-primary" style="width: 100%; height: 52px; font-weight: 700; font-size: 15px;">
+                                    Execute Refund
+                                </button>
                             </div>
                         </div>
-                        <div class="col-md-4">
-                            <label class="agri-label">DISBURSEMENT METHOD</label>
-                            <select name="method" class="form-agri" style="height: 52px; font-weight: 700;">
-                                <option value="original_payment">Original Payment Method</option>
-                                <option value="bank_transfer">Direct Bank Transfer</option>
-                            </select>
-                        </div>
-                        <div class="col-md-3">
-                            <button type="submit" class="btn-agri btn-agri-primary" style="width: 100%; height: 52px; font-weight: 700; font-size: 15px;">
-                                Execute Refund
-                            </button>
-                        </div>
+                    </form>
+                @else
+                    <div style="background: #f8fafc; border: 1px dashed var(--agri-border); border-radius: 16px; padding: 18px 20px; color: var(--agri-text-muted); font-size: 14px; font-weight: 600;">
+                        Refund disabled for this order because one or more items are not refundable.
                     </div>
-                </form>
+                @endif
             </div>
             @endif
         </div>
