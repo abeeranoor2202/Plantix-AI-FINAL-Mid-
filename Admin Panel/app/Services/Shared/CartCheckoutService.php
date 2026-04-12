@@ -91,7 +91,7 @@ class CartCheckoutService
                 throw ValidationException::withMessages(['cart' => "Vendor for '{$product->name}' is suspended."]);
             }
 
-            $this->stock->assertSufficientStock($product, $item->quantity);
+            $this->stock->assertPhysicalStock($product, $item->quantity);
         }
 
         // Coupon validation
@@ -259,6 +259,21 @@ class CartCheckoutService
                         'notes'    => "Stock exhausted for '{$locked->name}' after payment. Manual refund required.",
                     ]);
                     $payment->update(['status' => 'completed']);
+
+                    $cart = Cart::where('user_id', $order->user_id)->with('items.product')->first();
+                    if ($cart) {
+                        foreach ($cart->items as $cartItem) {
+                            if ($cartItem->product) {
+                                $this->stock->releaseReservedStock(
+                                    product: $cartItem->product,
+                                    qty: (int) $cartItem->quantity,
+                                    reference: 'cart:' . $cart->id,
+                                    initiatedBy: $order->user_id,
+                                );
+                            }
+                        }
+                    }
+
                     Log::error('Stock exhausted post-payment', [
                         'order_id'   => $order->id,
                         'product_id' => $locked->id,
@@ -323,6 +338,20 @@ class CartCheckoutService
                 Coupon::where('id', $order->coupon_id)->decrement('used_count');
                 CouponUserUsage::where('order_id', $order->id)->delete();
             }
+
+            $cart = Cart::where('user_id', $order->user_id)->with('items.product')->first();
+            if ($cart) {
+                foreach ($cart->items as $item) {
+                    if ($item->product) {
+                        $this->stock->releaseReservedStock(
+                            product: $item->product,
+                            qty: (int) $item->quantity,
+                            reference: 'cart:' . $cart->id,
+                            initiatedBy: $order->user_id,
+                        );
+                    }
+                }
+            }
         });
     }
 
@@ -374,6 +403,23 @@ class CartCheckoutService
                 if ($order->coupon_id) {
                     Coupon::where('id', $order->coupon_id)->decrement('used_count');
                     CouponUserUsage::where('order_id', $order->id)->delete();
+                }
+            } elseif (
+                in_array($newStatus, [Order::STATUS_CANCELLED, Order::STATUS_REJECTED], true)
+                && $order->getOriginal('status') === Order::STATUS_PENDING_PAYMENT
+            ) {
+                $cart = Cart::where('user_id', $order->user_id)->with('items.product')->first();
+                if ($cart) {
+                    foreach ($cart->items as $item) {
+                        if ($item->product) {
+                            $this->stock->releaseReservedStock(
+                                product: $item->product,
+                                qty: (int) $item->quantity,
+                                reference: 'cart:' . $cart->id,
+                                initiatedBy: $changedBy->id,
+                            );
+                        }
+                    }
                 }
             }
 
@@ -427,7 +473,7 @@ class CartCheckoutService
                     'cart' => "Product '{$item->product?->name}' is unavailable.",
                 ]);
             }
-            $this->stock->assertSufficientStock($item->product, $item->quantity);
+            $this->stock->assertPhysicalStock($item->product, $item->quantity);
         }
 
         $coupon         = null;
