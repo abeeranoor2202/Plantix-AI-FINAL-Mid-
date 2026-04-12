@@ -6,10 +6,15 @@ use App\Models\Order;
 use App\Models\User;
 use App\Models\Vendor;
 use App\Models\WalletTransaction;
+use App\Services\Shared\VendorSettlementService;
 use Illuminate\Support\Facades\DB;
 
 class WalletService
 {
+    public function __construct(private readonly VendorSettlementService $settlement)
+    {
+    }
+
     // -------------------------------------------------------------------------
     // Credit / Debit
     // -------------------------------------------------------------------------
@@ -64,12 +69,26 @@ class WalletService
         $commission  = $order->total * ($vendor->commission_rate / 100);
         $vendorShare = round($order->total - $commission, 2);
 
-        return $this->creditUser(
-            $vendorOwner,
-            $vendorShare,
-            "Order #{$order->order_number} settlement (commission: {$vendor->commission_rate}%)",
-            $order,
-        );
+        return DB::transaction(function () use ($order, $vendor, $vendorOwner, $vendorShare) {
+            $this->settlement->recordSettlement(
+                order: $order,
+                vendor: $vendor,
+                grossAmount: (float) $order->total,
+                commissionRate: (float) $vendor->commission_rate,
+            );
+
+            $vendorOwner->increment('wallet_amount', $vendorShare);
+            $vendorOwner->refresh();
+
+            return WalletTransaction::create([
+                'user_id'     => $vendorOwner->id,
+                'order_id'    => $order->id,
+                'type'        => 'credit',
+                'amount'      => $vendorShare,
+                'balance'     => $vendorOwner->wallet_amount,
+                'description' => "Order #{$order->order_number} settlement (commission: {$vendor->commission_rate}%)",
+            ]);
+        });
     }
 
     // -------------------------------------------------------------------------
