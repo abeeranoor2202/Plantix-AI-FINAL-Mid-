@@ -48,11 +48,11 @@
 
 {{-- Action Buttons --}}
 <div class="btn-wrap">
-    <a href="{{ route('customer.appointments.show', $appointment->id) }}" class="btn">📋 View Appointment</a>
+    <a href="{{ route('appointment.details', $appointment->id) }}" class="btn">📋 View Appointment</a>
 </div>
 
 <div class="btn-wrap" style="margin-top: -16px;">
-    <a href="{{ route('customer.appointments.show', $appointment->id) . '#review' }}" class="btn btn-secondary">⭐ Leave a Review</a>
+    <a href="{{ route('appointment.details', $appointment->id) . '#review' }}" class="btn btn-secondary">⭐ Leave a Review</a>
 </div>
 
 {{-- Next Steps --}}
