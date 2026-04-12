@@ -50,4 +50,9 @@ class Stock extends Model
     {
         return $this->quantity <= 0 || $this->status === 'out_of_stock';
     }
+
+    public function getSkuAttribute(): ?string
+    {
+        return $this->product?->sku;
+    }
 }
