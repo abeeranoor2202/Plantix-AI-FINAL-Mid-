@@ -15,6 +15,7 @@ use App\Services\Admin\ZoneService;
 use App\Services\Shared\AppointmentService;
 use App\Services\Shared\CartCheckoutService;
 use App\Services\Shared\CouponService;
+use App\Services\Shared\InventoryService;
 use App\Services\Shared\NotificationService;
 use App\Services\Shared\OrderService;
 use App\Services\Shared\RefundService;
@@ -52,6 +53,7 @@ class AppServiceProvider extends ServiceProvider
         // ── Shared service singletons ──────────────────────────────────────────
         $this->app->singleton(NotificationService::class);
         $this->app->singleton(WalletService::class);
+        $this->app->singleton(InventoryService::class);
         $this->app->singleton(StockService::class);
         $this->app->singleton(CouponService::class);
         $this->app->singleton(AppointmentService::class);
