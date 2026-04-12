@@ -66,6 +66,21 @@
                             </span>
                         </div>
                     </dd>
+
+                    <dt class="col-sm-4 text-muted small text-uppercase fw-bold">Review Photos</dt>
+                    <dd class="col-sm-8">
+                        @if(!empty($review->review_images))
+                            <div class="d-flex flex-wrap gap-2">
+                                @foreach($review->review_images as $image)
+                                    <a href="{{ asset('storage/' . $image) }}" target="_blank" rel="noopener noreferrer">
+                                        <img src="{{ asset('storage/' . $image) }}" alt="Review image" style="width: 72px; height: 72px; object-fit: cover; border-radius: 12px; border: 1px solid #e5e7eb;">
+                                    </a>
+                                @endforeach
+                            </div>
+                        @else
+                            <span class="text-muted">No photos attached to this review.</span>
+                        @endif
+                    </dd>
                 </dl>
             </div>
         </div>
