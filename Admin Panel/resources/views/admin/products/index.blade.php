@@ -42,6 +42,7 @@
                         <th style="padding: 16px 24px; font-size: 12px; font-weight: 600; color: var(--agri-text-muted); text-transform: uppercase; border: none;">Category</th>
                         <th style="padding: 16px 24px; font-size: 12px; font-weight: 600; color: var(--agri-text-muted); text-transform: uppercase; border: none;">Price</th>
                         <th style="padding: 16px 24px; font-size: 12px; font-weight: 600; color: var(--agri-text-muted); text-transform: uppercase; border: none;">Status</th>
+                        <th style="padding: 16px 24px; font-size: 12px; font-weight: 600; color: var(--agri-text-muted); text-transform: uppercase; border: none;">Returnable</th>
                         <th class="text-end" style="padding: 16px 24px; font-size: 12px; font-weight: 600; color: var(--agri-text-muted); text-transform: uppercase; border: none;">Actions</th>
                     </tr>
                 </thead>
@@ -70,6 +71,31 @@
                             </td>
                             <td class="px-4 py-3">
                                 <span class="badge rounded-pill {{ $product->is_active ? 'bg-success' : 'bg-secondary' }}">{{ $product->is_active ? 'Active' : 'Inactive' }}</span>
+                                <form method="POST" action="{{ route('admin.products.toggle-active', $product->id) }}" class="mt-2">
+                                    @csrf
+                                    <div class="form-check form-switch" style="padding-left: 0; margin-bottom: 0;">
+                                        <input
+                                            type="checkbox"
+                                            class="form-check-input"
+                                            style="width: 40px; height: 20px; margin-left: 0; cursor: pointer;"
+                                            {{ $product->is_active ? 'checked' : '' }}
+                                            onchange="this.form.submit()">
+                                    </div>
+                                </form>
+                            </td>
+                            <td class="px-4 py-3">
+                                <span class="badge rounded-pill {{ $product->is_returnable ? 'bg-success' : 'bg-secondary' }}">{{ $product->is_returnable ? 'Yes' : 'No' }}</span>
+                                <form method="POST" action="{{ route('admin.products.toggle-returnable', $product->id) }}" class="mt-2">
+                                    @csrf
+                                    <div class="form-check form-switch" style="padding-left: 0; margin-bottom: 0;">
+                                        <input
+                                            type="checkbox"
+                                            class="form-check-input"
+                                            style="width: 40px; height: 20px; margin-left: 0; cursor: pointer;"
+                                            {{ $product->is_returnable ? 'checked' : '' }}
+                                            onchange="this.form.submit()">
+                                    </div>
+                                </form>
                             </td>
                             <td class="px-4 py-3">
                                 <div class="text-end" style="display: flex; justify-content: flex-end; gap: 8px;">
@@ -87,7 +113,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="6" class="text-center py-5" style="color: var(--agri-text-muted);">No products found</td>
+                            <td colspan="7" class="text-center py-5" style="color: var(--agri-text-muted);">No products found</td>
                         </tr>
                     @endforelse
                 </tbody>
