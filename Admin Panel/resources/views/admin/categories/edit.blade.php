@@ -19,16 +19,21 @@
             <div class="card-agri" style="padding: 0; overflow: hidden; background: white; border: none; box-shadow: 0 10px 30px rgba(0,0,0,0.04);">
                 
                 {{-- Navigation Tabs --}}
-                <div style="background: var(--agri-bg); border-bottom: 1px solid var(--agri-border); padding: 0 40px;">
-                    <ul class="nav nav-tabs border-0" role="tablist" style="gap: 32px;">
+                <div style="border-bottom: 1px solid var(--agri-border); padding: 0 40px; background: transparent;">
+                    <ul class="nav nav-tabs border-0 category-tabs" role="tablist">
                         <li class="nav-item">
-                            <a href="#category_information" class="nav-link active border-0 py-4 px-0" data-toggle="tab" style="background: transparent; color: var(--agri-primary); font-weight: 800; font-size: 14px; border-bottom: 3px solid var(--agri-primary) !important; border-radius: 0; display: flex; align-items: center; gap: 10px;">
+                            <a href="#category_information" class="nav-link active" data-toggle="tab">
                                 <i class="fas fa-layer-group"></i> {{trans('lang.category_information')}}
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a href="#review_attributes" class="nav-link border-0 py-4 px-0" data-toggle="tab" style="background: transparent; color: var(--agri-text-muted); font-weight: 800; font-size: 14px; border-radius: 0; display: flex; align-items: center; gap: 10px;">
+                            <a href="#review_attributes" class="nav-link" data-toggle="tab">
                                 <i class="fas fa-sliders-h"></i> {{trans('lang.reviewattribute_plural')}}
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="#category_attributes" class="nav-link" data-toggle="tab">
+                                <i class="fas fa-list-check"></i> Category Attributes
                             </a>
                         </li>
                     </ul>
@@ -151,6 +156,50 @@
                                 </div>
                             </div>
                         </div>
+
+                        <div role="tabpanel" class="tab-pane" id="category_attributes">
+                            <div style="margin-bottom: 24px;">
+                                <h4 style="font-size: 18px; font-weight: 700; color: var(--agri-primary-dark); margin-bottom: 8px; display: flex; align-items: center; gap: 10px;">
+                                    <i class="fas fa-list-check"></i> Select Attributes for Category
+                                </h4>
+                                <p style="color: var(--agri-text-muted); margin: 0; font-size: 13px;">Choose which product attributes belong to this category and mark required fields.</p>
+                            </div>
+
+                            @php
+                                $assignedAttributes = $category->attributes->pluck('id')->all();
+                                $requiredAttributes = $category->attributes->where('pivot.is_required', true)->pluck('id')->all();
+                            @endphp
+
+                            <div class="row g-3" id="category_attribute_list">
+                                @forelse($attributes as $attr)
+                                    @php($attrName = $attr->name ?: $attr->title)
+                                    @php($isAssigned = in_array($attr->id, $assignedAttributes, true))
+                                    @php($isRequired = in_array($attr->id, $requiredAttributes, true))
+                                    <div class="col-md-6">
+                                        <div style="background: white; border: 1px solid var(--agri-border); border-radius: 14px; padding: 16px;">
+                                            <div style="display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:10px;">
+                                                <label style="display:flex; align-items:center; gap:10px; margin:0; font-weight:700; color:var(--agri-text-heading); cursor:pointer;">
+                                                    <input type="checkbox" class="category-attribute-check" value="{{ $attr->id }}" style="width:16px; height:16px;" {{ $isAssigned ? 'checked' : '' }}>
+                                                    <span>{{ $attrName }}</span>
+                                                </label>
+                                                <span style="font-size:11px; font-weight:700; color:var(--agri-text-muted); text-transform:uppercase;">{{ $attr->type }}</span>
+                                            </div>
+                                            <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; padding-top:10px; border-top:1px dashed var(--agri-border);">
+                                                <span style="font-size:12px; color:var(--agri-text-muted);">Required for products</span>
+                                                <label class="switch" style="transform:scale(.9);">
+                                                    <input type="checkbox" class="category-attribute-required" value="{{ $attr->id }}" {{ $isRequired ? 'checked' : '' }} {{ $isAssigned ? '' : 'disabled' }}>
+                                                    <span class="slider"></span>
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                @empty
+                                    <div class="col-12">
+                                        <div style="padding:16px; border-radius:12px; background:#FEF9C3; color:#854D0E; font-weight:600;">No attributes available yet. Create attributes first, then assign them to categories.</div>
+                                    </div>
+                                @endforelse
+                            </div>
+                        </div>
                     </div>
 
                     {{-- Action Bar --}}
@@ -168,11 +217,52 @@
 
 <style>
     .agri-label { font-size: 11px; font-weight: 700; color: var(--agri-text-muted); margin-bottom: 10px; display: block; text-transform: uppercase; letter-spacing: 0.5px; }
+    .category-tabs {
+        gap: 32px;
+        background: transparent !important;
+        border-bottom: 0 !important;
+    }
+    .category-tabs .nav-item {
+        background: transparent !important;
+        margin-bottom: 0;
+    }
+    .category-tabs .nav-link {
+        background: transparent !important;
+        background-color: transparent !important;
+        color: var(--agri-text-muted);
+        font-weight: 800;
+        font-size: 14px;
+        border: 0 !important;
+        border-bottom: 3px solid transparent;
+        border-radius: 0;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 16px 0;
+        margin-bottom: 0;
+        box-shadow: none !important;
+    }
+    .category-tabs .nav-link.active {
+        color: var(--agri-primary);
+        background: transparent !important;
+        background-color: transparent !important;
+        border-color: transparent !important;
+        border-bottom-color: var(--agri-primary);
+    }
+    .category-tabs .nav-link:hover {
+        color: var(--agri-primary);
+        border-bottom-color: rgba(71, 142, 60, 0.25);
+    }
     .nav-tabs .nav-link:hover { color: var(--agri-primary) !important; border-bottom: 3px solid var(--agri-primary)20 !important; }
     #drop-zone:hover { border-color: var(--agri-primary); background: white; }
     .attribute-card { background: white; border: 1px solid var(--agri-border); border-radius: 14px; padding: 16px 20px; transition: 0.2s; cursor: pointer; display: flex; align-items: center; gap: 12px; }
     .attribute-card:hover { border-color: var(--agri-primary); background: var(--agri-primary-light); }
     .attribute-card input:checked + .attr-label { color: var(--agri-primary) !important; font-weight: 800 !important; }
+
+    @media (max-width: 768px) {
+        .category-tabs { gap: 18px; }
+        .category-tabs .nav-link { font-size: 13px; }
+    }
 </style>
 @endsection
 
@@ -200,6 +290,10 @@
             var active = $("#item_publish").is(":checked") ? 1 : 0;
             var text_review_enabled = $("#text_review_enabled").is(":checked") ? 1 : 0;
             var image_review_enabled = $("#image_review_enabled").is(":checked") ? 1 : 0;
+            var category_attributes = [];
+            $('.category-attribute-check:checked').each(function () { category_attributes.push($(this).val()); });
+            var required_attributes = [];
+            $('.category-attribute-required:checked').each(function () { required_attributes.push($(this).val()); });
 
             if (!title) {
                 $(".error_top").show().html("<p>{{ trans('lang.enter_cat_title_error') }}</p>");
@@ -216,6 +310,8 @@
                 active: active,
                 text_review_enabled: text_review_enabled,
                 image_review_enabled: image_review_enabled,
+                category_attributes: category_attributes,
+                required_attributes: required_attributes,
                 image_base64: (photo && !photo.startsWith('http') && photo !== existingImage) ? photo : ''
             };
 
@@ -250,6 +346,15 @@
                 photo = base64str;
                 $(".cat_image").html('<img src="' + photo + '" style="width:100px;height:100px;border-radius:12px;object-fit:cover;border:2px solid white;box-shadow:0 10px 20px rgba(0,0,0,0.1);">');
                 $("#uploding_image").text("Image ready");
+            }
+        });
+
+        $('.category-attribute-check').on('change', function () {
+            var id = $(this).val();
+            var req = $('.category-attribute-required[value="' + id + '"]');
+            req.prop('disabled', !$(this).is(':checked'));
+            if (!$(this).is(':checked')) {
+                req.prop('checked', false);
             }
         });
     });
