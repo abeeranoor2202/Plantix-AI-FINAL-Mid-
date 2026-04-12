@@ -108,28 +108,34 @@
                         </tbody>
                         <tfoot style="background: transparent;">
                             <tr>
-                                <td colspan="3" class="text-end" style="padding: 24px 24px 12px 24px; font-weight: 700; color: var(--agri-text-muted); font-size: 13px; border: none;">Subtotal</td>
-                                <td class="text-end" style="padding: 24px 24px 12px 24px; font-weight: 800; color: var(--agri-text-heading); font-size: 15px; border: none;">{{ config('plantix.currency_symbol', 'PKR') }} {{ number_format($order->subtotal, 2) }}</td>
-                            </tr>
-                            <tr>
-                                <td colspan="3" class="text-end" style="padding: 8px 24px; font-weight: 700; color: var(--agri-text-muted); font-size: 13px; border: none;">Delivery Fee</td>
-                                <td class="text-end" style="padding: 8px 24px; font-weight: 800; color: var(--agri-text-heading); font-size: 15px; border: none;">{{ config('plantix.currency_symbol', 'PKR') }} {{ number_format($order->delivery_fee, 2) }}</td>
-                            </tr>
-                            @if($order->discount_amount > 0)
-                            <tr>
-                                <td colspan="3" class="text-end" style="padding: 8px 24px; font-weight: 700; color: var(--agri-success); font-size: 13px; border: none;">Discount</td>
-                                <td class="text-end" style="padding: 8px 24px; font-weight: 800; color: var(--agri-success); font-size: 15px; border: none;">− {{ config('plantix.currency_symbol', 'PKR') }} {{ number_format($order->discount_amount, 2) }}</td>
-                            </tr>
-                            @endif
-                            @if($order->tax_amount > 0)
-                            <tr>
-                                <td colspan="3" class="text-end" style="padding: 8px 24px; font-weight: 700; color: var(--agri-text-muted); font-size: 13px; border: none;">Tax</td>
-                                <td class="text-end" style="padding: 8px 24px; font-weight: 800; color: var(--agri-text-heading); font-size: 15px; border: none;">{{ config('plantix.currency_symbol', 'PKR') }} {{ number_format($order->tax_amount, 2) }}</td>
-                            </tr>
-                            @endif
-                            <tr>
-                                <td colspan="3" class="text-end" style="padding: 20px 24px; font-weight: 900; color: var(--agri-primary-dark); font-size: 16px; border-top: 2px dashed var(--agri-border); border-bottom: none;">TOTAL AMOUNT</td>
-                                <td class="text-end" style="padding: 20px 24px; font-weight: 900; color: var(--agri-primary-dark); font-size: 20px; border-top: 2px dashed var(--agri-border); border-bottom: none; letter-spacing: -0.5px;">{{ config('plantix.currency_symbol', 'PKR') }} {{ number_format($order->total, 2) }}</td>
+                                <td colspan="4" style="padding: 24px 24px 12px 24px; border: none;">
+                                    <div style="margin-left: auto; max-width: 380px; width: 100%; background: linear-gradient(180deg, #FFFFFF 0%, #F8FAFC 100%); border: 1px solid var(--agri-border); border-radius: 16px; padding: 18px 20px; box-shadow: 0 8px 22px rgba(15, 23, 42, 0.04);">
+                                        <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 12px; border-bottom: 1px dashed var(--agri-border); margin-bottom: 12px;">
+                                            <span style="font-size: 12px; font-weight: 800; color: var(--agri-text-muted); text-transform: uppercase; letter-spacing: 0.6px;">Subtotal</span>
+                                            <span style="font-size: 16px; font-weight: 900; color: var(--agri-text-heading);">{{ config('plantix.currency_symbol', 'PKR') }} {{ number_format($order->subtotal, 2) }}</span>
+                                        </div>
+                                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0;">
+                                            <span style="font-size: 12px; font-weight: 700; color: var(--agri-text-muted);">Delivery Fee</span>
+                                            <span style="font-size: 14px; font-weight: 800; color: var(--agri-text-heading);">{{ config('plantix.currency_symbol', 'PKR') }} {{ number_format($order->delivery_fee, 2) }}</span>
+                                        </div>
+                                        @if($order->discount_amount > 0)
+                                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0;">
+                                            <span style="font-size: 12px; font-weight: 700; color: var(--agri-success);">Discount</span>
+                                            <span style="font-size: 14px; font-weight: 800; color: var(--agri-success);">− {{ config('plantix.currency_symbol', 'PKR') }} {{ number_format($order->discount_amount, 2) }}</span>
+                                        </div>
+                                        @endif
+                                        @if($order->tax_amount > 0)
+                                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0;">
+                                            <span style="font-size: 12px; font-weight: 700; color: var(--agri-text-muted);">Tax</span>
+                                            <span style="font-size: 14px; font-weight: 800; color: var(--agri-text-heading);">{{ config('plantix.currency_symbol', 'PKR') }} {{ number_format($order->tax_amount, 2) }}</span>
+                                        </div>
+                                        @endif
+                                        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px; padding-top: 14px; border-top: 2px dashed var(--agri-border);">
+                                            <span style="font-size: 12px; font-weight: 900; color: var(--agri-primary-dark); text-transform: uppercase; letter-spacing: 0.8px;">Total Amount</span>
+                                            <span style="font-size: 20px; font-weight: 900; color: var(--agri-primary-dark); letter-spacing: -0.5px;">{{ config('plantix.currency_symbol', 'PKR') }} {{ number_format($order->total, 2) }}</span>
+                                        </div>
+                                    </div>
+                                </td>
                             </tr>
                         </tfoot>
                     </table>
@@ -265,6 +271,8 @@
                     </form>
                 </div>
             </div>
+
+            @endif
 
             {{-- Order Summary --}}
             <div class="card-agri mb-4" style="padding: 24px; background: white; border: none; box-shadow: 0 10px 30px rgba(0,0,0,0.04);">
