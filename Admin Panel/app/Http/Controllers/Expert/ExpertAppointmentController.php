@@ -59,7 +59,7 @@ class ExpertAppointmentController extends Controller
             $this->service->accept(
                 $appointment,
                 $this->currentExpert(),
-                $request->input('meeting_link')
+                $request->validated('meeting_link')
             );
 
             return redirect()->route('expert.appointments.show', $appointment)
