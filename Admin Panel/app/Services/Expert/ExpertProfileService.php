@@ -51,6 +51,8 @@ class ExpertProfileService
                     'linkedin'              => $data['linkedin']              ?? null,
                     'contact_phone'         => $data['contact_phone']         ?? null,
                     'city'                  => $data['city']                  ?? null,
+                    'address'               => $data['address']               ?? null,
+                    'map_link'              => $data['map_link']              ?? null,
                     'country'               => $data['country']               ?? null,
                     'account_type'          => $data['account_type']          ?? null,
                 ])
