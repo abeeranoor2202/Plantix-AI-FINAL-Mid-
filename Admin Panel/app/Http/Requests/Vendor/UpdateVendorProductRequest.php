@@ -27,6 +27,7 @@ class UpdateVendorProductRequest extends FormRequest
             'return_window_days' => 'nullable|integer|min:0|max:365',
             'stock_quantity' => 'nullable|integer|min:0',
             'track_stock'    => 'boolean',
+            'attribute_values' => 'nullable|array',
         ];
     }
 
