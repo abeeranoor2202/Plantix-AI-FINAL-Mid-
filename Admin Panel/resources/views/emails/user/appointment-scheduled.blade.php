@@ -62,7 +62,7 @@
 
 {{-- Action Buttons --}}
 <div class="btn-wrap">
-    <a href="{{ route('customer.appointments.show', $appointment->id) }}" class="btn">📋 View Appointment Details</a>
+    <a href="{{ route('appointment.details', $appointment->id) }}" class="btn">📋 View Appointment Details</a>
 </div>
 
 @if($appointment->meeting_link)
