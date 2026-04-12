@@ -17,6 +17,8 @@ use App\Services\Shared\CartCheckoutService;
 use App\Services\Shared\CouponService;
 use App\Services\Shared\NotificationService;
 use App\Services\Shared\OrderService;
+use App\Services\Shared\RefundService;
+use App\Services\Shared\ReturnService;
 use App\Services\Shared\ReturnRefundService;
 use App\Services\Shared\StockService;
 use App\Services\Shared\WalletService;
@@ -53,6 +55,8 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton(StockService::class);
         $this->app->singleton(CouponService::class);
         $this->app->singleton(AppointmentService::class);
+        $this->app->singleton(ReturnService::class);
+        $this->app->singleton(RefundService::class);
         $this->app->singleton(ReturnRefundService::class);
 
         $this->app->singleton(OrderService::class, function ($app) {
