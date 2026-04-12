@@ -5,15 +5,18 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Cart;
 use App\Models\CartItem;
-use App\Models\Coupon;
 use App\Models\Product;
 use App\Services\Shared\CartCheckoutService;
+use App\Services\Shared\CouponService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class CustomerCartApiController extends Controller
 {
-    public function __construct(private readonly CartCheckoutService $checkout) {}
+    public function __construct(
+        private readonly CartCheckoutService $checkout,
+        private readonly CouponService $couponService,
+    ) {}
 
     // ── Get cart ──────────────────────────────────────────────────────────────
 
@@ -116,48 +119,21 @@ class CustomerCartApiController extends Controller
     {
         $request->validate(['code' => 'required|string|max:50']);
 
-        $coupon = Coupon::where('code', strtoupper(trim($request->code)))->first();
-
-        if (! $coupon) {
-            return response()->json(['success' => false, 'message' => 'Invalid coupon code.'], 422);
-        }
-
-        // Check if coupon is active and not expired
-        if (! $coupon->isValid()) {
-            $message = 'This coupon has expired or is not yet valid.';
-            if ($coupon->expires_at && now()->gt($coupon->expires_at)) {
-                $message = 'This coupon has expired.';
-            }
-            return response()->json(['success' => false, 'message' => $message], 422);
-        }
-
-        // Check per-user usage limit
         $user = $request->user();
-        $perUserLimit = (int) ($coupon->per_user_limit ?? 1);
-        if ($coupon->usageCountForUser($user->id) >= $perUserLimit) {
-            return response()->json(['success' => false, 'message' => 'You have used this coupon the maximum number of times.'], 422);
+        $cart = $this->getOrCreateCart($user)->load('items.product.primaryImage');
+
+        try {
+            $coupon = $this->couponService->findAndValidateForCart($request->code, $user, $cart);
+            $discount = $this->couponService->calculateDiscountForCart($coupon, $cart);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => collect($e->errors())->flatten()->first() ?? 'Coupon validation failed.',
+            ], 422);
         }
 
-        // Get or create cart
-        $cart = $this->getOrCreateCart($user);
-
-        // Check if coupon is store-specific and cart has items from different store
-        if ($coupon->vendor_id && $cart->items->isNotEmpty()) {
-            $cartVendorIds = $cart->items->pluck('product.vendor_id')->unique()->filter();
-            if ($cartVendorIds->isNotEmpty() && ! $cartVendorIds->contains($coupon->vendor_id)) {
-                return response()->json(['success' => false, 'message' => 'This coupon is not valid for items in your cart.'], 422);
-            }
-        }
-
-        // Check minimum order amount
         $subtotal = (float) $cart->subtotal;
-        if ($coupon->min_order && $subtotal < (float) $coupon->min_order) {
-            return response()->json(['success' => false, 'message' => "Minimum order of " . number_format($coupon->min_order, 2) . " required for this coupon."], 422);
-        }
-
-        // Calculate and apply discount
-        $discount = $coupon->calculateDiscount($subtotal);
-        $cart->update(['coupon_id' => $coupon->id, 'discount_amount' => $discount]);
+        $total = max(0, $subtotal - $discount);
 
         return response()->json([
             'success' => true,
@@ -168,7 +144,12 @@ class CustomerCartApiController extends Controller
                 'value' => $coupon->value,
                 'discount' => $discount,
             ],
-            'cart' => $this->cartPayload($cart->fresh()->load('items.product')),
+            'pricing' => [
+                'subtotal' => round($subtotal, 2),
+                'discount' => round($discount, 2),
+                'total' => round($total, 2),
+            ],
+            'cart' => $this->cartPayload($cart),
         ]);
     }
 
@@ -176,12 +157,6 @@ class CustomerCartApiController extends Controller
 
     public function removeCoupon(Request $request): JsonResponse
     {
-        $cart = Cart::where('user_id', $request->user()->id)->first();
-
-        if ($cart) {
-            $cart->update(['coupon_id' => null, 'discount_amount' => 0]);
-        }
-
         return response()->json(['success' => true, 'message' => 'Coupon removed.']);
     }
 
@@ -197,25 +172,13 @@ class CustomerCartApiController extends Controller
         $subtotal = $cart->items->sum(fn ($i) => $i->unit_price * $i->quantity);
         $discount = 0;
 
-        if ($cart->coupon) {
-            if ($cart->coupon->type === 'percent') {
-                $discount = round($subtotal * $cart->coupon->value / 100, 2);
-            } elseif ($cart->coupon->type === 'fixed') {
-                $discount = min($cart->coupon->value, $subtotal);
-            }
-        }
-
         return [
             'id'       => $cart->id,
             'subtotal' => $subtotal,
             'discount' => $discount,
             'total'    => max(0, $subtotal - $discount),
             'count'    => $cart->items->sum('quantity'),
-            'coupon'   => $cart->coupon ? [
-                'code'  => $cart->coupon->code,
-                'type'  => $cart->coupon->type,
-                'value' => $cart->coupon->value,
-            ] : null,
+            'coupon'   => null,
             'items' => $cart->items->map(fn ($item) => [
                 'id'         => $item->id,
                 'product_id' => $item->product_id,
