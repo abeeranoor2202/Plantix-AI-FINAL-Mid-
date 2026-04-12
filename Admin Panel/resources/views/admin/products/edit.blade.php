@@ -185,6 +185,14 @@
                             </div>
                         </div>
 
+                        <div class="d-flex align-items-center justify-content-between" style="margin-top: 8px; padding-top: 12px; border-top: 1px solid rgba(146, 64, 14, 0.12);">
+                            <span style="font-size: 14px; font-weight: 600; color: var(--agri-text-heading);">Refundable</span>
+                            <label class="switch">
+                                <input type="checkbox" name="is_refundable" value="1" @checked(old('is_refundable', $product->is_refundable ?? true))>
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+
                         <div class="row g-4" style="margin-top: 4px;">
                             <div class="col-md-6">
                                 <label class="agri-label">Return Days</label>
