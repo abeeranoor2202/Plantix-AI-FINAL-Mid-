@@ -181,6 +181,8 @@ Route::prefix('admin')->name('admin.')->group(function () {
         // ── Appointments ──────────────────────────────────────────────────────
         Route::prefix('/appointments')->name('appointments.')->group(function () {
             Route::get('/',                [\App\Http\Controllers\Admin\AdminAppointmentController::class, 'index'])->name('index');
+            Route::get('/create',          [\App\Http\Controllers\Admin\AdminAppointmentController::class, 'create'])->name('create');
+            Route::post('/',               [\App\Http\Controllers\Admin\AdminAppointmentController::class, 'store'])->name('store');
             Route::get('/{id}',            [\App\Http\Controllers\Admin\AdminAppointmentController::class, 'show'])->name('show');
             Route::get('/{id}/edit',       [\App\Http\Controllers\Admin\AdminAppointmentController::class, 'edit'])->name('edit');
             Route::put('/{id}',            [\App\Http\Controllers\Admin\AdminAppointmentController::class, 'update'])->name('update');
