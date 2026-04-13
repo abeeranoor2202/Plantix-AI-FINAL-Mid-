@@ -66,13 +66,14 @@
                             <td class="px-4 py-3">{{ optional($flag->reporter)->name ?? '—' }}</td>
                             <td class="px-4 py-3">{{ \Illuminate\Support\Str::limit($flag->reason, 30) }}</td>
                             <td class="px-4 py-3">
-                                @php($st = strtolower((string) $flag->status))
                                 @php
+                                    $st = strtolower((string) $flag->status);
                                     $isResolved = in_array($st, ['resolved', 'reviewed'], true);
                                     $isIgnored = in_array($st, ['ignored', 'dismissed'], true);
-                                    $label = $isResolved ? 'RESOLVED' : ($isIgnored ? 'IGNORED' : 'PENDING');
+                                    $statusLabel = $isResolved ? 'RESOLVED' : ($isIgnored ? 'IGNORED' : 'PENDING');
+                                    $statusClass = $statusLabel === 'PENDING' ? 'bg-warning text-dark' : ($statusLabel === 'RESOLVED' ? 'bg-success' : 'bg-secondary');
                                 @endphp
-                                <span class="badge rounded-pill {{ $label === 'PENDING' ? 'bg-warning text-dark' : ($label === 'RESOLVED' ? 'bg-success' : 'bg-secondary') }}">{{ $label }}</span>
+                                <span class="badge rounded-pill {{ $statusClass }}">{{ $statusLabel }}</span>
                             </td>
                             <td class="px-4 py-3">
                                 <div class="text-end" style="display: flex; justify-content: flex-end; gap: 8px;">
