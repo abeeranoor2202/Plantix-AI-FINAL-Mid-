@@ -12,6 +12,18 @@
     </div>
 </div>
 
+@if(session('success'))
+    <div class="card-agri mb-4" style="background: #ecfdf5; border: 1px solid #86efac; border-radius: 12px; padding: 12px 20px; color: #166534; font-weight: 700;">
+        {{ session('success') }}
+    </div>
+@endif
+
+@if($errors->any())
+    <div class="card-agri mb-4" style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 12px; padding: 12px 20px; color: #991b1b; font-weight: 700;">
+        {{ $errors->first('error') ?? $errors->first('body') ?? 'Please correct the highlighted issues and try again.' }}
+    </div>
+@endif
+
 <div class="row g-4 mb-4">
     <div class="col-lg-8 d-flex flex-column gap-4">
         {{-- Thread Original Post --}}
@@ -126,7 +138,7 @@
         </div>
 
         {{-- Reply Form --}}
-        @if(!$thread->is_locked)
+        @if(!$thread->isLocked())
         <div class="card-agri" style="padding: 24px;">
             <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 24px; border-bottom: 1px solid var(--agri-border); padding-bottom: 16px;">
                 <div style="width: 36px; height: 36px; background: rgba(16, 185, 129, 0.1); color: var(--agri-primary); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 14px;"><i class="fa fa-reply"></i></div>
