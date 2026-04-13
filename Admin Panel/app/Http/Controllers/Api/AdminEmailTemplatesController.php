@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\EmailTemplate;
+use Illuminate\Support\Str;
 
 class AdminEmailTemplatesController extends Controller
 {
@@ -21,8 +22,12 @@ class AdminEmailTemplatesController extends Controller
             $query = EmailTemplate::query();
 
             if ($search) {
-                $query->where('type', 'like', "%$search%")
-                      ->orWhere('subject', 'like', "%$search%");
+                $query->where(function ($builder) use ($search) {
+                    $builder->where('name', 'like', "%$search%")
+                        ->orWhere('type', 'like', "%$search%")
+                        ->orWhere('email_type', 'like', "%$search%")
+                        ->orWhere('subject', 'like', "%$search%");
+                });
             }
 
             $total = $query->count();
@@ -33,9 +38,12 @@ class AdminEmailTemplatesController extends Controller
                               ->map(function ($template) {
                                   return [
                                       'id' => $template->id,
+                                      'name' => $template->name,
                                       'type' => $template->type,
+                                      'email_type' => $template->email_type,
                                       'subject' => $template->subject,
-                                      'message' => substr($template->message, 0, 100) . '...',
+                                      'body' => substr((string) $template->body, 0, 100) . '...',
+                                      'variables' => $template->variables,
                                       'is_send_to_admin' => $template->is_send_to_admin ?? false,
                                       'created_at' => $template->created_at,
                                   ];
@@ -77,9 +85,12 @@ class AdminEmailTemplatesController extends Controller
                 'success' => true,
                 'data' => [
                     'id' => $template->id,
+                    'name' => $template->name,
                     'type' => $template->type,
+                    'email_type' => $template->email_type,
                     'subject' => $template->subject,
-                    'message' => $template->message,
+                    'body' => $template->body,
+                    'variables' => $template->variables,
                     'is_send_to_admin' => $template->is_send_to_admin ?? false,
                 ]
             ]);
@@ -98,16 +109,24 @@ class AdminEmailTemplatesController extends Controller
     {
         try {
             $validated = $request->validate([
-                'type' => 'required|string|max:255',
+                'name' => 'required|string|max:150',
+                'type' => 'nullable|string|max:255',
+                'email_type' => 'required|in:system,appointment,forum,order',
                 'subject' => 'required|string|max:255',
-                'message' => 'required|string',
+                'body' => 'required|string',
+                'variables' => 'nullable|string',
                 'is_send_to_admin' => 'nullable|boolean',
             ]);
 
+            $validated['type'] = $validated['type'] ?: Str::slug($validated['name']);
+
             $template = EmailTemplate::create([
+                'name' => $validated['name'],
                 'type' => $validated['type'],
+                'email_type' => $validated['email_type'],
                 'subject' => $validated['subject'],
-                'message' => $validated['message'],
+                'body' => $validated['body'],
+                'variables' => $validated['variables'] ?? null,
                 'is_send_to_admin' => $validated['is_send_to_admin'] ?? false,
             ]);
 
@@ -115,9 +134,12 @@ class AdminEmailTemplatesController extends Controller
                 'success' => true,
                 'data' => [
                     'id' => $template->id,
+                    'name' => $template->name,
                     'type' => $template->type,
+                    'email_type' => $template->email_type,
                     'subject' => $template->subject,
-                    'message' => $template->message,
+                    'body' => $template->body,
+                    'variables' => $template->variables,
                     'is_send_to_admin' => $template->is_send_to_admin,
                 ]
             ], 201);
@@ -151,16 +173,28 @@ class AdminEmailTemplatesController extends Controller
             }
 
             $validated = $request->validate([
+                'name' => 'nullable|string|max:150',
+                'email_type' => 'nullable|in:system,appointment,forum,order',
                 'subject' => 'nullable|string|max:255',
-                'message' => 'nullable|string',
+                'body' => 'nullable|string',
+                'variables' => 'nullable|string',
                 'is_send_to_admin' => 'nullable|boolean',
             ]);
 
+            if (isset($validated['name'])) {
+                $template->name = $validated['name'];
+            }
+            if (isset($validated['email_type'])) {
+                $template->email_type = $validated['email_type'];
+            }
             if (isset($validated['subject'])) {
                 $template->subject = $validated['subject'];
             }
-            if (isset($validated['message'])) {
-                $template->message = $validated['message'];
+            if (array_key_exists('body', $validated)) {
+                $template->body = $validated['body'];
+            }
+            if (array_key_exists('variables', $validated)) {
+                $template->variables = $validated['variables'];
             }
             if (isset($validated['is_send_to_admin'])) {
                 $template->is_send_to_admin = $validated['is_send_to_admin'];
@@ -172,9 +206,12 @@ class AdminEmailTemplatesController extends Controller
                 'success' => true,
                 'data' => [
                     'id' => $template->id,
+                    'name' => $template->name,
                     'type' => $template->type,
+                    'email_type' => $template->email_type,
                     'subject' => $template->subject,
-                    'message' => $template->message,
+                    'body' => $template->body,
+                    'variables' => $template->variables,
                     'is_send_to_admin' => $template->is_send_to_admin,
                 ]
             ]);
