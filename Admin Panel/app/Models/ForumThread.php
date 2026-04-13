@@ -145,7 +145,9 @@ class ForumThread extends Model
     public function decrementRepliesCount(): void
     {
         static::withoutTimestamps(fn () =>
-            $this->decrement('replies_count', 1, ['replies_count' => \DB::raw('GREATEST(0, replies_count - 1)')])
+            $this->newQuery()->whereKey($this->getKey())->update([
+                'replies_count' => \DB::raw('GREATEST(0, replies_count - 1)'),
+            ])
         );
     }
 
