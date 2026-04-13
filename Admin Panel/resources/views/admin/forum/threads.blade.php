@@ -133,10 +133,10 @@
                                         </a>
                                         {{-- Action drop-down --}}
                                         <div class="dropdown">
-                                            <button type="button" class="btn-agri" style="min-width: 92px; height: 36px; padding: 0 12px; display: inline-flex; align-items: center; justify-content: center; background: var(--agri-bg); color: var(--agri-text-muted); border: 1px solid var(--agri-border); font-size: 12px; font-weight: 600; border-radius: 999px;" data-bs-toggle="dropdown">
+                                            <button type="button" class="btn-agri dropdown-toggle" style="min-width: 92px; height: 36px; padding: 0 12px; display: inline-flex; align-items: center; justify-content: center; background: var(--agri-bg); color: var(--agri-text-muted); border: 1px solid var(--agri-border); font-size: 12px; font-weight: 600; border-radius: 999px;" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                                 Actions <i class="fas fa-chevron-down" style="font-size: 10px; margin-left: 4px;"></i>
                                             </button>
-                                            <ul class="dropdown-menu dropdown-menu-end" style="border: none; box-shadow: 0 10px 30px rgba(0,0,0,0.08); border-radius: 12px; padding: 8px;">
+                                            <ul class="dropdown-menu dropdown-menu-right" style="border: none; box-shadow: 0 10px 30px rgba(0,0,0,0.08); border-radius: 12px; padding: 8px;">
                                                 @if(!$thread->is_approved)
                                                 <li>
                                                     <form method="POST" action="{{ route('admin.forum.threads.approve', $thread->id) }}">
