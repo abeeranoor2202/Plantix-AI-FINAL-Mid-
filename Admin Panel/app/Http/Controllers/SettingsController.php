@@ -30,10 +30,9 @@ class SettingsController extends Controller
     {
         $settings = DB::table('settings')
             ->whereIn('key', [
-                'push_notification_enabled', 'push_fcm_key', 'push_api_key',
-                'push_database_url', 'push_storage_bucket', 'push_app_id',
-                'push_auth_domain', 'push_project_id', 'push_message_sender_id',
-                'push_measurement_id',
+                'mail_mailer', 'mail_host', 'mail_port', 'mail_username',
+                'mail_password', 'mail_encryption', 'mail_from_address',
+                'mail_from_name', 'mail_queue_mode',
             ])
             ->pluck('value', 'key');
         return view('admin.settings.app.notification', compact('settings'));
@@ -42,25 +41,23 @@ class SettingsController extends Controller
     public function notificationsSave(Request $request)
     {
         $keys = [
-            'push_notification_enabled', 'push_fcm_key', 'push_api_key',
-            'push_database_url', 'push_storage_bucket', 'push_app_id',
-            'push_auth_domain', 'push_project_id', 'push_message_sender_id',
-            'push_measurement_id',
+            'mail_mailer', 'mail_host', 'mail_port', 'mail_username',
+            'mail_password', 'mail_encryption', 'mail_from_address',
+            'mail_from_name', 'mail_queue_mode',
         ];
         $map = [
-            'push_notification_enabled' => $request->boolean('isEnabled') ? '1' : '0',
-            'push_fcm_key'              => $request->input('fcm_key', ''),
-            'push_api_key'              => $request->input('api_key', ''),
-            'push_database_url'         => $request->input('database_url', ''),
-            'push_storage_bucket'       => $request->input('storage_bucket', ''),
-            'push_app_id'               => $request->input('app_id', ''),
-            'push_auth_domain'          => $request->input('auth_domain', ''),
-            'push_project_id'           => $request->input('project_id', ''),
-            'push_message_sender_id'    => $request->input('message_sender_id', ''),
-            'push_measurement_id'       => $request->input('measurement_id', ''),
+            'mail_mailer'       => $request->input('mail_mailer', 'smtp'),
+            'mail_host'         => $request->input('mail_host', ''),
+            'mail_port'         => $request->input('mail_port', ''),
+            'mail_username'     => $request->input('mail_username', ''),
+            'mail_password'     => $request->input('mail_password', ''),
+            'mail_encryption'   => $request->input('mail_encryption', ''),
+            'mail_from_address' => $request->input('mail_from_address', ''),
+            'mail_from_name'    => $request->input('mail_from_name', ''),
+            'mail_queue_mode'   => $request->boolean('mail_queue_mode') ? '1' : '0',
         ];
         foreach ($map as $key => $value) {
-            DB::table('settings')->updateOrInsert(['key' => $key], ['value' => $value, 'updated_at' => now()]);
+            Setting::set($key, $value, $key === 'mail_queue_mode' ? 'boolean' : 'string');
         }
         return response()->json(['success' => true]);
     }
