@@ -139,7 +139,7 @@
         </div>
 
         {{-- Reply Form --}}
-        @if(!$thread->isLocked())
+        @if($thread->isOpen())
         <div class="card-agri" style="padding: 24px;">
             <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 24px; border-bottom: 1px solid var(--agri-border); padding-bottom: 16px;">
                 <div style="width: 36px; height: 36px; background: rgba(16, 185, 129, 0.1); color: var(--agri-primary); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 14px;"><i class="fa fa-reply"></i></div>
