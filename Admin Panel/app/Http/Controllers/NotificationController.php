@@ -39,6 +39,10 @@ class NotificationController extends Controller
     // ── Broadcast to all users of a given role ────────────────────────────────
     public function broadcastnotification(Request $request): JsonResponse
     {
+        $request->merge([
+            'subject' => $request->input('subject', $request->input('title')),
+        ]);
+
         $request->validate([
             'role'       => 'required|in:customer,vendor,expert,admin',
             'subject'    => 'required|string|max:255',
@@ -70,6 +74,10 @@ class NotificationController extends Controller
     // ── Send a notification to a single user by ID ────────────────────────────
     public function sendNotification(Request $request): JsonResponse
     {
+        $request->merge([
+            'title' => $request->input('title', $request->input('subject')),
+        ]);
+
         $request->validate([
             'user_id'    => 'required|exists:users,id',
             'title'      => 'required|string|max:255',
