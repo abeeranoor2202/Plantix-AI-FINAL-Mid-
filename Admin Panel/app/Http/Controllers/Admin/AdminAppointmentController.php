@@ -11,10 +11,12 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Schema;
 
 class AdminAppointmentController extends Controller
 {
     private const UI_STATUSES = ['pending', 'confirmed', 'completed', 'cancelled'];
+    private ?array $appointmentColumns = null;
 
     public function __construct(
         private readonly AppointmentService $service,
@@ -111,7 +113,7 @@ class AdminAppointmentController extends Controller
         $type = $request->string('type')->toString() === 'offline' ? 'physical' : 'online';
         $uiStatus = $request->string('status')->toString();
 
-        $appointment = Appointment::create([
+        $appointment = Appointment::create($this->persistable([
             'user_id'               => $userId,
             'expert_id'             => $request->integer('expert_id'),
             'admin_id'              => auth('admin')->id(),
@@ -131,7 +133,7 @@ class AdminAppointmentController extends Controller
             'payment_status'        => $request->input('payment_status'),
             'notifications_enabled' => $request->boolean('notifications_enabled', true),
             'status'                => $this->dbStatusFromUi($uiStatus),
-        ]);
+        ]));
 
         return redirect()->route('admin.appointments.show', $appointment->id)
             ->with('success', 'Appointment created successfully.');
@@ -182,7 +184,7 @@ class AdminAppointmentController extends Controller
         ]);
 
         $type = $request->string('type')->toString() === 'offline' ? 'physical' : 'online';
-        $appointment->update([
+        $appointment->update($this->persistable([
             'expert_id'             => $request->integer('expert_id'),
             'type'                  => $type,
             'scheduled_at'          => $request->date('scheduled_at'),
@@ -198,7 +200,7 @@ class AdminAppointmentController extends Controller
             'payment_status'        => $request->input('payment_status'),
             'notifications_enabled' => $request->boolean('notifications_enabled', true),
             'status'                => $this->dbStatusFromUi($request->string('status')->toString()),
-        ]);
+        ]));
 
         return redirect()->route('admin.appointments.show', $appointment->id)
             ->with('success', 'Appointment updated successfully.');
@@ -250,6 +252,22 @@ class AdminAppointmentController extends Controller
                 Appointment::STATUS_RESCHEDULED,
             ],
         };
+    }
+
+    /**
+     * Filter payload so only existing appointments table columns are written.
+     */
+    private function persistable(array $payload): array
+    {
+        if ($this->appointmentColumns === null) {
+            $this->appointmentColumns = Schema::getColumnListing('appointments');
+        }
+
+        return array_filter(
+            $payload,
+            fn ($value, $key) => in_array($key, $this->appointmentColumns, true),
+            ARRAY_FILTER_USE_BOTH
+        );
     }
 
     // ── Delete functionality ──────────────────────────────────────────────────
