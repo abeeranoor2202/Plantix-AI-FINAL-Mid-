@@ -131,8 +131,8 @@ class UserController extends Controller
 
     public function adminUsers()
     {
-        $users = User::join('role', 'admin.rbac.roles.id', '=', 'users.role_id')
-            ->select('users.*', 'admin.rbac.roles.role_name as roleName')->where('users.id', '!=', 1)->get();
+        $users = User::join('role', 'role.id', '=', 'users.role_id')
+            ->select('users.*', 'role.role_name as roleName')->where('users.id', '!=', 1)->get();
         return view('admin.users.index', compact(['users']));
     }
 
@@ -221,7 +221,7 @@ class UserController extends Controller
     }
     public function editAdminUsers($id)
     {
-        $user = User::join('role', 'admin.rbac.roles.id', '=', 'users.role_id')->select('users.*', 'admin.rbac.roles.role_name as roleName')->find($id);
+        $user = User::join('role', 'role.id', '=', 'users.role_id')->select('users.*', 'role.role_name as roleName')->find($id);
         $roles = Role::all();
         return view('admin.users.edit', compact(['user', 'roles']));
     }
