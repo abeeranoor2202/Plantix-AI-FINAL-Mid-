@@ -101,8 +101,8 @@ class AdminSuperUserSeeder extends Seeder
             $this->command->info('  ║              PLANTIX AI — ADMIN CREDENTIALS             ║');
             $this->command->info('  ╠══════════════════════════════════════════════════════════╣');
             $this->command->info('  ║  SUPER ADMIN (unrestricted)                             ║');
-            $this->command->info('  ║    Email   : admin@plantix.com                          ║');
-            $this->command->info('  ║    Password: Admin@123456                               ║');
+            $this->command->info('  ║    Email   : admin@gmail.com                            ║');
+            $this->command->info('  ║    Password: 12345678                                   ║');
             $this->command->info('  ╠══════════════════════════════════════════════════════════╣');
             $this->command->info('  ║  STAFF ACCOUNTS  (password for all: Staff@123456)       ║');
             $this->command->info('  ║    catalog@plantix.com   → Catalog Manager              ║');
