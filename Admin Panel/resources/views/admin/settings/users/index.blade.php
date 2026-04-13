@@ -24,7 +24,10 @@
 
     @php
         $permissions = json_decode(@session('admin_permissions'), true) ?? [];
-        $canDeleteUsers = in_array('users.delete', $permissions) || in_array('user.delete', $permissions) || in_array('admin.users.delete', $permissions);
+        $canDeleteUsers = in_array('*', $permissions)
+            || in_array('users.delete', $permissions)
+            || in_array('user.delete', $permissions)
+            || in_array('admin.users.delete', $permissions);
     @endphp
 
     {{-- Table Card --}}
