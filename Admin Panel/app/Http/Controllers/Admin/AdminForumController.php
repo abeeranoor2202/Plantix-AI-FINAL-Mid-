@@ -197,6 +197,17 @@ class AdminForumController extends Controller
         return back()->with('success', 'Thread archived.');
     }
 
+    public function unarchiveThread(int $id): RedirectResponse
+    {
+        $thread = ForumThread::findOrFail($id);
+        $admin = $this->adminUser();
+        $this->authorizeForUser($admin, 'archive', $thread);
+
+        $this->moderation->unarchiveThread($admin, $thread);
+
+        return back()->with('success', 'Thread restored to open.');
+    }
+
     public function pinThread(int $id): RedirectResponse
     {
         $thread = ForumThread::findOrFail($id);
