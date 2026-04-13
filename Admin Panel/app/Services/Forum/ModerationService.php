@@ -263,6 +263,8 @@ class ModerationService
     public function resolveFlagByDeletingReply(User $admin, ForumFlag $flag): void
     {
         $reply = $flag->reply;
+        $threadId = $reply?->thread_id;
+        $deletedReplyId = $reply?->id;
 
         if ($reply) {
             $this->deleteReply($admin, $reply);
@@ -277,9 +279,9 @@ class ModerationService
         ForumLog::record(
             $admin->id,
             ForumLog::ACTION_FLAG_RESOLVE,
-            $reply?->thread_id,
-            $reply?->id,
-            ['flag_id' => $flag->id, 'mode' => 'delete_reply']
+            $threadId,
+            null,
+            ['flag_id' => $flag->id, 'mode' => 'delete_reply', 'deleted_reply_id' => $deletedReplyId]
         );
     }
 
