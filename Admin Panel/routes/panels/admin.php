@@ -370,6 +370,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
             Route::get('/flags',                             [\App\Http\Controllers\Admin\AdminForumController::class, 'flags'])->name('flags.index');
             Route::post('/flags/{id}/dismiss',               [\App\Http\Controllers\Admin\AdminForumController::class, 'dismissFlag'])->name('flags.dismiss');
             Route::post('/flags/{id}/confirm',               [\App\Http\Controllers\Admin\AdminForumController::class, 'confirmFlag'])->name('flags.confirm');
+            Route::post('/flags/{id}/delete-reply',          [\App\Http\Controllers\Admin\AdminForumController::class, 'deleteFlaggedReply'])->name('flags.delete-reply');
 
             // User banning
             Route::post('/users/{userId}/ban',               [\App\Http\Controllers\Admin\AdminForumController::class, 'banUser'])->name('users.ban');
