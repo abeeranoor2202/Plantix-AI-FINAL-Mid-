@@ -232,37 +232,77 @@ class ModerationService
     // ── Flag Moderation ───────────────────────────────────────────────────────
 
     /**
-     * Dismiss a flag (not a violation found).
+     * Resolve a flag while keeping the reply visible.
      */
-    public function dismissFlag(User $admin, ForumFlag $flag): void
+    public function resolveFlag(User $admin, ForumFlag $flag): void
     {
+        $reply = $flag->reply;
+
         $flag->update([
-            'status'      => ForumFlag::STATUS_DISMISSED,
+            'status'      => ForumFlag::STATUS_RESOLVED,
             'reviewed_by' => $admin->id,
             'reviewed_at' => now(),
         ]);
 
-        // Restore reply to visible if no other pending flags remain
-        $pendingCount = ForumFlag::where('reply_id', $flag->reply_id)
-            ->where('status', ForumFlag::STATUS_PENDING)
-            ->count();
-
-        if ($pendingCount === 0) {
-            ForumReply::where('id', $flag->reply_id)
-                ->update(['status' => ForumReply::STATUS_VISIBLE]);
+        if ($reply) {
+            $reply->update(['status' => ForumReply::STATUS_VISIBLE]);
         }
+
+        ForumLog::record(
+            $admin->id,
+            ForumLog::ACTION_FLAG_RESOLVE,
+            $reply?->thread_id,
+            $reply?->id,
+            ['flag_id' => $flag->id, 'mode' => 'keep']
+        );
     }
 
     /**
-     * Confirm a flag as valid — reply stays flagged/soft-deleted.
+     * Resolve a flag by deleting the reported reply.
      */
-    public function confirmFlag(User $admin, ForumFlag $flag): void
+    public function resolveFlagByDeletingReply(User $admin, ForumFlag $flag): void
     {
+        $reply = $flag->reply;
+
+        if ($reply) {
+            $this->deleteReply($admin, $reply);
+        }
+
         $flag->update([
-            'status'      => ForumFlag::STATUS_REVIEWED,
+            'status'      => ForumFlag::STATUS_RESOLVED,
             'reviewed_by' => $admin->id,
             'reviewed_at' => now(),
         ]);
+
+        ForumLog::record(
+            $admin->id,
+            ForumLog::ACTION_FLAG_RESOLVE,
+            $reply?->thread_id,
+            $reply?->id,
+            ['flag_id' => $flag->id, 'mode' => 'delete_reply']
+        );
+    }
+
+    /**
+     * Ignore a report without changing reply visibility/content.
+     */
+    public function ignoreFlag(User $admin, ForumFlag $flag): void
+    {
+        $reply = $flag->reply;
+
+        $flag->update([
+            'status'      => ForumFlag::STATUS_IGNORED,
+            'reviewed_by' => $admin->id,
+            'reviewed_at' => now(),
+        ]);
+
+        ForumLog::record(
+            $admin->id,
+            ForumLog::ACTION_FLAG_IGNORE,
+            $reply?->thread_id,
+            $reply?->id,
+            ['flag_id' => $flag->id]
+        );
     }
 
     // ── User Banning ──────────────────────────────────────────────────────────
