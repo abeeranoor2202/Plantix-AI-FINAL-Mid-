@@ -125,6 +125,19 @@ class ModerationService
     }
 
     /**
+     * Restore an archived thread back to open state.
+     */
+    public function unarchiveThread(User $admin, ForumThread $thread): void
+    {
+        DB::transaction(function () use ($admin, $thread): void {
+            $thread->update(['status' => ForumThread::STATUS_OPEN]);
+            ForumLog::record($admin->id, ForumLog::ACTION_THREAD_UNARCHIVE, $thread->id);
+        });
+
+        Cache::forget('forum.pinned_threads');
+    }
+
+    /**
      * Pin or unpin a thread.
      */
     public function togglePin(User $admin, ForumThread $thread): bool
