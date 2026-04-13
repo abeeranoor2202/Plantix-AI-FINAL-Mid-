@@ -16,6 +16,7 @@ class NotificationLog extends Model
     protected $fillable = [
         'user_id', 'recipient_email', 'recipient_name', 'recipient_role',
         'notification_type', 'mailable_class', 'subject',
+        'payload',
         'notifiable_type', 'notifiable_id',
         'status', 'error_message', 'attempt_count',
         'sent_at', 'failed_at', 'dedup_key',
@@ -25,6 +26,7 @@ class NotificationLog extends Model
         'sent_at'       => 'datetime',
         'failed_at'     => 'datetime',
         'attempt_count' => 'integer',
+        'payload'       => 'array',
     ];
 
     // ── Relationships ─────────────────────────────────────────────────────────
