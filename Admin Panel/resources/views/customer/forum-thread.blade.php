@@ -130,11 +130,47 @@
                                         </form>
                                     </div>
                                     @endcan
+
+                                    @can('update', $reply)
+                                    <button
+                                        type="button"
+                                        class="btn-agri"
+                                        style="padding: 6px 10px; background: white; color: var(--agri-text-muted); border: 1px solid var(--agri-border); font-size: 12px; font-weight: 600;"
+                                        title="Edit"
+                                        onclick="(function(){var el=document.getElementById('reply-edit-{{ $reply->id }}'); if(el){el.style.display=(el.style.display==='none'||el.style.display==='')?'block':'none';}})()"
+                                    >
+                                        <i class="fa fa-pen"></i>
+                                    </button>
+                                    @endcan
+
+                                    @can('delete', $reply)
+                                    <form method="POST" action="{{ route('forum.reply.destroy', $reply->id) }}" onsubmit="return confirm('Delete this reply?')">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="btn-agri" style="padding: 6px 10px; background: #FEE2E2; color: #991B1B; border: 1px solid #FECACA; font-size: 12px; font-weight: 600;" title="Delete">
+                                            <i class="fa fa-trash"></i>
+                                        </button>
+                                    </form>
+                                    @endcan
                                     @endauth
                                 </div>
                                 <div class="reply-content" style="margin: 0 0 0 56px; color: var(--agri-text-main); font-size: 14px; line-height: 1.6;">
                                     {!! nl2br(e($reply->body)) !!}
                                 </div>
+
+                                @can('update', $reply)
+                                <div id="reply-edit-{{ $reply->id }}" style="display: none; margin: 16px 0 0 56px; padding: 14px; border: 1px solid var(--agri-border); border-radius: 12px; background: white;">
+                                    <form method="POST" action="{{ route('forum.reply.edit', $reply->id) }}">
+                                        @csrf
+                                        @method('PATCH')
+                                        <textarea name="body" class="form-agri" rows="3" required>{{ old('body', $reply->body) }}</textarea>
+                                        <div style="margin-top: 10px; display: flex; justify-content: flex-end; gap: 8px;">
+                                            <button type="button" class="btn-agri btn-agri-outline" style="padding: 8px 14px;" onclick="(function(){var el=document.getElementById('reply-edit-{{ $reply->id }}'); if(el){el.style.display='none';}})()">Cancel</button>
+                                            <button type="submit" class="btn-agri btn-agri-primary" style="padding: 8px 14px;">Save</button>
+                                        </div>
+                                    </form>
+                                </div>
+                                @endcan
                             </div>
                             @empty
                             <div style="padding: 40px 24px; text-align: center; color: var(--agri-text-muted);">
