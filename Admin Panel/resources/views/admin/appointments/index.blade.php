@@ -12,17 +12,26 @@
             <h1 style="font-size: 28px; font-weight: 700; color: var(--agri-primary-dark); margin: 0;">Expert Appointments</h1>
             <p style="color: var(--agri-text-muted); margin: 4px 0 0 0;">Manage and monitor consultation bookings in one consistent table.</p>
         </div>
+        <a href="{{ route('admin.appointments.create') }}" class="btn-agri btn-agri-primary" style="text-decoration: none; display: flex; align-items: center; gap: 8px;">
+            <i class="fas fa-plus"></i>
+            Create Appointment
+        </a>
     </div>
 
     <div class="card-agri" style="padding: 0; overflow: hidden;">
         <div class="card-header bg-white border-bottom-0 pt-4 pb-3 px-4 d-flex justify-content-between align-items-center" style="gap: 10px; flex-wrap: wrap;">
             <h4 class="mb-0 fw-bold text-dark" style="font-size: 18px;">Appointment List</h4>
             <form method="GET" action="{{ route('admin.appointments.index') }}" style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: flex-end;">
-                <select name="status" class="form-agri" style="height: 42px; min-width: 200px; margin-bottom: 0;">
+                <select name="status" class="form-agri" style="height: 42px; min-width: 170px; margin-bottom: 0;">
                     <option value="">All Statuses</option>
-                    @foreach(['draft','pending_payment','payment_failed','pending_expert_approval','confirmed','reschedule_requested','rejected','completed','cancelled'] as $s)
-                        <option value="{{ $s }}" @selected(request('status') === $s)>{{ ucwords(str_replace('_', ' ', $s)) }}</option>
+                    @foreach($statuses as $s)
+                        <option value="{{ $s }}" @selected(request('status') === $s)>{{ ucfirst($s) }}</option>
                     @endforeach
+                </select>
+                <select name="type" class="form-agri" style="height: 42px; min-width: 170px; margin-bottom: 0;">
+                    <option value="">All Types</option>
+                    <option value="online" @selected(request('type') === 'online')>Online</option>
+                    <option value="offline" @selected(request('type') === 'offline')>Offline</option>
                 </select>
                 <input type="date" name="date" class="form-agri" style="height: 42px; min-width: 160px; margin-bottom: 0;" value="{{ request('date') }}">
                 <div class="input-group" style="width: 300px;">
@@ -39,24 +48,43 @@
             <table class="table mb-0" style="vertical-align: middle;">
                 <thead style="background: var(--agri-bg);">
                     <tr>
-                        <th style="padding: 16px 24px; font-size: 12px; font-weight: 600; color: var(--agri-text-muted); text-transform: uppercase; border: none;">No.</th>
-                        <th style="padding: 16px 24px; font-size: 12px; font-weight: 600; color: var(--agri-text-muted); text-transform: uppercase; border: none;">Farmer</th>
+                        <th style="padding: 16px 24px; font-size: 12px; font-weight: 600; color: var(--agri-text-muted); text-transform: uppercase; border: none;">Customer</th>
                         <th style="padding: 16px 24px; font-size: 12px; font-weight: 600; color: var(--agri-text-muted); text-transform: uppercase; border: none;">Expert</th>
                         <th style="padding: 16px 24px; font-size: 12px; font-weight: 600; color: var(--agri-text-muted); text-transform: uppercase; border: none;">Type</th>
-                        <th style="padding: 16px 24px; font-size: 12px; font-weight: 600; color: var(--agri-text-muted); text-transform: uppercase; border: none;">Schedule</th>
-                        <th style="padding: 16px 24px; font-size: 12px; font-weight: 600; color: var(--agri-text-muted); text-transform: uppercase; border: none;">Fee</th>
+                        <th style="padding: 16px 24px; font-size: 12px; font-weight: 600; color: var(--agri-text-muted); text-transform: uppercase; border: none;">Date & Time</th>
                         <th style="padding: 16px 24px; font-size: 12px; font-weight: 600; color: var(--agri-text-muted); text-transform: uppercase; border: none;">Status</th>
                         <th class="text-end" style="padding: 16px 24px; font-size: 12px; font-weight: 600; color: var(--agri-text-muted); text-transform: uppercase; border: none;">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
                     @forelse($appointments as $appt)
+                        @php
+                            $displayStatus = match ($appt->status) {
+                                'confirmed', 'accepted' => 'Confirmed',
+                                'completed' => 'Completed',
+                                'cancelled', 'rejected' => 'Cancelled',
+                                default => 'Pending',
+                            };
+                            $statusColor = match ($displayStatus) {
+                                'Confirmed' => '#059669',
+                                'Completed' => '#0D9488',
+                                'Cancelled' => '#DC2626',
+                                default => '#D97706',
+                            };
+                            $statusBg = match ($displayStatus) {
+                                'Confirmed' => '#D1FAE5',
+                                'Completed' => '#CCFBF1',
+                                'Cancelled' => '#FEE2E2',
+                                default => '#FEF3C7',
+                            };
+                        @endphp
                         <tr>
-                            <td class="px-4 py-3">#{{ $appt->id }}</td>
                             <td class="px-4 py-3">{{ $appt->user->name ?? 'N/A' }}</td>
                             <td class="px-4 py-3">{{ optional($appt->expert)->user->name ?? '—' }}</td>
                             <td class="px-4 py-3">
-                                <span class="badge rounded-pill {{ $appt->type === 'physical' ? 'bg-success' : 'bg-primary' }}">{{ strtoupper($appt->type_label) }}</span>
+                                <div style="display: inline-flex; align-items: center; gap: 8px; color: {{ $appt->type === 'physical' ? '#059669' : '#2563EB' }}; background: {{ $appt->type === 'physical' ? '#D1FAE5' : '#DBEAFE' }}; padding: 4px 10px; border-radius: 999px; font-size: 11px; font-weight: 700; border: 1px solid {{ $appt->type === 'physical' ? '#059669' : '#2563EB' }}30; text-transform: uppercase;">
+                                    {{ $appt->type === 'physical' ? 'OFFLINE' : 'ONLINE' }}
+                                </div>
                             </td>
                             <td class="px-4 py-3">
                                 @if($appt->scheduled_at)
@@ -65,37 +93,25 @@
                                     —
                                 @endif
                             </td>
-                            <td class="px-4 py-3"><strong>{{ config('plantix.currency_symbol', 'PKR') }}{{ number_format($appt->fee ?? 0, 2) }}</strong></td>
                             <td class="px-4 py-3">
-                                @php($st = strtolower((string) $appt->status))
-                                <span class="badge rounded-pill {{ in_array($st, ['confirmed','completed']) ? 'bg-success' : (in_array($st, ['pending_payment','pending_expert_approval','reschedule_requested']) ? 'bg-warning text-dark' : (in_array($st, ['rejected','cancelled','payment_failed']) ? 'bg-danger' : 'bg-secondary')) }}">
-                                    {{ strtoupper(str_replace('_', ' ', $st)) }}
-                                </span>
+                                <div style="display: inline-flex; align-items: center; gap: 8px; color: {{ $statusColor }}; background: {{ $statusBg }}; padding: 4px 10px; border-radius: 999px; font-size: 11px; font-weight: 700; border: 1px solid {{ $statusColor }}30;">
+                                    {{ $displayStatus }}
+                                </div>
                             </td>
                             <td class="px-4 py-3">
                                 <div class="text-end" style="display: flex; justify-content: flex-end; gap: 8px;">
-                                    <a href="{{ route('admin.appointments.show', $appt->id) }}" class="btn-agri" style="padding: 8px; background: var(--agri-bg); color: #2563eb; border-radius: 999px;" title="View"><i class="fas fa-eye"></i></a>
-                                    <a href="{{ route('admin.appointments.edit', $appt->id) }}" class="btn-agri" style="padding: 8px; background: var(--agri-bg); color: #7C3AED; border-radius: 999px;" title="Edit"><i class="fas fa-edit"></i></a>
+                                    <a href="{{ route('admin.appointments.show', $appt->id) }}" class="btn-agri" style="padding: 8px; background: var(--agri-bg); color: var(--agri-primary); border-radius: 10px;" title="View"><i class="fas fa-eye"></i></a>
+                                    <a href="{{ route('admin.appointments.edit', $appt->id) }}" class="btn-agri" style="padding: 8px; background: var(--agri-bg); color: var(--agri-primary); border-radius: 10px;" title="Edit"><i class="fas fa-edit"></i></a>
                                     <form action="{{ route('admin.appointments.destroy', $appt->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this appointment? This action cannot be undone.')">
                                         @csrf
                                         @method('DELETE')
-                                        <button type="submit" class="btn-agri" style="padding: 8px; background: var(--agri-bg); color: #DC2626; border-radius: 999px; border: none;" title="Delete"><i class="fas fa-trash"></i></button>
+                                        <button type="submit" class="btn-agri" style="padding: 8px; background: #FEF2F2; color: var(--agri-error); border-radius: 10px; border: none;" title="Delete"><i class="fas fa-trash"></i></button>
                                     </form>
-                                    @if(in_array($appt->status, ['pending_expert_approval', 'reschedule_requested']))
-                                        <form action="{{ route('admin.appointments.confirm', $appt->id) }}" method="POST" class="d-inline">
-                                            @csrf
-                                            <button type="submit" class="btn-agri" style="padding: 8px; background: #ecfdf5; color: #059669; border-radius: 999px; border: none;" title="Confirm"><i class="fas fa-check"></i></button>
-                                        </form>
-                                        <form action="{{ route('admin.appointments.cancel', $appt->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Cancel appointment?')">
-                                            @csrf
-                                            <button type="submit" class="btn-agri" style="padding: 8px; background: #fef2f2; color: #ef4444; border-radius: 999px; border: none;" title="Cancel"><i class="fas fa-times"></i></button>
-                                        </form>
-                                    @endif
                                 </div>
                             </td>
                         </tr>
                     @empty
-                        <tr><td colspan="8" class="text-center py-5" style="color: var(--agri-text-muted);">No appointments found.</td></tr>
+                        <tr><td colspan="6" class="text-center py-5" style="color: var(--agri-text-muted);">No appointments found.</td></tr>
                     @endforelse
                 </tbody>
             </table>
