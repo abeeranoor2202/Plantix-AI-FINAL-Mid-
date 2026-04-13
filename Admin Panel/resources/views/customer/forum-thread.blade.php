@@ -198,7 +198,7 @@
 
                     {{-- Reply form --}}
                     @auth
-                        @if(($thread->status ?? 'open') !== 'locked')
+                        @if($thread->isOpen())
                         <div class="card-agri" style="padding: 24px;">
                             <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 24px; border-bottom: 1px solid var(--agri-border); padding-bottom: 16px;">
                                 <div style="width: 36px; height: 36px; background: rgba(16, 185, 129, 0.1); color: var(--agri-primary); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 14px;"><i class="fa fa-reply"></i></div>
@@ -228,7 +228,7 @@
                         @else
                         <div style="padding: 40px 24px; text-align: center; border: 1px dashed var(--agri-border); background: var(--agri-bg); border-radius: 14px;">
                             <i class="fas fa-lock text-muted fs-3 mb-3"></i>
-                            <h5 style="margin: 0; font-weight: 800; color: var(--agri-text-heading); font-size: 16px;">Thread Locked</h5>
+                            <h5 style="margin: 0; font-weight: 800; color: var(--agri-text-heading); font-size: 16px;">Thread Closed</h5>
                             <p style="margin: 4px 0 0 0; font-size: 13px; color: var(--agri-text-muted);">This discussion is closed and no longer accepting replies.</p>
                         </div>
                         @endif
