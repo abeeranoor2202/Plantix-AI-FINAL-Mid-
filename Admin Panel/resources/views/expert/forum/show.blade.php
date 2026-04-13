@@ -5,8 +5,8 @@
 @section('content')
 <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
     <div class="d-flex align-items-center gap-3">
-        <a href="{{ route('expert.forum.index') }}" class="btn btn-light border rounded-circle d-flex align-items-center justify-content-center shadow-sm" style="width: 40px; height: 40px; text-decoration: none;">
-            <i class="fas fa-arrow-left text-muted"></i>
+        <a href="{{ route('expert.forum.index') }}" class="btn-agri btn-agri-outline d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; border-radius: 999px; padding: 0; text-decoration: none;">
+            <i class="fas fa-arrow-left" style="color: var(--agri-text-muted);"></i>
         </a>
         <h4 class="mb-0 fw-bold text-dark">Discussion Details</h4>
     </div>
@@ -38,6 +38,7 @@
                                 'open'     => ['#D1FAE5', '#065F46'],
                                 'resolved' => ['#E0F2FE', '#0369A1'],
                                 'locked'   => ['#F3F4F6', '#4B5563'],
+                                'archived' => ['#FEF3C7', '#92400E'],
                             ];
                             $c = $colors[$status] ?? ['#F9FAFB', '#6B7280'];
                         @endphp
