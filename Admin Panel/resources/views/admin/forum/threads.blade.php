@@ -87,7 +87,7 @@
                                 <th style="padding: 16px 24px; font-size: 12px; font-weight: 700; color: var(--agri-text-muted); text-transform: uppercase; border: none;">Status</th>
                                 <th style="padding: 16px 24px; font-size: 12px; font-weight: 700; color: var(--agri-text-muted); text-transform: uppercase; border: none; text-align: center;">Pinned</th>
                                 <th style="padding: 16px 24px; font-size: 12px; font-weight: 700; color: var(--agri-text-muted); text-transform: uppercase; border: none;">Created</th>
-                                <th style="padding: 16px 24px; font-size: 12px; font-weight: 700; color: var(--agri-text-muted); text-transform: uppercase; border: none; text-align: end; min-width: 160px;">Actions</th>
+                                <th style="padding: 16px 24px; font-size: 12px; font-weight: 700; color: var(--agri-text-muted); text-transform: uppercase; border: none; text-align: end; min-width: 220px;">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -126,14 +126,14 @@
                                     @endif
                                 </td>
                                 <td style="padding: 18px 24px; font-size: 13px; color: var(--agri-text-muted);">{{ $thread->created_at->format('d M Y') }}</td>
-                                <td style="padding: 18px 24px; text-align: end;">
-                                    <div style="display: flex; justify-content: flex-end; gap: 8px;">
-                                        <a href="{{ route('admin.forum.threads.show', $thread->id) }}" class="btn-agri btn-agri-primary" style="padding: 6px 10px; font-size: 12px; font-weight: 600; text-decoration: none;">
+                                <td style="padding: 18px 24px; text-align: end; min-width: 220px;">
+                                    <div style="display: inline-flex; justify-content: flex-end; align-items: center; gap: 8px; flex-wrap: nowrap; white-space: nowrap;">
+                                        <a href="{{ route('admin.forum.threads.show', $thread->id) }}" class="btn-agri btn-agri-primary" style="width: 36px; height: 36px; padding: 0; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; text-decoration: none; border-radius: 999px;">
                                             <i class="fa fa-eye"></i>
                                         </a>
                                         {{-- Action drop-down --}}
                                         <div class="dropdown">
-                                            <button type="button" class="btn-agri" style="padding: 6px 10px; background: var(--agri-bg); color: var(--agri-text-muted); border: 1px solid var(--agri-border); font-size: 12px; font-weight: 600;" data-bs-toggle="dropdown">
+                                            <button type="button" class="btn-agri" style="min-width: 92px; height: 36px; padding: 0 12px; display: inline-flex; align-items: center; justify-content: center; background: var(--agri-bg); color: var(--agri-text-muted); border: 1px solid var(--agri-border); font-size: 12px; font-weight: 600; border-radius: 999px;" data-bs-toggle="dropdown">
                                                 Actions <i class="fas fa-chevron-down" style="font-size: 10px; margin-left: 4px;"></i>
                                             </button>
                                             <ul class="dropdown-menu dropdown-menu-end" style="border: none; box-shadow: 0 10px 30px rgba(0,0,0,0.08); border-radius: 12px; padding: 8px;">
@@ -174,14 +174,14 @@
                                         {{-- Pin toggle --}}
                                         <form method="POST" action="{{ route('admin.forum.threads.pin', $thread->id) }}" class="d-inline">
                                             @csrf
-                                            <button type="submit" class="btn-agri" style="padding: 6px 10px; background: #FEF3C7; color: #D97706; border: 1px solid #FDE68A; font-size: 12px; font-weight: 600;" title="{{ $thread->is_pinned ? 'Unpin' : 'Pin' }}">
+                                            <button type="submit" class="btn-agri" style="width: 36px; height: 36px; padding: 0; display: inline-flex; align-items: center; justify-content: center; background: #FEF3C7; color: #D97706; border: 1px solid #FDE68A; font-size: 12px; font-weight: 600; border-radius: 999px;" title="{{ $thread->is_pinned ? 'Unpin' : 'Pin' }}">
                                                 <i class="fa fa-thumbtack"></i>
                                             </button>
                                         </form>
                                         {{-- Delete --}}
                                         <form method="POST" action="{{ route('admin.forum.threads.destroy', $thread->id) }}" class="d-inline" onsubmit="return confirm('Delete thread permanently?')">
                                             @csrf @method('DELETE')
-                                            <button type="submit" class="btn-agri" style="padding: 6px 10px; background: #FEE2E2; color: #991B1B; border: 1px solid #FECACA; font-size: 12px; font-weight: 600;">
+                                            <button type="submit" class="btn-agri" style="width: 36px; height: 36px; padding: 0; display: inline-flex; align-items: center; justify-content: center; background: #FEE2E2; color: #991B1B; border: 1px solid #FECACA; font-size: 12px; font-weight: 600; border-radius: 999px;">
                                                 <i class="fa fa-trash"></i>
                                             </button>
                                         </form>
