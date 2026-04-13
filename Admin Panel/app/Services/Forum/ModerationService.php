@@ -157,15 +157,14 @@ class ModerationService
     }
 
     /**
-     * Soft-delete a thread and all its replies.
+     * Permanently delete a thread and cascade cleanup to replies, flags, and logs.
      */
     public function deleteThread(User $admin, ForumThread $thread): void
     {
         DB::transaction(function () use ($admin, $thread): void {
-            // Soft-delete all replies first (maintains audit trail)
-            $thread->allReplies()->each(fn (ForumReply $r) => $r->delete());
-            $thread->delete();
             ForumLog::record($admin->id, ForumLog::ACTION_THREAD_DELETE, $thread->id);
+            // DB cascades remove replies and reply flags; logs keep their row but null thread_id
+            $thread->forceDelete();
         });
 
         Cache::forget('forum.pinned_threads');
