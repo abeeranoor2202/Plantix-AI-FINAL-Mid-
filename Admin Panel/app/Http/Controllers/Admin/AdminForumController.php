@@ -31,6 +31,11 @@ class AdminForumController extends Controller
         private readonly ModerationService $moderation,
     ) {}
 
+    private function adminUser(): User
+    {
+        return auth('admin')->user() ?: abort(403);
+    }
+
     // ── Dashboard ─────────────────────────────────────────────────────────────
 
     /**
@@ -128,9 +133,10 @@ class AdminForumController extends Controller
     public function approveThread(int $id): RedirectResponse
     {
         $thread = ForumThread::findOrFail($id);
-        $this->authorize('approve', $thread);
+        $admin = $this->adminUser();
+        $this->authorizeForUser($admin, 'approve', $thread);
 
-        $this->moderation->approveThread(auth()->user(), $thread);
+        $this->moderation->approveThread($admin, $thread);
 
         return back()->with('success', 'Thread approved and now visible.');
     }
@@ -138,11 +144,12 @@ class AdminForumController extends Controller
     public function lockThread(Request $request, int $id): RedirectResponse
     {
         $thread = ForumThread::findOrFail($id);
-        $this->authorize('lock', $thread);
+        $admin = $this->adminUser();
+        $this->authorizeForUser($admin, 'lock', $thread);
 
         $request->validate(['reason' => 'nullable|string|max:500']);
 
-        $this->moderation->lockThread(auth()->user(), $thread, $request->reason);
+        $this->moderation->lockThread($admin, $thread, $request->reason);
 
         return back()->with('success', 'Thread locked.');
     }
@@ -150,9 +157,10 @@ class AdminForumController extends Controller
     public function unlockThread(int $id): RedirectResponse
     {
         $thread = ForumThread::findOrFail($id);
-        $this->authorize('lock', $thread);
+        $admin = $this->adminUser();
+        $this->authorizeForUser($admin, 'lock', $thread);
 
-        $this->moderation->unlockThread(auth()->user(), $thread);
+        $this->moderation->unlockThread($admin, $thread);
 
         return back()->with('success', 'Thread unlocked.');
     }
@@ -160,13 +168,14 @@ class AdminForumController extends Controller
     public function resolveThread(Request $request, int $id): RedirectResponse
     {
         $thread = ForumThread::findOrFail($id);
-        $this->authorize('resolve', $thread);
+        $admin = $this->adminUser();
+        $this->authorizeForUser($admin, 'resolve', $thread);
 
         $request->validate(['reply_id' => 'required|integer|exists:forum_replies,id']);
 
         try {
             $this->moderation->resolveThread(
-                auth()->user(),
+                $admin,
                 $thread,
                 ForumReply::findOrFail($request->reply_id)
             );
@@ -180,9 +189,10 @@ class AdminForumController extends Controller
     public function archiveThread(int $id): RedirectResponse
     {
         $thread = ForumThread::findOrFail($id);
-        $this->authorize('archive', $thread);
+        $admin = $this->adminUser();
+        $this->authorizeForUser($admin, 'archive', $thread);
 
-        $this->moderation->archiveThread(auth()->user(), $thread);
+        $this->moderation->archiveThread($admin, $thread);
 
         return back()->with('success', 'Thread archived.');
     }
@@ -190,9 +200,10 @@ class AdminForumController extends Controller
     public function pinThread(int $id): RedirectResponse
     {
         $thread = ForumThread::findOrFail($id);
-        $this->authorize('pin', $thread);
+        $admin = $this->adminUser();
+        $this->authorizeForUser($admin, 'pin', $thread);
 
-        $newState = $this->moderation->togglePin(auth()->user(), $thread);
+        $newState = $this->moderation->togglePin($admin, $thread);
 
         return back()->with('success', $newState ? 'Thread pinned.' : 'Thread unpinned.');
     }
@@ -200,9 +211,10 @@ class AdminForumController extends Controller
     public function destroyThread(int $id): RedirectResponse
     {
         $thread = ForumThread::findOrFail($id);
-        $this->authorize('delete', $thread);
+        $admin = $this->adminUser();
+        $this->authorizeForUser($admin, 'delete', $thread);
 
-        $this->moderation->deleteThread(auth()->user(), $thread);
+        $this->moderation->deleteThread($admin, $thread);
 
         return redirect()
             ->route('admin.forum.threads')
@@ -212,11 +224,12 @@ class AdminForumController extends Controller
     public function changeCategory(Request $request, int $id): RedirectResponse
     {
         $thread = ForumThread::findOrFail($id);
-        $this->authorize('update', $thread);
+        $admin = $this->adminUser();
+        $this->authorizeForUser($admin, 'update', $thread);
 
         $request->validate(['forum_category_id' => 'required|integer|exists:forum_categories,id']);
 
-        $this->moderation->changeCategory(auth()->user(), $thread, $request->forum_category_id);
+        $this->moderation->changeCategory($admin, $thread, $request->forum_category_id);
 
         return back()->with('success', 'Category updated.');
     }
@@ -226,9 +239,10 @@ class AdminForumController extends Controller
     public function destroyReply(int $id): RedirectResponse
     {
         $reply = ForumReply::withTrashed()->findOrFail($id);
-        $this->authorize('delete', $reply);
+        $admin = $this->adminUser();
+        $this->authorizeForUser($admin, 'delete', $reply);
 
-        $this->moderation->deleteReply(auth()->user(), $reply);
+        $this->moderation->deleteReply($admin, $reply);
 
         return back()->with('success', 'Reply deleted.');
     }
@@ -236,9 +250,10 @@ class AdminForumController extends Controller
     public function removeOfficialAnswer(int $id): RedirectResponse
     {
         $reply = ForumReply::findOrFail($id);
-        $this->authorize('removeOfficial', $reply);
+        $admin = $this->adminUser();
+        $this->authorizeForUser($admin, 'removeOfficial', $reply);
 
-        $this->forum->removeOfficialAnswer(auth()->user(), $reply);
+        $this->forum->removeOfficialAnswer($admin, $reply);
 
         return back()->with('success', 'Official answer status removed.');
     }
@@ -260,14 +275,14 @@ class AdminForumController extends Controller
 
     public function dismissFlag(int $id): RedirectResponse
     {
-        $this->moderation->dismissFlag(auth()->user(), ForumFlag::findOrFail($id));
+        $this->moderation->dismissFlag($this->adminUser(), ForumFlag::findOrFail($id));
 
         return back()->with('success', 'Flag dismissed.');
     }
 
     public function confirmFlag(int $id): RedirectResponse
     {
-        $this->moderation->confirmFlag(auth()->user(), ForumFlag::findOrFail($id));
+        $this->moderation->confirmFlag($this->adminUser(), ForumFlag::findOrFail($id));
 
         return back()->with('success', 'Flag confirmed. Reply remains flagged.');
     }
@@ -277,6 +292,7 @@ class AdminForumController extends Controller
     public function banUser(Request $request, int $userId): RedirectResponse
     {
         $target = User::findOrFail($userId);
+        $admin = $this->adminUser();
 
         $data = $request->validate([
             'reason'       => 'required|string|max:500',
@@ -286,7 +302,7 @@ class AdminForumController extends Controller
 
         try {
             $this->moderation->banUser(
-                auth()->user(),
+                $admin,
                 $target,
                 $data['reason'],
                 isset($data['banned_until']) ? \Carbon\Carbon::parse($data['banned_until']) : null,
@@ -302,7 +318,7 @@ class AdminForumController extends Controller
     public function unbanUser(int $userId): RedirectResponse
     {
         $target = User::findOrFail($userId);
-        $this->moderation->unbanUser(auth()->user(), $target);
+        $this->moderation->unbanUser($this->adminUser(), $target);
 
         return back()->with('success', "User '{$target->name}' has been unbanned.");
     }
