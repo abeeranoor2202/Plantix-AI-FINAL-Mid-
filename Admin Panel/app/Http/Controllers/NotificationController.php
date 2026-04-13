@@ -20,10 +20,7 @@ class NotificationController extends Controller
     // ── Admin notification index view ─────────────────────────────────────────
     public function index(string $id = '')
     {
-        $notifications = \DB::table('dynamic_notifications')
-                             ->orderBy('created_at', 'desc')
-                             ->get();
-        return view('admin.notifications.index', compact('id', 'notifications'));
+        return redirect()->route('admin.email-logs.index');
     }
 
     // ── Delete a dynamic notification ─────────────────────────────────────────
@@ -64,11 +61,9 @@ class NotificationController extends Controller
             ]);
         }
 
-        $channels = $sendEmail ? 'in-app and email' : 'in-app';
-        
         return response()->json([
             'success' => true,
-            'message' => "Notification ({$channels}) queued for {$totalSent} user(s). Processing in background.",
+            'message' => "Email notification queued for {$totalSent} user(s). Processing in background.",
         ]);
     }
 
@@ -92,10 +87,9 @@ class NotificationController extends Controller
             $sendEmail
         );
 
-        $channel = $sendEmail ? 'in-app and email' : 'in-app';
         return response()->json([
             'success' => $result,
-            'message' => $result ? "Notification ({$channel}) sent successfully." : 'Failed to send notification.',
+            'message' => $result ? 'Email notification sent successfully.' : 'Failed to send notification.',
         ]);
     }
 
