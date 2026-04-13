@@ -65,6 +65,7 @@ class Appointment extends Model
         'scheduled_at', 'scheduled_date', 'start_time', 'end_time', 'duration_minutes',
         'status', 'notes', 'location', 'admin_notes', 'expert_response_notes', 'cancellation_reason',
         'fee', 'payment_status',
+        'platform', 'venue_name', 'address_line1', 'address_line2', 'city', 'notifications_enabled',
         'customer_rating', 'customer_review', 'rated_at',
         'stripe_payment_intent_id', 'stripe_payment_status',
         'is_refunded', 'refunded_at', 'stripe_refund_id', 'refund_amount',
@@ -88,6 +89,7 @@ class Appointment extends Model
         'refund_amount'           => 'decimal:2',
         'duration_minutes'        => 'integer',
         'is_refunded'             => 'boolean',
+        'notifications_enabled'   => 'boolean',
     ];
 
     protected static function booted(): void
