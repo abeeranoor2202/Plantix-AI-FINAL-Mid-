@@ -8,8 +8,10 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class ForumFlag extends Model
 {
     public const STATUS_PENDING   = 'pending';
-    public const STATUS_REVIEWED  = 'reviewed';
-    public const STATUS_DISMISSED = 'dismissed';
+    public const STATUS_REVIEWED  = 'reviewed'; // legacy
+    public const STATUS_DISMISSED = 'dismissed'; // legacy
+    public const STATUS_RESOLVED  = 'resolved';
+    public const STATUS_IGNORED   = 'ignored';
 
     public $timestamps = false;
 
