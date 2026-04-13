@@ -357,6 +357,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
             Route::post('/threads/{id}/unlock',              [\App\Http\Controllers\Admin\AdminForumController::class, 'unlockThread'])->name('threads.unlock');
             Route::post('/threads/{id}/resolve',             [\App\Http\Controllers\Admin\AdminForumController::class, 'resolveThread'])->name('threads.resolve');
             Route::post('/threads/{id}/archive',             [\App\Http\Controllers\Admin\AdminForumController::class, 'archiveThread'])->name('threads.archive');
+            Route::post('/threads/{id}/unarchive',           [\App\Http\Controllers\Admin\AdminForumController::class, 'unarchiveThread'])->name('threads.unarchive');
             Route::post('/threads/{id}/pin',                 [\App\Http\Controllers\Admin\AdminForumController::class, 'pinThread'])->name('threads.pin');
             Route::delete('/threads/{id}',                   [\App\Http\Controllers\Admin\AdminForumController::class, 'destroyThread'])->name('threads.destroy');
             Route::post('/threads/{id}/category',            [\App\Http\Controllers\Admin\AdminForumController::class, 'changeCategory'])->name('threads.category');
