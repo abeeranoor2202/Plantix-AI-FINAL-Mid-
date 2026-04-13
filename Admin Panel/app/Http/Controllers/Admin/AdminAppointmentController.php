@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Appointment;
 use App\Models\Expert;
+use App\Models\User;
 use App\Services\Shared\AppointmentService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -13,6 +14,8 @@ use Illuminate\Validation\Rule;
 
 class AdminAppointmentController extends Controller
 {
+    private const UI_STATUSES = ['pending', 'confirmed', 'completed', 'cancelled'];
+
     public function __construct(
         private readonly AppointmentService $service,
     ) {}
@@ -24,7 +27,12 @@ class AdminAppointmentController extends Controller
         $query = Appointment::with(['user', 'expert.user', 'expert.profile'])->latest();
 
         if ($request->filled('status')) {
-            $query->where('status', $request->status);
+            $statusFilter = $request->string('status')->toString();
+            $query->whereIn('status', $this->backendStatusesForUi($statusFilter));
+        }
+        if ($request->filled('type')) {
+            $type = $request->string('type')->toString() === 'offline' ? 'physical' : 'online';
+            $query->where('type', $type);
         }
         if ($request->filled('expert_id')) {
             $query->where('expert_id', $request->expert_id);
@@ -43,9 +51,90 @@ class AdminAppointmentController extends Controller
 
         $appointments = $query->paginate(20)->withQueryString();
         $experts      = Expert::with('user')->available()->get();
-        $statuses     = array_keys(Appointment::TRANSITIONS);
+        $statuses     = self::UI_STATUSES;
 
         return view('admin.appointments.index', compact('appointments', 'experts', 'statuses'));
+    }
+
+    public function create(): View
+    {
+        $experts = Expert::with('user')->available()->get();
+        $customers = User::where('role', 'user')->orderBy('name')->limit(200)->get(['id', 'name', 'email']);
+        $statuses = self::UI_STATUSES;
+
+        return view('admin.appointments.create', compact('experts', 'customers', 'statuses'));
+    }
+
+    public function store(Request $request): RedirectResponse
+    {
+        $request->validate([
+            'expert_id'             => 'required|exists:experts,id',
+            'type'                  => ['required', Rule::in(['online', 'offline'])],
+            'scheduled_at'          => 'required|date_format:Y-m-d\TH:i',
+            'fee'                   => 'nullable|numeric|min:0',
+            'topic'                 => 'nullable|string|max:255',
+            'admin_notes'           => 'nullable|string|max:1000',
+            'status'                => ['required', Rule::in(self::UI_STATUSES)],
+            'payment_status'        => ['required', Rule::in(['unpaid', 'paid', 'refunded'])],
+            'notifications_enabled' => 'nullable|boolean',
+
+            'meeting_link'          => 'required_if:type,online|nullable|url|max:500',
+            'platform'              => 'nullable|string|max:60',
+
+            'venue_name'            => 'required_if:type,offline|nullable|string|max:150',
+            'address_line1'         => 'required_if:type,offline|nullable|string|max:255',
+            'address_line2'         => 'nullable|string|max:255',
+            'city'                  => 'required_if:type,offline|nullable|string|max:100',
+
+            'user_id'               => 'nullable|exists:users,id',
+            'quick_first_name'      => 'required_without:user_id|nullable|string|max:100',
+            'quick_last_name'       => 'required_without:user_id|nullable|string|max:100',
+            'quick_email'           => 'required_without:user_id|nullable|email|max:255|unique:users,email',
+            'quick_phone'           => 'required_without:user_id|nullable|string|max:30',
+        ]);
+
+        $userId = $request->integer('user_id');
+        if (! $userId) {
+            $quickCustomer = User::create([
+                'name'              => trim($request->string('quick_first_name')->toString() . ' ' . $request->string('quick_last_name')->toString()),
+                'email'             => $request->string('quick_email')->toString(),
+                'phone'             => $request->string('quick_phone')->toString(),
+                'password'          => bcrypt('User@123456'),
+                'role'              => 'user',
+                'active'            => 1,
+                'email_verified_at' => now(),
+            ]);
+
+            $userId = $quickCustomer->id;
+        }
+
+        $type = $request->string('type')->toString() === 'offline' ? 'physical' : 'online';
+        $uiStatus = $request->string('status')->toString();
+
+        $appointment = Appointment::create([
+            'user_id'               => $userId,
+            'expert_id'             => $request->integer('expert_id'),
+            'admin_id'              => auth('admin')->id(),
+            'type'                  => $type,
+            'scheduled_at'          => $request->date('scheduled_at'),
+            'duration_minutes'      => 60,
+            'fee'                   => $request->input('fee', 0),
+            'topic'                 => $request->input('topic'),
+            'notes'                 => null,
+            'admin_notes'           => $request->input('admin_notes'),
+            'meeting_link'          => $type === 'online' ? $request->input('meeting_link') : null,
+            'platform'              => $type === 'online' ? $request->input('platform') : null,
+            'venue_name'            => $type === 'physical' ? $request->input('venue_name') : null,
+            'address_line1'         => $type === 'physical' ? $request->input('address_line1') : null,
+            'address_line2'         => $type === 'physical' ? $request->input('address_line2') : null,
+            'city'                  => $type === 'physical' ? $request->input('city') : null,
+            'payment_status'        => $request->input('payment_status'),
+            'notifications_enabled' => $request->boolean('notifications_enabled', true),
+            'status'                => $this->dbStatusFromUi($uiStatus),
+        ]);
+
+        return redirect()->route('admin.appointments.show', $appointment->id)
+            ->with('success', 'Appointment created successfully.');
     }
 
     public function show(int $id): View
@@ -73,21 +162,94 @@ class AdminAppointmentController extends Controller
         $appointment = Appointment::findOrFail($id);
 
         $request->validate([
-            'expert_id'     => 'nullable|exists:experts,id',
-            'scheduled_at'  => 'nullable|date_format:Y-m-d H:i',
-            'fee'           => 'nullable|numeric|min:0',
-            'topic'         => 'nullable|string|max:255',
-            'notes'         => 'nullable|string|max:1000',
-            'meeting_link'  => ($appointment->type === 'online' ? 'required' : 'nullable') . '|url|max:500',
-            'location'      => ($appointment->type === 'physical' ? 'required' : 'nullable') . '|string|max:500',
+            'expert_id'             => 'required|exists:experts,id',
+            'type'                  => ['required', Rule::in(['online', 'offline'])],
+            'scheduled_at'          => 'required|date_format:Y-m-d\TH:i',
+            'fee'                   => 'nullable|numeric|min:0',
+            'topic'                 => 'nullable|string|max:255',
+            'admin_notes'           => 'nullable|string|max:1000',
+            'status'                => ['required', Rule::in(self::UI_STATUSES)],
+            'payment_status'        => ['required', Rule::in(['unpaid', 'paid', 'refunded'])],
+            'notifications_enabled' => 'nullable|boolean',
+
+            'meeting_link'          => 'required_if:type,online|nullable|url|max:500',
+            'platform'              => 'nullable|string|max:60',
+
+            'venue_name'            => 'required_if:type,offline|nullable|string|max:150',
+            'address_line1'         => 'required_if:type,offline|nullable|string|max:255',
+            'address_line2'         => 'nullable|string|max:255',
+            'city'                  => 'required_if:type,offline|nullable|string|max:100',
         ]);
 
-        $appointment->update($request->only([
-            'expert_id', 'scheduled_at', 'fee', 'topic', 'notes', 'meeting_link', 'location'
-        ]));
+        $type = $request->string('type')->toString() === 'offline' ? 'physical' : 'online';
+        $appointment->update([
+            'expert_id'             => $request->integer('expert_id'),
+            'type'                  => $type,
+            'scheduled_at'          => $request->date('scheduled_at'),
+            'fee'                   => $request->input('fee', 0),
+            'topic'                 => $request->input('topic'),
+            'admin_notes'           => $request->input('admin_notes'),
+            'meeting_link'          => $type === 'online' ? $request->input('meeting_link') : null,
+            'platform'              => $type === 'online' ? $request->input('platform') : null,
+            'venue_name'            => $type === 'physical' ? $request->input('venue_name') : null,
+            'address_line1'         => $type === 'physical' ? $request->input('address_line1') : null,
+            'address_line2'         => $type === 'physical' ? $request->input('address_line2') : null,
+            'city'                  => $type === 'physical' ? $request->input('city') : null,
+            'payment_status'        => $request->input('payment_status'),
+            'notifications_enabled' => $request->boolean('notifications_enabled', true),
+            'status'                => $this->dbStatusFromUi($request->string('status')->toString()),
+        ]);
 
         return redirect()->route('admin.appointments.show', $appointment->id)
             ->with('success', 'Appointment updated successfully.');
+    }
+
+    private function dbStatusFromUi(string $status): string
+    {
+        return match ($status) {
+            'pending' => Appointment::STATUS_PENDING_EXPERT_APPROVAL,
+            'confirmed' => Appointment::STATUS_CONFIRMED,
+            'completed' => Appointment::STATUS_COMPLETED,
+            'cancelled' => Appointment::STATUS_CANCELLED,
+            default => Appointment::STATUS_PENDING_EXPERT_APPROVAL,
+        };
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    private function backendStatusesForUi(string $status): array
+    {
+        return match ($status) {
+            'pending' => [
+                Appointment::STATUS_DRAFT,
+                Appointment::STATUS_PENDING_PAYMENT,
+                Appointment::STATUS_PAYMENT_FAILED,
+                Appointment::STATUS_PENDING_EXPERT_APPROVAL,
+                Appointment::STATUS_RESCHEDULE_REQUESTED,
+                Appointment::STATUS_PENDING,
+                Appointment::STATUS_REQUESTED,
+                Appointment::STATUS_RESCHEDULED,
+            ],
+            'confirmed' => [Appointment::STATUS_CONFIRMED, Appointment::STATUS_ACCEPTED],
+            'completed' => [Appointment::STATUS_COMPLETED],
+            'cancelled' => [Appointment::STATUS_CANCELLED, Appointment::STATUS_REJECTED],
+            default => [
+                Appointment::STATUS_DRAFT,
+                Appointment::STATUS_PENDING_PAYMENT,
+                Appointment::STATUS_PAYMENT_FAILED,
+                Appointment::STATUS_PENDING_EXPERT_APPROVAL,
+                Appointment::STATUS_CONFIRMED,
+                Appointment::STATUS_COMPLETED,
+                Appointment::STATUS_CANCELLED,
+                Appointment::STATUS_REJECTED,
+                Appointment::STATUS_RESCHEDULE_REQUESTED,
+                Appointment::STATUS_PENDING,
+                Appointment::STATUS_REQUESTED,
+                Appointment::STATUS_ACCEPTED,
+                Appointment::STATUS_RESCHEDULED,
+            ],
+        };
     }
 
     // ── Delete functionality ──────────────────────────────────────────────────
