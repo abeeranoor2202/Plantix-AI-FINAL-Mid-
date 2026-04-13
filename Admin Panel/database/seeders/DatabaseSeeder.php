@@ -63,6 +63,7 @@ class DatabaseSeeder extends Seeder
             FertilizerRecommendationSeeder::class,
             SeasonalDataSeeder::class,
             AdminSuperUserSeeder::class,
+            ForumFlagSeeder::class,
             ComprehensivePakistanAgriSeeder::class,
         ]);
     }
