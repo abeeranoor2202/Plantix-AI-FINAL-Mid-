@@ -139,6 +139,10 @@
                                                     <i class="fa fa-unlock"></i>
                                                 </button>
                                             </form>
+                                        @elseif($thread->status === 'archived')
+                                            <button type="button" class="btn-agri" style="width: 36px; height: 36px; padding: 0; display: inline-flex; align-items: center; justify-content: center; background: #F3F4F6; color: #9CA3AF; border: 1px solid #E5E7EB; font-size: 12px; font-weight: 600; border-radius: 999px; cursor: default;" title="Archived" disabled>
+                                                <i class="fa fa-lock"></i>
+                                            </button>
                                         @else
                                             <form method="POST" action="{{ route('admin.forum.threads.lock', $thread->id) }}" class="d-inline">
                                                 @csrf
@@ -156,9 +160,12 @@
                                                 </button>
                                             </form>
                                         @else
-                                            <button type="button" class="btn-agri" style="width: 36px; height: 36px; padding: 0; display: inline-flex; align-items: center; justify-content: center; background: #F3F4F6; color: #9CA3AF; border: 1px solid #E5E7EB; font-size: 12px; font-weight: 600; border-radius: 999px; cursor: default;" title="Archived" disabled>
-                                                <i class="fa fa-archive"></i>
-                                            </button>
+                                            <form method="POST" action="{{ route('admin.forum.threads.unarchive', $thread->id) }}" class="d-inline">
+                                                @csrf
+                                                <button type="submit" class="btn-agri" style="width: 36px; height: 36px; padding: 0; display: inline-flex; align-items: center; justify-content: center; background: var(--agri-bg); color: var(--agri-text-muted); border: 1px solid var(--agri-border); font-size: 12px; font-weight: 600; border-radius: 999px;" title="Unarchive">
+                                                    <i class="fa fa-archive"></i>
+                                                </button>
+                                            </form>
                                         @endif
 
                                         {{-- Pin toggle --}}
