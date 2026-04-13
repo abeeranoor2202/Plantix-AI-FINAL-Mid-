@@ -17,6 +17,10 @@ class UpdateProfileRequest extends FormRequest
             'name'          => 'sometimes|required|string|max:100',
             'phone'         => 'nullable|string|max:30',
             'profile_photo' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:1024',
+            'notification_preferences' => 'nullable|array',
+            'notification_preferences.appointment_emails' => 'nullable|boolean',
+            'notification_preferences.forum_notifications' => 'nullable|boolean',
+            'notification_preferences.system_alerts' => 'nullable|boolean',
         ];
     }
 }
