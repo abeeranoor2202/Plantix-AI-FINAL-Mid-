@@ -358,6 +358,13 @@ class AdminForumController extends Controller
         return view('admin.forum.categories', compact('categories'));
     }
 
+    public function editCategory(int $id): View
+    {
+        $category = ForumCategory::withCount('threads')->findOrFail($id);
+
+        return view('admin.forum.category-edit', compact('category'));
+    }
+
     public function storeCategory(Request $request): RedirectResponse
     {
         $data = $request->validate([
