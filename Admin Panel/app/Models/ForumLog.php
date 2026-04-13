@@ -22,6 +22,7 @@ class ForumLog extends Model
     public const ACTION_THREAD_UNPIN    = 'thread.unpin';
     public const ACTION_THREAD_RESOLVE  = 'thread.resolve';
     public const ACTION_THREAD_ARCHIVE  = 'thread.archive';
+    public const ACTION_THREAD_UNARCHIVE = 'thread.unarchive';
     public const ACTION_THREAD_APPROVE  = 'thread.approve';
     public const ACTION_REPLY_CREATE    = 'reply.create';
     public const ACTION_REPLY_EDIT      = 'reply.edit';
@@ -29,6 +30,8 @@ class ForumLog extends Model
     public const ACTION_REPLY_FLAG      = 'reply.flag';
     public const ACTION_REPLY_OFFICIAL  = 'reply.official';
     public const ACTION_REPLY_UNOFFICIA = 'reply.unofficial';
+    public const ACTION_FLAG_RESOLVE    = 'flag.resolve';
+    public const ACTION_FLAG_IGNORE     = 'flag.ignore';
     public const ACTION_USER_BAN        = 'user.ban';
     public const ACTION_USER_UNBAN      = 'user.unban';
 
