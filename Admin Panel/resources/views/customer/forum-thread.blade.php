@@ -30,9 +30,14 @@
                 <div class="col-lg-9 mx-auto">
                     
                     @if(session('success'))
-                        <div class="alert alert-success d-flex align-items-center mb-4 bg-success bg-opacity-10 border-success border-opacity-25" role="alert">
-                            <i class="fas fa-check-circle text-success fs-4 me-3"></i>
-                            <div class="text-dark fw-medium">{{ session('success') }}</div>
+                        <div class="card-agri mb-4" style="background: #ecfdf5; border: 1px solid #86efac; border-radius: 12px; padding: 12px 20px; color: #166534; font-weight: 700;">
+                            {{ session('success') }}
+                        </div>
+                    @endif
+
+                    @if($errors->any())
+                        <div class="card-agri mb-4" style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 12px; padding: 12px 20px; color: #991b1b; font-weight: 700;">
+                            {{ $errors->first('error') ?? $errors->first('body') ?? 'Please correct the highlighted issues and try again.' }}
                         </div>
                     @endif
 
@@ -47,6 +52,7 @@
                                             'open'     => ['#D1FAE5', '#065F46'],
                                             'resolved' => ['#E0F2FE', '#0369A1'],
                                             'locked'   => ['#F3F4F6', '#4B5563'],
+                                            'archived' => ['#FEF3C7', '#92400E'],
                                         ];
                                         $c = $colors[$status] ?? ['#F9FAFB', '#6B7280'];
                                     @endphp
