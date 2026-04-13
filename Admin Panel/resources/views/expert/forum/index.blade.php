@@ -6,18 +6,35 @@
 {{-- Filter/Search --}}
 <div class="mb-4" style="padding: 0;">
     <form method="GET" action="{{ route('expert.forum.index') }}" class="row g-3 align-items-end">
-        <div class="col-md-9">
+        <div class="col-md-4">
             <label style="font-size: 12px; font-weight: 700; color: var(--agri-text-muted); text-transform: uppercase; margin-bottom: 8px; display: block;">Search Threads</label>
             <div style="position: relative;">
                 <i class="fas fa-search" style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--agri-text-muted);"></i>
                 <input type="text" name="search" class="form-agri" style="padding-left: 40px;" placeholder="Search by topic, keyword, or crop..." value="{{ $filters['search'] ?? '' }}">
             </div>
         </div>
-        <div class="col-md-3 d-flex gap-2">
+        <div class="col-md-3">
+            <label style="font-size: 12px; font-weight: 700; color: var(--agri-text-muted); text-transform: uppercase; margin-bottom: 8px; display: block;">Category</label>
+            <select name="category" class="form-agri">
+                <option value="">All Categories</option>
+                @foreach($categories as $cat)
+                    <option value="{{ $cat->slug }}" {{ ($filters['category'] ?? '') === $cat->slug ? 'selected' : '' }}>{{ $cat->name }}</option>
+                @endforeach
+            </select>
+        </div>
+        <div class="col-md-3">
+            <label style="font-size: 12px; font-weight: 700; color: var(--agri-text-muted); text-transform: uppercase; margin-bottom: 8px; display: block;">Status</label>
+            <select name="status" class="form-agri">
+                <option value="">All Statuses</option>
+                <option value="open" {{ ($filters['status'] ?? '') === 'open' ? 'selected' : '' }}>Open</option>
+                <option value="locked" {{ ($filters['status'] ?? '') === 'locked' ? 'selected' : '' }}>Locked</option>
+                <option value="resolved" {{ ($filters['status'] ?? '') === 'resolved' ? 'selected' : '' }}>Resolved</option>
+                <option value="archived" {{ ($filters['status'] ?? '') === 'archived' ? 'selected' : '' }}>Archived</option>
+            </select>
+        </div>
+        <div class="col-md-2 d-flex gap-2">
             <button type="submit" class="btn-agri btn-agri-primary w-50" style="justify-content: center;">Filter</button>
-            @if(isset($filters['search']) && $filters['search'] != '')
             <a href="{{ route('expert.forum.index') }}" class="btn-agri btn-agri-outline w-50" style="justify-content: center; text-decoration: none;">Reset</a>
-            @endif
         </div>
     </form>
 </div>
