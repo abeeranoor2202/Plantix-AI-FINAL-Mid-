@@ -172,11 +172,27 @@ class ModerationService
     }
 
     /**
-     * Soft-delete a single reply. Clears official/resolved status if needed.
+     * Permanently delete a single reply. Clears official/resolved status if needed.
      */
     public function deleteReply(User $admin, ForumReply $reply): void
     {
         DB::transaction(function () use ($admin, $reply): void {
+            $thread = $reply->thread;
+
+            // Remove direct child replies first so the thread stays visually clean.
+            $reply->children()->withTrashed()->get()->each(function (ForumReply $child) use ($admin): void {
+                ForumLog::record($admin->id, ForumLog::ACTION_REPLY_DELETE, $child->thread_id, $child->id);
+
+                if ($child->is_official) {
+                    ForumThread::where('id', $child->thread_id)
+                        ->where('resolved_reply_id', $child->id)
+                        ->update(['resolved_reply_id' => null, 'status' => ForumThread::STATUS_OPEN]);
+                }
+
+                $child->forceDelete();
+                $thread?->decrementRepliesCount();
+            });
+
             if ($reply->is_official) {
                 ForumThread::where('id', $reply->thread_id)
                     ->where('resolved_reply_id', $reply->id)
@@ -185,10 +201,9 @@ class ModerationService
                 $reply->update(['is_official' => false]);
             }
 
-            $reply->delete();
-            $reply->thread->decrementRepliesCount();
-
             ForumLog::record($admin->id, ForumLog::ACTION_REPLY_DELETE, $reply->thread_id, $reply->id);
+            $reply->forceDelete();
+            $thread?->decrementRepliesCount();
         });
     }
 
