@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Expert;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Expert\PostExpertReplyRequest;
+use App\Models\ForumCategory;
 use App\Models\ForumReply;
 use App\Models\ForumThread;
 use App\Services\Forum\ForumService;
@@ -33,10 +34,11 @@ class ExpertForumController extends Controller
 
     public function index(Request $request): View
     {
-        $filters = $request->only(['category', 'search']);
+        $filters = $request->only(['category', 'search', 'status']);
         $threads = $this->forum->listThreads($filters);
+        $categories = ForumCategory::active()->withCount('threads')->get();
 
-        return view('expert.forum.index', compact('threads', 'filters'));
+        return view('expert.forum.index', compact('threads', 'filters', 'categories'));
     }
 
     public function show(ForumThread $thread): View
