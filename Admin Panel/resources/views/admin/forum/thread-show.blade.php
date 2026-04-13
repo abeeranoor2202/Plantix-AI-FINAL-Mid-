@@ -172,14 +172,21 @@
                         </form>
                         @endif
 
-                        {{-- Archive --}}
+                        {{-- Archive / Unarchive --}}
                         @if($thread->status !== 'archived')
-                        <form method="POST" action="{{ route('admin.forum.threads.archive', $thread->id) }}">
-                            @csrf
-                            <button type="submit" class="btn-agri btn-agri-outline w-100" style="justify-content: center; font-weight: 700; padding: 12px; color: var(--agri-text-muted);">
-                                <i class="fa fa-archive"></i> Archive Thread
-                            </button>
-                        </form>
+                            <form method="POST" action="{{ route('admin.forum.threads.archive', $thread->id) }}">
+                                @csrf
+                                <button type="submit" class="btn-agri btn-agri-outline w-100" style="justify-content: center; font-weight: 700; padding: 12px; color: var(--agri-text-muted);">
+                                    <i class="fa fa-archive"></i> Archive Thread
+                                </button>
+                            </form>
+                        @else
+                            <form method="POST" action="{{ route('admin.forum.threads.unarchive', $thread->id) }}">
+                                @csrf
+                                <button type="submit" class="btn-agri btn-agri-outline w-100" style="justify-content: center; font-weight: 700; padding: 12px; color: var(--agri-text-muted);">
+                                    <i class="fa fa-archive"></i> Unarchive Thread
+                                </button>
+                            </form>
                         @endif
 
                         <div style="height: 1px; background: var(--agri-border); margin: 8px 0;"></div>
