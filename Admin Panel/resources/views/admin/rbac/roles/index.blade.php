@@ -14,7 +14,7 @@
         </div>
         <div style="display: flex; gap: 10px;">
             <a href="{{ route('admin.permissions.index') }}" class="btn-agri btn-agri-outline" style="text-decoration: none; display: inline-flex; align-items: center; font-weight: 700;">Permission Registry</a>
-            @can('admin', auth('admin')->user())
+            @can('admin.roles')
                 <a href="{{ route('admin.role.save') }}" class="btn-agri btn-agri-primary" style="text-decoration: none; display: inline-flex; align-items: center; font-weight: 700;">Create Role</a>
             @endcan
         </div>
@@ -66,8 +66,12 @@
                             </td>
                             <td class="px-4 py-3">
                                 <div class="text-end" style="display: flex; justify-content: flex-end; gap: 8px;">
-                                    <a href="{{ route('admin.role.edit', $role->id) }}" class="btn-agri" style="padding: 8px; background: var(--agri-bg); color: #2563eb; border-radius: 999px;" title="Edit"><i class="fas fa-pen"></i></a>
-                                    <a href="{{ route('admin.role.delete', $role->id) }}" class="btn-agri" style="padding: 8px; background: #fef2f2; color: #ef4444; border-radius: 999px;" onclick="return confirm('Delete this role?')" title="Delete"><i class="fas fa-trash"></i></a>
+                                    @can('admin.perm', 'role.edit')
+                                        <a href="{{ route('admin.role.edit', $role->id) }}" class="btn-agri" style="padding: 8px; background: var(--agri-bg); color: #2563eb; border-radius: 999px;" title="Edit"><i class="fas fa-pen"></i></a>
+                                    @endcan
+                                    @can('admin.perm', 'role.delete')
+                                        <a href="{{ route('admin.role.delete', $role->id) }}" class="btn-agri" style="padding: 8px; background: #fef2f2; color: #ef4444; border-radius: 999px;" onclick="return confirm('Delete this role?')" title="Delete"><i class="fas fa-trash"></i></a>
+                                    @endcan
                                 </div>
                             </td>
                         </tr>
