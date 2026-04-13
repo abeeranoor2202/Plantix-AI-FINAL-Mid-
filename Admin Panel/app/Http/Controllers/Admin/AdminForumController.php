@@ -276,7 +276,15 @@ class AdminForumController extends Controller
         $query = ForumFlag::with(['reply.thread', 'reporter', 'reviewer']);
 
         if ($request->filled('status')) {
-            $query->where('status', $request->status);
+            $status = strtolower((string) $request->status);
+
+            if ($status === ForumFlag::STATUS_RESOLVED) {
+                $query->whereIn('status', [ForumFlag::STATUS_RESOLVED, ForumFlag::STATUS_REVIEWED]);
+            } elseif ($status === ForumFlag::STATUS_IGNORED) {
+                $query->whereIn('status', [ForumFlag::STATUS_IGNORED, ForumFlag::STATUS_DISMISSED]);
+            } else {
+                $query->where('status', $status);
+            }
         }
 
         $flags = $query->orderByDesc('created_at')->paginate(25)->withQueryString();
@@ -286,16 +294,23 @@ class AdminForumController extends Controller
 
     public function dismissFlag(int $id): RedirectResponse
     {
-        $this->moderation->dismissFlag($this->adminUser(), ForumFlag::findOrFail($id));
+        $this->moderation->ignoreFlag($this->adminUser(), ForumFlag::findOrFail($id));
 
-        return back()->with('success', 'Flag dismissed.');
+        return back()->with('success', 'Report ignored.');
     }
 
     public function confirmFlag(int $id): RedirectResponse
     {
-        $this->moderation->confirmFlag($this->adminUser(), ForumFlag::findOrFail($id));
+        $this->moderation->resolveFlag($this->adminUser(), ForumFlag::findOrFail($id));
 
-        return back()->with('success', 'Flag confirmed. Reply remains flagged.');
+        return back()->with('success', 'Reply kept and report resolved.');
+    }
+
+    public function deleteFlaggedReply(int $id): RedirectResponse
+    {
+        $this->moderation->resolveFlagByDeletingReply($this->adminUser(), ForumFlag::findOrFail($id));
+
+        return back()->with('success', 'Reply deleted and report resolved.');
     }
 
     // ── Ban Management ────────────────────────────────────────────────────────
