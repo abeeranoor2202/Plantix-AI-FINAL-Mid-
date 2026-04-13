@@ -87,7 +87,7 @@
                                 <th style="padding: 16px 24px; font-size: 12px; font-weight: 700; color: var(--agri-text-muted); text-transform: uppercase; border: none;">Status</th>
                                 <th style="padding: 16px 24px; font-size: 12px; font-weight: 700; color: var(--agri-text-muted); text-transform: uppercase; border: none; text-align: center;">Pinned</th>
                                 <th style="padding: 16px 24px; font-size: 12px; font-weight: 700; color: var(--agri-text-muted); text-transform: uppercase; border: none;">Created</th>
-                                <th style="padding: 16px 24px; font-size: 12px; font-weight: 700; color: var(--agri-text-muted); text-transform: uppercase; border: none; text-align: end; min-width: 220px;">Actions</th>
+                                <th style="padding: 16px 24px; font-size: 12px; font-weight: 700; color: var(--agri-text-muted); text-transform: uppercase; border: none; text-align: end; min-width: 280px;">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -126,51 +126,41 @@
                                     @endif
                                 </td>
                                 <td style="padding: 18px 24px; font-size: 13px; color: var(--agri-text-muted);">{{ $thread->created_at->format('d M Y') }}</td>
-                                <td style="padding: 18px 24px; text-align: end; min-width: 220px;">
+                                <td style="padding: 18px 24px; text-align: end; min-width: 280px;">
                                     <div style="display: inline-flex; justify-content: flex-end; align-items: center; gap: 8px; flex-wrap: nowrap; white-space: nowrap;">
                                         <a href="{{ route('admin.forum.threads.show', $thread->id) }}" class="btn-agri btn-agri-primary" style="width: 36px; height: 36px; padding: 0; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; text-decoration: none; border-radius: 999px;">
                                             <i class="fa fa-eye"></i>
                                         </a>
-                                        {{-- Action drop-down --}}
-                                        <div class="dropdown">
-                                            <button type="button" class="btn-agri dropdown-toggle" style="min-width: 92px; height: 36px; padding: 0 12px; display: inline-flex; align-items: center; justify-content: center; background: var(--agri-bg); color: var(--agri-text-muted); border: 1px solid var(--agri-border); font-size: 12px; font-weight: 600; border-radius: 999px;" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                                Actions <i class="fas fa-chevron-down" style="font-size: 10px; margin-left: 4px;"></i>
+                                        {{-- Moderation actions --}}
+                                        @if($thread->status === 'locked')
+                                            <form method="POST" action="{{ route('admin.forum.threads.unlock', $thread->id) }}" class="d-inline">
+                                                @csrf
+                                                <button type="submit" class="btn-agri" style="width: 36px; height: 36px; padding: 0; display: inline-flex; align-items: center; justify-content: center; background: var(--agri-bg); color: var(--agri-text-muted); border: 1px solid var(--agri-border); font-size: 12px; font-weight: 600; border-radius: 999px;" title="Unlock">
+                                                    <i class="fa fa-unlock"></i>
+                                                </button>
+                                            </form>
+                                        @else
+                                            <form method="POST" action="{{ route('admin.forum.threads.lock', $thread->id) }}" class="d-inline">
+                                                @csrf
+                                                <button type="submit" class="btn-agri" style="width: 36px; height: 36px; padding: 0; display: inline-flex; align-items: center; justify-content: center; background: var(--agri-bg); color: var(--agri-text-muted); border: 1px solid var(--agri-border); font-size: 12px; font-weight: 600; border-radius: 999px;" title="Lock">
+                                                    <i class="fa fa-lock"></i>
+                                                </button>
+                                            </form>
+                                        @endif
+
+                                        @if($thread->status !== 'archived')
+                                            <form method="POST" action="{{ route('admin.forum.threads.archive', $thread->id) }}" class="d-inline">
+                                                @csrf
+                                                <button type="submit" class="btn-agri" style="width: 36px; height: 36px; padding: 0; display: inline-flex; align-items: center; justify-content: center; background: var(--agri-bg); color: var(--agri-text-muted); border: 1px solid var(--agri-border); font-size: 12px; font-weight: 600; border-radius: 999px;" title="Archive">
+                                                    <i class="fa fa-archive"></i>
+                                                </button>
+                                            </form>
+                                        @else
+                                            <button type="button" class="btn-agri" style="width: 36px; height: 36px; padding: 0; display: inline-flex; align-items: center; justify-content: center; background: #F3F4F6; color: #9CA3AF; border: 1px solid #E5E7EB; font-size: 12px; font-weight: 600; border-radius: 999px; cursor: default;" title="Archived" disabled>
+                                                <i class="fa fa-archive"></i>
                                             </button>
-                                            <ul class="dropdown-menu dropdown-menu-right" style="border: none; box-shadow: 0 10px 30px rgba(0,0,0,0.08); border-radius: 12px; padding: 8px;">
-                                                @if(!$thread->is_approved)
-                                                <li>
-                                                    <form method="POST" action="{{ route('admin.forum.threads.approve', $thread->id) }}">
-                                                        @csrf
-                                                        <button type="submit" class="dropdown-item" style="font-size: 13px; font-weight: 600; color: #10B981; padding: 8px 16px; border-radius: 8px;"><i class="fa fa-check" style="margin-right: 8px;"></i>Approve</button>
-                                                    </form>
-                                                </li>
-                                                @endif
-                                                @if($thread->status !== 'locked')
-                                                <li>
-                                                    <form method="POST" action="{{ route('admin.forum.threads.lock', $thread->id) }}">
-                                                        @csrf
-                                                        <button type="submit" class="dropdown-item" style="font-size: 13px; font-weight: 600; color: var(--agri-text-main); padding: 8px 16px; border-radius: 8px;"><i class="fa fa-lock" style="margin-right: 8px; color: var(--agri-text-muted);"></i>Lock</button>
-                                                    </form>
-                                                </li>
-                                                @endif
-                                                @if($thread->status === 'locked')
-                                                <li>
-                                                    <form method="POST" action="{{ route('admin.forum.threads.unlock', $thread->id) }}">
-                                                        @csrf
-                                                        <button type="submit" class="dropdown-item" style="font-size: 13px; font-weight: 600; color: var(--agri-text-main); padding: 8px 16px; border-radius: 8px;"><i class="fa fa-unlock" style="margin-right: 8px; color: var(--agri-text-muted);"></i>Unlock</button>
-                                                    </form>
-                                                </li>
-                                                @endif
-                                                @if($thread->status !== 'archived')
-                                                <li>
-                                                    <form method="POST" action="{{ route('admin.forum.threads.archive', $thread->id) }}">
-                                                        @csrf
-                                                        <button type="submit" class="dropdown-item" style="font-size: 13px; font-weight: 600; color: var(--agri-text-main); padding: 8px 16px; border-radius: 8px;"><i class="fa fa-archive" style="margin-right: 8px; color: var(--agri-text-muted);"></i>Archive</button>
-                                                    </form>
-                                                </li>
-                                                @endif
-                                            </ul>
-                                        </div>
+                                        @endif
+
                                         {{-- Pin toggle --}}
                                         <form method="POST" action="{{ route('admin.forum.threads.pin', $thread->id) }}" class="d-inline">
                                             @csrf
