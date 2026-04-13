@@ -146,7 +146,7 @@ class ForumThread extends Model
     {
         static::withoutTimestamps(fn () =>
             $this->newQuery()->whereKey($this->getKey())->update([
-                'replies_count' => \DB::raw('GREATEST(0, replies_count - 1)'),
+                'replies_count' => \DB::raw('CASE WHEN replies_count > 0 THEN replies_count - 1 ELSE 0 END'),
             ])
         );
     }
