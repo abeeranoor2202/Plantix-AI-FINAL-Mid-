@@ -35,8 +35,8 @@
                 <select name="status" class="form-agri" style="height: 42px; min-width: 180px; margin-bottom: 0;">
                     <option value="">All Statuses</option>
                     <option value="pending" @selected(request('status') === 'pending')>Pending</option>
-                    <option value="reviewed" @selected(request('status') === 'reviewed')>Reviewed</option>
-                    <option value="dismissed" @selected(request('status') === 'dismissed')>Dismissed</option>
+                    <option value="resolved" @selected(request('status') === 'resolved')>Resolved</option>
+                    <option value="ignored" @selected(request('status') === 'ignored')>Ignored</option>
                 </select>
                 <button type="submit" class="btn-agri btn-agri-primary" style="height: 42px; padding: 0 16px;">Filter</button>
                 <a href="{{ route('admin.forum.flags.index') }}" class="btn-agri btn-agri-outline" style="height: 42px; display: inline-flex; align-items: center; text-decoration: none;">Reset</a>
@@ -67,21 +67,30 @@
                             <td class="px-4 py-3">{{ \Illuminate\Support\Str::limit($flag->reason, 30) }}</td>
                             <td class="px-4 py-3">
                                 @php($st = strtolower((string) $flag->status))
-                                <span class="badge rounded-pill {{ $st === 'pending' ? 'bg-warning text-dark' : ($st === 'reviewed' ? 'bg-success' : 'bg-secondary') }}">{{ strtoupper($st) }}</span>
+                                @php
+                                    $isResolved = in_array($st, ['resolved', 'reviewed'], true);
+                                    $isIgnored = in_array($st, ['ignored', 'dismissed'], true);
+                                    $label = $isResolved ? 'RESOLVED' : ($isIgnored ? 'IGNORED' : 'PENDING');
+                                @endphp
+                                <span class="badge rounded-pill {{ $label === 'PENDING' ? 'bg-warning text-dark' : ($label === 'RESOLVED' ? 'bg-success' : 'bg-secondary') }}">{{ $label }}</span>
                             </td>
                             <td class="px-4 py-3">
                                 <div class="text-end" style="display: flex; justify-content: flex-end; gap: 8px;">
                                     @if($thread)
                                         <a href="{{ route('admin.forum.threads.show', $thread->id) }}" class="btn-agri" style="padding: 8px; background: var(--agri-bg); color: #2563eb; border-radius: 999px;" title="View"><i class="fas fa-eye"></i></a>
                                     @endif
-                                    @if($flag->status === 'pending')
+                                    @if($st === 'pending')
                                         <form method="POST" action="{{ route('admin.forum.flags.confirm', $flag->id) }}" class="d-inline">
                                             @csrf
-                                            <button type="submit" class="btn-agri" style="padding: 8px; background: #fef2f2; color: #ef4444; border-radius: 999px; border: none;" title="Confirm"><i class="fas fa-check"></i></button>
+                                            <button type="submit" class="btn-agri" style="padding: 8px; background: #ecfdf5; color: #059669; border-radius: 999px; border: none;" title="Approve / Keep Reply"><i class="fas fa-check"></i></button>
+                                        </form>
+                                        <form method="POST" action="{{ route('admin.forum.flags.delete-reply', $flag->id) }}" class="d-inline" onsubmit="return confirm('Delete this reply and resolve report?')">
+                                            @csrf
+                                            <button type="submit" class="btn-agri" style="padding: 8px; background: #fef2f2; color: #ef4444; border-radius: 999px; border: none;" title="Delete Reply"><i class="fas fa-trash"></i></button>
                                         </form>
                                         <form method="POST" action="{{ route('admin.forum.flags.dismiss', $flag->id) }}" class="d-inline">
                                             @csrf
-                                            <button type="submit" class="btn-agri" style="padding: 8px; background: #f3f4f6; color: #4b5563; border-radius: 999px; border: none;" title="Dismiss"><i class="fas fa-times"></i></button>
+                                            <button type="submit" class="btn-agri" style="padding: 8px; background: #f3f4f6; color: #4b5563; border-radius: 999px; border: none;" title="Ignore Report"><i class="fas fa-times"></i></button>
                                         </form>
                                     @endif
                                 </div>
