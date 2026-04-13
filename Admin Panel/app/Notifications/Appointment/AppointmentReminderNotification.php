@@ -11,7 +11,7 @@ use Illuminate\Notifications\Notification;
 /**
  * 24-hour reminder — sent to both customer and expert.
  * Dispatched by the AppointmentReminderJob scheduled command.
- * Delivers via our branded AppointmentReminderMail template + database channel.
+ * Delivers via our branded AppointmentReminderMail template.
  */
 class AppointmentReminderNotification extends Notification implements ShouldQueue
 {
@@ -24,7 +24,7 @@ class AppointmentReminderNotification extends Notification implements ShouldQueu
         $this->onQueue('emails');
     }
 
-    public function via(object $notifiable): array { return ['mail', 'database']; }
+    public function via(object $notifiable): array { return ['mail']; }
 
     public function toMail(object $notifiable): AppointmentReminderMail
     {

@@ -30,11 +30,14 @@
         ['label' => 'Crop Plans', 'icon' => 'mdi-calendar-text-outline', 'active' => Request::is('admin/ai-modules/crop-plans*'), 'route' => route('admin.ai.crop-plans')],
         ['label' => 'Seasonal Data', 'icon' => 'mdi-weather-sunny', 'active' => Request::is('admin/ai-modules/seasonal-data*'), 'route' => route('admin.ai.seasonal-data')],
         ['label' => 'Push Notifications', 'icon' => 'mdi-bell-outline', 'active' => Request::is('admin/notification*'), 'route' => route('admin.notification.send')],
-        ['label' => 'Roles', 'icon' => 'mdi-shield-key-outline', 'active' => Request::is('admin/role*'), 'route' => route('admin.role.index')],
-        ['label' => 'Permissions', 'icon' => 'mdi-lock-open-variant-outline', 'active' => Request::is('admin/permissions*'), 'route' => route('admin.permissions.index')],
         ['label' => 'Stripe Settings', 'icon' => 'mdi-credit-card-outline', 'active' => Request::is('admin/settings/payment/stripe*'), 'route' => route('admin.payment.stripe')],
         ['label' => 'COD Settings', 'icon' => 'mdi-cash', 'active' => Request::is('admin/settings/payment/cod*'), 'route' => route('admin.payment.cod')],
     ];
+
+    if (Auth::guard('admin')->check() && Auth::guard('admin')->user()->can('admin.roles')) {
+        $navItems[] = ['label' => 'Roles', 'icon' => 'mdi-shield-key-outline', 'active' => Request::is('admin/role*'), 'route' => route('admin.role.index')];
+        $navItems[] = ['label' => 'Permissions', 'icon' => 'mdi-lock-open-variant-outline', 'active' => Request::is('admin/permissions*'), 'route' => route('admin.permissions.index')];
+    }
 @endphp
 
 <nav class="sidebar-nav sidebar-agri">

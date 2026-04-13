@@ -12,7 +12,7 @@ use Illuminate\Notifications\Notification;
  * Sent to admin when broadcasting to a user segment.
  * Section 14 – Notification Engine: Admin Broadcast
  *
- * Channels: in-app (database) + optional email
+ * Mail-only broadcast notification.
  */
 class AdminBroadcastNotification extends Notification implements ShouldQueue
 {
@@ -25,7 +25,7 @@ class AdminBroadcastNotification extends Notification implements ShouldQueue
 
     public function via(object $notifiable): array
     {
-        return $this->sendEmail ? ['database', 'mail'] : ['database'];
+        return ['mail'];
     }
 
     public function toMail(object $notifiable): MailMessage

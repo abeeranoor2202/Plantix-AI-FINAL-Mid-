@@ -11,7 +11,7 @@
             <span style="color: var(--agri-primary); font-size: 14px; font-weight: 600;">Permission Registry</span>
         </div>
         <h1 style="font-size: 28px; font-weight: 700; color: var(--agri-primary-dark); margin: 0;">Access Node Registry</h1>
-        <p style="color: var(--agri-text-muted); margin: 4px 0 0 0;">Manage detailed permissions for role-based access control.</p>
+        <p style="color: var(--agri-text-muted); margin: 4px 0 0 0;">Manage detailed permissions for role-based access control using structured keys.</p>
     </div>
 
     @if(session('success'))
@@ -34,14 +34,14 @@
                 <form method="POST" action="{{ route('admin.permissions.store') }}">
                     @csrf
                     <div style="margin-bottom: 20px;">
-                        <label class="agri-label">Registry Slug <span class="text-danger">*</span></label>
-                        <input type="text" name="name" class="form-agri" value="{{ old('name') }}" placeholder="e.g. audit-stock-levels" required>
-                        <p style="font-size: 11px; color: var(--agri-text-muted); margin: 6px 0 0 0; font-style: italic;">Unique technical identifier (lowercase, hyphenated)</p>
+                        <label class="agri-label">Permission Key <span class="text-danger">*</span></label>
+                        <input type="text" name="name" class="form-agri" value="{{ old('name') }}" placeholder="e.g. forum.thread.lock" required>
+                        <p style="font-size: 11px; color: var(--agri-text-muted); margin: 6px 0 0 0; font-style: italic;">Format: module.resource.action</p>
                     </div>
 
                     <div style="margin-bottom: 20px;">
                         <label class="agri-label">Functional Module Group <span class="text-danger">*</span></label>
-                        <input type="text" name="group" class="form-agri" list="group-options" value="{{ old('group') }}" placeholder="e.g. inventory" required>
+                        <input type="text" name="group" class="form-agri" list="group-options" value="{{ old('group') }}" placeholder="e.g. forum" required>
                         <datalist id="group-options">
                             @foreach($groups as $g)
                                 <option value="{{ $g }}">
@@ -94,7 +94,7 @@
                             <tr data-group="{{ $perm->group }}" style="border-bottom: 1px solid var(--agri-border); transition: 0.2s;">
                                 <td style="padding: 16px 24px; font-weight: 700; color: var(--agri-text-muted); font-size: 13px;">{{ str_pad($loop->iteration, 3, '0', STR_PAD_LEFT) }}</td>
                                 <td style="padding: 16px 24px;">
-                                    <code style="background: var(--agri-bg); color: var(--agri-error); padding: 4px 8px; border-radius: 6px; font-size: 12px; font-weight: 700; border: 1px solid var(--agri-border);">{{ $perm->name }}</code>
+                                    <code style="display: inline-block; max-width: 220px; white-space: normal; word-break: break-word; line-height: 1.35; background: var(--agri-bg); color: var(--agri-error); padding: 4px 8px; border-radius: 6px; font-size: 12px; font-weight: 700; border: 1px solid var(--agri-border);">{{ $perm->name }}</code>
                                     <div style="font-size: 10px; font-weight: 800; color: var(--agri-primary); text-transform: uppercase; margin-top: 6px;">
                                         <i class="fas fa-tag me-1"></i> {{ $perm->group }}
                                     </div>
@@ -104,16 +104,16 @@
                                 </td>
                                 <td style="padding: 16px 24px;" class="text-end">
                                     <div style="display: flex; gap: 8px; justify-content: flex-end;">
-                                        <button type="button" class="btn-agri edit-perm-btn" style="padding: 8px 12px; background: var(--agri-bg); color: var(--agri-text-heading); border-radius: 10px; font-size: 12px; font-weight: 700; display: flex; align-items: center; gap: 6px;"
+                                        <button type="button" class="btn-agri edit-perm-btn" style="padding: 8px; background: var(--agri-bg); color: #2563eb; border-radius: 999px; border: none;"
                                                 data-id="{{ $perm->id }}" data-name="{{ $perm->name }}" data-group="{{ $perm->group }}" data-display="{{ $perm->display_name }}">
-                                            <i class="fas fa-edit"></i> Edit
+                                            <i class="fas fa-pen"></i>
                                         </button>
                                         <form method="POST" action="{{ route('admin.permissions.destroy', $perm->id) }}">
                                             @csrf
                                             @method('DELETE')
-                                            <button type="submit" class="btn-agri" style="padding: 8px 12px; background: #FEF2F2; color: var(--agri-error); border: none; border-radius: 10px; font-size: 12px; font-weight: 700;"
+                                            <button type="submit" class="btn-agri" style="padding: 8px; background: #FEF2F2; color: var(--agri-error); border: none; border-radius: 999px;"
                                                     onclick="return confirm('CRITICAL: Delete permission node \'{{ $perm->name }}\'? This will cascade to all roles.')">
-                                                <i class="fas fa-trash-alt"></i>
+                                                <i class="fas fa-trash"></i>
                                             </button>
                                         </form>
                                     </div>

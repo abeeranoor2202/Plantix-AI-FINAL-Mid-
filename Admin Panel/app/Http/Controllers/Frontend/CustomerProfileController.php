@@ -45,6 +45,18 @@ class CustomerProfileController extends Controller
             );
         }
 
+        $preferences = array_merge([
+            'appointment_emails' => true,
+            'forum_notifications' => true,
+            'system_alerts'       => true,
+        ], (array) $user->notification_preferences, (array) $request->input('notification_preferences', []));
+
+        $data['notification_preferences'] = [
+            'appointment_emails' => filter_var($preferences['appointment_emails'], FILTER_VALIDATE_BOOLEAN),
+            'forum_notifications' => filter_var($preferences['forum_notifications'], FILTER_VALIDATE_BOOLEAN),
+            'system_alerts'       => filter_var($preferences['system_alerts'], FILTER_VALIDATE_BOOLEAN),
+        ];
+
         $user->update($data);
 
         return back()->with('success', 'Profile updated successfully.');

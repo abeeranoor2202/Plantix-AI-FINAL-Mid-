@@ -109,7 +109,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         });
 
         // ── Products ──────────────────────────────────────────────────────────
-        Route::prefix('/products')->name('products.')->group(function () {
+        Route::prefix('/products')->name('products.')->middleware(['permission:products,products.view'])->group(function () {
             Route::get('/',          [\App\Http\Controllers\Admin\AdminProductController::class, 'index'])->name('index');
             Route::get('/create',    [\App\Http\Controllers\Admin\AdminProductController::class, 'create'])->name('create');
             Route::post('/',         [\App\Http\Controllers\Admin\AdminProductController::class, 'store'])->name('store');
@@ -172,14 +172,14 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::delete('/coupons/delete/{id}', [\App\Http\Controllers\CouponController::class, 'destroy'])->name('coupons.destroy');
 
         // ── Orders ────────────────────────────────────────────────────────────
-        Route::prefix('/orders')->name('orders.')->group(function () {
+        Route::prefix('/orders')->name('orders.')->middleware(['permission:orders,orders.view'])->group(function () {
             Route::get('/',             [\App\Http\Controllers\Admin\AdminOrderController::class, 'index'])->name('index');
             Route::get('/{id}',         [\App\Http\Controllers\Admin\AdminOrderController::class, 'show'])->name('show');
             Route::post('/{id}/status', [\App\Http\Controllers\Admin\AdminOrderController::class, 'updateStatus'])->name('status');
         });
 
         // ── Appointments ──────────────────────────────────────────────────────
-        Route::prefix('/appointments')->name('appointments.')->group(function () {
+        Route::prefix('/appointments')->name('appointments.')->middleware(['permission:appointments,appointments.view'])->group(function () {
             Route::get('/',                [\App\Http\Controllers\Admin\AdminAppointmentController::class, 'index'])->name('index');
             Route::get('/create',          [\App\Http\Controllers\Admin\AdminAppointmentController::class, 'create'])->name('create');
             Route::post('/',               [\App\Http\Controllers\Admin\AdminAppointmentController::class, 'store'])->name('store');
@@ -226,7 +226,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         });
 
         // ── Returns & Refunds ─────────────────────────────────────────────────
-        Route::prefix('/returns')->name('returns.')->group(function () {
+        Route::prefix('/returns')->name('returns.')->middleware(['permission:returns,returns.view'])->group(function () {
             Route::get('/',                [\App\Http\Controllers\Admin\AdminReturnController::class, 'index'])->name('index');
             Route::get('/reasons',         [\App\Http\Controllers\Admin\AdminReturnController::class, 'reasons'])->name('reasons');
             Route::post('/reasons',        [\App\Http\Controllers\Admin\AdminReturnController::class, 'storeReason'])->name('reasons.store');
@@ -246,7 +246,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         });
 
         // ── Stock Tracking ────────────────────────────────────────────────────
-        Route::prefix('/stock')->name('stock.')->group(function () {
+        Route::prefix('/stock')->name('stock.')->middleware(['permission:stock,stock.view'])->group(function () {
             Route::get('/',             [\App\Http\Controllers\Admin\AdminStockController::class, 'index'])->name('index');
             Route::get('/{id}/edit',    [\App\Http\Controllers\Admin\AdminStockController::class, 'edit'])->name('edit');
             Route::get('/{id}',         [\App\Http\Controllers\Admin\AdminStockController::class, 'show'])->name('show');
@@ -317,10 +317,11 @@ Route::prefix('admin')->name('admin.')->group(function () {
         });
         Route::delete('/notification/delete/{id}', [\App\Http\Controllers\NotificationController::class, 'destroyDynamic'])->name('notification.destroy');
         Route::middleware(['permission:general-notifications,notification.send'])->group(function () {
-            Route::get('/notification/send', [\App\Http\Controllers\NotificationController::class, 'send'])->name('notification.send');
+            Route::get('/notification/send', [\App\Http\Controllers\NotificationController::class, 'send'])->name('notification.send.form');
             Route::get('/notification/users/list', [\App\Http\Controllers\NotificationController::class, 'getUsersList'])->name('notification.users.list');
             Route::post('/notification/broadcast', [\App\Http\Controllers\NotificationController::class, 'broadcastnotification'])->name('notification.broadcast');
             Route::post('/notification/send', [\App\Http\Controllers\NotificationController::class, 'sendNotification'])->name('notification.send');
+            Route::get('/email-logs', [\App\Http\Controllers\Admin\EmailLogController::class, 'index'])->name('email-logs.index');
         });
 
         // ── AI Agriculture Module (Admin Oversight) ───────────────────────────
@@ -345,7 +346,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         });
 
         // ── Forum Moderation ─────────────────────────────────────────────────
-        Route::prefix('forum')->name('forum.')->group(function () {
+        Route::prefix('forum')->name('forum.')->middleware(['permission:forum,forum.thread.view'])->group(function () {
             // Dashboard + list
             Route::get('/',                                  [\App\Http\Controllers\Admin\AdminForumController::class, 'index'])->name('index');
             Route::get('/threads',                           [\App\Http\Controllers\Admin\AdminForumController::class, 'threads'])->name('threads');
@@ -378,6 +379,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
 
             // Categories
             Route::get('/categories',                        [\App\Http\Controllers\Admin\AdminForumController::class, 'categories'])->name('categories.index');
+            Route::get('/categories/{id}/edit',              [\App\Http\Controllers\Admin\AdminForumController::class, 'editCategory'])->name('categories.edit');
             Route::post('/categories',                       [\App\Http\Controllers\Admin\AdminForumController::class, 'storeCategory'])->name('categories.store');
             Route::put('/categories/{id}',                   [\App\Http\Controllers\Admin\AdminForumController::class, 'updateCategory'])->name('categories.update');
             Route::delete('/categories/{id}',                [\App\Http\Controllers\Admin\AdminForumController::class, 'destroyCategory'])->name('categories.destroy');

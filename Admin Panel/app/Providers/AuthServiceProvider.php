@@ -80,7 +80,8 @@ class AuthServiceProvider extends ServiceProvider
             'gift-cards', 'language', 'currency', 'tax', 'zone',
             'global-setting', 'delivery-charge', 'radius', 'admin-commission',
             'dinein', 'document-verification', 'special-offer', 'privacy', 'terms',
-            'god-eye', 'review-attribute', 'roles',
+            'god-eye', 'review-attribute', 'roles', 'products', 'appointments',
+            'forum', 'returns', 'stock', 'reviews',
         ];
 
         foreach ($adminGroups as $group) {

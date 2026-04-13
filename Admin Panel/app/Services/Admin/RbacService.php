@@ -68,6 +68,7 @@ class RbacService
     public function createRole(array $data): Role
     {
         $role = Role::create([
+                'name'      => $data['role_name'],
             'role_name' => $data['role_name'],
             'guard'     => 'admin',
             'is_active' => $data['is_active'] ?? true,
@@ -317,9 +318,9 @@ class RbacService
                 return DB::table('permissions')
                     ->join('role_permissions', 'permissions.id', '=', 'role_permissions.permission_id')
                     ->where('role_permissions.role_id', $roleId)
-                    ->select('permissions.name', 'permissions.group')
+                    ->select('permissions.name', 'permissions.group', 'permissions.slug')
                     ->get()
-                    ->flatMap(fn ($p) => [$p->name, $p->group])
+                    ->flatMap(fn ($p) => [$p->name, $p->slug, $p->group])
                     ->filter()
                     ->unique()
                     ->values()
@@ -353,13 +354,7 @@ class RbacService
 
         $perms = $this->getCachedRolePermissionNames($user->role_id);
 
-        foreach ($perms as $perm) {
-            if (isset($perm['group']) && $perm['group'] === $group) {
-                return true;
-            }
-        }
-
-        return false;
+        return in_array($group, $perms, true);
     }
 
     public function clearRoleCache(int $roleId): void

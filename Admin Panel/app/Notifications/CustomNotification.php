@@ -11,7 +11,7 @@ use Illuminate\Notifications\Notification;
  * CustomNotification
  *
  * Sent to users when admin sends a custom notification.
- * Supports both in-app (database) and email channels.
+ * Email-only custom notification.
  * Queued for async processing.
  */
 class CustomNotification extends Notification implements ShouldQueue
@@ -33,7 +33,7 @@ class CustomNotification extends Notification implements ShouldQueue
      */
     public function via(object $notifiable): array
     {
-        return $this->sendEmail ? ['database', 'mail'] : ['database'];
+        return ['mail'];
     }
 
     /**

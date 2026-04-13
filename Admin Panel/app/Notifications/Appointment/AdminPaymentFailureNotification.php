@@ -18,7 +18,7 @@ class AdminPaymentFailureNotification extends Notification implements ShouldQueu
         private readonly string      $eventType = 'payment_failure', // 'payment_failure' | 'refund_issued'
     ) {}
 
-    public function via(object $notifiable): array { return ['mail', 'database']; }
+    public function via(object $notifiable): array { return ['mail']; }
 
     public function toMail(object $notifiable): MailMessage
     {

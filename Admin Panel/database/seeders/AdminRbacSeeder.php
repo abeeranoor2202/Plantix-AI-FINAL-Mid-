@@ -29,8 +29,8 @@ use Illuminate\Support\Str;
 class AdminRbacSeeder extends Seeder
 {
     /**
-     * ONLY permissions that are actually enforced by permission middleware
-     * in routes/panels/admin.php (39 total across 12 groups).
+    * ONLY permissions that are actually enforced by permission middleware
+    * in routes/panels/admin.php.
      */
     private array $permissions = [
 
@@ -72,6 +72,53 @@ class AdminRbacSeeder extends Seeder
         // ── Product Reviews (group: reviews) ──────────────────────────────────
         ['name' => 'reviews',        'group' => 'reviews', 'display_name' => 'View Reviews'],
         ['name' => 'reviews.delete', 'group' => 'reviews', 'display_name' => 'Delete Review'],
+
+        // ── Products (group: products) ────────────────────────────────────────
+        ['name' => 'products.view',   'group' => 'products', 'display_name' => 'View Products'],
+        ['name' => 'products.create', 'group' => 'products', 'display_name' => 'Create Product'],
+        ['name' => 'products.edit',   'group' => 'products', 'display_name' => 'Edit Product'],
+        ['name' => 'products.delete', 'group' => 'products', 'display_name' => 'Delete Product'],
+        ['name' => 'products.toggle', 'group' => 'products', 'display_name' => 'Toggle Product Status'],
+
+        // ── Orders (group: orders) ────────────────────────────────────────────
+        ['name' => 'orders.view',  'group' => 'orders', 'display_name' => 'View Orders'],
+        ['name' => 'orders.status', 'group' => 'orders', 'display_name' => 'Update Order Status'],
+
+        // ── Appointments (group: appointments) ───────────────────────────────
+        ['name' => 'appointments.view',    'group' => 'appointments', 'display_name' => 'View Appointments'],
+        ['name' => 'appointments.create',   'group' => 'appointments', 'display_name' => 'Create Appointment'],
+        ['name' => 'appointments.edit',     'group' => 'appointments', 'display_name' => 'Edit Appointment'],
+        ['name' => 'appointments.assign',   'group' => 'appointments', 'display_name' => 'Assign Appointment'],
+        ['name' => 'appointments.cancel',   'group' => 'appointments', 'display_name' => 'Cancel Appointment'],
+        ['name' => 'appointments.complete', 'group' => 'appointments', 'display_name' => 'Complete Appointment'],
+        ['name' => 'appointments.refund',   'group' => 'appointments', 'display_name' => 'Refund Appointment'],
+        ['name' => 'appointments.reassign', 'group' => 'appointments', 'display_name' => 'Reassign Appointment'],
+
+        // ── Forum (group: forum) ──────────────────────────────────────────────
+        ['name' => 'forum.thread.view',      'group' => 'forum', 'display_name' => 'View Threads'],
+        ['name' => 'forum.thread.create',    'group' => 'forum', 'display_name' => 'Create Thread'],
+        ['name' => 'forum.thread.lock',      'group' => 'forum', 'display_name' => 'Lock Thread'],
+        ['name' => 'forum.thread.unlock',    'group' => 'forum', 'display_name' => 'Unlock Thread'],
+        ['name' => 'forum.thread.archive',   'group' => 'forum', 'display_name' => 'Archive Thread'],
+        ['name' => 'forum.thread.unarchive', 'group' => 'forum', 'display_name' => 'Unarchive Thread'],
+        ['name' => 'forum.thread.resolve',   'group' => 'forum', 'display_name' => 'Resolve Thread'],
+        ['name' => 'forum.thread.delete',    'group' => 'forum', 'display_name' => 'Delete Thread'],
+        ['name' => 'forum.thread.pin',       'group' => 'forum', 'display_name' => 'Pin Thread'],
+        ['name' => 'forum.reply.delete',     'group' => 'forum', 'display_name' => 'Delete Reply'],
+        ['name' => 'forum.flag.review',      'group' => 'forum', 'display_name' => 'Review Flagged Reply'],
+        ['name' => 'forum.flag.delete-reply','group' => 'forum', 'display_name' => 'Delete Flagged Reply'],
+        ['name' => 'forum.flag.dismiss',     'group' => 'forum', 'display_name' => 'Ignore Flagged Reply'],
+
+        // ── Returns (group: returns) ─────────────────────────────────────────
+        ['name' => 'returns.view',   'group' => 'returns', 'display_name' => 'View Returns'],
+        ['name' => 'returns.approve','group' => 'returns', 'display_name' => 'Approve Return'],
+        ['name' => 'returns.reject', 'group' => 'returns', 'display_name' => 'Reject Return'],
+        ['name' => 'returns.refund', 'group' => 'returns', 'display_name' => 'Refund Return'],
+
+        // ── Stock (group: stock) ──────────────────────────────────────────────
+        ['name' => 'stock.view',   'group' => 'stock', 'display_name' => 'View Stock'],
+        ['name' => 'stock.edit',    'group' => 'stock', 'display_name' => 'Edit Stock'],
+        ['name' => 'stock.toggle',  'group' => 'stock', 'display_name' => 'Toggle Stock Status'],
 
         // ── Roles & Permissions / RBAC (group: roles) ─────────────────────────
         ['name' => 'role.index',         'group' => 'roles', 'display_name' => 'View Roles'],
@@ -117,7 +164,7 @@ class AdminRbacSeeder extends Seeder
             'description' => 'Manages product catalog: categories, attributes, coupons, reviews, and vendor listings.',
             'guard'       => 'admin',
             'is_active'   => true,
-            'perm_groups' => ['category', 'item-attribute', 'coupons', 'reviews', 'vendors'],
+            'perm_groups' => ['category', 'item-attribute', 'coupons', 'reviews', 'vendors', 'products', 'orders', 'returns', 'stock'],
         ],
         [
             'role_name'   => 'User & Vendor Manager',
@@ -125,7 +172,7 @@ class AdminRbacSeeder extends Seeder
             'description' => 'Manages customer accounts and vendor onboarding.',
             'guard'       => 'admin',
             'is_active'   => true,
-            'perm_groups' => ['users', 'vendors'],
+            'perm_groups' => ['users', 'vendors', 'appointments'],
         ],
         [
             'role_name'   => 'Communications Manager',
@@ -141,7 +188,7 @@ class AdminRbacSeeder extends Seeder
             'description' => 'Manages admin sub-users, RBAC roles/permissions, global settings, and payment methods.',
             'guard'       => 'admin',
             'is_active'   => true,
-            'perm_groups' => ['admins', 'roles', 'global-setting', 'payment-method'],
+            'perm_groups' => ['admins', 'roles', 'global-setting', 'payment-method', 'forum', 'appointments', 'products', 'orders', 'returns', 'stock'],
         ],
     ];
 

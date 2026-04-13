@@ -11,7 +11,7 @@
             <span style="color: var(--agri-primary); font-size: 14px; font-weight: 600;">{{trans('lang.email_templates')}}</span>
         </div>
         <h1 style="font-size: 28px; font-weight: 700; color: var(--agri-primary-dark); margin: 0;">System Notifications</h1>
-        <p style="color: var(--agri-text-muted); margin: 4px 0 0 0;">Manage communication templates sent to farmers and vendors.</p>
+        <p style="color: var(--agri-text-muted); margin: 4px 0 0 0;">Manage communication templates sent across the platform.</p>
     </div>
 
     {{-- Table Card --}}
@@ -23,6 +23,9 @@
             </div>
             
             <div style="display: flex; align-items: center; gap: 16px;">
+                <a href="{{ route('admin.email-templates.save') }}" class="btn-agri btn-agri-primary" style="border-radius:8px;font-weight:700; text-decoration: none; padding: 10px 14px; display: inline-flex; align-items: center; gap: 8px;">
+                    <i class="fas fa-plus"></i> Create Template
+                </a>
                 <div class="input-group" style="width: 300px;">
                     <span class="input-group-text bg-white border-end-0" style="border-radius: 10px 0 0 10px; border-color: var(--agri-border);">
                         <i class="fas fa-search" style="color: var(--agri-text-muted); font-size: 14px;"></i>
@@ -36,16 +39,20 @@
             <table id="emailTemplatesTable" class="table mb-0" style="vertical-align: middle;">
                 <thead style="background: var(--agri-bg);">
                     <tr>
-                        <th style="padding: 16px 24px; font-size: 12px; font-weight: 600; color: var(--agri-text-muted); text-transform: uppercase; border: none;">{{trans('lang.type')}}</th>
+                        <th style="padding: 16px 24px; font-size: 12px; font-weight: 600; color: var(--agri-text-muted); text-transform: uppercase; border: none;">Template Name</th>
+                        <th style="padding: 16px 24px; font-size: 12px; font-weight: 600; color: var(--agri-text-muted); text-transform: uppercase; border: none;">Email Type</th>
                         <th style="padding: 16px 24px; font-size: 12px; font-weight: 600; color: var(--agri-text-muted); text-transform: uppercase; border: none;">{{trans('lang.subject')}}</th>
+                        <th style="padding: 16px 24px; font-size: 12px; font-weight: 600; color: var(--agri-text-muted); text-transform: uppercase; border: none;">Variables</th>
                         <th style="padding: 16px 24px; font-size: 12px; font-weight: 600; color: var(--agri-text-muted); text-transform: uppercase; border: none;" class="text-end">{{trans('lang.actions')}}</th>
                     </tr>
                 </thead>
                 <tbody id="emailTemplatesTbody">
                             @forelse($templates as $template)
                             <tr>
-                                <td style="font-weight:700;">{{ ucwords(str_replace('_',' ', $template->type)) }}</td>
+                                <td style="font-weight:700;">{{ $template->name ?: ucwords(str_replace('_',' ', $template->type)) }}</td>
+                                <td>{{ ucfirst($template->email_type ?? 'system') }}</td>
                                 <td>{{ $template->subject ?: '—' }}</td>
+                                <td>{{ $template->variables ? \Illuminate\Support\Str::limit(is_array($template->variables) ? implode(', ', $template->variables) : $template->variables, 40) : '—' }}</td>
                                 <td>
                                     @if($template->is_active)
                                         <span class="badge-agri" style="background:#DCFCE7; color:#166534; border:1px solid #BBF7D0;">Active</span>
@@ -60,7 +67,7 @@
                                 </td>
                             </tr>
                             @empty
-                            <tr><td colspan="4" class="text-center py-4 text-muted">No email templates found.</td></tr>
+                            <tr><td colspan="5" class="text-center py-4 text-muted">No email templates found.</td></tr>
                             @endforelse
                 </tbody>
             </table>

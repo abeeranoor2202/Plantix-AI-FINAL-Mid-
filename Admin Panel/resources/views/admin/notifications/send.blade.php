@@ -84,19 +84,32 @@ $(document).ready(function () {
     const sendTypeRadios = $('input[name="send-type"]');
     const roleSection = $('#role-section');
     const userSection = $('#user-section');
+    const roleSelect = $('#role');
     const userSelect = $('#user-id');
+    let usersLoaded = false;
 
-    sendTypeRadios.on('change', function () {
-        if ($(this).val() === 'role') {
+    function syncSendTypeUI() {
+        const sendType = $('input[name="send-type"]:checked').val();
+
+        if (sendType === 'role') {
             roleSection.show();
+            roleSelect.prop('disabled', false);
             userSection.hide();
-            userSelect.val('');
-        } else {
-            roleSection.hide();
-            userSection.show();
+            userSelect.prop('disabled', true).val('');
+            return;
+        }
+
+        roleSection.hide();
+        roleSelect.prop('disabled', true);
+        userSection.show();
+        userSelect.prop('disabled', false);
+
+        if (!usersLoaded) {
             loadUsers();
         }
-    });
+    }
+
+    sendTypeRadios.on('change', syncSendTypeUI);
 
     function loadUsers() {
         $.ajax({
@@ -110,9 +123,12 @@ $(document).ready(function () {
                         userSelect.append('<option value="' + user.id + '">' + user.name + ' (' + user.email + ')</option>');
                     });
                 }
+                usersLoaded = true;
             }
         });
     }
+
+    syncSendTypeUI();
 
     $('#message').on('input', function () {
         $('#char-count').text($(this).val().length);
@@ -141,6 +157,7 @@ $(document).ready(function () {
         const data = {
             message: message,
             send_email: sendEmail ? 1 : 0,
+            send_type: sendType,
             _token: '{{ csrf_token() }}'
         };
 

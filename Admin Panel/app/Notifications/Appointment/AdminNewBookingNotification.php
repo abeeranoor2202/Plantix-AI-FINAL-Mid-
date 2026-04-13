@@ -15,7 +15,7 @@ class AdminNewBookingNotification extends Notification implements ShouldQueue
 
     public function __construct(private readonly Appointment $appointment) {}
 
-    public function via(object $notifiable): array { return ['mail', 'database']; }
+    public function via(object $notifiable): array { return ['mail']; }
 
     public function toMail(object $notifiable): MailMessage
     {

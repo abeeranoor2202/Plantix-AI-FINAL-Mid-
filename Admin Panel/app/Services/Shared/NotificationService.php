@@ -2,12 +2,10 @@
 
 namespace App\Services\Shared;
 
-use App\Jobs\SendCustomNotificationJob;
+use App\Mail\CustomNotificationMail;
 use App\Models\User;
-use App\Notifications\CustomNotification;
-use Illuminate\Notifications\DatabaseNotification;
+use App\Services\NotificationLogService;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Str;
 
 /**
  * NotificationService
@@ -44,8 +42,20 @@ class NotificationService
         bool $sendEmail = false
     ): bool {
         try {
-            $user->notify(new CustomNotification($title, $body, null, $sendEmail));
-            return true;
+            if (! $user->email) {
+                return false;
+            }
+
+            return (bool) app(NotificationLogService::class)->send(
+                mailable: new CustomNotificationMail($user, $title, $body, $data['action_url'] ?? null),
+                to: $user->email,
+                recipientName: $user->name,
+                recipientRole: $user->role,
+                notificationType: (string) ($data['type'] ?? 'custom_notification'),
+                notifiable: $user,
+                userId: $user->id,
+                dedupKey: $data['dedup_key'] ?? null,
+            );
         } catch (\Throwable $e) {
             Log::error('NotificationService::sendToUser failed: ' . $e->getMessage(), [
                 'user_id' => $user->id,
@@ -83,16 +93,39 @@ class NotificationService
 
         collect($userIds)
             ->chunk(self::CHUNK_SIZE)
-            ->each(function ($chunk) use ($title, $body, $data, $sendEmail, &$totalDispatched) {
-                // Dispatch and execute immediately (like password reset)
-                dispatch(new SendCustomNotificationJob(
-                    $chunk->toArray(),
-                    $title,
-                    $body,
-                    $data['action_url'] ?? null,
-                    $sendEmail
-                ))->now();
-                $totalDispatched += count($chunk);
+            ->each(function ($chunk) use ($title, $body, $data, &$totalDispatched) {
+                $recipients = User::whereIn('id', $chunk->toArray())
+                    ->where('active', true)
+                    ->get(['id', 'name', 'email', 'role'])
+                    ->map(fn (User $user) => [
+                        'email' => $user->email,
+                        'name'  => $user->name,
+                        'role'  => $user->role,
+                        'id'    => $user->id,
+                    ])
+                    ->values()
+                    ->all();
+
+                foreach ($recipients as $recipient) {
+                    $result = app(NotificationLogService::class)->send(
+                        mailable: new CustomNotificationMail(
+                            User::findOrFail($recipient['id']),
+                            $title,
+                            $body,
+                            $data['action_url'] ?? null,
+                        ),
+                        to: $recipient['email'],
+                        recipientName: $recipient['name'],
+                        recipientRole: $recipient['role'],
+                        notificationType: (string) ($data['type'] ?? 'custom_notification'),
+                        userId: $recipient['id'],
+                        dedupKey: $data['dedup_key'] ?? null,
+                    );
+
+                    if ($result) {
+                        $totalDispatched++;
+                    }
+                }
             });
 
         return $totalDispatched;
@@ -182,7 +215,8 @@ class NotificationService
             'order_id' => (string) $orderId,
             'status'   => $status,
             'type'     => 'order_status',
-        ], false); // Don't send email for order status
+            'dedup_key' => "order_status:{$orderId}:{$status}",
+        ], true);
     }
 
     // -------------------------------------------------------------------------
@@ -219,6 +253,7 @@ class NotificationService
         return $this->sendToUser($user, $title, $body, [
             'type' => 'admin_notification',
             'action_url' => $actionUrl,
+            'dedup_key' => 'admin_notification:' . md5($title . $body . (string) $actionUrl),
         ], $sendEmail);
     }
 
@@ -304,24 +339,7 @@ class NotificationService
      */
     private function store(User $user, string $title, string $body, array $data): void
     {
-        try {
-            DatabaseNotification::create([
-                'id'              => (string) Str::uuid(),
-                'type'            => 'App\Notifications\GenericDatabaseNotification',
-                'notifiable_type' => User::class,
-                'notifiable_id'   => $user->id,
-                'data'            => json_encode([
-                    'title' => $title,
-                    'body'  => $body,
-                    'data'  => $data,
-                ]),
-                'read_at'         => null,
-            ]);
-        } catch (\Throwable $e) {
-            Log::error('NotificationService::store failed: ' . $e->getMessage(), [
-                'user_id' => $user->id,
-            ]);
-        }
+        $this->sendToUser($user, $title, $body, $data, true);
     }
 }
 

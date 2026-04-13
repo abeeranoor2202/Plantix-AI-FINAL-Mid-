@@ -28,10 +28,7 @@ class ForumReplyNotification extends Notification implements ShouldQueue
 
     public function via(object $notifiable): array
     {
-        // Expert replies → email + in-app; regular replies → in-app only
-        return $this->reply->is_expert_reply
-            ? ['database', 'mail']
-            : ['database'];
+        return ['mail'];
     }
 
     public function toMail(object $notifiable): MailMessage

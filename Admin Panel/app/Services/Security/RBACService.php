@@ -44,7 +44,8 @@ class RBACService
             return Permission::query()
                 ->join('role_permissions', 'permissions.id', '=', 'role_permissions.permission_id')
                 ->where('role_permissions.role_id', $roleId)
-                ->pluck('permissions.slug');
+                ->select('permissions.*')
+                ->get();
         });
     }
 
@@ -54,7 +55,9 @@ class RBACService
      */
     public function roleHasPermission(int $roleId, string $permissionSlug): bool
     {
-        return $this->permissionsForRole($roleId)->contains($permissionSlug);
+        return $this->permissionsForRole($roleId)->contains(function (Permission $permission) use ($permissionSlug): bool {
+            return in_array($permissionSlug, [$permission->name, $permission->slug], true);
+        });
     }
 
     /**
@@ -67,7 +70,7 @@ class RBACService
     public function userHasPermission(User $user, string $permissionSlug): bool
     {
         // Super-admin bypass
-        if ($user->role === 'admin' && !$user->role_id) {
+        if ($this->isSuperAdmin($user)) {
             return true;
         }
 
@@ -159,6 +162,7 @@ class RBACService
         return DB::transaction(function () use ($name, $guard, $permissionIds, $actor, $request) {
             $slug = \Illuminate\Support\Str::slug($name);
             $role = Role::create([
+                'name'      => $name,
                 'role_name' => $name,
                 'slug'      => $slug,
                 'guard'     => $guard,
@@ -243,7 +247,11 @@ class RBACService
 
     public function isSuperAdmin(User $user): bool
     {
-        return $user->role === 'admin' && !$user->role_id;
+        if ($user->role === 'admin' && ! $user->role_id) {
+            return true;
+        }
+
+        return (bool) ($user->adminRole?->slug === 'super-admin' || $user->adminRole?->role_name === 'Super Admin');
     }
 
     /**
@@ -252,10 +260,10 @@ class RBACService
      */
     public function isLastAdmin(User $target): bool
     {
-        if ($target->role !== 'admin') {
+        if (! $target->role_id) {
             return false;
         }
-        $count = User::where('role', 'admin')
+        $count = User::where('role_id', $target->role_id)
                      ->where('id', '!=', $target->id)
                      ->count();
         return $count === 0;

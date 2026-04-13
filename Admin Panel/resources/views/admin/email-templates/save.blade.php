@@ -39,6 +39,21 @@
 
                         <div class="row g-4">
                             <div class="col-md-6">
+                                <label class="agri-label">Template Name <span class="text-danger">*</span></label>
+                                <input type="text" class="form-agri" id="name" placeholder="Booking confirmation">
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="agri-label">Email Type <span class="text-danger">*</span></label>
+                                <select class="form-agri" id="email_type">
+                                    <option value="system">System</option>
+                                    <option value="appointment">Appointment</option>
+                                    <option value="forum">Forum</option>
+                                    <option value="order">Order</option>
+                                </select>
+                            </div>
+
+                            <div class="col-md-6">
                                 <label class="agri-label">{{trans('lang.type')}}</label>
                                 <input type="text" class="form-agri" id="type" readonly style="background-color: var(--agri-bg); cursor: not-allowed; border: 1px dashed var(--agri-border);">
                             </div>
@@ -49,10 +64,15 @@
                             </div>
 
                             <div class="col-12 mt-4">
-                                <label class="agri-label" style="margin-bottom: 12px;">{{trans('lang.message')}} <span class="text-danger">*</span></label>
+                                <label class="agri-label" style="margin-bottom: 12px;">Body <span class="text-danger">*</span></label>
                                 <div style="border: 1px solid var(--agri-border); border-radius: 16px; overflow: hidden;">
-                                    <textarea class="form-control" name="message" id="message"></textarea>
+                                    <textarea class="form-control" name="body" id="body"></textarea>
                                 </div>
+                            </div>
+
+                            <div class="col-12 mt-4">
+                                <label class="agri-label">Variables</label>
+                                <textarea class="form-agri" id="variables" rows="3" placeholder="List placeholder variables separated by commas"></textarea>
                             </div>
                         </div>
                     </div>
@@ -111,7 +131,23 @@
                     return null;
                 }
 
-                $('#message').summernote({
+                function slugify(value) {
+                    return value
+                        .toString()
+                        .toLowerCase()
+                        .trim()
+                        .replace(/[^a-z0-9\s-]/g, '')
+                        .replace(/\s+/g, '_')
+                        .replace(/-+/g, '_');
+                }
+
+                $(document).on('input', '#name', function () {
+                    if (!requestId) {
+                        $('#type').val(slugify($(this).val()));
+                    }
+                });
+
+                $('#body').summernote({
                     height: 400,
                     width: 1000,
                     toolbar: [
@@ -130,8 +166,11 @@
                 $(document).ready(function () {
                     @if($template)
                     // ── Template data injected server-side ────────────────
+                    $("#name").val(@json($template->name));
                     $("#subject").val(@json($template->subject));
-                    $('#message').summernote("code", @json($template->message));
+                    $('#body').summernote("code", @json($template->body));
+                    $("#email_type").val(@json($template->email_type ?? 'system'));
+                    $("#variables").val(@json(is_array($template->variables) ? implode(', ', $template->variables) : ($template->variables ?? '')));
 
                     @if($template->is_send_to_admin)
                     $("#is_send_to_admin").prop('checked', true);
@@ -148,24 +187,37 @@
                     @endphp
                     $('#type').val(@json($typeLabels[$template->type] ?? $template->type));
                     @endif
+
+                    if (!requestId) {
+                        $('#type').val(slugify($('#name').val()));
+                    }
                 });
 
                 $(".edit-form-btn").click(function () {
 
                     $(".success_top").hide();
                     $(".error_top").hide();
+                    var name = $("#name").val();
                     var subject = $("#subject").val();
-                    var message = $('#message').summernote('code');
+                    var body = $('#body').summernote('code');
                     var type = $('#type').val();
+                    var emailType = $("#email_type").val();
+                    var variables = $("#variables").val();
                     var isSendToAdmin = $("#is_send_to_admin").is(":checked");
 
-                    if (subject == "") {
+                    if (name == "") {
+                        $(".error_top").show();
+                        $(".error_top").html("");
+                        $(".error_top").append("<p>Please enter a template name.</p>");
+                        window.scrollTo(0, 0);
+                        return false;
+                    } else if (subject == "") {
                         $(".error_top").show();
                         $(".error_top").html("");
                         $(".error_top").append("<p>{{trans('lang.please_enter_subject')}}</p>");
                         window.scrollTo(0, 0);
                         return false;
-                    } else if (message == "") {
+                    } else if (body == "") {
                         $(".error_top").show();
                         $(".error_top").html("");
                         $(".error_top").append("<p>{{trans('lang.please_enter_message')}}</p>");
@@ -184,9 +236,12 @@
                                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                             },
                             data: {
+                                'name': name,
                                 'subject': subject,
-                                'message': message,
+                                'body': body,
                                 'type': type,
+                                'email_type': emailType,
+                                'variables': variables,
                                 'is_send_to_admin': isSendToAdmin
                             },
                             success: function (result) {

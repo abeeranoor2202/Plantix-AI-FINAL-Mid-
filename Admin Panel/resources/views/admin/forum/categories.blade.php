@@ -76,18 +76,12 @@
                             @forelse($categories as $cat)
                                 <tr>
                                     <td class="px-4 py-3">{{ $cat->id }}</td>
-                                    <td class="px-4 py-3">
-                                        <form method="POST" action="{{ route('admin.forum.categories.update', $cat->id) }}" id="cat-form-{{ $cat->id }}" style="display: flex; align-items: center; gap: 8px;">
-                                            @csrf
-                                            @method('PUT')
-                                            <input type="text" name="name" class="form-agri" value="{{ $cat->name }}" style="height: 38px; margin-bottom: 0; min-width: 180px;">
-                                        </form>
-                                    </td>
+                                    <td class="px-4 py-3">{{ $cat->name }}</td>
                                     <td class="px-4 py-3" style="font-family: monospace; color: var(--agri-text-muted);">{{ $cat->slug }}</td>
                                     <td class="px-4 py-3"><strong>{{ $cat->threads_count ?? 0 }}</strong></td>
                                     <td class="px-4 py-3">
                                         <div class="text-end" style="display: flex; justify-content: flex-end; gap: 8px;">
-                                            <button type="submit" form="cat-form-{{ $cat->id }}" class="btn-agri" style="padding: 8px; background: #ecfdf5; color: #059669; border-radius: 999px; border: none;" title="Save"><i class="fas fa-save"></i></button>
+                                            <a href="{{ route('admin.forum.categories.edit', $cat->id) }}" class="btn-agri" style="padding: 8px; background: var(--agri-bg); color: var(--agri-primary); border-radius: 999px;" title="Edit"><i class="fas fa-pen"></i></a>
                                             <form method="POST" action="{{ route('admin.forum.categories.destroy', $cat->id) }}" class="d-inline" onsubmit="return confirm('Delete category?')">
                                                 @csrf
                                                 @method('DELETE')

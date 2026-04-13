@@ -82,6 +82,50 @@
                                 @error('profile_photo')<div class="text-danger mt-1 small">{{ $message }}</div>@enderror
                             </div>
                         </div>
+                        @php
+                            $notificationPreferences = $user->notification_preferences ?? [];
+                        @endphp
+                        <div class="mt-4 pt-4 border-top">
+                            <h4 class="fw-bold mb-3 text-dark" style="font-size: 18px;">Notification Preferences</h4>
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <div class="d-flex align-items-center justify-content-between p-3 rounded-3 border h-100" style="border-color: var(--agri-border) !important;">
+                                        <div>
+                                            <div class="fw-semibold text-dark" style="font-size: 14px;">Appointment emails</div>
+                                            <div class="text-muted small">Booking and reminder messages</div>
+                                        </div>
+                                        <div class="form-check form-switch m-0">
+                                            <input type="hidden" name="notification_preferences[appointment_emails]" value="0">
+                                            <input class="form-check-input" type="checkbox" name="notification_preferences[appointment_emails]" value="1" {{ data_get($notificationPreferences, 'appointment_emails', true) ? 'checked' : '' }}>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="d-flex align-items-center justify-content-between p-3 rounded-3 border h-100" style="border-color: var(--agri-border) !important;">
+                                        <div>
+                                            <div class="fw-semibold text-dark" style="font-size: 14px;">Forum notifications</div>
+                                            <div class="text-muted small">Replies, answers, and locks</div>
+                                        </div>
+                                        <div class="form-check form-switch m-0">
+                                            <input type="hidden" name="notification_preferences[forum_notifications]" value="0">
+                                            <input class="form-check-input" type="checkbox" name="notification_preferences[forum_notifications]" value="1" {{ data_get($notificationPreferences, 'forum_notifications', true) ? 'checked' : '' }}>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="d-flex align-items-center justify-content-between p-3 rounded-3 border h-100" style="border-color: var(--agri-border) !important;">
+                                        <div>
+                                            <div class="fw-semibold text-dark" style="font-size: 14px;">System alerts</div>
+                                            <div class="text-muted small">Orders, payments, and security</div>
+                                        </div>
+                                        <div class="form-check form-switch m-0">
+                                            <input type="hidden" name="notification_preferences[system_alerts]" value="0">
+                                            <input class="form-check-input" type="checkbox" name="notification_preferences[system_alerts]" value="1" {{ data_get($notificationPreferences, 'system_alerts', true) ? 'checked' : '' }}>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                         <div class="mt-4 pt-3 border-top">
                             <button type="submit" class="btn-agri btn-agri-primary" style="padding: 10px 24px; font-size: 15px;">Save Changes</button>
                         </div>

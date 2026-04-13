@@ -5,6 +5,7 @@ namespace App\Providers;
 use App\Repositories\Contracts\OrderRepositoryInterface;
 use App\Repositories\Contracts\ProductRepositoryInterface;
 use App\Repositories\Contracts\VendorRepositoryInterface;
+use App\Models\Setting;
 use App\Repositories\Eloquent\OrderRepository;
 use App\Repositories\Eloquent\ProductRepository;
 use App\Repositories\Eloquent\VendorRepository;
@@ -36,6 +37,7 @@ use App\Services\Vendor\VendorInventoryService;
 use App\Services\Vendor\VendorOrderService;
 use App\Services\Vendor\VendorProductService;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Facades\Schema;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -118,6 +120,26 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
-        //
+        if (Schema::hasTable('settings')) {
+            $mailDefault = Setting::get('mail_mailer');
+            $mailHost = Setting::get('mail_host');
+            $mailPort = Setting::get('mail_port');
+            $mailUsername = Setting::get('mail_username');
+            $mailPassword = Setting::get('mail_password');
+            $mailEncryption = Setting::get('mail_encryption');
+            $mailFromAddress = Setting::get('mail_from_address');
+            $mailFromName = Setting::get('mail_from_name');
+
+            config([
+                'mail.default' => blank($mailDefault) ? env('MAIL_MAILER', config('mail.default')) : $mailDefault,
+                'mail.mailers.smtp.host' => blank($mailHost) ? env('MAIL_HOST', config('mail.mailers.smtp.host')) : $mailHost,
+                'mail.mailers.smtp.port' => blank($mailPort) ? env('MAIL_PORT', config('mail.mailers.smtp.port')) : $mailPort,
+                'mail.mailers.smtp.username' => blank($mailUsername) ? env('MAIL_USERNAME', config('mail.mailers.smtp.username')) : $mailUsername,
+                'mail.mailers.smtp.password' => blank($mailPassword) ? env('MAIL_PASSWORD', config('mail.mailers.smtp.password')) : $mailPassword,
+                'mail.mailers.smtp.encryption' => blank($mailEncryption) ? env('MAIL_ENCRYPTION', config('mail.mailers.smtp.encryption')) : $mailEncryption,
+                'mail.from.address' => blank($mailFromAddress) ? env('MAIL_FROM_ADDRESS', config('mail.from.address')) : $mailFromAddress,
+                'mail.from.name' => blank($mailFromName) ? env('MAIL_FROM_NAME', config('mail.from.name')) : $mailFromName,
+            ]);
+        }
     }
 }
