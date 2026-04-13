@@ -22,6 +22,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'wallet_amount', 'fcm_token', 'profile_photo',
         'must_reset_password', 'role_id',
         'is_banned', 'banned_until', 'banned_reason', 'is_shadow_banned',
+        'notification_preferences',
     ];
 
     protected $hidden = [
@@ -38,6 +39,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'is_banned'            => 'boolean',
         'is_shadow_banned'     => 'boolean',
         'banned_until'         => 'datetime',
+        'notification_preferences' => 'array',
     ];
 
     // -------------------------------------------------------------------------
