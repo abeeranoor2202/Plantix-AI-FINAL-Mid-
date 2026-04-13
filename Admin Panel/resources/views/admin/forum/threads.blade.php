@@ -60,7 +60,7 @@
         </div>
 
         {{-- Threads Table --}}
-        <div class="card-agri" style="padding: 0; overflow: hidden;">
+        <div class="card-agri" style="padding: 0; overflow: visible;">
             <div style="padding: 24px 28px; border-bottom: 1px solid var(--agri-border); display: flex; align-items: center; justify-content: space-between;">
                 <div style="display: flex; align-items: center; gap: 12px;">
                     <div style="width: 36px; height: 36px; background: var(--agri-primary-light); color: var(--agri-primary); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 14px;"><i class="fa fa-comments"></i></div>
