@@ -70,7 +70,11 @@
                                         <a href="{{ route('admin.role.edit', $role->id) }}" class="btn-agri" style="padding: 8px; background: var(--agri-bg); color: #2563eb; border-radius: 999px;" title="Edit"><i class="fas fa-pen"></i></a>
                                     @endcan
                                     @can('admin.perm', 'role.delete')
-                                        <a href="{{ route('admin.role.delete', $role->id) }}" class="btn-agri" style="padding: 8px; background: #fef2f2; color: #ef4444; border-radius: 999px;" onclick="return confirm('Delete this role?')" title="Delete"><i class="fas fa-trash"></i></a>
+                                        <form method="POST" action="{{ route('admin.role.delete', $role->id) }}" style="display:inline; margin:0;" onsubmit="return confirm('Are you sure you want to delete?')">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="btn-agri" style="padding: 8px; background: #fef2f2; color: #ef4444; border-radius: 999px; border: none;" title="Delete"><i class="fas fa-trash"></i></button>
+                                        </form>
                                     @endcan
                                 </div>
                             </td>
