@@ -60,7 +60,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::post('/users/update/{id}',        [\App\Http\Controllers\UserController::class, 'updateAdminUsers'])->middleware(['permission:users,users.edit'])->name('users.update');
         Route::post('/users/update-profile/{id}',[\App\Http\Controllers\UserController::class, 'updateUserProfile'])->middleware(['permission:users,users.edit'])->name('users.update-profile');
         Route::post('/users/send-reset/{id}',    [\App\Http\Controllers\UserController::class, 'sendPasswordReset'])->middleware(['permission:users,users.edit'])->name('users.send-reset');
-        Route::get('/users/delete/{id}',         [\App\Http\Controllers\UserController::class, 'deleteAdminUsers'])->middleware(['permission:users,users.delete'])->name('users.delete');
+        Route::delete('/users/delete/{id}',      [\App\Http\Controllers\UserController::class, 'deleteAdminUsers'])->middleware(['permission:users,users.delete'])->name('users.delete');
 
         // ── Admin Sub-users ───────────────────────────────────────────────────
         Route::middleware(['permission:admins,admin.users'])->group(function () {
@@ -73,7 +73,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
             Route::post('admin-users/store', [\App\Http\Controllers\UserController::class, 'storeAdminUsers'])->name('admin.users.store');
         });
         Route::middleware(['permission:admins,admin.users.delete'])->group(function () {
-            Route::get('admin-users/delete/{id}', [\App\Http\Controllers\UserController::class, 'deleteAdminUsers'])->name('admin.users.delete');
+            Route::delete('admin-users/delete/{id}', [\App\Http\Controllers\UserController::class, 'deleteAdminUsers'])->name('admin.users.delete');
         });
         Route::middleware(['permission:admins,admin.users.edit'])->group(function () {
             Route::get('admin-users/edit/{id}', [\App\Http\Controllers\UserController::class, 'editAdminUsers'])->name('admin.users.edit');
@@ -266,7 +266,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
             Route::post('/role/store', [\App\Http\Controllers\Admin\RbacController::class, 'store'])->name('role.store');
         });
         Route::middleware(['permission:roles,role.delete'])->group(function () {
-            Route::get('/role/delete/{id}', [\App\Http\Controllers\Admin\RbacController::class, 'delete'])->name('role.delete');
+            Route::delete('/role/delete/{id}', [\App\Http\Controllers\Admin\RbacController::class, 'delete'])->name('role.delete');
         });
         Route::middleware(['permission:roles,role.edit'])->group(function () {
             Route::get('/role/edit/{id}', [\App\Http\Controllers\Admin\RbacController::class, 'edit'])->name('role.edit');
@@ -310,7 +310,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
             Route::get('/email-templates/save/{id?}', [\App\Http\Controllers\SettingsController::class, 'emailTemplatesSave'])->name('email-templates.save');
         });
         Route::middleware(['permission:email-template,email-templates.delete'])->group(function () {
-            Route::get('/email-templates/delete/{id}', [\App\Http\Controllers\SettingsController::class, 'emailTemplatesDelete'])->name('email-templates.delete');
+            Route::delete('/email-templates/delete/{id}', [\App\Http\Controllers\SettingsController::class, 'emailTemplatesDelete'])->name('email-templates.delete');
         });
         Route::post('/send-email', [\App\Http\Controllers\SendEmailController::class, 'sendMail'])->middleware(['permission:email-template,email-templates.edit'])->name('sendMail');
 
