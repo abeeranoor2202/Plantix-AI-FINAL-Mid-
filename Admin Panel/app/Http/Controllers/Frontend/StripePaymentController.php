@@ -64,9 +64,14 @@ class StripePaymentController extends Controller
         if ($request->expectsJson()) {
             return response()->json([
                 'client_secret'     => $result['client_secret'],
+                'checkout_url'      => $result['checkout_url'] ?? null,
                 'order_id'          => $order->id,
                 'payment_intent_id' => $order->payment_intent_id,
             ]);
+        }
+
+        if (! empty($result['checkout_url'])) {
+            return redirect()->away($result['checkout_url']);
         }
 
         // For blade: store PI in session then redirect to payment page
@@ -270,6 +275,7 @@ class StripePaymentController extends Controller
         // 2. Route to handler — always return 200 to prevent Stripe retries
         try {
             match ($event->type) {
+                'checkout.session.completed'   => $this->handleCheckoutSessionCompleted($event->data->object),
                 'payment_intent.succeeded'      => $this->handleIntentSucceeded($event->data->object),
                 'payment_intent.payment_failed' => $this->handleIntentFailed($event->data->object),
                 'charge.refunded'               => $this->handleChargeRefunded($event->data->object),
@@ -333,6 +339,18 @@ class StripePaymentController extends Controller
         } catch (\Throwable $e) {
             Log::error('PaymentFailedNotification failed', ['intent_id' => $intent->id]);
         }
+    }
+
+    private function handleCheckoutSessionCompleted(\Stripe\Checkout\Session $session): void
+    {
+        $paymentIntentId = (string) ($session->payment_intent ?? '');
+        $paymentType = (string) (($session->metadata->payment_type ?? null) ?? '');
+
+        if ($paymentIntentId === '' || $paymentType !== 'product') {
+            return;
+        }
+
+        $this->checkout->confirmPayment($paymentIntentId);
     }
 
     /**
