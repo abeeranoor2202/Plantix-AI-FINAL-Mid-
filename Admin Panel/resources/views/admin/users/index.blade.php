@@ -101,9 +101,13 @@
                                     </a>
                                     @if($user->id != 1)
                                         @can('admin.perm', 'admin.users.delete')
-                                        <a href="{{route('admin.users.delete', ['id' => $user->id])}}" class="btn-agri" style="padding: 8px 12px; background: #FEF2F2; color: var(--agri-error); border-radius: 10px; border: none; text-decoration: none;" onclick="return confirm('CRITICAL: Permanently revoke administrative access for this account?')" title="Revoke Access">
-                                            <i class="fas fa-user-minus"></i>
-                                        </a>
+                                        <form method="POST" action="{{route('admin.users.delete', ['id' => $user->id])}}" style="display: inline; margin: 0;" onsubmit="return confirm('Are you sure you want to delete?')">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="btn-agri" style="padding: 8px 12px; background: #FEF2F2; color: var(--agri-error); border-radius: 10px; border: none; text-decoration: none;" title="Revoke Access">
+                                                <i class="fas fa-user-minus"></i>
+                                            </button>
+                                        </form>
                                         @endcan
                                     @endif
                                 </div>
@@ -134,16 +138,20 @@
 
         $('#deleteAll').on('click', function () {
             if ($('#adminTable .is_open:checked').length) {
-                if (confirm('Are You Sure want to Delete Selected Data ?')) {
+                if (confirm('Are you sure you want to delete?')) {
                     var arrayUsers = [];
                     $('#adminTable .is_open:checked').each(function () {
                         var dataId = $(this).attr('dataId');
                         arrayUsers.push(dataId);
                     });
-                    arrayUsers = JSON.stringify(arrayUsers);
-                    var url = "{{ url('admin-users/delete', 'id') }}";
-                    url = url.replace('id', arrayUsers);
-                    window.location.href = url;
+                    var ids = encodeURIComponent(JSON.stringify(arrayUsers));
+                    var url = "{{ route('admin.users.delete', ['id' => '__IDS__']) }}".replace('__IDS__', ids);
+
+                    var form = $('<form>', { method: 'POST', action: url });
+                    form.append($('<input>', { type: 'hidden', name: '_token', value: $('meta[name="csrf-token"]').attr('content') }));
+                    form.append($('<input>', { type: 'hidden', name: '_method', value: 'DELETE' }));
+                    $('body').append(form);
+                    form.trigger('submit');
                 }
             } else {
                 alert('Please Select Any One Record.');
