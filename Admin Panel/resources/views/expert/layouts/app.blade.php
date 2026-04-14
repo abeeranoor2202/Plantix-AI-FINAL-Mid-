@@ -379,6 +379,11 @@
             </a>
         </div>
         <div class="nav-item-agri">
+            <a class="nav-link-agri {{ request()->routeIs('expert.payouts.*') ? 'active' : '' }}" href="{{ route('expert.payouts.index') }}">
+                <i class="fas fa-wallet"></i> Payouts
+            </a>
+        </div>
+        <div class="nav-item-agri">
             <a class="nav-link-agri {{ request()->routeIs('expert.profile.*') ? 'active' : '' }}" href="{{ route('expert.profile.show') }}">
                 <i class="far fa-user-circle"></i> My Profile
             </a>
