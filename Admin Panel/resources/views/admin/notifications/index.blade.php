@@ -30,7 +30,9 @@
                                 <a class="nav-link active" href="{!! url()->current() !!}" style="color: var(--agri-primary); font-weight: 800; font-size: 14px; text-transform: uppercase; padding: 0 0 16px 0; border: none; border-bottom: 3px solid var(--agri-primary); background: transparent;"><i class="fa fa-list me-2"></i>{{trans('lang.notificaions_table')}}</a>
                             </li>
                             <li class="nav-item border-0">
+                                @can('admin.perm', 'notification.send')
                                 <a class="nav-link" href="{!! url('notification/send') !!}" style="color: var(--agri-text-muted); font-weight: 700; font-size: 14px; text-transform: uppercase; padding: 0 0 16px 0; border: none; border-bottom: 3px solid transparent; background: transparent;"><i class="fa fa-plus me-2"></i>{{trans('lang.create_notificaion')}}</a>
+                                @endcan
                             </li>
                         </ul>
                     </div>
@@ -40,7 +42,7 @@
                             <table id="notificationTable" class="table mb-0" style="vertical-align: middle;">
                                 <thead style="background: var(--agri-bg);">
                                     <tr>
-                                        <?php if (in_array('notification.delete', json_decode(@session('admin_permissions'), true))) { ?>
+                                        @can('admin.perm', 'notification.delete')
                                             <th style="padding: 16px 24px; font-size: 12px; font-weight: 700; color: var(--agri-text-muted); text-transform: uppercase; border: none; width: 60px;">
                                                 <input type="checkbox" id="is_active">
                                                 <label class="col-3 control-label d-none" for="is_active">
@@ -49,34 +51,34 @@
                                                     </a>
                                                 </label>
                                             </th>
-                                        <?php } ?>
+                                        @endcan
                                         <th style="padding: 16px 24px; font-size: 12px; font-weight: 700; color: var(--agri-text-muted); text-transform: uppercase; border: none;">{{trans('lang.subject')}}</th>
                                         <th style="padding: 16px 24px; font-size: 12px; font-weight: 700; color: var(--agri-text-muted); text-transform: uppercase; border: none;">{{trans('lang.message')}}</th>
                                         <th style="padding: 16px 24px; font-size: 12px; font-weight: 700; color: var(--agri-text-muted); text-transform: uppercase; border: none;">{{trans('lang.date_created')}}</th>
-                                        <?php if (in_array('notification.delete', json_decode(@session('admin_permissions'), true))) { ?>
+                                        @can('admin.perm', 'notification.delete')
                                             <th style="padding: 16px 24px; font-size: 12px; font-weight: 700; color: var(--agri-text-muted); text-transform: uppercase; border: none; text-align: end;">{{trans('lang.actions')}}</th>
-                                        <?php } ?>
+                                        @endcan
                                     </tr>
                                 </thead>
                                 <tbody id="append_restaurants">
                                     @forelse($notifications as $notif)
                                     <tr style="border-bottom: 1px solid var(--agri-border);">
-                                        <?php if (in_array('notification.delete', json_decode(@session('admin_permissions'), true))) { ?>
+                                        @can('admin.perm', 'notification.delete')
                                             <td style="padding: 18px 24px;"></td>
-                                        <?php } ?>
+                                        @endcan
                                         <td style="padding: 18px 24px; font-size: 14px; font-weight: 700; color: var(--agri-text-heading);">{{ $notif->title ?? '—' }}</td>
                                         <td style="padding: 18px 24px; font-size: 13px; color: var(--agri-text-main); max-width: 400px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ Str::limit($notif->message ?? '', 80) }}</td>
                                         <td style="padding: 18px 24px; font-size: 13px; color: var(--agri-text-muted);">
                                             <span style="background: #E0F2FE; color: #0369A1; padding: 4px 10px; border-radius: 100px; font-size: 11px; font-weight: 800; border: 1px solid #BAE6FD; margin-right: 8px;">{{ $notif->type ?? 'general' }}</span>
                                             {{ \Carbon\Carbon::parse($notif->created_at)->format('d M Y') }}
                                         </td>
-                                        <?php if (in_array('notification.delete', json_decode(@session('admin_permissions'), true))) { ?>
+                                        @can('admin.perm', 'notification.delete')
                                             <td style="padding: 18px 24px; text-align: end;">
                                                 <button class="btn-agri delete-notif-btn" data-id="{{ $notif->id }}" style="padding: 6px 12px; background: #FEE2E2; color: #991B1B; border: 1px solid #FECACA; font-size: 12px; font-weight: 700;">
                                                     <i class="fas fa-trash me-1"></i>{{ trans('lang.delete') }}
                                                 </button>
                                             </td>
-                                        <?php } ?>
+                                        @endcan
                                     </tr>
                                     @empty
                                     <tr>
