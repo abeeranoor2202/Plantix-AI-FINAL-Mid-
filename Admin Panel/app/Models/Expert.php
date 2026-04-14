@@ -74,7 +74,7 @@ class Expert extends Model
         'total_completed'               => 'integer',
         'total_cancelled'               => 'integer',
         'consultation_duration_minutes' => 'integer',
-        'stripe_account_status'         => 'array',
+        'stripe_account_status'         => 'string',
         'verified_at'                   => 'datetime',
         'suspended_at'                  => 'datetime',
     ];
