@@ -6,6 +6,7 @@ use App\Models\Permission;
 use App\Models\Role;
 use App\Models\RoleLog;
 use App\Models\User;
+use App\Services\Security\PermissionService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
@@ -27,6 +28,10 @@ use Illuminate\Support\Facades\DB;
  */
 class RBACService
 {
+    public function __construct(private readonly PermissionService $permissions)
+    {
+    }
+
     /** Cache TTL for permission sets */
     const CACHE_TTL_SECONDS = 1800; // 30 minutes
 
@@ -69,16 +74,7 @@ class RBACService
      */
     public function userHasPermission(User $user, string $permissionSlug): bool
     {
-        // Super-admin bypass
-        if ($this->isSuperAdmin($user)) {
-            return true;
-        }
-
-        if (!$user->role_id) {
-            return false;
-        }
-
-        return $this->roleHasPermission($user->role_id, $permissionSlug);
+        return $this->permissions->checkPermission($user, $permissionSlug);
     }
 
     // ── Role Assignment ───────────────────────────────────────────────────────
