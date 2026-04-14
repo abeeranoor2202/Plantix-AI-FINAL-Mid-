@@ -54,8 +54,22 @@ class RbacController extends Controller
     {
         $permission = \App\Models\Permission::withCount('roles')->findOrFail($id);
 
+        $modules = $this->permissionModules();
+        if ($permission->module && ! in_array($permission->module, $modules, true)) {
+            $modules[] = $permission->module;
+        }
+
         return view('admin.rbac.permissions.edit', [
             'permission' => $permission,
+            'groups' => $this->permissionGroups(),
+            'modules' => $modules,
+            'actions' => $this->permissionActions(),
+        ]);
+    }
+
+    public function createPermission(): View
+    {
+        return view('admin.rbac.permissions.create', [
             'groups' => $this->permissionGroups(),
             'modules' => $this->permissionModules(),
             'actions' => $this->permissionActions(),
@@ -137,12 +151,12 @@ class RbacController extends Controller
 
         // Unique group names for the filter dropdown and datalist
         $groups = $permissions->pluck('group')->unique()->sort()->values()->toArray();
+        $modules = $permissions->pluck('module')->filter()->unique()->sort()->values()->toArray();
 
         return view('admin.rbac.permissions.index', [
             'permissions' => $permissions,
             'groups' => $groups,
-            'modules' => $this->permissionModules(),
-            'actions' => $this->permissionActions(),
+            'modules' => $modules,
         ]);
     }
 
@@ -152,9 +166,9 @@ class RbacController extends Controller
 
         $data = Validator::make($request->all(), [
             'system_key'       => 'required|string|max:100|unique:permissions,name',
-            'module'           => 'required|string|max:100',
+            'module'           => ['required', 'string', 'max:100', Rule::in($this->permissionModules())],
             'action'           => ['required', 'string', Rule::in($actionKeys)],
-            'group'            => 'required|string|max:100',
+            'group'            => ['required', 'string', 'max:100', Rule::in($this->permissionGroups())],
             'human_name'       => ['required', 'string', 'max:150', 'regex:/^Can\s+[a-z]+(?:\s+[a-z]+)+$/i'],
             'description'      => 'required|string|max:1000',
             'is_active'        => 'nullable|boolean',
@@ -211,9 +225,9 @@ class RbacController extends Controller
                 'max:100',
                 Rule::unique('permissions', 'name')->ignore($id),
             ],
-            'module'        => 'required|string|max:100',
+            'module'        => ['required', 'string', 'max:100', Rule::in($this->permissionModules())],
             'action'        => ['required', 'string', Rule::in($actionKeys)],
-            'group'         => 'required|string|max:100',
+            'group'         => ['required', 'string', 'max:100', Rule::in($this->permissionGroups())],
             'human_name'    => ['required', 'string', 'max:150', 'regex:/^Can\s+[a-z]+(?:\s+[a-z]+)+$/i'],
             'description'   => 'required|string|max:1000',
             'is_active'     => 'nullable|boolean',
@@ -310,18 +324,13 @@ class RbacController extends Controller
             'Product Catalog',
             'Forum Moderation',
             'Appointments',
-            'Vendor Management',
-            'Notification System',
-            'Reporting',
-            'Settings',
-            'RBAC Administration',
-            'AI Operations',
+            'Payments',
         ];
     }
 
     private function permissionModules(): array
     {
-        return ['Users', 'Products', 'Forum', 'Appointments', 'Vendors', 'Categories', 'Attributes', 'Coupons', 'Orders', 'Returns', 'Stock', 'Experts', 'Notifications', 'Reports', 'AI Modules', 'Settings'];
+        return ['Users', 'Products', 'Forum', 'Appointments', 'Payments'];
     }
 
     /**
