@@ -342,6 +342,11 @@
         </div>
         
         <div class="nav-item-agri">
+            <a class="nav-link-agri {{ request()->routeIs('vendor.payouts.*') ? 'active' : '' }}" href="{{ route('vendor.payouts.index') }}">
+                <i class="fas fa-wallet"></i> Payouts
+            </a>
+        </div>
+        <div class="nav-item-agri">
             <a class="nav-link-agri {{ request()->routeIs('vendor.profile') ? 'active' : '' }}" href="{{ route('vendor.profile') }}">
                 <i class="fas fa-user-circle"></i> Profile Setting
             </a>
