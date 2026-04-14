@@ -2,9 +2,9 @@
 
 namespace App\Http\Middleware;
 
+use App\Services\Security\PermissionService;
 use Closure;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 
 /**
  * CheckUserRoleMiddleware — Admin Panel RBAC session seeder
@@ -24,6 +24,10 @@ use Illuminate\Support\Facades\DB;
  */
 class CheckUserRoleMiddleware
 {
+    public function __construct(private readonly PermissionService $permissions)
+    {
+    }
+
     public function handle(Request $request, Closure $next): mixed
     {
         $adminUser = auth('admin')->user();
@@ -35,34 +39,20 @@ class CheckUserRoleMiddleware
             if (! session()->has('admin_permissions') || session($sessionKey) !== $adminUser->id) {
 
                 $roleName    = null;
-                $permissions = [];
+                $permissionSet = [];
 
                 if ($adminUser->role === 'admin' && ! $adminUser->role_id) {
                     // Super-admin: wildcard marker — PermissionMiddleware short-circuits
                     $roleName    = 'Super Admin';
-                    $permissions = ['*'];
-                } elseif ($adminUser->role_id) {
-                    $roleRow  = DB::table('role')->where('id', $adminUser->role_id)->first();
-                    $roleName = $roleRow?->role_name ?? $adminUser->role;
-
-                    // Collect both group labels and individual permission names
-                    $base = DB::table('permissions')
-                        ->join('role_permissions', 'permissions.id', '=', 'role_permissions.permission_id')
-                        ->where('role_permissions.role_id', $adminUser->role_id)
-                        ->select('permissions.name', 'permissions.group')
-                        ->get();
-
-                    $permissions = $base->pluck('name')
-                        ->merge($base->pluck('group'))
-                        ->filter()
-                        ->unique()
-                        ->values()
-                        ->toArray();
+                    $permissionSet = ['*'];
+                } else {
+                    $roleName = $adminUser->adminRole?->role_name ?? $adminUser->role;
+                    $permissionSet = $this->permissions->allPermissionsForUser($adminUser);
                 }
 
                 session([
                     'admin_role'        => $roleName,
-                    'admin_permissions' => json_encode($permissions),
+                    'admin_permissions' => json_encode($permissionSet),
                     $sessionKey         => $adminUser->id,
                 ]);
             }
