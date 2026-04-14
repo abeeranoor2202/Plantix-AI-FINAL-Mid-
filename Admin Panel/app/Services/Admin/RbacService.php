@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Schema;
 
 /**
  * RbacService — Admin Panel Role-Based Access Control
@@ -160,11 +161,18 @@ class RbacService
      */
     public function createPermission(array $data): Permission
     {
-        $permission = Permission::create([
+        $payload = [
             'name'         => $data['name'],
+            'slug'         => $data['slug'] ?? $data['name'],
             'group'        => $data['group'],
             'display_name' => $data['display_name'],
-        ]);
+            'module'       => $data['module'] ?? null,
+            'action'       => $data['action'] ?? null,
+            'description'  => $data['description'] ?? $data['display_name'],
+            'is_active'    => $data['is_active'] ?? true,
+        ];
+
+        $permission = Permission::create($this->onlyExistingPermissionColumns($payload));
 
         Log::info('[RBAC] Permission created', ['permission' => $permission->name]);
 
@@ -179,12 +187,37 @@ class RbacService
     public function updatePermission(int $id, array $data): Permission
     {
         $permission = Permission::findOrFail($id);
-        $permission->update(array_filter($data, fn ($v) => $v !== null));
+        $filtered = $this->onlyExistingPermissionColumns(array_filter($data, fn ($v) => $v !== null));
+
+        if (! empty($filtered)) {
+            $permission->update($filtered);
+        }
 
         // Invalidate all role caches that include this permission
         $this->clearAllRoleCaches();
 
         return $permission->fresh();
+    }
+
+    /**
+     * Keep writes backward-compatible when deployments are running pre-migration schema.
+     *
+     * @param  array<string, mixed>  $data
+     * @return array<string, mixed>
+     */
+    private function onlyExistingPermissionColumns(array $data): array
+    {
+        static $columns = null;
+
+        if ($columns === null) {
+            $columns = Schema::getColumnListing('permissions');
+        }
+
+        return array_filter(
+            $data,
+            static fn ($value, $key) => in_array($key, $columns, true),
+            ARRAY_FILTER_USE_BOTH
+        );
     }
 
     /**
