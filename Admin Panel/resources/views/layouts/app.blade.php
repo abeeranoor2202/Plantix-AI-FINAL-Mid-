@@ -245,6 +245,21 @@
 </script>
 
 <script type="text/javascript">
+    window.AdminPermissions = @json(json_decode(session('admin_permissions', '[]'), true) ?: []);
+    window.hasAdminPermission = function (permission) {
+        if (!Array.isArray(window.AdminPermissions)) {
+            return false;
+        }
+
+        if (window.AdminPermissions.includes('*')) {
+            return true;
+        }
+
+        return window.AdminPermissions.includes(permission);
+    };
+</script>
+
+<script type="text/javascript">
     (function ($) {
         function keepSidebarExpanded() {
             if (window.innerWidth >= 768) {
