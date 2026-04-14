@@ -86,8 +86,10 @@ class SettingsController extends Controller
     public function stripe()
     {
         $settings = DB::table('settings')
-            ->whereIn('key', ['stripe_enabled', 'stripe_key', 'stripe_secret', 'stripe_withdraw_enabled',
-                              'cod_enabled'])
+            ->whereIn('key', [
+                'stripe_enabled', 'stripe_key', 'stripe_secret', 'stripe_webhook_secret',
+                'stripe_commission_rate', 'stripe_withdraw_enabled', 'cod_enabled',
+            ])
             ->pluck('value', 'key');
         return view('admin.settings.app.stripe', compact('settings'));
     }
@@ -98,11 +100,21 @@ class SettingsController extends Controller
             'stripe_enabled'           => $request->boolean('stripe_enabled') ? '1' : '0',
             'stripe_key'               => $request->input('stripe_key', ''),
             'stripe_secret'            => $request->input('stripe_secret', ''),
-            'stripe_withdraw_enabled'  => $request->boolean('stripe_withdraw_enabled') ? '1' : '0',
+            'stripe_webhook_secret'    => $request->input('stripe_webhook_secret', ''),
+            'stripe_commission_rate'    => $request->input('stripe_commission_rate', ''),
+            'stripe_withdraw_enabled'   => $request->boolean('stripe_withdraw_enabled') ? '1' : '0',
         ];
         foreach ($map as $key => $value) {
             DB::table('settings')->updateOrInsert(['key' => $key], ['value' => $value, 'updated_at' => now()]);
         }
+
+        Setting::set('stripe_enabled', $map['stripe_enabled'], 'boolean');
+        Setting::set('stripe_key', $map['stripe_key']);
+        Setting::set('stripe_secret', $map['stripe_secret']);
+        Setting::set('stripe_webhook_secret', $map['stripe_webhook_secret']);
+        Setting::set('stripe_commission_rate', $map['stripe_commission_rate']);
+        Setting::set('stripe_withdraw_enabled', $map['stripe_withdraw_enabled'], 'boolean');
+
         return response()->json(['success' => true]);
     }
 
