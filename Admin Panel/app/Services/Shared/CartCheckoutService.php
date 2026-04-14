@@ -2,6 +2,8 @@
 
 namespace App\Services\Shared;
 
+use App\Events\Payment\PaymentFailed;
+use App\Events\Payment\PaymentSucceeded;
 use App\Models\Cart;
 use App\Models\Coupon;
 use App\Models\CouponUsage;
@@ -21,6 +23,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 use Stripe\PaymentIntent;
 use Stripe\Stripe;
+use App\Services\Shared\StripeService;
 
 /**
  * CartCheckoutService ΓÇö production-ready Stripe payment flow.
@@ -55,6 +58,8 @@ class CartCheckoutService
     public function __construct(
         private readonly StockService $stock,
         private readonly CouponService $couponService,
+        private readonly StripeService $stripeService,
+        private readonly MarketplacePayoutService $payouts,
     ) {}
 
     // ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
@@ -165,39 +170,38 @@ class CartCheckoutService
             return $order;
         });
 
-        // Create Stripe PaymentIntent
+        // Create Stripe Checkout Session
         try {
-            if ($order->payment_intent_id) {
-                $intent = PaymentIntent::retrieve($order->payment_intent_id);
-            } else {
-                $intent = PaymentIntent::create(
-                    [
-                        'amount'   => (int) round($order->total * 100),
-                        'currency' => strtolower(config('plantix.currency_code', 'usd')),
-                        'metadata' => [
-                            'order_id'     => $order->id,
-                            'order_number' => $order->order_number,
-                            'user_id'      => $user->id,
-                        ],
-                        'automatic_payment_methods' => ['enabled' => true],
-                    ],
-                    ['idempotency_key' => 'order-intent-' . $order->id]
-                );
+            $checkout = $this->stripeService->createOrderCheckoutSession($order, [
+                'order_number' => $order->order_number,
+            ]);
 
-                DB::transaction(function () use ($order, $intent) {
-                    $order->update(['payment_intent_id' => $intent->id]);
-                    Payment::updateOrCreate(
-                        ['order_id' => $order->id, 'gateway' => 'stripe'],
-                        [
-                            'user_id'                => $order->user_id,
-                            'gateway_transaction_id' => $intent->id,
-                            'amount'                 => $order->total,
-                            'currency'               => strtolower(config('plantix.currency_code', 'usd')),
-                            'status'                 => 'pending',
-                        ]
-                    );
-                });
-            }
+            $intent = $checkout['paymentIntent'] ?? null;
+
+            DB::transaction(function () use ($order, $checkout, $intent) {
+                $order->update([
+                    'payment_intent_id' => $intent?->id,
+                ]);
+
+                Payment::updateOrCreate(
+                    ['order_id' => $order->id, 'gateway' => 'stripe'],
+                    [
+                        'user_id'                 => $order->user_id,
+                        'gateway_transaction_id'  => $intent?->id,
+                        'stripe_session_id'       => $checkout['session']->id,
+                        'stripe_payment_intent_id'=> $intent?->id,
+                        'payment_type'            => 'product',
+                        'amount'                  => $order->total,
+                        'currency'                => strtolower(config('plantix.currency_code', 'usd')),
+                        'status'                  => 'pending',
+                        'metadata'                => [
+                            'order_id' => $order->id,
+                            'order_number' => $order->order_number,
+                            'checkout_url' => $checkout['checkout_url'] ?? null,
+                        ],
+                    ]
+                );
+            });
         } catch (\Stripe\Exception\ApiErrorException $e) {
             $order->update(['status' => Order::STATUS_CANCELLED]);
             Log::error('Stripe PI creation failed', ['order_id' => $order->id, 'error' => $e->getMessage()]);
@@ -208,7 +212,8 @@ class CartCheckoutService
 
         return [
             'order'         => $order->fresh(['items', 'vendor']),
-            'client_secret' => $intent->client_secret,
+            'client_secret' => $intent?->client_secret,
+            'checkout_url'  => $checkout['checkout_url'] ?? null,
         ];
     }
 
@@ -224,6 +229,7 @@ class CartCheckoutService
     {
         return DB::transaction(function () use ($paymentIntentId) {
             $payment = Payment::where('gateway_transaction_id', $paymentIntentId)
+                               ->orWhere('stripe_payment_intent_id', $paymentIntentId)
                                ->lockForUpdate()
                                ->firstOrFail();
 
@@ -302,6 +308,22 @@ class CartCheckoutService
                 $cart->delete();
             });
 
+            event(new PaymentSucceeded(
+                order: $order,
+                payment: $payment,
+                amount: (float) $payment->amount,
+                transactionId: $paymentIntentId,
+            ));
+
+            try {
+                $this->payouts->settleOrder($order->fresh(['vendor.author']));
+            } catch (\Throwable $e) {
+                Log::error('Order payout settlement failed', [
+                    'order_id' => $order->id,
+                    'error' => $e->getMessage(),
+                ]);
+            }
+
             return $order->fresh();
         });
     }
@@ -314,6 +336,7 @@ class CartCheckoutService
     {
         DB::transaction(function () use ($paymentIntentId) {
             $payment = Payment::where('gateway_transaction_id', $paymentIntentId)
+                               ->orWhere('stripe_payment_intent_id', $paymentIntentId)
                                ->lockForUpdate()->first();
 
             if (! $payment || $payment->status !== 'pending') return;
@@ -338,6 +361,13 @@ class CartCheckoutService
                 Coupon::where('id', $order->coupon_id)->decrement('used_count');
                 CouponUserUsage::where('order_id', $order->id)->delete();
             }
+
+            event(new PaymentFailed(
+                order: $order,
+                amount: (float) $payment->amount,
+                failureReason: 'Stripe payment failed during checkout.',
+                transactionId: $paymentIntentId,
+            ));
 
             $cart = Cart::where('user_id', $order->user_id)->with('items.product')->first();
             if ($cart) {
