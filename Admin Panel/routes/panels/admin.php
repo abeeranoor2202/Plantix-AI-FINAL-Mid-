@@ -276,9 +276,11 @@ Route::prefix('admin')->name('admin.')->group(function () {
         });
         Route::prefix('/permissions')->name('permissions.')->middleware(['permission:roles,permissions.manage'])->group(function () {
             Route::get('/',               [\App\Http\Controllers\Admin\RbacController::class, 'permissions'])->name('index');
+            Route::get('/create',         [\App\Http\Controllers\Admin\RbacController::class, 'createPermission'])->name('create');
             Route::get('/{id}/edit',       [\App\Http\Controllers\Admin\RbacController::class, 'editPermission'])->name('edit');
             Route::post('/',              [\App\Http\Controllers\Admin\RbacController::class, 'storePermission'])->name('store');
             Route::put('/{id}',           [\App\Http\Controllers\Admin\RbacController::class, 'updatePermission'])->name('update');
+            Route::patch('/{id}/toggle-status', [\App\Http\Controllers\Admin\RbacController::class, 'togglePermissionStatus'])->name('toggle-status');
             Route::delete('/{id}',        [\App\Http\Controllers\Admin\RbacController::class, 'destroyPermission'])->name('destroy');
             Route::post('/sync/{roleId}', [\App\Http\Controllers\Admin\RbacController::class, 'syncRolePermissions'])->name('sync');
         });
