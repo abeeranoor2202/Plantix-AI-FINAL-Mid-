@@ -226,6 +226,19 @@ class RbacController extends Controller
             ->with('success', 'Permission updated.');
     }
 
+    public function togglePermissionStatus(int $id): RedirectResponse
+    {
+        $permission = \App\Models\Permission::findOrFail($id);
+        $nextStatus = ! (bool) $permission->is_active;
+
+        $this->rbac->updatePermission($id, [
+            'is_active' => $nextStatus,
+        ]);
+
+        return redirect()->route('admin.permissions.index')
+            ->with('success', 'Permission status updated.');
+    }
+
     public function destroyPermission(int $id): RedirectResponse
     {
         $this->rbac->destroyPermission($id);
