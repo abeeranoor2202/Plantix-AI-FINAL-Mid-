@@ -7,6 +7,7 @@ use App\Models\AppointmentLog;
 use App\Models\AppointmentReschedule;
 use App\Models\AppointmentStatusHistory;
 use App\Models\Expert;
+use App\Models\Payment;
 use App\Models\User;
 use App\Notifications\Appointment\AppointmentBookingCreatedNotification;
 use App\Notifications\Appointment\AppointmentCancelledNotification;
@@ -45,6 +46,7 @@ class AppointmentService
         private readonly StripeService       $stripe,
         private readonly AvailabilityService $availability,
         private readonly ScheduleService     $schedule,
+        private readonly MarketplacePayoutService $payouts,
     ) {}
 
     public function book(User $user, array $data): array
@@ -131,8 +133,41 @@ class AppointmentService
                 ]);
             }
 
-            // Create Stripe PaymentIntent (also sets status to pending_payment)
-            $pi = $this->stripe->createPaymentIntent($appointment);
+            // Create Stripe Checkout Session (and keep the underlying PaymentIntent for compatibility)
+            $checkout = $this->stripe->createAppointmentCheckoutSession($appointment, [
+                'appointment_id' => (string) $appointment->id,
+            ]);
+
+            $pi = $checkout['paymentIntent'];
+
+            $appointment->update([
+                'stripe_payment_intent_id' => $pi?->id,
+                'stripe_payment_status'    => $pi?->status ?? 'requires_payment_method',
+                'status'                   => Appointment::STATUS_PENDING_PAYMENT,
+                'payment_status'           => 'pending',
+            ]);
+
+            Payment::updateOrCreate(
+                [
+                    'appointment_id' => $appointment->id,
+                    'gateway'        => 'stripe',
+                ],
+                [
+                    'user_id'                  => $user->id,
+                    'gateway_transaction_id'   => $pi?->id,
+                    'stripe_session_id'        => $checkout['session']->id,
+                    'stripe_payment_intent_id' => $pi?->id,
+                    'payment_type'             => 'appointment',
+                    'amount'                   => $appointment->fee,
+                    'currency'                 => strtolower(config('plantix.currency_code', 'usd')),
+                    'status'                   => 'pending',
+                    'metadata'                 => [
+                        'appointment_id' => $appointment->id,
+                        'expert_id'      => $expert->id,
+                        'checkout_url'   => $checkout['checkout_url'] ?? null,
+                    ],
+                ]
+            );
 
             $this->recordStatusHistory($appointment, null, Appointment::STATUS_DRAFT, Appointment::STATUS_PENDING_PAYMENT, $user->id, 'Payment intent created.');
             AppointmentLog::record($appointment, 'payment_intent_created', $user->id, Appointment::STATUS_DRAFT, Appointment::STATUS_PENDING_PAYMENT, "PI: {$pi->id}");
@@ -142,8 +177,9 @@ class AppointmentService
 
             return [
                 'appointment'    => $appointment->fresh(['expert.user']),
-                'client_secret'  => $pi->client_secret,
-                'payment_intent' => $pi->id,
+                'client_secret'  => $pi?->client_secret,
+                'payment_intent' => $pi?->id,
+                'checkout_url'   => $checkout['checkout_url'] ?? null,
             ];
         });
     }
@@ -162,6 +198,15 @@ class AppointmentService
             ->lockForUpdate()
             ->first();
 
+        $payment = Payment::where('stripe_payment_intent_id', $paymentIntentId)
+            ->orWhere('gateway_transaction_id', $paymentIntentId)
+            ->latest()
+            ->first();
+
+        if (! $appointment && $payment?->appointment_id) {
+            $appointment = Appointment::where('id', $payment->appointment_id)->lockForUpdate()->first();
+        }
+
         if (! $appointment) {
             Log::warning("StripeWebhook: No appointment found for PI {$paymentIntentId}");
             return;
@@ -177,7 +222,7 @@ class AppointmentService
             return;
         }
 
-        DB::transaction(function () use ($appointment, $stripeStatus) {
+        DB::transaction(function () use ($appointment, $stripeStatus, $paymentIntentId) {
             $from = $appointment->status;
             $appointment->update([
                 'stripe_payment_status' => $stripeStatus,
@@ -185,12 +230,31 @@ class AppointmentService
                 'status'                => Appointment::STATUS_PENDING_EXPERT_APPROVAL,
             ]);
 
+            Payment::where('appointment_id', $appointment->id)
+                ->where('gateway', 'stripe')
+                ->latest()
+                ->first()?->update([
+                    'status'                   => 'completed',
+                    'paid_at'                  => now(),
+                    'stripe_payment_intent_id' => $paymentIntentId,
+                    'gateway_transaction_id'   => $paymentIntentId,
+                ]);
+
             $this->recordStatusHistory($appointment, null, $from, Appointment::STATUS_PENDING_EXPERT_APPROVAL, null, 'Stripe payment confirmed.');
             AppointmentLog::record($appointment, 'payment_confirmed', null, $from, Appointment::STATUS_PENDING_EXPERT_APPROVAL, 'Webhook: payment_intent.succeeded');
 
             // Notify customer + expert
             $this->notifyCustomer('payment_success', $appointment);
             $this->notifyExpert('new_booking', $appointment);
+
+            try {
+                $this->payouts->settleAppointment($appointment->fresh(['expert.user']));
+            } catch (\Throwable $e) {
+                Log::error('Appointment payout settlement failed', [
+                    'appointment_id' => $appointment->id,
+                    'error' => $e->getMessage(),
+                ]);
+            }
         });
     }
 
@@ -203,16 +267,35 @@ class AppointmentService
             ->lockForUpdate()
             ->first();
 
+        $payment = Payment::where('stripe_payment_intent_id', $paymentIntentId)
+            ->orWhere('gateway_transaction_id', $paymentIntentId)
+            ->latest()
+            ->first();
+
+        if (! $appointment && $payment?->appointment_id) {
+            $appointment = Appointment::where('id', $payment->appointment_id)->lockForUpdate()->first();
+        }
+
         if (! $appointment || $appointment->status !== Appointment::STATUS_PENDING_PAYMENT) {
             return;
         }
 
-        DB::transaction(function () use ($appointment) {
+        DB::transaction(function () use ($appointment, $paymentIntentId) {
             $from = $appointment->status;
             $appointment->update([
                 'stripe_payment_status' => 'failed',
+                'payment_status'        => 'failed',
                 'status'                => Appointment::STATUS_PAYMENT_FAILED,
             ]);
+
+            Payment::where('appointment_id', $appointment->id)
+                ->where('gateway', 'stripe')
+                ->latest()
+                ->first()?->update([
+                    'status'                 => 'failed',
+                    'stripe_payment_intent_id' => $paymentIntentId,
+                    'gateway_transaction_id' => $paymentIntentId,
+                ]);
 
             $this->recordStatusHistory($appointment, null, $from, Appointment::STATUS_PAYMENT_FAILED, null, 'Stripe payment failed.');
             AppointmentLog::record($appointment, 'payment_failed', null, $from, Appointment::STATUS_PAYMENT_FAILED);
