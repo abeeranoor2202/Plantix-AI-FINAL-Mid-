@@ -34,24 +34,24 @@
         <div style="padding: 24px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--agri-border); background: white;">
             <h4 style="font-size: 16px; font-weight: 700; color: var(--agri-text-heading); margin: 0;">Administrator Registry</h4>
             
-            <?php if (in_array('admin.users.delete', json_decode(@session('admin_permissions'),true))) { ?>
+            @can('admin.perm', 'admin.users.delete')
                 <button id="deleteAll" class="btn-agri" style="color: var(--agri-error); background: #FEF2F2; border: none; padding: 8px 16px; font-size: 13px; font-weight: 700;">
                     <i class="fas fa-trash-alt me-2"></i> Bulk Revoke Access
                 </button>
-            <?php } ?>
+            @endcan
         </div>
         
         <div class="table-responsive">
             <table id="adminTable" class="table mb-0" style="vertical-align: middle;">
                 <thead style="background: var(--agri-bg);">
                     <tr>
-                        <?php if (in_array('admin.users.delete', json_decode(@session('admin_permissions'),true))) { ?>
+                        @can('admin.perm', 'admin.users.delete')
                         <th style="padding: 16px 24px; border: none; width: 50px;">
                             <div class="form-check m-0">
                                 <input type="checkbox" id="is_active" class="form-check-input" style="cursor: pointer; width: 18px; height: 18px;">
                             </div>
                         </th>
-                        <?php } ?>
+                        @endcan
                         <th style="padding: 16px 24px; font-size: 11px; font-weight: 800; color: var(--agri-text-muted); text-transform: uppercase; letter-spacing: 0.5px; border: none;">Identity</th>
                         <th style="padding: 16px 24px; font-size: 11px; font-weight: 800; color: var(--agri-text-muted); text-transform: uppercase; letter-spacing: 0.5px; border: none;">Communications</th>
                         <th style="padding: 16px 24px; font-size: 11px; font-weight: 800; color: var(--agri-text-muted); text-transform: uppercase; letter-spacing: 0.5px; border: none;">Assigned Authority</th>
@@ -61,13 +61,13 @@
                 <tbody id="append_list1">
                     @foreach($users as $user)
                         <tr style="border-bottom: 1px solid var(--agri-border); transition: 0.2s;">
-                            <?php if (in_array('admin.users.delete', json_decode(@session('admin_permissions'),true))) { ?>
+                            @can('admin.perm', 'admin.users.delete')
                             <td style="padding: 16px 24px;">
                                 <div class="form-check m-0">
                                     <input type="checkbox" id="is_open_{{$user->id}}" class="is_open form-check-input" dataid="{{$user->id}}" style="cursor: pointer; width: 18px; height: 18px;">
                                 </div>
                             </td>
-                            <?php } ?>
+                            @endcan
 
                             <td style="padding: 16px 24px;">
                                 <div style="display: flex; align-items: center; gap: 14px;">
@@ -100,11 +100,11 @@
                                         <i class="fas fa-user-cog"></i> Modify
                                     </a>
                                     @if($user->id != 1)
-                                        <?php if (in_array('admin.users.delete', json_decode(@session('admin_permissions'),true))) { ?>
+                                        @can('admin.perm', 'admin.users.delete')
                                         <a href="{{route('admin.users.delete', ['id' => $user->id])}}" class="btn-agri" style="padding: 8px 12px; background: #FEF2F2; color: var(--agri-error); border-radius: 10px; border: none; text-decoration: none;" onclick="return confirm('CRITICAL: Permanently revoke administrative access for this account?')" title="Revoke Access">
                                             <i class="fas fa-user-minus"></i>
                                         </a>
-                                        <?php } ?>     
+                                        @endcan
                                     @endif
                                 </div>
                             </td>
