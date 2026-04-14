@@ -11,7 +11,7 @@
             <span style="color: var(--agri-primary); font-size: 14px; font-weight: 600;">Create Access Unit</span>
         </div>
         <h1 style="font-size: 28px; font-weight: 700; color: var(--agri-primary-dark); margin: 0;">{{ trans('lang.create_role') }}</h1>
-        <p style="color: var(--agri-text-muted); margin: 4px 0 0 0;">Create a new admin role with specific permissions.</p>
+        <p style="color: var(--agri-text-muted); margin: 4px 0 0 0;">Create a role and choose what this admin can do.</p>
     </div>
 
     <div class="row justify-content-center">
@@ -51,8 +51,8 @@
                 <div class="mb-5">
                     <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 24px;">
                         <div>
-                            <h3 style="font-size: 20px; font-weight: 700; color: var(--agri-primary-dark); margin: 0;">Capability Matrix</h3>
-                            <p style="color: var(--agri-text-muted); font-size: 13px; margin: 4px 0 0 0;">Map the functional modules this new role will be authorized to interact with.</p>
+                            <h3 style="font-size: 20px; font-weight: 700; color: var(--agri-primary-dark); margin: 0;">Permission Checklist</h3>
+                            <p style="color: var(--agri-text-muted); font-size: 13px; margin: 4px 0 0 0;">Select each permission this role should have.</p>
                         </div>
                         <div style="display: flex; gap: 10px;">
                             <button type="button" id="select-all-perms" class="btn-agri" style="padding: 8px 16px; font-size: 12px; background: white; color: var(--agri-primary); border: 1px solid var(--agri-primary); border-radius: 10px; font-weight: 700;">Grant All Access</button>
@@ -82,7 +82,7 @@
                                                        name="permissions[]" value="{{ $perm['id'] }}"
                                                        {{ in_array($perm['id'], old('permissions', [])) ? 'checked' : '' }}
                                                        style="width: 18px; height: 18px; margin: 0;">
-                                                <span style="font-size: 13px; font-weight: 600; color: var(--agri-text-main);">{{ $perm['display_name'] }}</span>
+                                                <span style="font-size: 13px; font-weight: 600; color: var(--agri-text-main);">{{ \Illuminate\Support\Str::startsWith(\Illuminate\Support\Str::lower((string) ($perm['display_name'] ?? '')), 'can ') ? $perm['display_name'] : ('Can ' . \Illuminate\Support\Str::lower((string) ($perm['display_name'] ?? str_replace('.', ' ', ($perm['name'] ?? 'manage access'))))) }}</span>
                                             </div>
                                         </label>
                                         @endforeach
