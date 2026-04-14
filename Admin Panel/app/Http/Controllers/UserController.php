@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Password;
+use App\Services\Security\PermissionService;
 use Illuminate\Support\Facades\Validator;
 use PaypalPayoutsSDK\Core\PayPalHttpClient;
 use PaypalPayoutsSDK\Core\SandboxEnvironment;
@@ -38,6 +39,11 @@ class UserController extends Controller
 
     public function updateUserProfile(Request $request, $id)
     {
+        $actor = $this->currentActor();
+        if ($actor->id !== (int) $id) {
+            $this->ensureAnyPermission(['users.edit', 'admin.users.edit']);
+        }
+
         $request->validate([
             'first_name'    => 'nullable|string|max:255',
             'last_name'     => 'nullable|string|max:255',
@@ -113,6 +119,8 @@ class UserController extends Controller
 
     public function sendPasswordReset(Request $request, $id)
     {
+        $this->ensureAnyPermission(['users.edit', 'admin.users.edit']);
+
         $user = User::findOrFail($id);
         $status = Password::broker()->sendResetLink(['email' => $user->email]);
         if ($status === Password::RESET_LINK_SENT) {
@@ -143,6 +151,8 @@ class UserController extends Controller
     }
     public function storeAdminUsers(Request $request)
     {
+        $this->ensureAnyPermission(['admin.users.store', 'admin.users.create', 'users.create']);
+
         $validator = Validator::make($request->all(), [
             'name' => 'required|max:255',
             'email' => 'required|email',
@@ -167,6 +177,8 @@ class UserController extends Controller
 
     public function storeWebUser(Request $request)
     {
+        $this->ensureAnyPermission(['users.create', 'admin.users.create', 'admin.users.store']);
+
         $request->validate([
             'first_name' => 'required|string|max:255',
             'last_name' => 'required|string|max:255',
@@ -227,6 +239,8 @@ class UserController extends Controller
     }
     public function updateAdminUsers(Request $request, $id)
     {
+        $this->ensureAnyPermission(['admin.users.update', 'admin.users.edit', 'users.edit']);
+
         $name = $request->input('name');
         $password = $request->input('password');
         $old_password = $request->input('old_password');
@@ -273,6 +287,8 @@ class UserController extends Controller
     }
     public function deleteAdminUsers($id)
     {
+        $this->ensureAnyPermission(['users.delete', 'admin.users.delete']);
+
         $id = json_decode($id);
 
         if (is_array($id)) {
@@ -287,6 +303,23 @@ class UserController extends Controller
         }
 
         return redirect()->back();
+    }
+
+    private function currentActor(): User
+    {
+        $user = auth('admin')->user() ?: auth()->user();
+        abort_if(! $user instanceof User, 401, 'Unauthenticated.');
+
+        return $user;
+    }
+
+    private function ensureAnyPermission(array $permissions): void
+    {
+        $actor = $this->currentActor();
+
+        /** @var PermissionService $permissionService */
+        $permissionService = app(PermissionService::class);
+        abort_if(! $permissionService->checkAnyPermission($actor, $permissions), 403, 'Forbidden.');
     }
 
     // ── Vendor Management ─────────────────────────────────────────────────────
