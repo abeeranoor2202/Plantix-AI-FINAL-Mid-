@@ -52,6 +52,14 @@
                             <label style="font-size: 12px; font-weight: 700; color: var(--agri-text-muted); text-transform: uppercase; margin-bottom: 8px; display: block;">Secret Key</label>
                             <input type="password" class="form-agri stripe_secret" placeholder="sk_test_...">
                         </div>
+                        <div class="col-12">
+                            <label style="font-size: 12px; font-weight: 700; color: var(--agri-text-muted); text-transform: uppercase; margin-bottom: 8px; display: block;">Webhook Secret</label>
+                            <input type="password" class="form-agri stripe_webhook_secret" placeholder="whsec_...">
+                        </div>
+                        <div class="col-md-6">
+                            <label style="font-size: 12px; font-weight: 700; color: var(--agri-text-muted); text-transform: uppercase; margin-bottom: 8px; display: block;">Commission %</label>
+                            <input type="number" min="0" max="100" step="0.01" class="form-agri stripe_commission_rate" placeholder="10.00">
+                        </div>
                     </div>
 
                     <div style="background: #ecfdf5; padding: 20px; border-radius: 14px; border: 1px dashed #86efac; display: flex; align-items: center; justify-content: space-between; margin-top: 22px;">
@@ -93,6 +101,12 @@ $(document).ready(function () {
     @if($settings->has('stripe_secret'))
     $('.stripe_secret').val('{!! addslashes($settings->get("stripe_secret", "")) !!}');
     @endif
+    @if($settings->has('stripe_webhook_secret'))
+    $('.stripe_webhook_secret').val('{!! addslashes($settings->get("stripe_webhook_secret", "")) !!}');
+    @endif
+    @if($settings->has('stripe_commission_rate'))
+    $('.stripe_commission_rate').val('{!! addslashes($settings->get("stripe_commission_rate", "")) !!}');
+    @endif
     @if($settings->has('stripe_withdraw_enabled'))
     $('#withdraw_enable').prop('checked', {{ $settings->get('stripe_withdraw_enabled') == '1' ? 'true' : 'false' }});
     @endif
@@ -113,6 +127,8 @@ $(document).ready(function () {
                 stripe_enabled: $('#enable_stripe').is(':checked') ? 1 : 0,
                 stripe_key: $('.stripe_key').val(),
                 stripe_secret: $('.stripe_secret').val(),
+                stripe_webhook_secret: $('.stripe_webhook_secret').val(),
+                stripe_commission_rate: $('.stripe_commission_rate').val(),
                 stripe_withdraw_enabled: $('#withdraw_enable').is(':checked') ? 1 : 0
             },
             success: function (res) {
