@@ -97,5 +97,10 @@ Route::prefix('vendor')->name('vendor.')->group(function () {
         Route::put('/profile/store',      [\App\Http\Controllers\Vendor\VendorProfileController::class, 'updateStore'])->name('profile.store.update');
         Route::post('/profile/password',  [\App\Http\Controllers\Vendor\VendorProfileController::class, 'changePassword'])->name('profile.password');
 
+        // ── Stripe Connect & Payouts ─────────────────────────────────────────
+        Route::get('/payouts',            [\App\Http\Controllers\Vendor\VendorPayoutController::class, 'index'])->name('payouts.index');
+        Route::get('/payouts/connect',    [\App\Http\Controllers\Vendor\VendorPayoutController::class, 'connect'])->name('payouts.connect');
+        Route::get('/payouts/return',     [\App\Http\Controllers\Vendor\VendorPayoutController::class, 'connectReturn'])->name('payouts.return');
+
     }); // end vendor.auth
 }); // end /vendor prefix
