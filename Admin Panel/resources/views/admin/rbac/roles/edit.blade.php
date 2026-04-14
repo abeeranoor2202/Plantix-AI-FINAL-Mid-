@@ -13,7 +13,7 @@
         <div style="display: flex; justify-content: space-between; align-items: flex-end;">
             <div>
                 <h1 style="font-size: 28px; font-weight: 700; color: var(--agri-primary-dark); margin: 0;">Configure Role: {{ $role->role_name }}</h1>
-                <p style="color: var(--agri-text-muted); margin: 4px 0 0 0;">Fine-tune access boundaries and functional capabilities for this organizational unit.</p>
+                <p style="color: var(--agri-text-muted); margin: 4px 0 0 0;">Choose what this role can do across the admin panel.</p>
             </div>
             <div style="background: {{ $role->is_active ? 'var(--agri-primary-light)' : '#FEF2F2' }}; color: {{ $role->is_active ? 'var(--agri-primary)' : 'var(--agri-error)' }}; padding: 8px 16px; border-radius: 12px; font-size: 13px; font-weight: 800; border: 1px solid {{ $role->is_active ? 'var(--agri-primary)' : 'var(--agri-error)' }}40;">
                 <i class="fas {{ $role->is_active ? 'fa-shield-check' : 'fa-shield-alt' }}" style="margin-right: 6px;"></i>
@@ -60,8 +60,8 @@
                 <div class="mb-5">
                     <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 24px;">
                         <div>
-                            <h3 style="font-size: 20px; font-weight: 700; color: var(--agri-primary-dark); margin: 0;">Capability Matrix</h3>
-                            <p style="color: var(--agri-text-muted); font-size: 13px; margin: 4px 0 0 0;">Assign functional nodes to define the exact scope of this role's authority.</p>
+                            <h3 style="font-size: 20px; font-weight: 700; color: var(--agri-primary-dark); margin: 0;">Permission Checklist</h3>
+                            <p style="color: var(--agri-text-muted); font-size: 13px; margin: 4px 0 0 0;">Select each permission this role should keep.</p>
                         </div>
                         <div style="display: flex; gap: 10px;">
                             <button type="button" id="select-all-perms" class="btn-agri" style="padding: 8px 16px; font-size: 12px; background: white; color: var(--agri-primary); border: 1px solid var(--agri-primary); border-radius: 10px; font-weight: 700;">Grant All Access</button>
@@ -91,9 +91,9 @@
                                                        name="permissions[]" value="{{ $perm['id'] }}"
                                                        {{ in_array($perm['id'], old('permissions', $assignedIds)) ? 'checked' : '' }}
                                                        style="width: 18px; height: 18px; margin: 0;">
-                                                <span style="font-size: 13px; font-weight: 600; color: var(--agri-text-main);">{{ $perm['display_name'] }}</span>
+                                                <span style="font-size: 13px; font-weight: 600; color: var(--agri-text-main);">{{ \Illuminate\Support\Str::startsWith(\Illuminate\Support\Str::lower((string) ($perm['display_name'] ?? '')), 'can ') ? $perm['display_name'] : ('Can ' . \Illuminate\Support\Str::lower((string) ($perm['display_name'] ?? str_replace('.', ' ', ($perm['name'] ?? 'manage access'))))) }}</span>
                                             </div>
-                                            @if(str_contains(strtolower($perm['display_name']), 'delete') || str_contains(strtolower($perm['display_name']), 'remove'))
+                                            @if(str_contains(strtolower((string) ($perm['display_name'] ?? '')), 'delete') || str_contains(strtolower((string) ($perm['display_name'] ?? '')), 'remove'))
                                                 <i class="fas fa-exclamation-triangle" style="font-size: 10px; color: var(--agri-error); opacity: 0.5;" title="Destructive Action"></i>
                                             @endif
                                         </label>
