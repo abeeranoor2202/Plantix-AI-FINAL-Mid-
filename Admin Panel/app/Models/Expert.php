@@ -58,6 +58,8 @@ class Expert extends Model
         'total_appointments',
         'total_completed',
         'total_cancelled',
+        'stripe_account_id',
+        'stripe_account_status',
         'verified_at',
         'suspended_at',
         'rejection_reason',
@@ -72,6 +74,7 @@ class Expert extends Model
         'total_completed'               => 'integer',
         'total_cancelled'               => 'integer',
         'consultation_duration_minutes' => 'integer',
+        'stripe_account_status'         => 'array',
         'verified_at'                   => 'datetime',
         'suspended_at'                  => 'datetime',
     ];
@@ -129,6 +132,11 @@ class Expert extends Model
     public function availability(): HasMany
     {
         return $this->hasMany(ExpertAvailability::class);
+    }
+
+    public function stripeAccount(): HasOne
+    {
+        return $this->hasOne(StripeAccount::class, 'user_id', 'user_id');
     }
 
     public function unavailableDates(): HasMany
