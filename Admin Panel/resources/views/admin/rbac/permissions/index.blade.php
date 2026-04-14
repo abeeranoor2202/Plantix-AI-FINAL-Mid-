@@ -2,78 +2,111 @@
 
 @section('content')
 <div class="container-fluid" style="padding-top: 24px; padding-bottom: 40px;">
-
-    {{-- Header Section --}}
     <div style="margin-bottom: 32px;">
         <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
             <a href="{{ route('admin.role.index') }}" style="text-decoration: none; color: var(--agri-text-muted); font-size: 14px; font-weight: 600;">Platform Roles</a>
             <i class="fas fa-chevron-right" style="font-size: 10px; color: var(--agri-text-muted);"></i>
-            <span style="color: var(--agri-primary); font-size: 14px; font-weight: 600;">Permission Registry</span>
+            <span style="color: var(--agri-primary); font-size: 14px; font-weight: 600;">Permission Settings</span>
         </div>
-        <h1 style="font-size: 28px; font-weight: 700; color: var(--agri-primary-dark); margin: 0;">Access Node Registry</h1>
-        <p style="color: var(--agri-text-muted); margin: 4px 0 0 0;">Manage detailed permissions for role-based access control using structured keys.</p>
+        <h1 style="font-size: 28px; font-weight: 700; color: var(--agri-primary-dark); margin: 0;">Permission Settings</h1>
+        <p style="color: var(--agri-text-muted); margin: 4px 0 0 0;">Manage what each action allows in the system.</p>
     </div>
 
     @if(session('success'))
         <div class="card-agri mb-4" style="background: var(--agri-primary-light); border: 1px solid var(--agri-primary); border-radius: 12px; padding: 12px 20px;">
-            <div style="display: flex; align-items: center; justify-content: space-between; color: var(--agri-primary);">
-                <div style="display: flex; align-items: center; gap: 12px;">
-                    <i class="fas fa-check-circle"></i>
-                    <span style="font-weight: 700;">{{ session('success') }}</span>
-                </div>
+            <div style="display: flex; align-items: center; gap: 12px; color: var(--agri-primary);">
+                <i class="fas fa-check-circle"></i>
+                <span style="font-weight: 700;">{{ session('success') }}</span>
             </div>
         </div>
     @endif
 
     <div class="row g-4">
-        {{-- Side Registry Form --}}
         <div class="col-lg-4">
             <div class="card-agri" style="position: sticky; top: 100px; background: white; padding: 32px;">
-                <h4 style="font-size: 18px; font-weight: 700; color: var(--agri-text-heading); margin-bottom: 24px;">Register New Capability</h4>
-                
-                <form method="POST" action="{{ route('admin.permissions.store') }}">
+                <h4 style="font-size: 18px; font-weight: 700; color: var(--agri-text-heading); margin-bottom: 24px;">Create Permission</h4>
+
+                <form method="POST" action="{{ route('admin.permissions.store') }}" id="permission-create-form">
                     @csrf
-                    <div style="margin-bottom: 20px;">
-                        <label class="agri-label">Permission Key <span class="text-danger">*</span></label>
-                        <input type="text" name="name" class="form-agri" value="{{ old('name') }}" placeholder="e.g. forum.thread.lock" required>
-                        <p style="font-size: 11px; color: var(--agri-text-muted); margin: 6px 0 0 0; font-style: italic;">Format: module.resource.action</p>
+                    <div style="margin-bottom: 18px;">
+                        <label class="agri-label">Permission Name <span class="text-danger">*</span></label>
+                        <input type="text" name="human_name" class="form-agri" value="{{ old('human_name') }}" placeholder="Create User" required>
                     </div>
 
-                    <div style="margin-bottom: 20px;">
-                        <label class="agri-label">Functional Module Group <span class="text-danger">*</span></label>
-                        <input type="text" name="group" class="form-agri" list="group-options" value="{{ old('group') }}" placeholder="e.g. forum" required>
-                        <datalist id="group-options">
-                            @foreach($groups as $g)
-                                <option value="{{ $g }}">
+                    <div style="margin-bottom: 18px;">
+                        <label class="agri-label">Module <span class="text-danger">*</span></label>
+                        <select name="module" id="create_module" class="form-agri" required>
+                            <option value="">Choose a module</option>
+                            @foreach($modules as $module)
+                                <option value="{{ $module }}" @selected(old('module') === $module)>{{ $module }}</option>
                             @endforeach
-                        </datalist>
+                        </select>
                     </div>
 
-                    <div style="margin-bottom: 32px;">
-                        <label class="agri-label">Administrative UI Label <span class="text-danger">*</span></label>
-                        <input type="text" name="display_name" class="form-agri" value="{{ old('display_name') }}" placeholder="e.g. Perform Stock Audits" required>
+                    <div style="margin-bottom: 18px;">
+                        <label class="agri-label">Action Type <span class="text-danger">*</span></label>
+                        <select name="action" id="create_action" class="form-agri" required>
+                            <option value="">Choose an action</option>
+                            @foreach($actions as $action)
+                                <option value="{{ $action }}" @selected(old('action') === $action)>{{ $action }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div style="margin-bottom: 18px;">
+                        <label class="agri-label">System Key <span class="text-danger">*</span></label>
+                        <input type="text" name="system_key" id="create_system_key" class="form-agri" value="{{ old('system_key') }}" placeholder="admin.users.create" required>
+                        <div style="margin-top: 8px; display: flex; align-items: center; gap: 10px;">
+                            <label class="form-check-label" style="font-size: 12px; font-weight: 700; color: var(--agri-text-muted);">
+                                <input type="checkbox" id="create_advanced_mode" class="form-check-input" style="margin-right: 6px;"> Advanced mode
+                            </label>
+                        </div>
+                    </div>
+
+                    <div style="margin-bottom: 18px;">
+                        <label class="agri-label">Permission Group <span class="text-danger">*</span></label>
+                        <select name="group" class="form-agri" required>
+                            <option value="">Choose a permission group</option>
+                            @foreach($groups as $group)
+                                <option value="{{ $group }}" @selected(old('group') === $group)>{{ $group }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div style="margin-bottom: 18px;">
+                        <label class="agri-label">What does this permission allow? <span class="text-danger">*</span></label>
+                        <textarea name="description" class="form-agri" rows="4" placeholder="Allows admins to create new users from the admin panel" required>{{ old('description') }}</textarea>
+                    </div>
+
+                    <div style="margin-bottom: 28px;">
+                        <label class="agri-label">Status</label>
+                        <div style="background: var(--agri-bg); padding: 10px 16px; border-radius: 12px; border: 1px solid var(--agri-border); display: flex; align-items: center; gap: 12px;">
+                            <div class="form-check form-switch m-0">
+                                <input class="form-check-input" type="checkbox" id="create_is_active" name="is_active" value="1" checked style="cursor: pointer; width: 44px; height: 22px;">
+                            </div>
+                            <span style="font-size: 14px; font-weight: 700; color: var(--agri-text-heading);">Active</span>
+                        </div>
                     </div>
 
                     <button type="submit" class="btn-agri btn-agri-primary w-100" style="height: 48px; font-weight: 700; font-size: 15px;">
-                        <i class="fas fa-plus-circle me-2"></i> Commit to Registry
+                        <i class="fas fa-save me-2"></i> Save Permission
                     </button>
                 </form>
             </div>
         </div>
 
-        {{-- Main Registry Ledger --}}
         <div class="col-lg-8">
             <div class="card-agri" style="padding: 0; overflow: hidden; background: white;">
-                <div style="padding: 24px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--agri-border); background: white;">
+                <div style="padding: 24px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--agri-border); background: white; gap: 16px; flex-wrap: wrap;">
                     <div>
-                        <h4 style="font-size: 16px; font-weight: 700; color: var(--agri-text-heading); margin: 0;">Capability Ledger</h4>
-                        <span style="font-size: 12px; font-weight: 600; color: var(--agri-text-muted);">Total Defined Nodes: {{ $permissions->count() }}</span>
+                        <h4 style="font-size: 16px; font-weight: 700; color: var(--agri-text-heading); margin: 0;">Permission Table</h4>
+                        <span style="font-size: 12px; font-weight: 600; color: var(--agri-text-muted);">{{ $permissions->count() }} permissions</span>
                     </div>
                     <div style="min-width: 220px;">
                         <select id="filter-group" class="form-agri" style="height: 40px; font-size: 13px; font-weight: 600;">
-                            <option value="">All Module Contexts</option>
-                            @foreach($groups as $g)
-                                <option value="{{ $g }}">{{ ucfirst(str_replace('-', ' ', $g)) }}</option>
+                            <option value="">All Groups</option>
+                            @foreach($groups as $group)
+                                <option value="{{ $group }}">{{ $group }}</option>
                             @endforeach
                         </select>
                     </div>
@@ -83,88 +116,64 @@
                     <table class="table mb-0" id="permsTable" style="vertical-align: middle;">
                         <thead style="background: var(--agri-bg);">
                             <tr>
-                                <th style="padding: 16px 24px; font-size: 11px; text-transform: uppercase; color: var(--agri-text-muted); font-weight: 800; letter-spacing: 0.5px; border: none;">Hierarchy</th>
-                                <th style="padding: 16px 24px; font-size: 11px; text-transform: uppercase; color: var(--agri-text-muted); font-weight: 800; letter-spacing: 0.5px; border: none;">Internal Slug</th>
-                                <th style="padding: 16px 24px; font-size: 11px; text-transform: uppercase; color: var(--agri-text-muted); font-weight: 800; letter-spacing: 0.5px; border: none;">Human Label</th>
-                                <th style="padding: 16px 24px; font-size: 11px; text-transform: uppercase; color: var(--agri-text-muted); font-weight: 800; letter-spacing: 0.5px; border: none;" class="text-end">Management</th>
+                                <th style="padding: 16px 24px; font-size: 11px; text-transform: uppercase; color: var(--agri-text-muted); font-weight: 800; letter-spacing: 0.5px; border: none;">Module</th>
+                                <th style="padding: 16px 24px; font-size: 11px; text-transform: uppercase; color: var(--agri-text-muted); font-weight: 800; letter-spacing: 0.5px; border: none;">Action</th>
+                                <th style="padding: 16px 24px; font-size: 11px; text-transform: uppercase; color: var(--agri-text-muted); font-weight: 800; letter-spacing: 0.5px; border: none;">Description</th>
+                                <th style="padding: 16px 24px; font-size: 11px; text-transform: uppercase; color: var(--agri-text-muted); font-weight: 800; letter-spacing: 0.5px; border: none;">Group</th>
+                                <th style="padding: 16px 24px; font-size: 11px; text-transform: uppercase; color: var(--agri-text-muted); font-weight: 800; letter-spacing: 0.5px; border: none;">Status</th>
+                                <th style="padding: 16px 24px; font-size: 11px; text-transform: uppercase; color: var(--agri-text-muted); font-weight: 800; letter-spacing: 0.5px; border: none;" class="text-end">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
                             @forelse($permissions as $perm)
-                            <tr data-group="{{ $perm->group }}" style="border-bottom: 1px solid var(--agri-border); transition: 0.2s;">
-                                <td style="padding: 16px 24px; font-weight: 700; color: var(--agri-text-muted); font-size: 13px;">{{ str_pad($loop->iteration, 3, '0', STR_PAD_LEFT) }}</td>
-                                <td style="padding: 16px 24px;">
-                                    <code style="display: inline-block; max-width: 220px; white-space: normal; word-break: break-word; line-height: 1.35; background: var(--agri-bg); color: var(--agri-error); padding: 4px 8px; border-radius: 6px; font-size: 12px; font-weight: 700; border: 1px solid var(--agri-border);">{{ $perm->name }}</code>
-                                    <div style="font-size: 10px; font-weight: 800; color: var(--agri-primary); text-transform: uppercase; margin-top: 6px;">
-                                        <i class="fas fa-tag me-1"></i> {{ $perm->group }}
-                                    </div>
-                                </td>
-                                <td style="padding: 16px 24px;">
-                                    <div style="font-weight: 700; color: var(--agri-text-heading); font-size: 14px;">{{ $perm->display_name }}</div>
-                                </td>
-                                <td style="padding: 16px 24px;" class="text-end">
-                                    <div style="display: flex; gap: 8px; justify-content: flex-end;">
-                                        <button type="button" class="btn-agri edit-perm-btn" style="padding: 8px; background: var(--agri-bg); color: #2563eb; border-radius: 999px; border: none;"
-                                                data-id="{{ $perm->id }}" data-name="{{ $perm->name }}" data-group="{{ $perm->group }}" data-display="{{ $perm->display_name }}">
-                                            <i class="fas fa-pen"></i>
-                                        </button>
-                                        <form method="POST" action="{{ route('admin.permissions.destroy', $perm->id) }}">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="btn-agri" style="padding: 8px; background: #FEF2F2; color: var(--agri-error); border: none; border-radius: 999px;"
-                                                    onclick="return confirm('CRITICAL: Delete permission node \'{{ $perm->name }}\'? This will cascade to all roles.')">
-                                                <i class="fas fa-trash"></i>
-                                            </button>
-                                        </form>
-                                    </div>
-                                </td>
-                            </tr>
+                                @php
+                                    $moduleLabel = $perm->module ?: $perm->group;
+                                    $actionLabel = $perm->action ?: 'manage';
+                                    $groupLabel = $perm->group ? ucfirst(str_replace('-', ' ', $perm->group)) : 'General';
+                                    $description = $perm->description ?: $perm->display_name;
+                                @endphp
+                                <tr data-group="{{ $perm->group }}" style="border-bottom: 1px solid var(--agri-border); transition: 0.2s;">
+                                    <td style="padding: 16px 24px; font-weight: 700; color: var(--agri-text-heading); font-size: 14px;">{{ $moduleLabel }}</td>
+                                    <td style="padding: 16px 24px;">
+                                        <span style="background: var(--agri-bg); color: var(--agri-primary); padding: 6px 12px; border-radius: 999px; font-size: 12px; font-weight: 800; border: 1px solid var(--agri-border); text-transform: capitalize;">{{ $actionLabel }}</span>
+                                    </td>
+                                    <td style="padding: 16px 24px; color: var(--agri-text-main); font-size: 13px; line-height: 1.5;">{{ $description }}</td>
+                                    <td style="padding: 16px 24px;">
+                                        <span style="background: #EEF2FF; color: #4338CA; padding: 6px 12px; border-radius: 999px; font-size: 12px; font-weight: 800; border: 1px solid #C7D2FE;">{{ $groupLabel }}</span>
+                                    </td>
+                                    <td style="padding: 16px 24px;">
+                                        <span style="background: {{ $perm->is_active ? 'var(--agri-primary-light)' : '#FEF2F2' }}; color: {{ $perm->is_active ? 'var(--agri-primary)' : 'var(--agri-error)' }}; padding: 6px 12px; border-radius: 999px; font-size: 12px; font-weight: 800; border: 1px solid {{ $perm->is_active ? 'var(--agri-primary)' : 'var(--agri-error)' }}40;">
+                                            {{ $perm->is_active ? 'Active' : 'Disabled' }}
+                                        </span>
+                                    </td>
+                                    <td style="padding: 16px 24px;" class="text-end">
+                                        <div style="display: flex; gap: 8px; justify-content: flex-end;">
+                                            <a href="{{ route('admin.permissions.edit', $perm->id) }}" class="btn-agri" style="padding: 8px; background: var(--agri-bg); color: #2563eb; border-radius: 999px; text-decoration: none;">
+                                                <i class="fas fa-pen"></i>
+                                            </a>
+                                            <form method="POST" action="{{ route('admin.permissions.destroy', $perm->id) }}">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="btn-agri" style="padding: 8px; background: #FEF2F2; color: var(--agri-error); border: none; border-radius: 999px;"
+                                                        onclick="return confirm('Delete permission {{ $perm->name }}?')">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
                             @empty
-                            <tr>
-                                <td colspan="4" class="text-center py-5">
-                                    <div style="color: var(--agri-border); font-size: 40px; mb-3;"><i class="fas fa-shield-slash"></i></div>
-                                    <p style="color: var(--agri-text-muted); font-weight: 700;">No capability nodes currently registered.</p>
-                                </td>
-                            </tr>
+                                <tr>
+                                    <td colspan="6" class="text-center py-5">
+                                        <div style="color: var(--agri-border); font-size: 40px; margin-bottom: 12px;"><i class="fas fa-shield-slash"></i></div>
+                                        <p style="color: var(--agri-text-muted); font-weight: 700;">No permissions currently registered.</p>
+                                    </td>
+                                </tr>
                             @endforelse
                         </tbody>
                     </table>
                 </div>
             </div>
-        </div>
-    </div>
-</div>
-
-{{-- Edit Permission Modal --}}
-<div class="modal fade" id="editPermModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content" style="border-radius: 20px; border: none; padding: 10px;">
-            <div class="modal-header border-0 pb-0">
-                <h5 style="font-weight: 800; color: var(--agri-primary-dark);">Edit Capability Registry</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" style="font-size: 10px;"></button>
-            </div>
-            <form method="POST" id="editPermForm">
-                @csrf
-                @method('PUT')
-                <div class="modal-body">
-                    <div style="margin-bottom: 20px;">
-                        <label class="agri-label">Internal Slug</label>
-                        <input type="text" name="name" id="edit_name" class="form-agri" required>
-                    </div>
-                    <div style="margin-bottom: 20px;">
-                        <label class="agri-label">Functional Group</label>
-                        <input type="text" name="group" id="edit_group" class="form-agri" list="group-options" required>
-                    </div>
-                    <div style="margin-bottom: 0;">
-                        <label class="agri-label">Human Label</label>
-                        <input type="text" name="display_name" id="edit_display_name" class="form-agri" required>
-                    </div>
-                </div>
-                <div class="modal-footer border-0 pt-0" style="display: flex; flex-direction: column; gap: 10px;">
-                    <button type="submit" class="btn-agri btn-agri-primary w-100" style="height: 48px; font-weight: 800;">Commit Node Updates</button>
-                    <button type="button" class="btn-agri btn-agri-outline w-100" data-bs-dismiss="modal" style="height: 40px; font-weight: 700;">Cancel Modification</button>
-                </div>
-            </form>
         </div>
     </div>
 </div>
@@ -177,26 +186,38 @@
 @section('scripts')
 <script>
 $(document).ready(function() {
+    const moduleToKey = function(module, action) {
+        if (!module || !action) return '';
+        const moduleKey = String(module).toLowerCase().replace(/\s+/g, '.').replace(/_/g, '.').replace(/\.+/g, '.');
+        const actionKey = String(action).toLowerCase().replace(/\s+/g, '.').replace(/_/g, '.').replace(/\.+/g, '.');
+        return ['admin', moduleKey, actionKey].filter(Boolean).join('.').replace(/\.+/g, '.').replace(/^\.|\.$/g, '');
+    };
+
+    const syncCreateKey = function() {
+        if ($('#create_advanced_mode').is(':checked')) {
+            return;
+        }
+
+        $('#create_system_key').val(moduleToKey($('#create_module').val(), $('#create_action').val()));
+    };
+
+    $('#create_module, #create_action').on('change', syncCreateKey);
+    $('#create_advanced_mode').on('change', function() {
+        $('#create_system_key').prop('readonly', !$(this).is(':checked'));
+        syncCreateKey();
+    });
+    syncCreateKey();
+
     $('#filter-group').on('change', function() {
         const g = $(this).val();
-        if (!g) { $('#permsTable tbody tr').show(); return; }
+        if (!g) {
+            $('#permsTable tbody tr').show();
+            return;
+        }
+
         $('#permsTable tbody tr').each(function() {
             $(this).toggle($(this).data('group') === g);
         });
-    });
-
-    $(document).on('click', '.edit-perm-btn', function() {
-        const id      = $(this).data('id');
-        const name    = $(this).data('name');
-        const group   = $(this).data('group');
-        const display = $(this).data('display');
-        const url     = '{{ route("admin.permissions.update", ":id") }}'.replace(':id', id);
-
-        $('#edit_name').val(name);
-        $('#edit_group').val(group);
-        $('#edit_display_name').val(display);
-        $('#editPermForm').attr('action', url);
-        $('#editPermModal').modal('show');
     });
 });
 </script>
