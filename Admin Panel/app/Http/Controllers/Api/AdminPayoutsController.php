@@ -14,25 +14,33 @@ class AdminPayoutsController extends Controller
     public function recent(Request $request)
     {
         try {
-            $limit = $request->get('limit', 10);
-            $payouts = Payout::where('payment_status', 'Success')
-                ->orWhere('payment_status', 'Paid')
-                ->orWhere('status', 'Success')
-                ->orderBy('paid_date', 'desc')
+            $limit = (int) $request->get('limit', 10);
+            $payouts = Payout::query()
+                ->whereIn('status', ['paid', 'pending', 'failed'])
+                ->orderByDesc('paid_at')
                 ->orderBy('created_at', 'desc')
                 ->limit($limit)
-                ->with(['vendor'])
+                ->with(['vendor', 'expert', 'user'])
                 ->get()
                 ->map(function ($payout) {
+                    $recipientName = $payout->vendor?->title
+                        ?? $payout->expert?->user?->name
+                        ?? $payout->user?->name
+                        ?? 'Unknown';
+
                     return [
                         'id' => $payout->id,
                         'vendor_id' => $payout->vendor_id,
-                        'vendor_name' => $payout->vendor ? ($payout->vendor->title ?? $payout->vendor->name) : 'Unknown',
-                        'amount' => $payout->amount ?? 0,
-                        'payment_method' => $payout->payment_method ?? 'Bank Transfer',
-                        'status' => $payout->payment_status ?? $payout->status ?? 'Success',
-                        'paid_date' => $payout->paid_date ?? $payout->created_at,
-                        'transaction_id' => $payout->transaction_id ?? $payout->id,
+                        'expert_id' => $payout->expert_id,
+                        'recipient_name' => $recipientName,
+                        'payment_type' => $payout->payment_type,
+                        'amount' => (float) $payout->amount,
+                        'commission' => (float) $payout->commission,
+                        'net_amount' => (float) $payout->net_amount,
+                        'method' => $payout->method ?? 'stripe_connect',
+                        'status' => $payout->status,
+                        'paid_date' => $payout->paid_at ?? $payout->created_at,
+                        'transaction_id' => $payout->stripe_transfer_id ?? $payout->id,
                     ];
                 });
 
