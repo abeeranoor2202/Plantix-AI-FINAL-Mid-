@@ -36,6 +36,7 @@ use App\Services\Vendor\VendorCouponService;
 use App\Services\Vendor\VendorInventoryService;
 use App\Services\Vendor\VendorOrderService;
 use App\Services\Vendor\VendorProductService;
+use App\Services\Security\PermissionService;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Schema;
 
@@ -50,6 +51,7 @@ class AppServiceProvider extends ServiceProvider
 
         // ── Admin panel singletons ─────────────────────────────────────────────
         $this->app->singleton(RbacService::class);
+        $this->app->singleton(PermissionService::class);
         $this->app->singleton(ZoneService::class);
 
         // ── Shared service singletons ──────────────────────────────────────────
