@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Appointment;
 use App\Services\Shared\AppointmentService;
+use App\Services\Shared\CartCheckoutService;
 use App\Services\Shared\StripeService;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -36,6 +37,7 @@ class StripeWebhookController extends Controller
     public function __construct(
         private readonly StripeService       $stripe,
         private readonly AppointmentService  $service,
+        private readonly CartCheckoutService $checkout,
     ) {}
 
     /**
@@ -65,6 +67,7 @@ class StripeWebhookController extends Controller
         // ── 2. Route to handler ───────────────────────────────────────────────
         try {
             match ($event->type) {
+                'checkout.session.completed'   => $this->onCheckoutSessionCompleted($event->data->object),
                 'payment_intent.succeeded'      => $this->onPaymentIntentSucceeded($event->data->object),
                 'payment_intent.payment_failed' => $this->onPaymentIntentFailed($event->data->object),
                 'charge.refunded'               => $this->onChargeRefunded($event->data->object),
@@ -88,12 +91,46 @@ class StripeWebhookController extends Controller
 
     private function onPaymentIntentSucceeded(object $pi): void
     {
+        $paymentType = (string) ($pi->metadata->payment_type ?? 'appointment');
+
+        if ($paymentType === 'product') {
+            $this->checkout->confirmPayment($pi->id);
+            return;
+        }
+
         $this->service->confirmPayment($pi->id, 'succeeded');
     }
 
     private function onPaymentIntentFailed(object $pi): void
     {
+        $paymentType = (string) ($pi->metadata->payment_type ?? 'appointment');
+
+        if ($paymentType === 'product') {
+            $this->checkout->handlePaymentFailed($pi->id);
+            return;
+        }
+
         $this->service->handlePaymentFailed($pi->id);
+    }
+
+    private function onCheckoutSessionCompleted(object $session): void
+    {
+        $paymentIntentId = (string) ($session->payment_intent ?? '');
+        $paymentType = (string) (($session->metadata->payment_type ?? null) ?? '');
+
+        if ($paymentIntentId === '') {
+            Log::warning('checkout.session.completed without payment_intent', [
+                'session_id' => $session->id ?? null,
+            ]);
+            return;
+        }
+
+        if ($paymentType === 'product') {
+            $this->checkout->confirmPayment($paymentIntentId);
+            return;
+        }
+
+        $this->service->confirmPayment($paymentIntentId, 'succeeded');
     }
 
     /**
