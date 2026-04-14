@@ -7,6 +7,7 @@ use App\Services\Admin\RbacService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\View\View;
 use Illuminate\Validation\Rule;
@@ -228,6 +229,11 @@ class RbacController extends Controller
 
     public function togglePermissionStatus(int $id): RedirectResponse
     {
+        if (! Schema::hasColumn('permissions', 'is_active')) {
+            return redirect()->route('admin.permissions.index')
+                ->with('error', 'Permission status toggle requires the latest RBAC migration (missing is_active column).');
+        }
+
         $permission = \App\Models\Permission::findOrFail($id);
         $nextStatus = ! (bool) $permission->is_active;
 
