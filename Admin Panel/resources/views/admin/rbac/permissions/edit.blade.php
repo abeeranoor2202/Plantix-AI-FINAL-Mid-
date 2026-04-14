@@ -8,7 +8,7 @@
             <i class="fas fa-chevron-right" style="font-size: 10px; color: var(--agri-text-muted);"></i>
             <span style="color: var(--agri-primary); font-size: 14px; font-weight: 600;">Edit Permission</span>
         </div>
-        <h1 style="font-size: 28px; font-weight: 700; color: var(--agri-primary-dark); margin: 0;">Edit Permission</h1>
+        <h1 style="font-size: 28px; font-weight: 700; color: var(--agri-primary-dark); margin: 0;">Edit Access Rule</h1>
         <p style="color: var(--agri-text-muted); margin: 4px 0 0 0;">Define what this action allows in the system.</p>
     </div>
 
@@ -36,15 +36,15 @@
                             <h4 style="font-size: 18px; font-weight: 700; color: var(--agri-text-heading); margin-bottom: 20px;">Basic Info</h4>
                             <div class="row g-4">
                                 <div class="col-md-6">
-                                    <label class="agri-label">Permission Name <span class="text-danger">*</span></label>
-                                    <input type="text" name="human_name" class="form-agri" value="{{ old('human_name', $permission->display_name) }}" placeholder="Create User" required>
+                                    <label class="agri-label">Permission (Human-readable) <span class="text-danger">*</span></label>
+                                    <input type="text" name="human_name" id="edit_human_name" class="form-agri" value="{{ old('human_name', $permission->display_name) }}" placeholder="e.g. Can create users" required>
                                     @error('human_name')<div style="color: var(--agri-error); font-size: 12px; margin-top: 6px; font-weight: 600;">{{ $message }}</div>@enderror
                                 </div>
                                 <div class="col-md-6">
-                                    <label class="agri-label">Permission Group <span class="text-danger">*</span></label>
+                                    <label class="agri-label">Where is this used? <span class="text-danger">*</span></label>
                                     <select name="group" class="form-agri" required>
                                         @foreach($groups as $group)
-                                            <option value="{{ $group }}" @selected(old('group', ucfirst(str_replace('-', ' ', $permission->group))) === $group)>{{ $group }}</option>
+                                            <option value="{{ $group }}" @selected(old('group', $permission->group) === $group)>{{ $group }}</option>
                                         @endforeach
                                     </select>
                                     @error('group')<div style="color: var(--agri-error); font-size: 12px; margin-top: 6px; font-weight: 600;">{{ $message }}</div>@enderror
@@ -60,11 +60,11 @@
                                     @error('module')<div style="color: var(--agri-error); font-size: 12px; margin-top: 6px; font-weight: 600;">{{ $message }}</div>@enderror
                                 </div>
                                 <div class="col-md-6">
-                                    <label class="agri-label">Action Type <span class="text-danger">*</span></label>
+                                    <label class="agri-label">Select what this permission allows <span class="text-danger">*</span></label>
                                     <select name="action" id="edit_action" class="form-agri" required>
-                                        <option value="">Choose an action</option>
-                                        @foreach($actions as $action)
-                                            <option value="{{ $action }}" @selected(old('action', ucfirst($permission->action)) === $action)>{{ $action }}</option>
+                                        <option value="">Choose an option</option>
+                                        @foreach($actions as $actionKey => $actionLabel)
+                                            <option value="{{ $actionKey }}" @selected(old('action', strtolower((string) $permission->action)) === $actionKey)>{{ $actionLabel }}</option>
                                         @endforeach
                                     </select>
                                     @error('action')<div style="color: var(--agri-error); font-size: 12px; margin-top: 6px; font-weight: 600;">{{ $message }}</div>@enderror
@@ -80,16 +80,18 @@
                             <i class="fas fa-code"></i>
                         </div>
                         <div style="flex: 1;">
-                            <h4 style="font-size: 18px; font-weight: 700; color: var(--agri-text-heading); margin-bottom: 20px;">System Identifier</h4>
+                            <h4 style="font-size: 18px; font-weight: 700; color: var(--agri-text-heading); margin-bottom: 20px;">Technical Details</h4>
                             <div class="row g-4">
                                 <div class="col-md-8">
-                                    <label class="agri-label">System Key <span class="text-danger">*</span></label>
-                                    <input type="text" name="system_key" id="edit_system_key" class="form-agri" value="{{ old('system_key', $permission->name) }}" placeholder="admin.users.create" required readonly>
-                                    @error('system_key')<div style="color: var(--agri-error); font-size: 12px; margin-top: 6px; font-weight: 600;">{{ $message }}</div>@enderror
                                     <div style="margin-top: 8px; display: flex; align-items: center; gap: 10px;">
                                         <label class="form-check-label" style="font-size: 12px; font-weight: 700; color: var(--agri-text-muted);">
-                                            <input type="checkbox" id="edit_advanced_mode" class="form-check-input" style="margin-right: 6px;"> Advanced mode
+                                            <input type="checkbox" id="edit_advanced_mode" class="form-check-input" style="margin-right: 6px;"> Advanced Mode
                                         </label>
+                                    </div>
+                                    <div id="edit_advanced_panel" style="display: none; margin-top: 12px; padding: 14px; border: 1px dashed var(--agri-border); border-radius: 12px; background: #f8fafc;">
+                                        <label class="agri-label" style="margin-bottom: 8px;">Technical (for developers only): System Key <span class="text-danger">*</span></label>
+                                        <input type="text" name="system_key" id="edit_system_key" class="form-agri" value="{{ old('system_key', $permission->name) }}" placeholder="admin.users.create" required readonly>
+                                        @error('system_key')<div style="color: var(--agri-error); font-size: 12px; margin-top: 6px; font-weight: 600;">{{ $message }}</div>@enderror
                                     </div>
                                 </div>
                                 <div class="col-md-4">
@@ -132,7 +134,7 @@
                                     <i class="fas fa-info-circle"></i>
                                 </div>
                                 <div>
-                                    <h5 style="font-size: 16px; font-weight: 700; color: var(--agri-text-heading); margin-bottom: 4px;">System Key Preview</h5>
+                                    <h5 style="font-size: 16px; font-weight: 700; color: var(--agri-text-heading); margin-bottom: 4px;">Internal Mapping</h5>
                                     <p style="color: var(--agri-text-muted); font-size: 13px; margin: 0; line-height: 1.5;">
                                         This permission currently resolves to <strong>{{ $permission->name }}</strong> and affects <strong>{{ $permission->roles_count ?? $permission->roles()->count() }}</strong> role(s).
                                     </p>
@@ -169,16 +171,22 @@ $(document).ready(function() {
         return ['admin', moduleKey, actionKey].filter(Boolean).join('.').replace(/\.+/g, '.').replace(/^\.|\.$/g, '');
     };
 
-    const syncEditKey = function() {
-        if ($('#edit_advanced_mode').is(':checked')) {
-            return;
-        }
+    const moduleToHuman = function(module, action) {
+        if (!module || !action) return '';
+        const resource = String(module).toLowerCase().replace(/[_.]+/g, ' ').trim();
+        const verbMap = { view: 'view', create: 'create', edit: 'edit', delete: 'delete', manage: 'manage' };
+        const verb = verbMap[String(action).toLowerCase()] || 'manage';
+        return 'Can ' + verb + ' ' + resource;
+    };
 
+    const syncEditKey = function() {
+        $('#edit_human_name').val(moduleToHuman($('#edit_module').val(), $('#edit_action').val()));
         $('#edit_system_key').val(moduleToKey($('#edit_module').val(), $('#edit_action').val()));
     };
 
     $('#edit_module, #edit_action').on('change', syncEditKey);
     $('#edit_advanced_mode').on('change', function() {
+        $('#edit_advanced_panel').toggle($(this).is(':checked'));
         $('#edit_system_key').prop('readonly', !$(this).is(':checked'));
         syncEditKey();
     });
