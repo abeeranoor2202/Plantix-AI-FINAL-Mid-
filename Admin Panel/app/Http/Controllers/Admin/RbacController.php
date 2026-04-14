@@ -57,8 +57,8 @@ class RbacController extends Controller
         return view('admin.rbac.permissions.edit', [
             'permission' => $permission,
             'groups' => $this->permissionGroups(),
-            'modules' => ['Users', 'Products', 'Forum', 'Appointments', 'Vendors', 'Categories', 'Attributes', 'Coupons', 'Orders', 'Returns', 'Stock', 'Experts', 'Notifications', 'Reports', 'AI Modules', 'Settings'],
-            'actions' => ['View', 'Create', 'Read', 'Update', 'Edit', 'Delete', 'Manage', 'Approve', 'Reject', 'Lock', 'Unlock', 'Archive', 'Unarchive', 'Resolve', 'Pin', 'Toggle', 'Assign', 'Cancel', 'Complete', 'Refund'],
+            'modules' => $this->permissionModules(),
+            'actions' => $this->permissionActions(),
         ]);
     }
 
@@ -141,32 +141,48 @@ class RbacController extends Controller
         return view('admin.rbac.permissions.index', [
             'permissions' => $permissions,
             'groups' => $groups,
-            'modules' => ['Users', 'Products', 'Forum', 'Appointments', 'Vendors', 'Categories', 'Attributes', 'Coupons', 'Orders', 'Returns', 'Stock', 'Experts', 'Notifications', 'Reports', 'AI Modules', 'Settings'],
-            'actions' => ['View', 'Create', 'Read', 'Update', 'Edit', 'Delete', 'Manage', 'Approve', 'Reject', 'Lock', 'Unlock', 'Archive', 'Unarchive', 'Resolve', 'Pin', 'Toggle', 'Assign', 'Cancel', 'Complete', 'Refund'],
+            'modules' => $this->permissionModules(),
+            'actions' => $this->permissionActions(),
         ]);
     }
 
     public function storePermission(Request $request): RedirectResponse
     {
+        $actionKeys = array_keys($this->permissionActions());
+
         $data = Validator::make($request->all(), [
             'system_key'       => 'required|string|max:100|unique:permissions,name',
             'module'           => 'required|string|max:100',
-            'action'           => 'required|string|max:100',
+            'action'           => ['required', 'string', Rule::in($actionKeys)],
             'group'            => 'required|string|max:100',
-            'human_name'       => 'required|string|max:150',
+            'human_name'       => ['required', 'string', 'max:150', 'regex:/^Can\s+[a-z]+(?:\s+[a-z]+)+$/i'],
             'description'      => 'required|string|max:1000',
             'is_active'        => 'nullable|boolean',
             'advanced_mode'    => 'nullable|boolean',
         ])->after(function ($validator) use ($request): void {
-            $exists = \App\Models\Permission::query()
+            $existsModuleAction = \App\Models\Permission::query()
                 ->where('module', $request->input('module'))
                 ->where('action', $request->input('action'))
                 ->exists();
 
-            if ($exists) {
+            if ($existsModuleAction) {
                 $validator->errors()->add('module', 'The selected module and action already exist.');
             }
+
+            $humanDuplicate = \App\Models\Permission::query()
+                ->where('module', $request->input('module'))
+                ->whereRaw('LOWER(display_name) = ?', [Str::lower((string) $request->input('human_name'))])
+                ->exists();
+
+            if ($humanDuplicate) {
+                $validator->errors()->add('human_name', 'This permission label already exists in the selected module.');
+            }
         })->validate();
+
+        if (! filter_var($data['advanced_mode'] ?? false, FILTER_VALIDATE_BOOL)) {
+            $data['human_name'] = self::buildHumanPermissionLabel($data['module'], $data['action']);
+            $data['system_key'] = self::buildSystemKey($data['module'], $data['action']);
+        }
 
         $this->rbac->createPermission([
             'name'         => $data['system_key'],
@@ -186,6 +202,8 @@ class RbacController extends Controller
     public function updatePermission(Request $request, int $id): RedirectResponse
     {
         $permission = \App\Models\Permission::findOrFail($id);
+        $actionKeys = array_keys($this->permissionActions());
+
         $data = Validator::make($request->all(), [
             'system_key'    => [
                 'required',
@@ -194,23 +212,38 @@ class RbacController extends Controller
                 Rule::unique('permissions', 'name')->ignore($id),
             ],
             'module'        => 'required|string|max:100',
-            'action'        => 'required|string|max:100',
+            'action'        => ['required', 'string', Rule::in($actionKeys)],
             'group'         => 'required|string|max:100',
-            'human_name'    => 'required|string|max:150',
+            'human_name'    => ['required', 'string', 'max:150', 'regex:/^Can\s+[a-z]+(?:\s+[a-z]+)+$/i'],
             'description'   => 'required|string|max:1000',
             'is_active'     => 'nullable|boolean',
             'advanced_mode' => 'nullable|boolean',
         ])->after(function ($validator) use ($request, $id): void {
-            $exists = \App\Models\Permission::query()
+            $existsModuleAction = \App\Models\Permission::query()
                 ->where('module', $request->input('module'))
                 ->where('action', $request->input('action'))
                 ->where('id', '!=', $id)
                 ->exists();
 
-            if ($exists) {
+            if ($existsModuleAction) {
                 $validator->errors()->add('module', 'The selected module and action already exist.');
             }
+
+            $humanDuplicate = \App\Models\Permission::query()
+                ->where('module', $request->input('module'))
+                ->where('id', '!=', $id)
+                ->whereRaw('LOWER(display_name) = ?', [Str::lower((string) $request->input('human_name'))])
+                ->exists();
+
+            if ($humanDuplicate) {
+                $validator->errors()->add('human_name', 'This permission label already exists in the selected module.');
+            }
         })->validate();
+
+        if (! filter_var($data['advanced_mode'] ?? false, FILTER_VALIDATE_BOOL)) {
+            $data['human_name'] = self::buildHumanPermissionLabel($data['module'], $data['action']);
+            $data['system_key'] = self::buildSystemKey($data['module'], $data['action']);
+        }
 
         $this->rbac->updatePermission($id, array_filter([
             'name'         => $data['system_key'],
@@ -274,9 +307,9 @@ class RbacController extends Controller
     {
         return [
             'User Management',
-            'Product Management',
+            'Product Catalog',
             'Forum Moderation',
-            'Appointment System',
+            'Appointments',
             'Vendor Management',
             'Notification System',
             'Reporting',
@@ -284,6 +317,44 @@ class RbacController extends Controller
             'RBAC Administration',
             'AI Operations',
         ];
+    }
+
+    private function permissionModules(): array
+    {
+        return ['Users', 'Products', 'Forum', 'Appointments', 'Vendors', 'Categories', 'Attributes', 'Coupons', 'Orders', 'Returns', 'Stock', 'Experts', 'Notifications', 'Reports', 'AI Modules', 'Settings'];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private function permissionActions(): array
+    {
+        return [
+            'view' => 'View',
+            'create' => 'Create',
+            'edit' => 'Edit',
+            'delete' => 'Delete',
+            'manage' => 'Manage',
+        ];
+    }
+
+    public static function buildHumanPermissionLabel(string $module, string $action): string
+    {
+        $modulePhrase = Str::of($module)
+            ->lower()
+            ->replace(['_', '.'], ' ')
+            ->squish()
+            ->toString();
+
+        $verb = match (Str::lower($action)) {
+            'view' => 'view',
+            'create' => 'create',
+            'edit' => 'edit',
+            'delete' => 'delete',
+            default => 'manage',
+        };
+
+        return 'Can ' . $verb . ' ' . $modulePhrase;
     }
 
     public static function buildSystemKey(string $module, string $action): string
