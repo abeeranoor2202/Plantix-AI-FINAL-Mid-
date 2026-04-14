@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Services\Security\PermissionService;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -26,10 +27,14 @@ use Symfony\Component\HttpFoundation\Response;
  */
 class PermissionMiddleware
 {
+    public function __construct(private readonly PermissionService $permissions)
+    {
+    }
+
     public function handle(Request $request, Closure $next, ?string $group = null, ?string $name = null): Response
     {
-        // Authenticate via the Admin guard – never fall back to web guard
-        $user = auth('admin')->user();
+        // Prefer admin guard for panel routes, fallback to authenticated API user.
+        $user = auth('admin')->user() ?: $request->user();
 
         if (! $user) {
             if ($request->expectsJson()) {
@@ -38,30 +43,11 @@ class PermissionMiddleware
             return redirect()->route('admin.login');
         }
 
-        // Super-admin shortcut — role=admin with no role_id means full access
-        if ($user->role === 'admin' && ! $user->role_id) {
-            return $next($request);
-        }
-
-        // Staff must have an assigned role
-        if (! $user->role_id) {
-            abort(403, 'No role assigned. Contact your administrator.');
-        }
-
-        // Permissions are loaded into the session by CheckUserRoleMiddleware
-        // at login time (keyed as JSON array of permission slugs + groups).
-        $permissions = json_decode(session('admin_permissions', '[]'), true);
-
-        // Wildcard permission '*' grants access to everything
-        if (in_array('*', $permissions, true)) {
-            return $next($request);
-        }
-
-        if ($group && ! in_array($group, $permissions, true)) {
+        if ($group && ! $this->permissions->hasGroup($user, $group)) {
             abort(403, "Access denied — missing permission group: {$group}");
         }
 
-        if ($name && ! in_array($name, $permissions, true)) {
+        if ($name && ! $this->permissions->checkPermission($user, $name)) {
             abort(403, "Access denied — missing permission: {$name}");
         }
 
