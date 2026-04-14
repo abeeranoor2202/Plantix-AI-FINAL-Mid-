@@ -73,6 +73,12 @@ class AdminRbacSeeder extends Seeder
         ['name' => 'reviews',        'group' => 'reviews', 'display_name' => 'View Reviews'],
         ['name' => 'reviews.delete', 'group' => 'reviews', 'display_name' => 'Delete Review'],
 
+        // ── Experts (group: experts) ─────────────────────────────────────────
+        ['name' => 'experts.view',      'group' => 'experts', 'display_name' => 'View Experts'],
+        ['name' => 'experts.create',    'group' => 'experts', 'display_name' => 'Create Expert'],
+        ['name' => 'experts.edit',      'group' => 'experts', 'display_name' => 'Edit Expert'],
+        ['name' => 'experts.moderate',  'group' => 'experts', 'display_name' => 'Moderate Expert Applications'],
+
         // ── Products (group: products) ────────────────────────────────────────
         ['name' => 'products.view',   'group' => 'products', 'display_name' => 'View Products'],
         ['name' => 'products.create', 'group' => 'products', 'display_name' => 'Create Product'],
@@ -143,6 +149,14 @@ class AdminRbacSeeder extends Seeder
         // ── Notifications (group: general-notifications) ──────────────────────
         ['name' => 'notification',      'group' => 'general-notifications', 'display_name' => 'View Notifications'],
         ['name' => 'notification.send', 'group' => 'general-notifications', 'display_name' => 'Send Notification Broadcast'],
+
+        // ── AI Modules (group: ai-modules) ───────────────────────────────────
+        ['name' => 'ai-modules.view',   'group' => 'ai-modules', 'display_name' => 'View AI Modules'],
+        ['name' => 'ai-modules.edit',   'group' => 'ai-modules', 'display_name' => 'Edit AI Module Data'],
+        ['name' => 'ai-modules.assign', 'group' => 'ai-modules', 'display_name' => 'Assign Disease Reports'],
+
+        // ── Reports (group: reports) ─────────────────────────────────────────
+        ['name' => 'reports.view', 'group' => 'reports', 'display_name' => 'View Reports'],
     ];
 
     /**
@@ -188,7 +202,7 @@ class AdminRbacSeeder extends Seeder
             'description' => 'Manages admin sub-users, RBAC roles/permissions, global settings, and payment methods.',
             'guard'       => 'admin',
             'is_active'   => true,
-            'perm_groups' => ['admins', 'roles', 'global-setting', 'payment-method', 'forum', 'appointments', 'products', 'orders', 'returns', 'stock'],
+            'perm_groups' => ['admins', 'roles', 'global-setting', 'payment-method', 'forum', 'appointments', 'products', 'orders', 'returns', 'stock', 'experts', 'ai-modules', 'reports'],
         ],
     ];
 
