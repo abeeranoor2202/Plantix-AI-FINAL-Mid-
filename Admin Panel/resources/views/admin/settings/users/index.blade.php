@@ -23,11 +23,8 @@
     </div>
 
     @php
-        $permissions = json_decode(@session('admin_permissions'), true) ?? [];
-        $canDeleteUsers = in_array('*', $permissions)
-            || in_array('users.delete', $permissions)
-            || in_array('user.delete', $permissions)
-            || in_array('admin.users.delete', $permissions);
+        $canDeleteUsers = \Illuminate\Support\Facades\Gate::check('admin.perm', 'users.delete')
+            || \Illuminate\Support\Facades\Gate::check('admin.perm', 'admin.users.delete');
     @endphp
 
     {{-- Table Card --}}
@@ -66,8 +63,6 @@
                         $editRoute = route('admin.users.edit', $user->id);
                         $viewRoute = route('admin.users.view', $user->id);
                         $deleteRoute = route('admin.users.delete', $user->id);
-                        $canDelete = $canDeleteUsers;
-
                         $rawPhoto = (string) ($user->profile_photo ?? '');
                         $normalizedPhoto = ltrim($rawPhoto, '/');
                         $isExternalPhoto = \Illuminate\Support\Str::startsWith($rawPhoto, ['http://', 'https://', '//']);
@@ -118,10 +113,10 @@
                             <div class="text-end" style="display:flex;justify-content:flex-end;gap:8px;">
                                 <a href="{{ $viewRoute }}" class="btn-agri" style="padding:8px;background:var(--agri-bg);color:var(--agri-primary);border-radius:10px;" title="View"><i class="fas fa-eye"></i></a>
                                 <a href="{{ $editRoute }}" class="btn-agri" style="padding:8px;background:var(--agri-bg);color:var(--agri-primary);border-radius:10px;" title="Edit"><i class="fas fa-edit"></i></a>
-                                @if($canDelete)
+                                          @if($canDeleteUsers)
                                 <a href="{{ $deleteRoute }}" class="btn-agri" style="padding:8px;background:var(--agri-error-light);color:var(--agri-error);border-radius:10px;"
                                    onclick="return confirm('Delete this user?')" title="Delete"><i class="fas fa-trash"></i></a>
-                                @endif
+                                          @endif
                             </div>
                         </td>
                     </tr>
