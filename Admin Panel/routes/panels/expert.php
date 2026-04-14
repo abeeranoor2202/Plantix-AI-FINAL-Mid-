@@ -78,5 +78,10 @@ Route::prefix('expert')->name('expert.')->group(function () {
             Route::put('/',     [\App\Http\Controllers\Expert\ExpertProfileController::class, 'update'])->name('update');
         });
 
+        // ── Stripe Connect & Payouts ─────────────────────────────────────────
+        Route::get('/payouts',         [\App\Http\Controllers\Expert\ExpertPayoutController::class, 'index'])->name('payouts.index');
+        Route::get('/payouts/connect', [\App\Http\Controllers\Expert\ExpertPayoutController::class, 'connect'])->name('payouts.connect');
+        Route::get('/payouts/return',  [\App\Http\Controllers\Expert\ExpertPayoutController::class, 'connectReturn'])->name('payouts.return');
+
     }); // end expert.auth
 }); // end /expert prefix
