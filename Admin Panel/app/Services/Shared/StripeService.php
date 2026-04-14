@@ -3,21 +3,30 @@
 namespace App\Services\Shared;
 
 use App\Models\Appointment;
+use App\Models\Order;
+use App\Models\StripeAccount;
+use App\Models\User;
 use Illuminate\Support\Str;
+use Stripe\Checkout\Session;
+use Stripe\Connect\Account;
+use Stripe\Connect\AccountLink;
 use Stripe\Exception\ApiErrorException;
 use Stripe\Exception\SignatureVerificationException;
 use Stripe\PaymentIntent;
 use Stripe\Refund;
+use Stripe\Transfer;
 use Stripe\Stripe;
 use Stripe\Webhook;
 
 /**
  * StripeService
  *
- * Single point of contact for all Stripe operations in the appointment module.
+ * Single point of contact for all Stripe operations in the marketplace.
  *
  * Responsibilities:
- *  - Create PaymentIntents (prepaid booking requirement)
+ *  - Create PaymentIntents and Checkout Sessions
+ *  - Create Stripe Connect accounts and onboarding links
+ *  - Create Transfers for vendor / expert payouts
  *  - Verify webhook signatures (prevent replay attacks)
  *  - Issue full and partial refunds
  *  - Retrieve PaymentIntent status (reconciliation)
@@ -77,6 +86,153 @@ class StripeService
         ]);
 
         return $pi;
+    }
+
+    /**
+     * Create a Checkout Session for an order and expose the underlying PaymentIntent.
+     */
+    public function createOrderCheckoutSession(Order $order, array $metadata = []): array
+    {
+        $session = Session::create([
+            'mode' => 'payment',
+            'success_url' => route('payment.success', ['order_id' => $order->id], true) . '&session_id={CHECKOUT_SESSION_ID}',
+            'cancel_url' => route('checkout.pay', $order->id, true),
+            'client_reference_id' => (string) $order->id,
+            'metadata' => array_merge([
+                'payment_type' => 'product',
+                'order_id' => (string) $order->id,
+                'user_id' => (string) $order->user_id,
+            ], $metadata),
+            'line_items' => [[
+                'quantity' => 1,
+                'price_data' => [
+                    'currency' => strtolower(config('plantix.currency_code', 'pkr')),
+                    'unit_amount' => $this->toCents((float) $order->total),
+                    'product_data' => [
+                        'name' => 'Order ' . $order->order_number,
+                        'description' => 'Plantix AI marketplace purchase',
+                    ],
+                ],
+            ]],
+            'payment_intent_data' => [
+                'metadata' => array_merge([
+                    'payment_type' => 'product',
+                    'order_id' => (string) $order->id,
+                ], $metadata),
+            ],
+        ], ['idempotency_key' => 'order-checkout-' . $order->id]);
+
+        $paymentIntent = null;
+        if (! empty($session->payment_intent)) {
+            $paymentIntent = PaymentIntent::retrieve($session->payment_intent);
+        }
+
+        return [
+            'session'       => $session,
+            'paymentIntent' => $paymentIntent,
+            'client_secret' => $paymentIntent?->client_secret,
+            'checkout_url'  => $session->url,
+        ];
+    }
+
+    /**
+     * Create a Checkout Session for an appointment booking.
+     */
+    public function createAppointmentCheckoutSession(Appointment $appointment, array $metadata = []): array
+    {
+        $session = Session::create([
+            'mode' => 'payment',
+            'success_url' => route('appointment.details', ['id' => $appointment->id], true) . '?payment=success&session_id={CHECKOUT_SESSION_ID}',
+            'cancel_url' => route('appointment.pay', ['id' => $appointment->id], true),
+            'client_reference_id' => 'appointment-' . $appointment->id,
+            'metadata' => array_merge([
+                'payment_type' => 'appointment',
+                'appointment_id' => (string) $appointment->id,
+                'user_id' => (string) $appointment->user_id,
+                'expert_id' => (string) $appointment->expert_id,
+            ], $metadata),
+            'line_items' => [[
+                'quantity' => 1,
+                'price_data' => [
+                    'currency' => strtolower(config('plantix.currency_code', 'pkr')),
+                    'unit_amount' => $this->toCents((float) $appointment->fee),
+                    'product_data' => [
+                        'name' => 'Appointment #' . $appointment->id,
+                        'description' => 'Expert consultation booking',
+                    ],
+                ],
+            ]],
+            'payment_intent_data' => [
+                'metadata' => array_merge([
+                    'payment_type' => 'appointment',
+                    'appointment_id' => (string) $appointment->id,
+                ], $metadata),
+            ],
+        ], ['idempotency_key' => 'appointment-checkout-' . $appointment->id]);
+
+        $paymentIntent = null;
+        if (! empty($session->payment_intent)) {
+            $paymentIntent = PaymentIntent::retrieve($session->payment_intent);
+        }
+
+        return [
+            'session'       => $session,
+            'paymentIntent' => $paymentIntent,
+            'client_secret' => $paymentIntent?->client_secret,
+            'checkout_url'  => $session->url,
+        ];
+    }
+
+    /**
+     * Create or refresh a Stripe Connect account link for a connected seller.
+     */
+    public function createConnectAccountLink(string $stripeAccountId, string $refreshUrl, string $returnUrl): AccountLink
+    {
+        return AccountLink::create([
+            'account' => $stripeAccountId,
+            'refresh_url' => $refreshUrl,
+            'return_url' => $returnUrl,
+            'type' => 'account_onboarding',
+        ]);
+    }
+
+    /**
+     * Create a Stripe Connect Express account for a seller if one does not exist.
+     */
+    public function createConnectAccount(User $user, string $type = 'express', array $metadata = []): Account
+    {
+        return Account::create([
+            'type' => $type,
+            'country' => config('services.stripe.country', 'PK'),
+            'email' => $user->email,
+            'capabilities' => [
+                'transfers' => ['requested' => true],
+            ],
+            'business_type' => 'individual',
+            'metadata' => array_merge([
+                'user_id' => (string) $user->id,
+                'user_role' => (string) $user->role,
+            ], $metadata),
+        ]);
+    }
+
+    public function retrieveConnectAccount(string $stripeAccountId): Account
+    {
+        return Account::retrieve($stripeAccountId);
+    }
+
+    /**
+     * Send platform funds to a connected account.
+     */
+    public function createTransfer(int $amountCents, string $currency, string $destinationAccountId, string $transferGroup, array $metadata = []): Transfer
+    {
+        return Transfer::create([
+            'amount' => $amountCents,
+            'currency' => strtolower($currency),
+            'destination' => $destinationAccountId,
+            'transfer_group' => $transferGroup,
+            'metadata' => $metadata,
+        ]);
     }
 
     /**
