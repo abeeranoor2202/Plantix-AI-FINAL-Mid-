@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\Security\PermissionService;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -87,12 +88,7 @@ class User extends Authenticatable implements MustVerifyEmail
     /** Check a named permission from the admin-panel role system */
     public function hasPermission(string $permission): bool
     {
-        if ($this->isAdmin() && !$this->role_id) {
-            return true; // Super admin has all permissions
-        }
-
-        $perms = json_decode(session('user_permissions', '[]'), true);
-        return in_array($permission, (array) $perms);
+        return app(PermissionService::class)->checkPermission($this, $permission);
     }
 
     // -------------------------------------------------------------------------
@@ -102,6 +98,15 @@ class User extends Authenticatable implements MustVerifyEmail
     public function adminRole(): BelongsTo
     {
         return $this->belongsTo(Role::class, 'role_id');
+    }
+
+    /**
+     * Additional RBAC roles for multi-role resolution.
+     * Legacy role_id is still supported for backward compatibility.
+     */
+    public function roles(): BelongsToMany
+    {
+        return $this->belongsToMany(Role::class, 'user_roles', 'user_id', 'role_id')->withTimestamps();
     }
 
     /** The vendor store this user owns (vendor role) */
