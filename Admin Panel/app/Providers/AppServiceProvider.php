@@ -17,11 +17,13 @@ use App\Services\Shared\AppointmentService;
 use App\Services\Shared\CartCheckoutService;
 use App\Services\Shared\CouponService;
 use App\Services\Shared\InventoryService;
+use App\Services\Shared\MarketplacePayoutService;
 use App\Services\Shared\NotificationService;
 use App\Services\Shared\OrderService;
 use App\Services\Shared\RefundService;
 use App\Services\Shared\ReturnService;
 use App\Services\Shared\ReturnRefundService;
+use App\Services\Shared\StripeService;
 use App\Services\Shared\StockService;
 use App\Services\Shared\WalletService;
 // ── Customer panel services ────────────────────────────────────────────────────
@@ -76,6 +78,8 @@ class AppServiceProvider extends ServiceProvider
             return new CartCheckoutService(
                 $app->make(StockService::class),
                 $app->make(CouponService::class),
+                $app->make(StripeService::class),
+                $app->make(MarketplacePayoutService::class),
             );
         });
 
@@ -141,6 +145,19 @@ class AppServiceProvider extends ServiceProvider
                 'mail.mailers.smtp.encryption' => blank($mailEncryption) ? env('MAIL_ENCRYPTION', config('mail.mailers.smtp.encryption')) : $mailEncryption,
                 'mail.from.address' => blank($mailFromAddress) ? env('MAIL_FROM_ADDRESS', config('mail.from.address')) : $mailFromAddress,
                 'mail.from.name' => blank($mailFromName) ? env('MAIL_FROM_NAME', config('mail.from.name')) : $mailFromName,
+            ]);
+
+            $stripeKey = Setting::get('stripe_key');
+            $stripeSecret = Setting::get('stripe_secret');
+            $stripeWebhookSecret = Setting::get('stripe_webhook_secret');
+            $stripeCommissionRate = Setting::get('stripe_commission_rate');
+
+            config([
+                'services.stripe.key' => blank($stripeKey) ? env('STRIPE_KEY', config('services.stripe.key')) : $stripeKey,
+                'services.stripe.secret' => blank($stripeSecret) ? env('STRIPE_SECRET', config('services.stripe.secret')) : $stripeSecret,
+                'services.stripe.webhook_secret' => blank($stripeWebhookSecret) ? env('STRIPE_WEBHOOK_SECRET', config('services.stripe.webhook_secret')) : $stripeWebhookSecret,
+                'plantix.admin_commission_rate' => blank($stripeCommissionRate) ? env('PLANTIX_ADMIN_COMMISSION_RATE', config('plantix.admin_commission_rate')) : ((float) $stripeCommissionRate / 100),
+                'plantix.platform_commission_rate' => blank($stripeCommissionRate) ? env('PLANTIX_PLATFORM_COMMISSION_RATE', config('plantix.platform_commission_rate')) : ((float) $stripeCommissionRate / 100),
             ]);
         }
     }
