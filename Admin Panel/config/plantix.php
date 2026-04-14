@@ -11,8 +11,9 @@ return [
     // Tax rate applied to every order (0.0 = 0%, 0.1 = 10%)
     'tax_rate' => (float) env('PLANTIX_TAX_RATE', 0.0),
 
-    // Admin commission deducted from vendor payouts (0.10 = 10%)
+    // Platform commission deducted from vendor/expert payouts (0.10 = 10%)
     'admin_commission_rate' => (float) env('PLANTIX_ADMIN_COMMISSION_RATE', 0.10),
+    'platform_commission_rate' => (float) env('PLANTIX_PLATFORM_COMMISSION_RATE', env('PLANTIX_ADMIN_COMMISSION_RATE', 0.10)),
 
     // Maximum items allowed in a single cart
     'cart_max_items' => (int) env('PLANTIX_CART_MAX_ITEMS', 50),
