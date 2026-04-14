@@ -113,10 +113,13 @@
                             <div class="text-end" style="display:flex;justify-content:flex-end;gap:8px;">
                                 <a href="{{ $viewRoute }}" class="btn-agri" style="padding:8px;background:var(--agri-bg);color:var(--agri-primary);border-radius:10px;" title="View"><i class="fas fa-eye"></i></a>
                                 <a href="{{ $editRoute }}" class="btn-agri" style="padding:8px;background:var(--agri-bg);color:var(--agri-primary);border-radius:10px;" title="Edit"><i class="fas fa-edit"></i></a>
-                                          @if($canDeleteUsers)
-                                <a href="{{ $deleteRoute }}" class="btn-agri" style="padding:8px;background:var(--agri-error-light);color:var(--agri-error);border-radius:10px;"
-                                   onclick="return confirm('Delete this user?')" title="Delete"><i class="fas fa-trash"></i></a>
-                                          @endif
+                                @if($canDeleteUsers)
+                                <form method="POST" action="{{ $deleteRoute }}" style="display:inline; margin:0;" onsubmit="return confirm('Are you sure you want to delete?')">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="btn-agri" style="padding:8px;background:var(--agri-error-light);color:var(--agri-error);border-radius:10px;border:none;" title="Delete"><i class="fas fa-trash"></i></button>
+                                </form>
+                                @endif
                             </div>
                         </td>
                     </tr>
