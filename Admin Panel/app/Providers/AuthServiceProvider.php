@@ -24,7 +24,7 @@ use App\Policies\ProductPolicy;
 use App\Policies\ReturnRequestPolicy;
 use App\Policies\UserPolicy;
 use App\Policies\VendorPolicy;
-use App\Services\Admin\RbacService;
+use App\Services\Security\PermissionService;
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
 use Illuminate\Support\Facades\Gate;
 
@@ -69,20 +69,12 @@ class AuthServiceProvider extends ServiceProvider
         // Each gate checks whether the admin user's role has ANY permission
         // belonging to the specified group.
 
-        $adminGroups = [
-            'users', 'admins', 'vendors', 'approve_vendors', 'pending_vendors',
-            'stores', 'vendors-document', 'drivers-document', 'items', 'item-attribute',
-            'category', 'orders', 'dinein-orders', 'coupons', 'payment-method',
-            'payments', 'payout-request', 'driver-payments', 'driver-payouts',
-            'store-payouts', 'drivers', 'approve_drivers',
-            'pending_drivers', 'reports', 'banners', 'cms', 'documents',
-            'email-template', 'dynamic-notifications', 'general-notifications',
-            'gift-cards', 'language', 'currency', 'tax', 'zone',
-            'global-setting', 'delivery-charge', 'radius', 'admin-commission',
-            'dinein', 'document-verification', 'special-offer', 'privacy', 'terms',
-            'god-eye', 'review-attribute', 'roles', 'products', 'appointments',
-            'forum', 'returns', 'stock', 'reviews',
-        ];
+        $adminGroups = \App\Models\Permission::query()
+            ->whereNotNull('group')
+            ->pluck('group')
+            ->unique()
+            ->values()
+            ->all();
 
         foreach ($adminGroups as $group) {
             Gate::define('admin.' . $group, function (User $user) use ($group) {
@@ -90,9 +82,9 @@ class AuthServiceProvider extends ServiceProvider
                 if (! $user->isAdmin()) {
                     return false;
                 }
-                /** @var RbacService $rbac */
-                $rbac = app(RbacService::class);
-                return $rbac->adminHasGroup($user, $group);
+                /** @var PermissionService $permissions */
+                $permissions = app(PermissionService::class);
+                return $permissions->hasGroup($user, $group);
             });
         }
 
@@ -102,9 +94,9 @@ class AuthServiceProvider extends ServiceProvider
             if (! $user->isAdmin()) {
                 return false;
             }
-            /** @var RbacService $rbac */
-            $rbac = app(RbacService::class);
-            return $rbac->userHasPermission($user, $permissionName);
+            /** @var PermissionService $permissions */
+            $permissions = app(PermissionService::class);
+            return $permissions->checkPermission($user, $permissionName);
         });
 
         // ── Shared cross-panel convenience gates ──────────────────────────────
