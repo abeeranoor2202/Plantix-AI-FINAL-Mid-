@@ -57,7 +57,10 @@ class AdminOrdersController extends Controller
      */
     public function updateStatus(Request $request, $id)
     {
-        $request->validate(['status' => 'required|string']);
+        $request->validate([
+            'status' => 'required|string',
+            'notes'  => 'nullable|string|max:1000',
+        ]);
 
         try {
             $order = Order::find($id);
@@ -85,10 +88,9 @@ class AdminOrdersController extends Controller
             if (class_exists(OrderStatusHistory::class)) {
                 OrderStatusHistory::create([
                     'order_id'   => $order->id,
-                    'old_status' => $old,
-                    'new_status' => $request->status,
+                    'status'     => $request->status,
                     'changed_by' => Auth::id(),
-                    'note'       => $request->note,
+                    'notes'      => $request->input('notes'),
                 ]);
             }
 
