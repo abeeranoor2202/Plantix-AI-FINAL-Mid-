@@ -63,6 +63,10 @@ class ExpertAppointmentService
         $this->assertBelongsToExpert($appointment, $expert);
         $this->assertCanTransition($appointment, Appointment::STATUS_CONFIRMED);
 
+        if ($appointment->isOnline() && empty($meetingLink)) {
+            throw new \DomainException('Meeting link is required to accept an online appointment.');
+        }
+
         return $this->transition(
             $appointment,
             Appointment::STATUS_CONFIRMED,
