@@ -36,7 +36,7 @@
                             <i class="fas fa-credit-card"></i> Pay Now
                         </a>
                         @endif
-                        @if(in_array($appointment->status, ['pending','confirmed']))
+                        @if($appointment->canBeCancelledByCustomer())
                         <form method="POST" action="{{ route('appointment.cancel', $appointment->id) }}">
                             @csrf
                             <button class="btn-agri text-danger" style="padding: 8px 16px; background: rgba(239, 68, 68, 0.1); border: none;" onclick="return confirm('Are you sure you want to cancel this appointment?')">Cancel Appointment</button>
