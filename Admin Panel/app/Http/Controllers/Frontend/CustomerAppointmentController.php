@@ -59,7 +59,13 @@ class CustomerAppointmentController extends Controller
     public function cancel(int $id): RedirectResponse
     {
         $user        = auth('web')->user();
-        $appointment = $user->appointments()->where('status', 'pending')->findOrFail($id);
+        $appointment = $user->appointments()->findOrFail($id);
+
+        if (! $appointment->canBeCancelledByCustomer()) {
+            return back()->withErrors([
+                'error' => 'This appointment can no longer be cancelled at its current stage.',
+            ]);
+        }
 
         $this->service->cancel($appointment, 'Cancelled by customer.');
 
@@ -86,7 +92,7 @@ class CustomerAppointmentController extends Controller
     }
 
     /**
-     * Process the simulated payment for a pending_payment appointment.
+     * Keep appointment payment pending; status mutation is webhook-driven only.
      * POST /appointment/{id}/pay
      */
     public function processPayment(Request $request, int $id): RedirectResponse
@@ -96,46 +102,9 @@ class CustomerAppointmentController extends Controller
             ->where('status', Appointment::STATUS_PENDING_PAYMENT)
             ->findOrFail($id);
 
-        $request->validate([
-            'card_name'   => 'required|string|max:100',
-            'card_number' => ['required', 'string', 'regex:/^\d{4} \d{4} \d{4} \d{4}$/'],
-            'card_exp'    => ['bail', 'required', 'string', 'regex:/^\d{2} ?\/ ?\d{2}$/',
-                function ($attr, $value, $fail) {
-                    $normalised = preg_replace('/\s*\/\s*/', ' / ', $value);
-                    [$m, $y] = explode(' / ', $normalised);
-                    $expires = \Carbon\Carbon::createFromDate('20' . $y, (int) $m, 1)->endOfMonth();
-                    if ($expires->isPast()) {
-                        $fail('The expiry date has passed.');
-                    }
-                },
-            ],
-            'card_cvc'    => ['required', 'string', 'regex:/^\d{3,4}$/'],
-        ], [
-            'card_number.regex' => 'Card number must be 16 digits (e.g. 4242 4242 4242 4242).',
-            'card_exp.regex'    => 'Expiry must be in MM/YY format (e.g. 12/29).',
-            'card_cvc.regex'    => 'CVC must be 3 or 4 digits.',
-        ]);
-
-        try {
-            if ($appointment->stripe_payment_intent_id) {
-                // Use the real Stripe PI stored on the appointment
-                $this->service->confirmPayment($appointment->stripe_payment_intent_id, 'succeeded');
-            } else {
-                // No real PI — simulate advance for demo / test environments
-                $appointment->update([
-                    'status'                => Appointment::STATUS_PENDING_EXPERT_APPROVAL,
-                    'stripe_payment_status' => 'succeeded',
-                    'payment_status'        => 'paid',
-                ]);
-            }
-        } catch (\Throwable $e) {
-            Log::error('Appointment payment processing error', ['id' => $id, 'error' => $e->getMessage()]);
-            return redirect()->route('appointment.details', $id)
-                             ->with('error', 'Payment could not be processed. Please try again.');
-        }
-
+        // Intentionally no status mutation here.
         return redirect()->route('appointment.details', $id)
-                         ->with('success', 'Payment successful! Your appointment is now pending expert approval.');
+            ->with('info', 'Payment is pending confirmation. Your appointment will update after Stripe webhook verification.');
     }
 
     /**
@@ -151,7 +120,7 @@ class CustomerAppointmentController extends Controller
 
         $user        = auth('web')->user();
         $appointment = $user->appointments()
-            ->where('status', Appointment::STATUS_RESCHEDULED)
+            ->where('status', Appointment::STATUS_RESCHEDULE_REQUESTED)
             ->findOrFail($id);
 
         $reschedule = AppointmentReschedule::where('appointment_id', $appointment->id)
@@ -164,12 +133,12 @@ class CustomerAppointmentController extends Controller
                 // Update appointment to the new proposed time
                 $appointment->update([
                     'scheduled_at' => $reschedule->proposed_scheduled_at,
-                    'status'       => Appointment::STATUS_ACCEPTED,
+                    'status'       => Appointment::STATUS_CONFIRMED,
                 ]);
                 $reschedule->update(['status' => 'accepted']);
             } else {
                 // Reject: revert appointment to confirmed/accepted, keep original time
-                $appointment->update(['status' => Appointment::STATUS_ACCEPTED]);
+                $appointment->update(['status' => Appointment::STATUS_CONFIRMED]);
                 $reschedule->update(['status' => 'rejected']);
             }
         });
