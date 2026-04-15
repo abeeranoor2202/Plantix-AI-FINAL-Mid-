@@ -318,6 +318,10 @@ class AppointmentService
      */
     public function confirm(Appointment $appointment, ?int $expertId = null, ?string $adminNotes = null, bool $isAdmin = false, ?int $adminUserId = null, ?string $meetingLink = null): Appointment
     {
+        if ($appointment->isOnline() && empty($meetingLink) && empty($appointment->meeting_link)) {
+            throw new \DomainException('Meeting link is required before confirming an online appointment.');
+        }
+
         $appointment->assertCanTransitionTo(Appointment::STATUS_CONFIRMED, $isAdmin);
 
         return DB::transaction(function () use ($appointment, $expertId, $adminNotes, $isAdmin, $adminUserId, $meetingLink) {
@@ -437,6 +441,14 @@ class AppointmentService
      */
     public function updateStatus(Appointment $appointment, string $targetStatus, ?int $adminUserId = null, ?string $notes = null): Appointment
     {
+        if (
+            $targetStatus === Appointment::STATUS_CONFIRMED
+            && $appointment->isOnline()
+            && empty($appointment->meeting_link)
+        ) {
+            throw new \DomainException('Meeting link is required before confirming an online appointment.');
+        }
+
         $appointment->assertCanTransitionTo($targetStatus, true);
 
         return DB::transaction(function () use ($appointment, $targetStatus, $adminUserId, $notes) {
