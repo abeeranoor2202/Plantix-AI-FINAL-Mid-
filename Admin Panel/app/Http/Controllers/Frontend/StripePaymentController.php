@@ -10,11 +10,8 @@ use App\Services\Shared\CartCheckoutService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
-use Stripe\Exception\SignatureVerificationException;
-use Stripe\Webhook;
 
 /**
  * StripePaymentController
@@ -116,12 +113,12 @@ class StripePaymentController extends Controller
     }
 
     // ─────────────────────────────────────────────────────────────────────────
-    // Simulated payment confirmation (demo / test mode)
+    // Payment confirmation is webhook-driven only
     // Route: POST /checkout/pay/{order}
     // ─────────────────────────────────────────────────────────────────────────
 
     /**
-     * Process the demo card form submission and advance the order to paid status.
+     * Keep frontend flow pending; payment state is updated only by Stripe webhook.
      */
     public function processOrderPayment(Request $request, Order $order): RedirectResponse
     {
@@ -139,51 +136,9 @@ class StripePaymentController extends Controller
             return redirect()->route('checkout')->withErrors(['order' => 'This order cannot be paid.']);
         }
 
-        $request->validate([
-            'card_name'   => 'required|string|max:100',
-            'card_number' => ['required', 'string', 'regex:/^\d{4} \d{4} \d{4} \d{4}$/'],
-            'card_exp'    => ['bail', 'required', 'string', 'regex:/^\d{2} ?\/ ?\d{2}$/',
-                function ($attr, $value, $fail) {
-                    $normalised = preg_replace('/\s*\/\s*/', ' / ', $value);
-                    [$m, $y] = explode(' / ', $normalised);
-                    $expires = \Carbon\Carbon::createFromDate('20' . $y, (int) $m, 1)->endOfMonth();
-                    if ($expires->isPast()) {
-                        $fail('The expiry date has passed.');
-                    }
-                },
-            ],
-            'card_cvc'    => ['required', 'string', 'regex:/^\d{3,4}$/'],
-        ], [
-            'card_number.regex' => 'Card number must be 16 digits (e.g. 4242 4242 4242 4242).',
-            'card_exp.regex'    => 'Expiry must be in MM/YY format (e.g. 12/29).',
-            'card_cvc.regex'    => 'CVC must be 3 or 4 digits.',
-        ]);
-
-        try {
-            if ($order->payment_intent_id) {
-                // Use CartCheckoutService to confirm — mirrors what the webhook does
-                $this->checkout->confirmPayment($order->payment_intent_id);
-            } else {
-                // No real PI — advance directly (pure demo env)
-                $order->update([
-                    'status'         => \App\Models\Order::STATUS_PROCESSING,
-                    'payment_status' => 'paid',
-                ]);
-            }        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
-            // Payment record not yet created (e.g. no real Stripe webhook) — advance directly
-            $order->update([
-                'status'         => \App\Models\Order::STATUS_CONFIRMED,
-                'payment_status' => 'paid',
-            ]);        } catch (\Throwable $e) {
-            Log::error('processOrderPayment error', ['order_id' => $order->id, 'error' => $e->getMessage()]);
-            return redirect()->route('checkout.pay', $order->id)
-                             ->with('error', 'Payment could not be processed. Please try again.');
-        }
-
-        session()->forget(['pending_order_id', 'stripe_secret']);
-
-        return redirect()->route('order.success', $order->id)
-                         ->with('success', 'Payment successful! Your order has been placed.');
+        // Intentionally no status mutation here.
+        return redirect()->route('checkout.pay', $order->id)
+            ->with('info', 'Payment is pending confirmation. Your order will update automatically after Stripe webhook verification.');
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -244,54 +199,6 @@ class StripePaymentController extends Controller
     }
 
     // ─────────────────────────────────────────────────────────────────────────
-    // Stripe Webhook
-    // Route: POST /stripe/webhook  (excluded from CSRF in Kernel.php)
-    // ─────────────────────────────────────────────────────────────────────────
-
-    public function webhook(Request $request): Response
-    {
-        $payload   = $request->getContent(); // MUST use raw content — not parsed input
-        $sigHeader = $request->header('Stripe-Signature', '');
-        $secret    = config('services.stripe.webhook_secret');
-
-        if (empty($secret)) {
-            Log::error('STRIPE_WEBHOOK_SECRET not configured.');
-            return response('Server configuration error.', 500);
-        }
-
-        // 1. Verify signature
-        try {
-            $event = Webhook::constructEvent($payload, $sigHeader, $secret);
-        } catch (\UnexpectedValueException $e) {
-            Log::warning('Stripe webhook invalid payload', ['error' => $e->getMessage()]);
-            return response('Invalid payload.', 400);
-        } catch (SignatureVerificationException $e) {
-            Log::warning('Stripe webhook signature failed', ['ip' => $request->ip()]);
-            return response('Invalid signature.', 400);
-        }
-
-        Log::info('Stripe webhook received', ['type' => $event->type, 'id' => $event->id]);
-
-        // 2. Route to handler — always return 200 to prevent Stripe retries
-        try {
-            match ($event->type) {
-                'checkout.session.completed'   => $this->handleCheckoutSessionCompleted($event->data->object),
-                'payment_intent.succeeded'      => $this->handleIntentSucceeded($event->data->object),
-                'payment_intent.payment_failed' => $this->handleIntentFailed($event->data->object),
-                'charge.refunded'               => $this->handleChargeRefunded($event->data->object),
-                default                         => Log::debug("Stripe webhook ignored: {$event->type}"),
-            };
-        } catch (\Throwable $e) {
-            Log::error('Stripe webhook handler threw', [
-                'event'   => $event->type,
-                'message' => $e->getMessage(),
-            ]);
-        }
-
-        return response('OK', 200);
-    }
-
-    // ─────────────────────────────────────────────────────────────────────────
     // Success redirect page
     // ─────────────────────────────────────────────────────────────────────────
 
@@ -307,86 +214,4 @@ class StripePaymentController extends Controller
         return redirect()->route('orders')->with('info', 'Payment is being processed.');
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // Private webhook handlers
-    // ─────────────────────────────────────────────────────────────────────────
-
-    private function handleIntentSucceeded(\Stripe\PaymentIntent $intent): void
-    {
-        $order = $this->checkout->confirmPayment($intent->id);
-
-        // Queue success notification
-        try {
-            if ($order->payment_status === 'paid') {
-                $order->user->notify(new \App\Notifications\PaymentSuccessNotification($order));
-            }
-        } catch (\Throwable $e) {
-            Log::error('PaymentSuccessNotification failed', ['order_id' => $order->id]);
-        }
-    }
-
-    private function handleIntentFailed(\Stripe\PaymentIntent $intent): void
-    {
-        $this->checkout->handlePaymentFailed($intent->id);
-
-        // Queue failure notification
-        try {
-            $payment = \App\Models\Payment::where('gateway_transaction_id', $intent->id)->first();
-            if ($payment) {
-                $order = Order::find($payment->order_id);
-                $order?->user?->notify(new \App\Notifications\PaymentFailedNotification($order));
-            }
-        } catch (\Throwable $e) {
-            Log::error('PaymentFailedNotification failed', ['intent_id' => $intent->id]);
-        }
-    }
-
-    private function handleCheckoutSessionCompleted(\Stripe\Checkout\Session $session): void
-    {
-        $paymentIntentId = (string) ($session->payment_intent ?? '');
-        $paymentType = (string) (($session->metadata->payment_type ?? null) ?? '');
-
-        if ($paymentIntentId === '' || $paymentType !== 'product') {
-            return;
-        }
-
-        $this->checkout->confirmPayment($paymentIntentId);
-    }
-
-    /**
-     * charge.refunded — Stripe-initiated refund (from Dashboard or API).
-     * Reconciles our payment/order records.
-     */
-    private function handleChargeRefunded(\Stripe\Charge $charge): void
-    {
-        if (empty($charge->payment_intent)) return;
-
-        $payment = \App\Models\Payment::where('gateway_transaction_id', $charge->payment_intent)->first();
-        if (! $payment) return;
-
-        if ($payment->status !== 'refunded') {
-            $refunds = $charge->refunds->data ?? [];
-            $latest  = ! empty($refunds) ? end($refunds) : null;
-
-            $payment->update([
-                'status'             => 'refunded',
-                'gateway_refund_id'  => $latest?->id,
-            ]);
-
-            // Move order to refunded status (if not already)
-            $order = Order::find($payment->order_id);
-            if ($order && ! $order->isRefunded()) {
-                $order->update([
-                    'status'         => Order::STATUS_REFUNDED,
-                    'payment_status' => 'refunded',
-                ]);
-
-                \App\Models\OrderStatusHistory::create([
-                    'order_id' => $order->id,
-                    'status'   => Order::STATUS_REFUNDED,
-                    'notes'    => 'Refund reconciled via charge.refunded webhook.',
-                ]);
-            }
-        }
-    }
 }
