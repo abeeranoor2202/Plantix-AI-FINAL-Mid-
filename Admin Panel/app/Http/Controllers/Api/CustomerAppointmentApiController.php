@@ -149,10 +149,11 @@ class CustomerAppointmentApiController extends Controller
         return response()->json(['success' => true, 'appointment' => $this->apptPayload($appt)]);
     }
 
-    // ── Reconcile payment status (user closed tab before redirect) ────────────
+    // ── Read-only payment status check (webhook-only settlement) ─────────────
     //
-    // Frontend polls this after returning from Stripe — we check the PI status
-    // directly from Stripe and sync our records if webhook hasn't fired yet.
+    // Frontend can poll this endpoint to display payment progress.
+    // IMPORTANT: this endpoint MUST NOT mutate appointment/payment state.
+    // Only verified Stripe webhooks can confirm payments.
     //
     public function checkPayment(Request $request, int $id): JsonResponse
     {
@@ -165,16 +166,11 @@ class CustomerAppointmentApiController extends Controller
         try {
             $pi = $this->stripe->retrievePaymentIntent($appt->stripe_payment_intent_id);
 
-            if ($pi->status === 'succeeded' && $appt->status === Appointment::STATUS_PENDING_PAYMENT) {
-                // Webhook may have been delayed — process it now
-                $this->service->confirmPayment($pi->id, 'succeeded');
-                $appt->refresh();
-            }
-
             return response()->json([
                 'success'      => true,
                 'pi_status'    => $pi->status,
                 'appt_status'  => $appt->status,
+                'awaiting_webhook' => $appt->status === Appointment::STATUS_PENDING_PAYMENT,
                 'appointment'  => $this->apptPayload($appt->load('expert.user')),
             ]);
         } catch (\Throwable $e) {
