@@ -55,7 +55,7 @@ class CustomerOrderApiController extends Controller
                       ->findOrFail($id);
 
         $order->update(['status' => 'cancelled']);
-        $order->statusHistory()->create(['status' => 'cancelled', 'note' => 'Cancelled by customer.']);
+        $order->statusHistory()->create(['status' => 'cancelled', 'notes' => 'Cancelled by customer.']);
 
         return response()->json(['success' => true, 'message' => 'Order cancelled successfully.']);
     }
@@ -127,7 +127,7 @@ class CustomerOrderApiController extends Controller
             ])->toArray(),
             'status_history' => $order->statusHistory->map(fn ($h) => [
                 'status'     => $h->status,
-                'note'       => $h->note,
+                'notes'      => $h->notes,
                 'created_at' => $h->created_at?->toISOString(),
             ])->toArray(),
         ]);
