@@ -11,6 +11,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\Schema;
 
 class AdminAppointmentController extends Controller
@@ -112,13 +113,20 @@ class AdminAppointmentController extends Controller
 
         $type = $request->string('type')->toString() === 'offline' ? 'physical' : 'online';
         $uiStatus = $request->string('status')->toString();
+        $scheduledAt = $request->date('scheduled_at');
+
+        $this->assertNoScheduleConflict(
+            $request->integer('expert_id'),
+            $scheduledAt,
+            null
+        );
 
         $appointment = Appointment::create($this->persistable([
             'user_id'               => $userId,
             'expert_id'             => $request->integer('expert_id'),
             'admin_id'              => auth('admin')->id(),
             'type'                  => $type,
-            'scheduled_at'          => $request->date('scheduled_at'),
+            'scheduled_at'          => $scheduledAt,
             'duration_minutes'      => 60,
             'fee'                   => $request->input('fee', 0),
             'topic'                 => $request->input('topic'),
@@ -184,10 +192,18 @@ class AdminAppointmentController extends Controller
         ]);
 
         $type = $request->string('type')->toString() === 'offline' ? 'physical' : 'online';
+        $scheduledAt = $request->date('scheduled_at');
+
+        $this->assertNoScheduleConflict(
+            $request->integer('expert_id'),
+            $scheduledAt,
+            $appointment->id
+        );
+
         $appointment->update($this->persistable([
             'expert_id'             => $request->integer('expert_id'),
             'type'                  => $type,
-            'scheduled_at'          => $request->date('scheduled_at'),
+            'scheduled_at'          => $scheduledAt,
             'fee'                   => $request->input('fee', 0),
             'topic'                 => $request->input('topic'),
             'admin_notes'           => $request->input('admin_notes'),
@@ -268,6 +284,32 @@ class AdminAppointmentController extends Controller
             fn ($value, $key) => in_array($key, $this->appointmentColumns, true),
             ARRAY_FILTER_USE_BOTH
         );
+    }
+
+    private function assertNoScheduleConflict(int $expertId, ?\Carbon\Carbon $scheduledAt, ?int $ignoreAppointmentId = null): void
+    {
+        if (! $expertId || ! $scheduledAt) {
+            return;
+        }
+
+        $query = Appointment::query()
+            ->where('expert_id', $expertId)
+            ->where('scheduled_at', $scheduledAt)
+            ->whereNotIn('status', [
+                Appointment::STATUS_CANCELLED,
+                Appointment::STATUS_REJECTED,
+                Appointment::STATUS_PAYMENT_FAILED,
+            ]);
+
+        if ($ignoreAppointmentId) {
+            $query->where('id', '!=', $ignoreAppointmentId);
+        }
+
+        if ($query->exists()) {
+            throw ValidationException::withMessages([
+                'scheduled_at' => 'This expert already has an appointment at the selected date/time.',
+            ]);
+        }
     }
 
     // ── Delete functionality ──────────────────────────────────────────────────
