@@ -4,11 +4,13 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Appointment;
+use App\Models\StripeWebhookEvent;
 use App\Services\Shared\AppointmentService;
 use App\Services\Shared\CartCheckoutService;
 use App\Services\Shared\StripeService;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\Log;
 use Stripe\Exception\SignatureVerificationException;
 
@@ -24,8 +26,8 @@ use Stripe\Exception\SignatureVerificationException;
  *  - Rate-limited at nginx/server level (not application level)
  *
  * Idempotency:
- *  - AppointmentService methods are idempotent; safe for Stripe retries
- *  - Logs duplicates but returns 200 to prevent Stripe from retrying endlessly
+ *  - Stores Stripe event IDs in stripe_webhook_events
+ *  - Duplicate event_id deliveries are acknowledged and ignored
  *
  * Supported events:
  *  - payment_intent.succeeded      → status: pending_expert_approval, notify expert
@@ -64,7 +66,33 @@ class StripeWebhookController extends Controller
 
         Log::info('Stripe webhook received', ['type' => $event->type, 'id' => $event->id]);
 
-        // ── 2. Route to handler ───────────────────────────────────────────────
+        // ── 2. Enforce event-id idempotency ─────────────────────────────────
+        $eventId = (string) ($event->id ?? '');
+        if ($eventId === '') {
+            Log::warning('Stripe webhook event without id was ignored.', ['type' => $event->type]);
+            return response('Webhook received', 200);
+        }
+
+        try {
+            $record = StripeWebhookEvent::create([
+                'provider'      => 'stripe',
+                'event_id'      => $eventId,
+                'event_type'    => (string) $event->type,
+                'payload_hash'  => hash('sha256', $payload),
+                'payload'       => json_decode($payload, true),
+                'processed_at'  => null,
+            ]);
+        } catch (QueryException $e) {
+            // Duplicate-key SQLSTATEs: 23000 (MySQL/SQLite), 23505 (Postgres).
+            if (in_array(($e->errorInfo[0] ?? null), ['23000', '23505'], true)) {
+                Log::info('Stripe webhook duplicate ignored', ['event_id' => $eventId, 'type' => $event->type]);
+                return response('Webhook received', 200);
+            }
+
+            throw $e;
+        }
+
+        // ── 3. Route to handler ───────────────────────────────────────────────
         try {
             match ($event->type) {
                 'checkout.session.completed'   => $this->onCheckoutSessionCompleted($event->data->object),
@@ -81,6 +109,8 @@ class StripeWebhookController extends Controller
                 'event_id'   => $event->id,
                 'trace'      => $e->getTraceAsString(),
             ]);
+        } finally {
+            $record->forceFill(['processed_at' => now()])->save();
         }
 
         // Always return 200 after processing (Stripe retries on non-2xx)
