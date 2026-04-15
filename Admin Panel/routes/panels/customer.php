@@ -204,7 +204,7 @@ Route::middleware(['customer', 'verified'])->group(function () {
 // ══════════════════════════════════════════════════════════════════════════════
 
 Route::post('payments/stripe/intent',   [\App\Http\Controllers\Frontend\StripePaymentController::class, 'createIntent'])->middleware('auth:web')->name('stripe.intent');
-Route::post('stripe/webhook',           [\App\Http\Controllers\Frontend\StripePaymentController::class, 'webhook'])->name('stripe.webhook');
+Route::post('stripe/webhook',           [\App\Http\Controllers\Api\StripeWebhookController::class, 'handle'])->name('stripe.webhook');
 
 Route::get('payment/success',  [\App\Http\Controllers\Frontend\StripePaymentController::class, 'success'])->name('payment.success');
 Route::get('payment/failed',   fn () => view('customer.payment-failed'))->name('payment.failed');
