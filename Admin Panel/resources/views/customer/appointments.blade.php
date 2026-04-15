@@ -76,6 +76,7 @@
                                     <th class="border-0 py-3 rounded-start" style="font-weight: 600; color: var(--agri-text-muted); font-size: 13px; text-transform: uppercase;">ID</th>
                                     <th class="border-0 py-3" style="font-weight: 600; color: var(--agri-text-muted); font-size: 13px; text-transform: uppercase;">Date / Time</th>
                                     <th class="border-0 py-3" style="font-weight: 600; color: var(--agri-text-muted); font-size: 13px; text-transform: uppercase;">Expert</th>
+                                    <th class="border-0 py-3" style="font-weight: 600; color: var(--agri-text-muted); font-size: 13px; text-transform: uppercase;">Type</th>
                                     <th class="border-0 py-3" style="font-weight: 600; color: var(--agri-text-muted); font-size: 13px; text-transform: uppercase;">Status</th>
                                     <th class="border-0 py-3 rounded-end" style="font-weight: 600; color: var(--agri-text-muted); font-size: 13px; text-transform: uppercase;">Actions</th>
                                 </tr>
@@ -96,6 +97,11 @@
                                         </div>
                                     </td>
                                     <td class="border-bottom-0 py-3">
+                                        <span class="badge rounded-pill fw-medium" style="background: {{ $appt->type === 'physical' ? 'rgba(16, 185, 129, 0.1); color: #10B981;' : 'rgba(37, 99, 235, 0.1); color: #2563EB;' }} padding: 6px 12px; font-size: 12px;">
+                                            {{ strtoupper($appt->type_label) }}
+                                        </span>
+                                    </td>
+                                    <td class="border-bottom-0 py-3">
                                         <span class="badge rounded-pill fw-medium" style="background: {{ $appt->status === 'completed' ? 'rgba(16, 185, 129, 0.1); color: #10B981;' : ($appt->status === 'cancelled' ? 'rgba(239, 68, 68, 0.1); color: #EF4444;' : 'rgba(245, 158, 11, 0.1); color: #F59E0B;') }} padding: 6px 12px; font-size: 12px;">
                                             {{ ucwords(str_replace('_', ' ', $appt->status)) }}
                                         </span>
@@ -103,12 +109,17 @@
                                     <td class="border-bottom-0 py-3 rounded-end">
                                         <div class="d-flex gap-2">
                                             <a href="{{ route('appointment.details', $appt->id) }}" class="btn-agri text-decoration-none" style="padding: 6px 12px; font-size: 13px; background: var(--agri-bg); color: var(--agri-text-main);"><i class="fas fa-eye"></i></a>
+                                            @if($appt->isOnline() && $appt->meeting_link)
+                                            <a href="{{ $appt->meeting_link }}" target="_blank" class="btn-agri btn-agri-primary text-decoration-none" style="padding: 6px 14px; font-size: 13px;">
+                                                <i class="fas fa-video me-1"></i> Join Meeting
+                                            </a>
+                                            @endif
                                             @if($appt->status === 'pending_payment')
                                             <a href="{{ route('appointment.pay', $appt->id) }}" class="btn-agri btn-agri-primary text-decoration-none" style="padding: 6px 14px; font-size: 13px;">
                                                 <i class="fas fa-credit-card me-1"></i> Pay
                                             </a>
                                             @endif
-                                            @if(in_array($appt->status, ['pending','confirmed']))
+                                            @if($appt->canBeCancelledByCustomer())
                                             <form method="POST" action="{{ route('appointment.cancel', $appt->id) }}">
                                                 @csrf
                                                 <button class="btn-agri text-danger" style="padding: 6px 12px; font-size: 13px; background: rgba(239, 68, 68, 0.1); border: none;" onclick="return confirm('Are you sure you want to cancel this appointment?')"><i class="fas fa-times"></i></button>
