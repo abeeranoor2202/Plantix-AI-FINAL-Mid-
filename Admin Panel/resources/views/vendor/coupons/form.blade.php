@@ -1,22 +1,22 @@
 @extends('vendor.layouts.app')
 @section('title', $coupon ? 'Edit Coupon' : 'New Coupon')
-@section('page-title', $coupon ? 'Edit Coupon' : 'Create New Coupon')
 
 @section('content')
-<div class="row justify-content-center">
-    <div class="col-lg-8">
-        
-        <div class="d-flex align-items-center mb-4">
-            <a href="{{ route('vendor.coupons.index') }}" class="btn btn-sm btn-outline-secondary rounded-circle me-3 d-flex align-items-center justify-content-center shadow-sm" style="width: 36px; height: 36px;" title="Back to Coupons">
-                <i class="bi bi-arrow-left"></i>
-            </a>
-            <div>
-                <h4 class="mb-0 fw-bold text-dark"><i class="bi bi-{{ $coupon ? 'pencil-square text-primary' : 'tag-fill text-success' }} me-2"></i>{{ $coupon ? 'Edit Coupon: ' . $coupon->code : 'Create New Coupon' }}</h4>
-                <span class="text-muted small fw-medium mt-1 d-block">{{ $coupon ? 'Update coupon settings and limits' : 'Set up a new discount code for your customers' }}</span>
+<div class="container-fluid" style="padding-top: 24px; padding-bottom: 40px;">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div style="margin-bottom: 24px;">
+                <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
+                    <a href="{{ route('vendor.coupons.index') }}" style="text-decoration: none; color: var(--agri-text-muted); font-size: 14px; font-weight: 600;">Coupons</a>
+                    <i class="fas fa-chevron-right" style="font-size: 10px; color: var(--agri-text-muted);"></i>
+                    <span style="color: var(--agri-primary); font-size: 14px; font-weight: 600;">{{ $coupon ? 'Edit Coupon' : 'Create Coupon' }}</span>
+                </div>
+                <h1 style="font-size: 28px; font-weight: 700; color: var(--agri-primary-dark); margin: 0;">{{ $coupon ? 'Edit Coupon' : 'Create New Coupon' }}</h1>
+                <p style="color: var(--agri-text-muted); margin: 4px 0 0 0;">{{ $coupon ? 'Update coupon settings and limits.' : 'Set up a new discount code for your customers.' }}</p>
             </div>
         </div>
 
-        <div class="card border-0 shadow-sm hover-card mb-5" style="border-radius:16px;">
+        <div class="card-agri mb-5">
             <div class="card-body p-4 p-md-5">
 
                 @if ($coupon)
@@ -142,17 +142,15 @@
                     </div>
 
                     <div class="d-flex justify-content-end gap-3 pt-4 border-top">
-                        <a href="{{ route('vendor.coupons.index') }}" class="btn btn-light rounded-pill px-4 fw-bold shadow-sm">Cancel</a>
-                        <button type="submit" class="btn btn-{{ $coupon ? 'primary' : 'success' }} rounded-pill px-5 fw-bold shadow-sm">
-                            <i class="bi bi-{{ $coupon ? 'check-circle' : 'plus-circle' }} me-2"></i>{{ $coupon ? 'Update Coupon' : 'Create Coupon' }}
-                        </button>
+                        <x-button :href="route('vendor.coupons.index')" variant="outline">Cancel</x-button>
+                        <x-button type="submit" :variant="$coupon ? 'primary' : 'primary'" icon="fas fa-save">{{ $coupon ? 'Update Coupon' : 'Create Coupon' }}</x-button>
                     </div>
 
                 </form>
 
             </div>
         </div>
-
+        </div>
     </div>
 </div>
 @endsection
