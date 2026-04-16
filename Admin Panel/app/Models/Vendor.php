@@ -170,6 +170,16 @@ class Vendor extends Model
         return (string) ($this->attributes['title'] ?? '');
     }
 
+    public function getDisplayNameAttribute(): string
+    {
+        return (string) (
+            $this->attributes['name']
+            ?? $this->attributes['title']
+            ?? $this->attributes['business_name']
+            ?? 'Unknown Vendor'
+        );
+    }
+
     public function getOwnerNameAttribute(): string
     {
         return (string) ($this->attributes['owner_name'] ?? $this->author?->name ?? '');
