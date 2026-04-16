@@ -1,145 +1,121 @@
 @extends('expert.layouts.app')
+
 @section('title', 'Appointments')
-@section('page-title', 'Appointment Management')
 
 @section('content')
-{{-- Stats row --}}
-<div class="row g-4 mb-4">
-    @foreach([
-        ['label'=>'Total Appointments','key'=>'total','icon'=>'fa-calendar','color'=>'#3B82F6'],
-        ['label'=>'Needs Review','key'=>'pending','icon'=>'fa-hourglass-half','color'=>'#F59E0B'],
-        ['label'=>'Upcoming Soon','key'=>'upcoming','icon'=>'fa-clock','color'=>'#10B981'],
-        ['label'=>'Completed','key'=>'completed','icon'=>'fa-check-circle','color'=>'#059669'],
-        ['label'=>'Rejected','key'=>'rejected','icon'=>'fa-times-circle','color'=>'#EF4444'],
-    ] as $s)
-    <div class="col-xl col-md-4 col-sm-6">
-        <div class="card-agri hover-lift p-4 text-center h-100 d-flex flex-column justify-content-center align-items-center bg-white">
-            <div class="rounded-circle d-flex align-items-center justify-content-center mb-3" style="width: 48px; height: 48px; background-color: {{ $s['color'] }}15; color: {{ $s['color'] }};">
-                <i class="fas {{ $s['icon'] }} fs-4"></i>
-            </div>
-            <h3 class="fw-bold text-dark mb-1">{{ $stats[$s['key']] }}</h3>
-            <span class="text-muted small text-uppercase fw-bold" style="letter-spacing: 0.5px; font-size: 11px;">{{ $s['label'] }}</span>
+<div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 32px;">
+    <div>
+        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
+            <a href="{{ route('expert.dashboard') }}" style="text-decoration: none; color: var(--agri-text-muted); font-size: 14px; font-weight: 600;">Dashboard</a>
+            <i class="fas fa-chevron-right" style="font-size: 10px; color: var(--agri-text-muted);"></i>
+            <span style="color: var(--agri-primary); font-size: 14px; font-weight: 600;">Appointments</span>
         </div>
+        <h1 style="font-size: 28px; font-weight: 700; color: var(--agri-primary-dark); margin: 0;">Appointments</h1>
+        <p style="color: var(--agri-text-muted); margin: 4px 0 0 0;">Manage consultation requests and session lifecycle.</p>
     </div>
-    @endforeach
 </div>
 
-{{-- Filters --}}
-<form method="GET" class="card-agri border-0 mb-4 p-4 mt-2">
-    <div class="row g-3 align-items-end">
-        <div class="col-md-3">
-            <label class="form-label small text-uppercase fw-bold text-muted mb-2">Status Filter</label>
-            <select name="status" class="form-agri py-2">
-                <option value="">All Statuses</option>
-                @foreach(['pending','confirmed','reschedule_requested','rescheduled','completed','rejected','cancelled'] as $st)
-                    <option value="{{ $st }}" {{ ($filters['status'] ?? '') === $st ? 'selected' : '' }}>
-                        {{ ucfirst($st) }}
-                    </option>
-                @endforeach
-            </select>
-        </div>
-        <div class="col-md-3">
-            <label class="form-label small text-uppercase fw-bold text-muted mb-2">Date From</label>
-            <input type="date" name="date_from" class="form-agri py-2" value="{{ $filters['date_from'] ?? '' }}">
-        </div>
-        <div class="col-md-3">
-            <label class="form-label small text-uppercase fw-bold text-muted mb-2">Date To</label>
-            <input type="date" name="date_to" class="form-agri py-2" value="{{ $filters['date_to'] ?? '' }}">
-        </div>
-        <div class="col-md-3 d-flex gap-2">
-            <button type="submit" class="btn-agri btn-agri-primary w-100 py-2">
-                <i class="fas fa-filter me-2"></i>Filter
-            </button>
-            <a href="{{ route('expert.appointments.index') }}" class="btn-agri btn-agri-outline py-2 d-flex align-items-center justify-content-center" title="Reset Filters" style="width: 42px;">
-                <i class="fas fa-undo"></i>
-            </a>
-        </div>
-    </div>
-</form>
+<div class="row g-4 mb-4">
+    <div class="col-sm-6 col-lg-3"><div class="card-agri"><h5 style="color: var(--agri-text-muted); font-size: 14px; margin-bottom: 4px;">Total</h5><h2 style="font-size: 28px; font-weight: 700; margin:0;">{{ $stats['total'] }}</h2></div></div>
+    <div class="col-sm-6 col-lg-3"><div class="card-agri"><h5 style="color: var(--agri-text-muted); font-size: 14px; margin-bottom: 4px;">Pending</h5><h2 style="font-size: 28px; font-weight: 700; margin:0;">{{ $stats['pending'] }}</h2></div></div>
+    <div class="col-sm-6 col-lg-3"><div class="card-agri"><h5 style="color: var(--agri-text-muted); font-size: 14px; margin-bottom: 4px;">Upcoming</h5><h2 style="font-size: 28px; font-weight: 700; margin:0;">{{ $stats['upcoming'] }}</h2></div></div>
+    <div class="col-sm-6 col-lg-3"><div class="card-agri"><h5 style="color: var(--agri-text-muted); font-size: 14px; margin-bottom: 4px;">Completed</h5><h2 style="font-size: 28px; font-weight: 700; margin:0;">{{ $stats['completed'] }}</h2></div></div>
+</div>
 
-{{-- Appointment List --}}
-<div class="card-agri p-0 overflow-hidden">
-    <div class="table-responsive">
-        <table class="table align-middle mb-0" style="border-collapse: separate; border-spacing: 0;">
-            <thead style="background: var(--agri-bg);">
+<div class="card-agri mb-4" style="padding: 20px 24px;">
+    <form method="GET" action="{{ route('expert.appointments.index') }}">
+        <div class="row g-3 align-items-end">
+            <div class="col-md-3">
+                <label class="agri-label">Search</label>
+                <x-input name="search" :value="$filters['search'] ?? ''" placeholder="Farmer or topic" />
+            </div>
+            <div class="col-md-3">
+                <label class="agri-label">Status</label>
+                <select name="status" class="form-agri">
+                    <option value="">All</option>
+                    @foreach(['pending_payment','pending_expert_approval','confirmed','reschedule_requested','rescheduled','completed','rejected','cancelled'] as $st)
+                        <option value="{{ $st }}" {{ ($filters['status'] ?? '') === $st ? 'selected' : '' }}>{{ ucfirst(str_replace('_',' ', $st)) }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="agri-label">Date From</label>
+                <x-input type="date" name="date_from" :value="$filters['date_from'] ?? ''" />
+            </div>
+            <div class="col-md-2">
+                <label class="agri-label">Date To</label>
+                <x-input type="date" name="date_to" :value="$filters['date_to'] ?? ''" />
+            </div>
+            <div class="col-md-2 d-flex gap-2">
+                <x-button type="submit" variant="primary" icon="fas fa-filter" style="width:100%;">Apply</x-button>
+                <x-button :href="route('expert.appointments.index')" variant="outline" style="width:100%;">Reset</x-button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<div class="card-agri" style="padding: 0; overflow: hidden;">
+    <x-table>
+        <thead style="background: var(--agri-bg);">
+            <tr>
+                <th style="padding: 16px 24px; font-size: 12px; color: var(--agri-text-muted); border: none;">ID</th>
+                <th style="padding: 16px 24px; font-size: 12px; color: var(--agri-text-muted); border: none;">FARMER</th>
+                <th style="padding: 16px 24px; font-size: 12px; color: var(--agri-text-muted); border: none;">TOPIC</th>
+                <th style="padding: 16px 24px; font-size: 12px; color: var(--agri-text-muted); border: none;">TYPE</th>
+                <th style="padding: 16px 24px; font-size: 12px; color: var(--agri-text-muted); border: none;">SCHEDULED</th>
+                <th style="padding: 16px 24px; font-size: 12px; color: var(--agri-text-muted); border: none;">STATUS</th>
+                <th style="padding: 16px 24px; font-size: 12px; color: var(--agri-text-muted); border: none;">FEE</th>
+                <th class="text-end" style="padding: 16px 24px; font-size: 12px; color: var(--agri-text-muted); border: none;">ACTIONS</th>
+            </tr>
+        </thead>
+        <tbody>
+            @forelse($appointments->items() as $appt)
                 <tr>
-                    <th class="py-3 px-4 border-0 text-muted text-uppercase fw-bold" style="font-size: 12px;">ID</th>
-                    <th class="py-3 border-0 text-muted text-uppercase fw-bold" style="font-size: 12px;">Farmer Details</th>
-                    <th class="py-3 border-0 text-muted text-uppercase fw-bold" style="font-size: 12px;">Consultation Topic</th>
-                    <th class="py-3 border-0 text-muted text-uppercase fw-bold" style="font-size: 12px;">Type</th>
-                    <th class="py-3 border-0 text-muted text-uppercase fw-bold" style="font-size: 12px;">Scheduled For</th>
-                    <th class="py-3 border-0 text-muted text-uppercase fw-bold" style="font-size: 12px;">Status</th>
-                    <th class="py-3 border-0 text-muted text-uppercase fw-bold" style="font-size: 12px;">Fee</th>
-                    <th class="py-3 px-4 border-0 text-muted text-uppercase fw-bold text-end" style="font-size: 12px;">Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                @forelse($appointments->items() as $appt)
-                <tr style="background: white; border-bottom: 1px solid var(--sidebar-border); transition: background 0.2s;" onmouseover="this.style.background='#F9FAFB'" onmouseout="this.style.background='white'">
+                    <td class="px-4 py-3">#{{ $appt->id }}</td>
                     <td class="px-4 py-3">
-                        <a href="{{ route('expert.appointments.show', $appt) }}" class="fw-bold text-decoration-none" style="color: var(--agri-primary);">#{{ $appt->id }}</a>
+                        <div style="font-weight: 700; color: var(--agri-text-heading);">{{ $appt->user->name }}</div>
+                        <small class="text-muted">{{ $appt->user->email }}</small>
                     </td>
-                    <td class="py-3">
-                        <div class="d-flex align-items-center gap-3">
-                            <div class="bg-primary bg-opacity-10 text-primary rounded d-flex align-items-center justify-content-center fw-bold" style="width: 40px; height: 40px; font-size: 1.1rem; font-family: var(--font-heading);">
-                                {{ strtoupper(substr($appt->user->name ?? 'F', 0, 1)) }}
-                            </div>
-                            <div>
-                                <div class="fw-bold text-dark fs-6">{{ $appt->user->name }}</div>
-                                <div class="text-muted small"><i class="fas fa-envelope me-1 text-primary opacity-75"></i>{{ $appt->user->email }}</div>
-                            </div>
+                    <td class="px-4 py-3">{{ Str::limit($appt->topic ?? 'General consultation', 35) }}</td>
+                    <td class="px-4 py-3">
+                        <x-badge :variant="$appt->type === 'physical' ? 'success' : 'info'">{{ strtoupper($appt->type_label) }}</x-badge>
+                    </td>
+                    <td class="px-4 py-3">{{ $appt->scheduled_at?->format('d M Y, h:i A') }}</td>
+                    <td class="px-4 py-3">
+                        @php
+                            $statusVariant = match($appt->status) {
+                                'completed', 'confirmed' => 'success',
+                                'pending_payment', 'pending_expert_approval', 'reschedule_requested', 'rescheduled' => 'warning',
+                                'rejected', 'cancelled' => 'danger',
+                                default => 'secondary',
+                            };
+                        @endphp
+                        <x-badge :variant="$statusVariant">{{ ucfirst(str_replace('_',' ', $appt->status)) }}</x-badge>
+                    </td>
+                    <td class="px-4 py-3">PKR {{ number_format($appt->fee) }}</td>
+                    <td class="px-4 py-3 text-end">
+                        <div style="display: inline-flex; gap: 8px;">
+                            <a href="{{ route('expert.appointments.show', $appt) }}" class="btn-agri" style="padding: 8px; background: var(--agri-bg); color: #2563eb; border-radius: 999px;" title="View"><i class="fas fa-eye"></i></a>
+                            <button type="button" class="btn-agri" style="padding: 8px; background: var(--agri-bg); color: #9ca3af; border-radius: 999px; border: none;" title="Edit unavailable" disabled><i class="fas fa-pen"></i></button>
+                            <button type="button" class="btn-agri" style="padding: 8px; background: #fef2f2; color: #fca5a5; border-radius: 999px; border: none;" title="Delete unavailable" disabled><i class="fas fa-trash"></i></button>
                         </div>
-                    </td>
-                    <td class="py-3">
-                        <div class="fw-medium text-dark bg-light rounded px-3 py-2 d-inline-block" style="font-size: 13px;">
-                            <i class="fas fa-comment-dots text-muted me-2"></i>{{ Str::limit($appt->topic ?? 'General Consultation', 30) }}
-                        </div>
-                    </td>
-                    <td class="py-3">
-                        <span class="badge-agri bg-{{ $appt->type === 'physical' ? 'success' : 'primary' }} bg-opacity-10 text-{{ $appt->type === 'physical' ? 'success' : 'primary' }} border border-{{ $appt->type === 'physical' ? 'success' : 'primary' }} border-opacity-25" style="padding: 0.35em 0.8em;">
-                            {{ strtoupper($appt->type_label) }}
-                        </span>
-                    </td>
-                    <td class="py-3">
-                        <div class="fw-bold text-dark mb-1"><i class="far fa-calendar-alt text-primary me-2"></i>{{ $appt->scheduled_at?->format('d M Y') }}</div>
-                        <div class="text-muted small fw-medium"><i class="far fa-clock text-muted me-2"></i>{{ $appt->scheduled_at?->format('h:i A') }}</div>
-                    </td>
-                    <td class="py-3">
-                        <span class="badge-agri bg-{{ $appt->status_badge }} bg-opacity-10 text-{{ $appt->status_badge }} border border-{{ $appt->status_badge }} border-opacity-25" style="padding: 0.35em 0.8em;">
-                            {{ ucfirst($appt->status) }}
-                        </span>
-                    </td>
-                    <td class="py-3">
-                        <span class="fw-bold text-dark">PKR {{ number_format($appt->fee) }}</span>
-                    </td>
-                    <td class="text-end px-4 py-3">
-                        <a href="{{ route('expert.appointments.show', $appt) }}"
-                           class="btn btn-sm btn-light border shadow-sm text-primary rounded-circle d-flex align-items-center justify-content-center ms-auto" style="width: 36px; height: 36px;" title="View Details">
-                            <i class="fas fa-chevron-right"></i>
-                        </a>
                     </td>
                 </tr>
-                @empty
+            @empty
                 <tr>
-                    <td colspan="8" class="text-center py-5 border-0">
-                        <div class="d-flex flex-column align-items-center justify-content-center">
-                            <div class="bg-light rounded-circle d-flex align-items-center justify-content-center mb-3 border border-dashed" style="width: 80px; height: 80px;">
-                                <i class="far fa-calendar-times fs-2 text-muted opacity-50"></i>
-                            </div>
-                            <h5 class="fw-bold text-dark">No Consultations Found</h5>
-                            <p class="text-muted small mb-0">Adjust your filters or wait for new farm consultation requests.</p>
-                        </div>
+                    <td colspan="8" class="text-center py-5" style="color: var(--agri-text-muted);">
+                        <i class="mdi mdi-calendar-blank-outline" style="font-size: 28px; display:block; margin-bottom: 8px; opacity: .5;"></i>
+                        No appointments found.
                     </td>
                 </tr>
-                @endforelse
-            </tbody>
-        </table>
-    </div>
-    
-    @if($appointments->hasPages())
-    <div class="p-4 bg-light border-top text-center">
+            @endforelse
+        </tbody>
+    </x-table>
+</div>
+
+@if($appointments->hasPages())
+    <div style="margin-top: 24px; display: flex; justify-content: center;">
         {{ $appointments->appends($filters)->links('pagination::bootstrap-5') }}
     </div>
-    @endif
-</div>
+@endif
 @endsection
