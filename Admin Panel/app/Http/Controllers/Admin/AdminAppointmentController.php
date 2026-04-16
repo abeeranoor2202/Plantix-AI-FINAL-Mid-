@@ -246,10 +246,9 @@ class AdminAppointmentController extends Controller
                 Appointment::STATUS_PENDING_EXPERT_APPROVAL,
                 Appointment::STATUS_RESCHEDULE_REQUESTED,
                 Appointment::STATUS_PENDING,
-                Appointment::STATUS_REQUESTED,
                 Appointment::STATUS_RESCHEDULED,
             ],
-            'confirmed' => [Appointment::STATUS_CONFIRMED, Appointment::STATUS_ACCEPTED],
+            'confirmed' => [Appointment::STATUS_CONFIRMED],
             'completed' => [Appointment::STATUS_COMPLETED],
             'cancelled' => [Appointment::STATUS_CANCELLED, Appointment::STATUS_REJECTED],
             default => [
@@ -263,8 +262,6 @@ class AdminAppointmentController extends Controller
                 Appointment::STATUS_REJECTED,
                 Appointment::STATUS_RESCHEDULE_REQUESTED,
                 Appointment::STATUS_PENDING,
-                Appointment::STATUS_REQUESTED,
-                Appointment::STATUS_ACCEPTED,
                 Appointment::STATUS_RESCHEDULED,
             ],
         };
