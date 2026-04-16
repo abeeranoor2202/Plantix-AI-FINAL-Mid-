@@ -116,7 +116,7 @@ class Expert extends Model
 
     public function forumResponses(): HasMany
     {
-        return $this->hasMany(ForumExpertResponse::class);
+        return $this->hasMany(ForumReply::class)->where('is_expert_reply', true);
     }
 
     public function notificationLogs(): HasMany
