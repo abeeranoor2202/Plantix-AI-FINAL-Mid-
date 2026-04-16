@@ -98,7 +98,7 @@
                                                 <i class="fas fa-eye"></i>
                                             </a>
                                             @if($order->status === 'pending_payment')
-                                            <a href="{{ route('checkout.pay', $order->id) }}"
+                                            <a href="{{ route('checkout.stripe.pay', $order->id) }}"
                                                class="btn-agri btn-agri-primary text-decoration-none"
                                                style="padding: 6px 14px; font-size: 13px;">
                                                 <i class="fas fa-credit-card me-1"></i> Pay
