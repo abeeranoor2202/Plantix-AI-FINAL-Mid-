@@ -7,6 +7,7 @@ use App\Models\Appointment;
 use App\Models\AppointmentReschedule;
 use App\Models\Expert;
 use App\Services\Shared\AppointmentService;
+use App\Services\Shared\AppointmentStatusService;
 use App\Services\Shared\AvailabilityService;
 use App\Services\Shared\StripeService;
 use Illuminate\Http\JsonResponse;
@@ -19,6 +20,7 @@ class CustomerAppointmentApiController extends Controller
 {
     public function __construct(
         private readonly AppointmentService  $service,
+        private readonly AppointmentStatusService $appointmentStatus,
         private readonly AvailabilityService $availability,
         private readonly StripeService       $stripe,
     ) {}
@@ -236,29 +238,15 @@ class CustomerAppointmentApiController extends Controller
             ->where('status', Appointment::STATUS_RESCHEDULE_REQUESTED)
             ->findOrFail($id);
 
-        $reschedule = AppointmentReschedule::where('appointment_id', $appt->id)
-            ->where('status', 'pending')
-            ->latest()
-            ->firstOrFail();
-
-        DB::transaction(function () use ($data, $appt, $reschedule, $request) {
-            if ($data['action'] === 'accept') {
-                $appt->update([
-                    'scheduled_at' => $reschedule->proposed_scheduled_at,
-                    'status'       => Appointment::STATUS_CONFIRMED,
-                ]);
-                $reschedule->update(['status' => 'accepted', 'responded_at' => now()]);
-
-                \App\Models\AppointmentLog::record($appt, 'reschedule_accepted', $request->user()->id, Appointment::STATUS_RESCHEDULE_REQUESTED, Appointment::STATUS_CONFIRMED);
-            } else {
-                $this->service->cancel($appt, 'Customer rejected reschedule proposal.', false, $request->user()->id);
-                $reschedule->update(['status' => 'rejected', 'responded_at' => now()]);
-            }
-        });
+        if ($data['action'] === 'accept') {
+            $this->appointmentStatus->acceptReschedule($appt, $request->user()->id);
+        } else {
+            $this->appointmentStatus->rejectReschedule($appt, $request->user()->id, 'Customer rejected reschedule proposal.');
+        }
 
         $message = $data['action'] === 'accept'
-            ? 'Reschedule accepted. Appointment confirmed for the new time.'
-            : 'Reschedule rejected. Appointment has been cancelled.';
+            ? 'Reschedule accepted. Appointment moved to the proposed time.'
+            : 'Reschedule rejected. Appointment remains confirmed at the original time.';
 
         return response()->json(['success' => true, 'message' => $message]);
     }
