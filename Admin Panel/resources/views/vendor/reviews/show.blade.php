@@ -1,22 +1,22 @@
 @extends('vendor.layouts.app')
 @section('title', 'Review Detail')
-@section('page-title', 'Review Detail')
 
 @section('content')
+<div class="container-fluid" style="padding-top: 24px; padding-bottom: 40px;">
 <div class="row justify-content-center">
     <div class="col-lg-8">
         
-        <div class="d-flex align-items-center mb-4">
-            <a href="{{ route('vendor.reviews.index') }}" class="btn btn-sm btn-outline-secondary rounded-circle me-3 d-flex align-items-center justify-content-center shadow-sm" style="width: 36px; height: 36px;" title="Back to Reviews">
-                <i class="bi bi-arrow-left"></i>
-            </a>
-            <div>
-                <h4 class="mb-0 fw-bold text-dark"><i class="bi bi-chat-quote-fill me-2 text-primary"></i>Customer Review Details</h4>
-                <span class="text-muted small fw-medium mt-1 d-block">View feedback left by a customer for your product</span>
+        <div style="margin-bottom: 24px;">
+            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
+                <a href="{{ route('vendor.reviews.index') }}" style="text-decoration: none; color: var(--agri-text-muted); font-size: 14px; font-weight: 600;">Reviews</a>
+                <i class="fas fa-chevron-right" style="font-size: 10px; color: var(--agri-text-muted);"></i>
+                <span style="color: var(--agri-primary); font-size: 14px; font-weight: 600;">Review Detail</span>
             </div>
+            <h1 style="font-size: 28px; font-weight: 700; color: var(--agri-primary-dark); margin: 0;">Customer Review Details</h1>
+            <p style="color: var(--agri-text-muted); margin: 4px 0 0 0;">View feedback left by a customer for your product.</p>
         </div>
 
-        <div class="card border-0 shadow-sm hover-card mb-4" style="border-radius:16px;">
+        <div class="card-agri mb-4" style="padding: 0; overflow: hidden;">
             <div class="card-header bg-white border-bottom py-3">
                 <h6 class="mb-0 fw-bold text-dark"><i class="bi bi-info-circle-fill me-2 text-info fs-5"></i>Review Information</h6>
             </div>
@@ -99,7 +99,7 @@
             </div>
         </div>
 
-        <div class="card border-0 shadow-sm hover-card" style="border-radius:16px;">
+        <div class="card-agri" style="padding: 0; overflow: hidden;">
             <div class="card-header bg-white border-bottom py-3">
                 <h6 class="mb-0 fw-bold text-dark"><i class="bi bi-reply-fill me-2 text-primary fs-5"></i>Respond to Customer</h6>
             </div>
@@ -113,13 +113,12 @@
                             <div class="invalid-feedback d-block">{{ $message }}</div>
                         @enderror
                     </div>
-                    <button type="submit" class="btn btn-primary rounded-pill px-4 fw-bold shadow-sm">
-                        <i class="bi bi-send-fill me-2"></i>Save Response
-                    </button>
+                    <x-button type="submit" variant="primary" icon="fas fa-paper-plane">Save Response</x-button>
                 </form>
             </div>
         </div>
 
     </div>
+</div>
 </div>
 @endsection
