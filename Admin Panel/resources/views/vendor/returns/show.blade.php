@@ -1,25 +1,25 @@
 @extends('vendor.layouts.app')
 @section('title', 'Return #' . $return->id)
-@section('page-title', 'Return Request Detail')
 
 @section('content')
+<div class="container-fluid" style="padding-top: 24px; padding-bottom: 40px;">
 @if(session('success'))
     <div class="alert alert-success alert-dismissible fade show">{{ session('success') }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
 @endif
 
-<div class="d-flex align-items-center mb-4">
-    <a href="{{ route('vendor.returns.index') }}" class="btn btn-sm btn-outline-secondary rounded-circle me-3 d-flex align-items-center justify-content-center shadow-sm" style="width: 36px; height: 36px;" title="Back to Returns">
-        <i class="bi bi-arrow-left"></i>
-    </a>
-    <div>
-        <h4 class="mb-0 fw-bold text-dark"><i class="bi bi-info-circle-fill me-2 text-primary"></i>Return Request #{{ $return->id }}</h4>
-        <span class="text-muted small fw-medium mt-1 d-block">Manage and provide feedback for this customer return</span>
+<div style="margin-bottom: 24px;">
+    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
+        <a href="{{ route('vendor.returns.index') }}" style="text-decoration: none; color: var(--agri-text-muted); font-size: 14px; font-weight: 600;">Returns</a>
+        <i class="fas fa-chevron-right" style="font-size: 10px; color: var(--agri-text-muted);"></i>
+        <span style="color: var(--agri-primary); font-size: 14px; font-weight: 600;">Return #{{ $return->id }}</span>
     </div>
+    <h1 style="font-size: 28px; font-weight: 700; color: var(--agri-primary-dark); margin: 0;">Return Request #{{ $return->id }}</h1>
+    <p style="color: var(--agri-text-muted); margin: 4px 0 0 0;">Manage and provide feedback for this customer return.</p>
 </div>
 
 <div class="row g-4">
     <div class="col-lg-7">
-        <div class="card border-0 shadow-sm hover-card mb-4" style="border-radius:16px;">
+        <div class="card-agri mb-4" style="padding: 0; overflow: hidden;">
             <div class="card-header bg-white border-bottom py-3">
                 <h6 class="mb-0 fw-bold text-dark"><i class="bi bi-file-earmark-text me-2 text-success fs-5"></i>Return Details</h6>
             </div>
@@ -112,7 +112,7 @@
 
         {{-- Add Vendor Note (only when pending) --}}
         @if($return->status === 'pending')
-        <div class="card border-0 shadow-sm hover-card" style="border-radius:16px;">
+        <div class="card-agri" style="padding: 0; overflow: hidden;">
             <div class="card-header bg-white border-bottom py-3">
                 <h6 class="mb-0 fw-bold text-dark"><i class="bi bi-chat-dots-fill me-2 text-warning fs-5"></i>Add Note for Admin</h6>
             </div>
@@ -130,15 +130,13 @@
                                   required>{{ old('notes', $return->vendor_notes) }}</textarea>
                         @error('notes')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
                     </div>
-                    <button type="submit" class="btn btn-warning rounded-pill fw-bold px-4 py-2 shadow-sm text-dark">
-                        <i class="bi bi-send-fill me-2"></i>Submit Note
-                    </button>
+                    <x-button type="submit" variant="primary" icon="fas fa-paper-plane">Submit Note</x-button>
                 </form>
             </div>
         </div>
 
         {{-- Approve / Reject Actions --}}
-        <div class="card border-0 shadow-sm mt-4" style="border-radius:16px;">
+        <div class="card-agri mt-4" style="padding: 0; overflow: hidden;">
             <div class="card-header bg-white border-bottom py-3">
                 <h6 class="mb-0 fw-bold text-dark"><i class="bi bi-shield-check me-2 text-primary fs-5"></i>Take Action</h6>
             </div>
@@ -184,7 +182,7 @@
 
     {{-- Order Items --}}
     <div class="col-lg-5">
-        <div class="card border-0 shadow-sm hover-card" style="border-radius:16px;">
+        <div class="card-agri" style="padding: 0; overflow: hidden;">
             <div class="card-header bg-white border-bottom py-3">
                 <h6 class="mb-0 fw-bold text-dark"><i class="bi bi-box-seam-fill me-2 text-info fs-5"></i>Items in this Order</h6>
             </div>
@@ -216,5 +214,6 @@
             </div>
         </div>
     </div>
+</div>
 </div>
 @endsection
