@@ -5,6 +5,7 @@
         'cancelled'               => ['icon' => '❌', 'title' => 'Appointment Cancelled',       'badge' => 'badge-danger',  'label' => 'Cancelled by Customer'],
         'completed'               => ['icon' => '⭐', 'title' => 'Session Marked Complete',     'badge' => 'badge-success', 'label' => 'Completed'],
         'reschedule_requested'    => ['icon' => '📅', 'title' => 'Customer Reschedule Request', 'badge' => 'badge-info',    'label' => 'Reschedule Requested'],
+        'rescheduled'             => ['icon' => '🗓️', 'title' => 'Appointment Rescheduled',      'badge' => 'badge-info',    'label' => 'Rescheduled'],
     ];
     $meta = $config[$appointment->status] ?? ['icon' => '📋', 'title' => 'Appointment Update', 'badge' => 'badge-secondary', 'label' => ucfirst($appointment->status)];
     $isNew = $appointment->status === 'pending_expert_approval';
@@ -27,6 +28,8 @@
 <p>A farmer has <strong>cancelled</strong> their appointment. The time slot is now available for rebooking.</p>
 @elseif($appointment->status === 'reschedule_requested')
 <p>A farmer has requested to <strong>reschedule</strong> their appointment. Please confirm the new time.</p>
+@elseif($appointment->status === 'rescheduled')
+<p>The appointment has been successfully <strong>rescheduled</strong> to the newly accepted time.</p>
 @elseif($appointment->status === 'completed')
 <p>The consultation session has been marked as <strong>completed</strong>.</p>
 @endif
