@@ -6,6 +6,7 @@ use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\OrderStatusHistory;
 use App\Models\Product;
+use App\Models\ReturnReason;
 use App\Models\ReturnItem;
 use App\Models\ReturnRequest;
 use App\Models\User;
@@ -74,6 +75,24 @@ class ReturnService
             throw ValidationException::withMessages([
                 'items' => 'Please select at least one item and quantity to return.',
             ]);
+        }
+
+        $reasonId = (int) ($data['reason_id'] ?? $data['return_reason_id'] ?? 0);
+        if ($reasonId > 0) {
+            $reason = ReturnReason::query()
+                ->active()
+                ->whereKey($reasonId)
+                ->where(function ($query) use ($order) {
+                    $query->whereNull('vendor_id')
+                        ->orWhere('vendor_id', $order->vendor_id);
+                })
+                ->first();
+
+            if (! $reason) {
+                throw ValidationException::withMessages([
+                    'reason_id' => 'Selected return reason is not valid for this vendor.',
+                ]);
+            }
         }
 
         return DB::transaction(function () use ($user, $order, $data, $normalizedItems) {
