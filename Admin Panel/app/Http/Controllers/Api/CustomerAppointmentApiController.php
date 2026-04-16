@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Appointment;
-use App\Models\AppointmentReschedule;
 use App\Models\Expert;
 use App\Services\Shared\AppointmentService;
 use App\Services\Shared\AppointmentStatusService;
@@ -12,7 +11,6 @@ use App\Services\Shared\AvailabilityService;
 use App\Services\Shared\StripeService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\RateLimiter;
 
