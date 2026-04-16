@@ -43,10 +43,10 @@
                 </div>
                 <div class="col-md-3">
                     <label style="font-size: 12px; font-weight: 700; color: var(--agri-text-muted); text-transform: uppercase; margin-bottom: 8px; display: block;">Category</label>
-                    <select name="category_id" class="form-agri">
+                    <select name="forum_category_id" class="form-agri">
                         <option value="">All Categories</option>
                         @foreach($categories as $cat)
-                            <option value="{{ $cat->id }}" {{ request('category_id') == $cat->id ? 'selected' : '' }}>
+                            <option value="{{ $cat->id }}" {{ request('forum_category_id') == $cat->id ? 'selected' : '' }}>
                                 {{ $cat->name }}
                             </option>
                         @endforeach
