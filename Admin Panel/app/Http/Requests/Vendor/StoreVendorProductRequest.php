@@ -16,6 +16,7 @@ class StoreVendorProductRequest extends FormRequest
         return [
             'category_id'    => 'nullable|exists:categories,id',
             'name'           => 'required|string|max:255',
+            'sku'            => 'nullable|string|max:100|unique:products,sku',
             'description'    => 'nullable|string|max:5000',
             'price'          => 'required|numeric|min:0',
             'discount_price' => 'nullable|numeric|min:0|lt:price',
