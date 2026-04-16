@@ -9,6 +9,7 @@ use App\Models\AppointmentStatusHistory;
 use App\Models\Expert;
 use App\Models\User;
 use App\Notifications\AppointmentRescheduledNotification;
+use App\Services\Shared\AppointmentStatusService;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -21,6 +22,10 @@ use Illuminate\Support\Facades\Log;
  */
 class ExpertAppointmentService
 {
+    public function __construct(
+        private readonly AppointmentStatusService $appointmentStatus,
+    ) {}
+
     // ── Queries ───────────────────────────────────────────────────────────────
 
     public function listForExpert(Expert $expert, array $filters = []): LengthAwarePaginator
@@ -109,49 +114,26 @@ class ExpertAppointmentService
     ): AppointmentReschedule {
         $this->assertBelongsToExpert($appointment, $expert);
 
-        if (! $appointment->canBeRescheduled()) {
-            throw new \DomainException("Appointment #{$appointment->id} cannot be rescheduled in its current state.");
+        $reschedule = $this->appointmentStatus->proposeReschedule(
+            $appointment,
+            $expert->user_id,
+            $newDateTime,
+            $reason
+        );
+
+        // Section 14 – Reschedule proposed → Customer → Email + In-app
+        $appointment->loadMissing('user');
+        if ($appointment->user) {
+            try {
+                $appointment->user->notify(
+                    new AppointmentRescheduledNotification($appointment, $reschedule, 'proposed')
+                );
+            } catch (\Throwable $e) {
+                Log::warning('Reschedule proposal notification failed: ' . $e->getMessage());
+            }
         }
 
-        return DB::transaction(function () use ($appointment, $expert, $newDateTime, $reason) {
-            $reschedule = AppointmentReschedule::create([
-                'appointment_id'        => $appointment->id,
-                'requested_by'          => $expert->user_id,
-                'original_scheduled_at' => $appointment->scheduled_at,
-                'proposed_scheduled_at' => $newDateTime,
-                'reason'                => $reason,
-                'status'                => 'pending',
-            ]);
-
-            $appointment->update([
-                'status'                    => Appointment::STATUS_RESCHEDULE_REQUESTED,
-                'reschedule_requested_at'   => now(),
-            ]);
-
-            $this->logStatusChange(
-                $appointment,
-                $expert->user_id,
-                Appointment::STATUS_CONFIRMED,
-                Appointment::STATUS_RESCHEDULE_REQUESTED,
-                $reason
-            );
-
-            event(new AppointmentStatusChanged($appointment, $expert->user, Appointment::STATUS_RESCHEDULE_REQUESTED));
-
-            // Section 14 – Reschedule proposed → Customer → Email + In-app
-            $appointment->loadMissing('user');
-            if ($appointment->user) {
-                try {
-                    $appointment->user->notify(
-                        new AppointmentRescheduledNotification($appointment, $reschedule, 'proposed')
-                    );
-                } catch (\Throwable $e) {
-                    Log::warning('Reschedule proposal notification failed: ' . $e->getMessage());
-                }
-            }
-
-            return $reschedule;
-        });
+        return $reschedule;
     }
 
     // ── Internal helpers ──────────────────────────────────────────────────────
