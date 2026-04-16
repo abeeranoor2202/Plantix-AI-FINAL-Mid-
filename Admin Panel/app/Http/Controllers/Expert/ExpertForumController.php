@@ -76,7 +76,7 @@ class ExpertForumController extends Controller
 
         return redirect()
             ->route('expert.forum.show', $thread)
-            ->with('success', 'Your expert reply has been posted.');
+            ->with('success', 'Your reply has been posted successfully.');
     }
 
     // ── Mark Official Answer ──────────────────────────────────────────────────
