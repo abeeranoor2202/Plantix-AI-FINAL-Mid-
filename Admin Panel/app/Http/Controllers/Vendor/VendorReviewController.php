@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Vendor;
 
 use App\Http\Controllers\Controller;
 use App\Models\Review;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
@@ -61,5 +62,21 @@ class VendorReviewController extends Controller
             ->findOrFail($id);
 
         return view('vendor.reviews.show', compact('review'));
+    }
+
+    public function respond(Request $request, int $id): RedirectResponse
+    {
+        $data = $request->validate([
+            'vendor_response' => ['required', 'string', 'max:2000'],
+        ]);
+
+        $review = Review::where('vendor_id', $this->vendorId())->findOrFail($id);
+
+        $review->update([
+            'vendor_response' => $data['vendor_response'],
+            'vendor_responded_at' => now(),
+        ]);
+
+        return back()->with('success', 'Your response has been saved.');
     }
 }
