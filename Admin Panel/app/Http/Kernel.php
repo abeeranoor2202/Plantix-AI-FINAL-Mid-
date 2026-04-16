@@ -73,5 +73,6 @@ class Kernel extends HttpKernel
         'expert.auth'=> \App\Http\Middleware\EnsureExpertGuard::class,
         'customer'   => \App\Http\Middleware\EnsureCustomerAuth::class,
         'admin.ip'   => \App\Http\Middleware\AdminIpRestriction::class,
+        'manual.payment.enabled' => \App\Http\Middleware\EnsureManualPaymentEnabled::class,
     ];
 }
