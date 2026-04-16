@@ -21,6 +21,7 @@ class VendorCouponController extends Controller
     public function index(): View
     {
         $coupons = Coupon::where('vendor_id', $this->vendorId())
+                         ->withCount('usages')
                          ->latest()
                          ->paginate(20);
 
