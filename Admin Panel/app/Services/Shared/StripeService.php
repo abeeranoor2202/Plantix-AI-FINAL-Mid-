@@ -96,7 +96,7 @@ class StripeService
         $session = Session::create([
             'mode' => 'payment',
             'success_url' => route('payment.success', ['order_id' => $order->id], true) . '&session_id={CHECKOUT_SESSION_ID}',
-            'cancel_url' => route('checkout.pay', $order->id, true),
+            'cancel_url' => route('order.details', ['id' => $order->id], true),
             'client_reference_id' => (string) $order->id,
             'metadata' => array_merge([
                 'payment_type' => 'product',
@@ -143,7 +143,7 @@ class StripeService
         $session = Session::create([
             'mode' => 'payment',
             'success_url' => route('appointment.details', ['id' => $appointment->id], true) . '?payment=success&session_id={CHECKOUT_SESSION_ID}',
-            'cancel_url' => route('appointment.pay', ['id' => $appointment->id], true),
+            'cancel_url' => route('appointment.details', ['id' => $appointment->id], true),
             'client_reference_id' => 'appointment-' . $appointment->id,
             'metadata' => array_merge([
                 'payment_type' => 'appointment',
