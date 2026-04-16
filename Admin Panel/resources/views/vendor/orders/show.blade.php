@@ -172,6 +172,36 @@
             </div>
         </div>
         @endif
+
+        <div class="card-agri p-0 border-0">
+            <div class="p-4 bg-light border-bottom d-flex align-items-center gap-2">
+                <i class="fas fa-stream text-info fs-5"></i>
+                <h5 class="mb-0 fw-bold text-dark">Status Timeline</h5>
+            </div>
+
+            <div class="p-4">
+                @forelse($order->statusHistory as $history)
+                    <div class="pb-3 mb-3 border-bottom border-dashed last-item-border-0">
+                        <div class="d-flex justify-content-between align-items-start gap-2">
+                            <div>
+                                <div class="fw-bold text-dark">{{ ucfirst(str_replace('_', ' ', $history->status)) }}</div>
+                                @if($history->notes)
+                                    <div class="small text-muted mt-1">{{ $history->notes }}</div>
+                                @endif
+                            </div>
+                            <div class="small text-muted text-end">
+                                <div>{{ $history->created_at?->format('M d, Y h:i A') }}</div>
+                                @if($history->changedBy)
+                                    <div>by {{ $history->changedBy->name }}</div>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+                @empty
+                    <div class="text-muted small">No status history available yet.</div>
+                @endforelse
+            </div>
+        </div>
     </div>
 </div>
 @endsection
