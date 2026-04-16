@@ -28,8 +28,8 @@ class ExpertForumService
             ->approved()
             ->withCount('replies');
 
-        if (! empty($filters['category_id'])) {
-            $query->where('forum_category_id', $filters['category_id']);
+        if (! empty($filters['forum_category_id'])) {
+            $query->where('forum_category_id', $filters['forum_category_id']);
         }
 
         if (! empty($filters['search'])) {
