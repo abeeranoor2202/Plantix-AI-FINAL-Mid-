@@ -28,6 +28,7 @@ class VendorReturnReasonController extends Controller
     public function index(): View
     {
         $reasons = ReturnReason::forVendorOrGlobal($this->vendorId())
+            ->withCount('returns')
             ->orderByDesc('is_active')
             ->orderBy('reason')
             ->get();
