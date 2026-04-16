@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Expert;
 
 use App\Http\Controllers\Controller;
+use App\Models\Appointment;
 use App\Models\Expert;
 use App\Services\Expert\ExpertAppointmentService;
 use App\Services\Expert\ExpertNotificationService;
@@ -30,8 +31,8 @@ class ExpertDashboardController extends Controller
         $expert = $user->expert()->with(['profile', 'specializations'])->firstOrFail();
 
         $stats         = $this->appointmentService->getStats($expert);
-        $upcoming      = $this->appointmentService->listForExpert($expert, ['status' => 'accepted']);
-        $requested     = $this->appointmentService->listForExpert($expert, ['status' => 'requested']);
+        $upcoming      = $this->appointmentService->listForExpert($expert, ['status' => Appointment::STATUS_CONFIRMED]);
+        $requested     = $this->appointmentService->listForExpert($expert, ['status' => Appointment::STATUS_RESCHEDULE_REQUESTED]);
         $unreadCount   = $this->notificationService->unreadCount($expert);
         $recentReplies = $this->forumService->getExpertReplies($expert);
 
