@@ -12,6 +12,7 @@ class Attribute extends Model
     public const TYPE_NUMBER = 'number';
     public const TYPE_SELECT = 'select';
     public const TYPE_MULTI_SELECT = 'multi-select';
+    public const TYPE_BOOLEAN = 'boolean';
 
     protected $fillable = [
         'name',
@@ -40,6 +41,13 @@ class Attribute extends Model
     public function productValues(): HasMany
     {
         return $this->hasMany(ProductAttribute::class);
+    }
+
+    public function products(): BelongsToMany
+    {
+        return $this->belongsToMany(Product::class, 'product_attributes')
+            ->withPivot(['value', 'value_type', 'name', 'type', 'price'])
+            ->withTimestamps();
     }
 
     public function getDisplayNameAttribute(): string
