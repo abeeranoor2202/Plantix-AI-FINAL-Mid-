@@ -1,3 +1,214 @@
+<!doctype html>
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" <?php if (str_replace('_', '-', app()->getLocale()) == 'ar' || @$_COOKIE['is_rtl'] == 'true') { ?> dir="rtl" <?php } ?>>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+
+    <title>@yield('title', 'Expert Panel')</title>
+
+    <link rel="dns-prefetch" href="//fonts.gstatic.com">
+    <link href="https://fonts.googleapis.com/css?family=Nunito" rel="stylesheet">
+
+    <link href="{{ asset('assets/plugins/bootstrap/css/bootstrap.min.css') }}" rel="stylesheet">
+    <?php if (str_replace('_', '-', app()->getLocale()) == 'ar' || @$_COOKIE['is_rtl'] == 'true') { ?>
+    <link href="{{asset('assets/plugins/bootstrap/css/bootstrap-rtl.min.css')}}" rel="stylesheet">
+    <?php } ?>
+
+    <link href="{{ asset('css/style.css') }}" rel="stylesheet">
+    <?php if (str_replace('_', '-', app()->getLocale()) == 'ar' || @$_COOKIE['is_rtl'] == 'true') { ?>
+    <link href="{{asset('css/style_rtl.css')}}" rel="stylesheet">
+    <?php } ?>
+
+    <link href="{{ asset('css/icons/font-awesome/css/font-awesome.css') }}" rel="stylesheet">
+    <link href="{{ asset('assets/plugins/toast-master/css/jquery.toast.css')}}" rel="stylesheet">
+    <link href="{{ asset('css/colors/green.css') }}" rel="stylesheet">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/@mdi/font@6.9.96/css/materialdesignicons.min.css" rel="stylesheet">
+    <link href="{{ asset('css/icons/themify-icons/themify-icons.css') }}" rel="stylesheet">
+
+    <link href="{{ asset('css/agritech-redesign.css') }}" rel="stylesheet">
+    <link href="{{ asset('css/admin-customer-unified.css') }}" rel="stylesheet">
+    <link href="{{ asset('css/panel-unified.css') }}" rel="stylesheet">
+
+    <style>
+        #main-wrapper {
+            background-color: var(--agri-bg);
+            min-height: 100vh;
+        }
+
+        .page-wrapper {
+            background-color: var(--agri-bg) !important;
+        }
+
+        .scroll-sidebar {
+            background: var(--agri-white);
+        }
+
+        .topbar {
+            position: sticky;
+            top: 0;
+            z-index: 1050;
+        }
+
+        @media (min-width: 768px) {
+            body.admin-sidebar-lock.mini-sidebar .left-sidebar {
+                width: 240px;
+            }
+
+            body.admin-sidebar-lock.mini-sidebar .navbar-header {
+                width: 240px;
+            }
+
+            body.admin-sidebar-lock.mini-sidebar .page-wrapper {
+                padding-left: 240px !important;
+                margin-left: 0 !important;
+            }
+
+            body.admin-sidebar-lock.mini-sidebar .footer {
+                left: 240px;
+            }
+
+            body.admin-sidebar-lock.mini-sidebar .scroll-sidebar {
+                overflow-x: hidden !important;
+                position: relative !important;
+            }
+
+            body.admin-sidebar-lock.mini-sidebar .sidebar-nav #sidebarnav > li > a {
+                width: auto !important;
+            }
+
+            body.admin-sidebar-lock.mini-sidebar .sidebar-nav #sidebarnav > li:hover > a {
+                width: auto !important;
+                background: transparent !important;
+            }
+        }
+
+        .expert-page-header {
+            padding: 24px 24px 0;
+        }
+
+        .expert-page-header h1 {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--agri-primary-dark);
+            margin: 0;
+        }
+
+        .expert-breadcrumb {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--agri-text-muted);
+        }
+
+        .expert-breadcrumb i {
+            font-size: 10px;
+        }
+
+        .expert-page-body {
+            padding: 24px;
+        }
+    </style>
+
+    @stack('styles')
+</head>
+<body class="admin-sidebar-lock admin-unified-ui panel-unified-ui expert-unified-ui">
+
+<div id="app" class="fix-header fix-sidebar card-no-border">
+    <div id="main-wrapper">
+        <header class="topbar">
+            <nav class="navbar top-navbar navbar-expand-md navbar-light">
+                @include('layouts.header')
+            </nav>
+        </header>
+
+        <aside class="left-sidebar">
+            <div class="scroll-sidebar">
+                @include('layouts.menu')
+            </div>
+        </aside>
+
+        <main class="page-wrapper" style="min-height: 100vh;">
+            <div class="expert-page-header d-flex align-items-end justify-content-between gap-3 flex-wrap">
+                <div>
+                    <div class="expert-breadcrumb">
+                        <a href="{{ route('expert.dashboard') }}" style="text-decoration:none;color:var(--agri-text-muted);">Dashboard</a>
+                        <i class="fas fa-chevron-right"></i>
+                        <span style="color: var(--agri-primary);">@yield('page-title', 'Expert Panel')</span>
+                    </div>
+                    <h1>@yield('page-title', 'Expert Panel')</h1>
+                </div>
+                <div>
+                    @yield('page-actions')
+                </div>
+            </div>
+
+            <div class="expert-page-body">
+                @if(session('success'))
+                    <div class="card-agri mb-4" style="background: var(--agri-primary-light); border: 1px solid var(--agri-primary); border-radius: 12px; padding: 12px 20px;">
+                        <div style="display: flex; align-items: center; gap: 12px; color: var(--agri-primary);">
+                            <i class="fas fa-check-circle"></i>
+                            <span style="font-weight: 700;">{{ session('success') }}</span>
+                        </div>
+                    </div>
+                @endif
+
+                @if(session('error'))
+                    <div class="card-agri mb-4" style="background: #FEF2F2; border: 1px solid #FECACA; border-radius: 12px; padding: 12px 20px;">
+                        <div style="display: flex; align-items: center; gap: 12px; color: #991B1B;">
+                            <i class="fas fa-exclamation-circle"></i>
+                            <span style="font-weight: 700;">{{ session('error') }}</span>
+                        </div>
+                    </div>
+                @endif
+
+                @yield('content')
+            </div>
+
+            <footer class="footer">
+                @include('layouts.footer')
+            </footer>
+        </main>
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
+<script src="{{ asset('assets/plugins/bootstrap/js/popper.min.js') }}"></script>
+<script src="{{ asset('assets/plugins/bootstrap/js/bootstrap.min.js') }}"></script>
+<script src="{{ asset('js/jquery.slimscroll.js') }}"></script>
+<script src="{{ asset('js/waves.js') }}"></script>
+<script src="{{ asset('js/sidebarmenu.js') }}"></script>
+<script src="{{ asset('assets/plugins/sticky-kit-master/dist/sticky-kit.min.js') }}"></script>
+<script src="{{ asset('assets/plugins/sparkline/jquery.sparkline.min.js')}}"></script>
+<script src="{{ asset('js/custom.min.js') }}"></script>
+
+<script type="text/javascript">
+    (function ($) {
+        function keepSidebarExpanded() {
+            if (window.innerWidth >= 768) {
+                $('body').removeClass('mini-sidebar');
+                $('.navbar-brand span').show();
+            }
+        }
+
+        $(window).on('resize.adminSidebarLock', keepSidebarExpanded);
+
+        $(document).on('click', '.sidebartoggler', function () {
+            setTimeout(keepSidebarExpanded, 0);
+        });
+
+        $(keepSidebarExpanded);
+    })(jQuery);
+</script>
+
+@stack('scripts')
+</body>
+</html>
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
