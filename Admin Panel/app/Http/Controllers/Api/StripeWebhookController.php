@@ -30,7 +30,7 @@ use Stripe\Exception\SignatureVerificationException;
  *  - Duplicate event_id deliveries are acknowledged and ignored
  *
  * Supported events:
- *  - payment_intent.succeeded      → status: pending_expert_approval, notify expert
+ *  - payment_intent.succeeded      → mark payment complete (order paid / appointment confirmed)
  *  - payment_intent.payment_failed → status: payment_failed, release slot
  *  - charge.refunded               → mark is_refunded, notify customer
  */
@@ -95,7 +95,6 @@ class StripeWebhookController extends Controller
         // ── 3. Route to handler ───────────────────────────────────────────────
         try {
             match ($event->type) {
-                'checkout.session.completed'   => $this->onCheckoutSessionCompleted($event->data->object),
                 'payment_intent.succeeded'      => $this->onPaymentIntentSucceeded($event->data->object),
                 'payment_intent.payment_failed' => $this->onPaymentIntentFailed($event->data->object),
                 'charge.refunded'               => $this->onChargeRefunded($event->data->object),
