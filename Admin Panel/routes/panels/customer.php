@@ -113,8 +113,8 @@ Route::middleware(['customer', 'verified'])->group(function () {
     Route::get('/checkout',                    [\App\Http\Controllers\Frontend\CartController::class, 'checkout'])->name('checkout');
     Route::post('/checkout',                   [\App\Http\Controllers\Frontend\CartController::class, 'placeOrder'])->name('checkout.place');
     Route::post('/checkout/stripe/initiate',   [\App\Http\Controllers\Frontend\StripePaymentController::class, 'initiateCheckout'])->name('checkout.stripe.initiate');
-    Route::get('/checkout/pay/{order}',        [\App\Http\Controllers\Frontend\StripePaymentController::class, 'showPaymentPage'])->name('checkout.pay');
-    Route::post('/checkout/pay/{order}',       [\App\Http\Controllers\Frontend\StripePaymentController::class, 'processOrderPayment'])->name('checkout.pay.confirm');
+    Route::get('/checkout/pay/{order}',        [\App\Http\Controllers\Frontend\StripePaymentController::class, 'createCheckoutSession'])->defaults('type', 'order')->name('checkout.pay');
+    Route::post('/checkout/pay/{order}',       [\App\Http\Controllers\Frontend\StripePaymentController::class, 'createCheckoutSession'])->defaults('type', 'order')->name('checkout.pay.confirm');
 
     // ── Orders ────────────────────────────────────────────────────────────────
     Route::get('/orders',                  [\App\Http\Controllers\Frontend\CustomerOrderController::class, 'index'])->name('orders');
@@ -133,8 +133,8 @@ Route::middleware(['customer', 'verified'])->group(function () {
     Route::post('/appointment/book',         [\App\Http\Controllers\Frontend\CustomerAppointmentController::class, 'store'])->name('appointment.store');
     Route::get('/appointment/{id}',          [\App\Http\Controllers\Frontend\CustomerAppointmentController::class, 'show'])->name('appointment.details');
     Route::post('/appointment/{id}/cancel',  [\App\Http\Controllers\Frontend\CustomerAppointmentController::class, 'cancel'])->name('appointment.cancel');
-    Route::get('/appointment/{id}/pay',      [\App\Http\Controllers\Frontend\CustomerAppointmentController::class, 'payPage'])->name('appointment.pay');
-    Route::post('/appointment/{id}/pay',     [\App\Http\Controllers\Frontend\CustomerAppointmentController::class, 'processPayment'])->name('appointment.pay.process');
+    Route::get('/appointment/{id}/pay',      [\App\Http\Controllers\Frontend\StripePaymentController::class, 'createCheckoutSession'])->defaults('type', 'appointment')->name('appointment.pay');
+    Route::post('/appointment/{id}/pay',     [\App\Http\Controllers\Frontend\StripePaymentController::class, 'createCheckoutSession'])->defaults('type', 'appointment')->name('appointment.pay.process');
     Route::post('/appointment/{id}/review',   [\App\Http\Controllers\Frontend\CustomerAppointmentController::class, 'review'])->name('appointment.review.store');
     // Section 6 – customer accepts or rejects a reschedule proposed by an expert
     Route::post('/appointment/{id}/reschedule-response', [\App\Http\Controllers\Frontend\CustomerAppointmentController::class, 'rescheduleResponse'])->name('appointment.reschedule.response');
