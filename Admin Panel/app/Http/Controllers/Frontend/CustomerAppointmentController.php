@@ -9,6 +9,7 @@ use App\Models\AppointmentReschedule;
 use App\Models\Expert;
 use App\Notifications\AppointmentRescheduledNotification;
 use App\Services\Expert\RatingService;
+use App\Services\Shared\AppointmentStatusService;
 use App\Services\Shared\AppointmentService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -21,6 +22,7 @@ class CustomerAppointmentController extends Controller
     public function __construct(
         private readonly AppointmentService $service,
         private readonly RatingService $ratingService,
+        private readonly AppointmentStatusService $appointmentStatus,
     ) {}
 
     public function index(): View
@@ -128,20 +130,11 @@ class CustomerAppointmentController extends Controller
             ->latest()
             ->firstOrFail();
 
-        DB::transaction(function () use ($request, $appointment, $reschedule, $user) {
-            if ($request->action === 'accept') {
-                // Update appointment to the new proposed time
-                $appointment->update([
-                    'scheduled_at' => $reschedule->proposed_scheduled_at,
-                    'status'       => Appointment::STATUS_CONFIRMED,
-                ]);
-                $reschedule->update(['status' => 'accepted']);
-            } else {
-                // Reject: revert appointment to confirmed/accepted, keep original time
-                $appointment->update(['status' => Appointment::STATUS_CONFIRMED]);
-                $reschedule->update(['status' => 'rejected']);
-            }
-        });
+        if ($request->action === 'accept') {
+            $appointment = $this->appointmentStatus->acceptReschedule($appointment, $user->id);
+        } else {
+            $appointment = $this->appointmentStatus->rejectReschedule($appointment, $user->id);
+        }
 
         // Notify the expert about the customer's decision
         if ($appointment->expert?->user) {
