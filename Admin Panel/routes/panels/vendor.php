@@ -52,6 +52,9 @@ Route::prefix('vendor')->name('vendor.')->group(function () {
         Route::get('/products/{id}/edit',  [\App\Http\Controllers\Vendor\VendorProductController::class, 'edit'])->name('products.edit');
         Route::put('/products/{id}',       [\App\Http\Controllers\Vendor\VendorProductController::class, 'update'])->name('products.update');
         Route::post('/products/{id}/toggle-status', [\App\Http\Controllers\Vendor\VendorProductController::class, 'toggleStatus'])->name('products.toggle-status');
+        Route::post('/products/{id}/toggle-active', [\App\Http\Controllers\Vendor\VendorProductController::class, 'toggleActive'])->name('products.toggle-active');
+        Route::post('/products/{id}/toggle-returnable', [\App\Http\Controllers\Vendor\VendorProductController::class, 'toggleReturnable'])->name('products.toggle-returnable');
+        Route::post('/products/{id}/toggle-refundable', [\App\Http\Controllers\Vendor\VendorProductController::class, 'toggleRefundable'])->name('products.toggle-refundable');
         Route::delete('/products/{id}',    [\App\Http\Controllers\Vendor\VendorProductController::class, 'destroy'])->name('products.destroy');
 
         // ── Orders (vendor-scoped) ────────────────────────────────────────────
