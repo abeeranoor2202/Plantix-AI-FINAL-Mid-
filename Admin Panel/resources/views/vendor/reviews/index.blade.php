@@ -1,18 +1,17 @@
 @extends('vendor.layouts.app')
 @section('title', 'Product Reviews')
-@section('page-title', 'Product Reviews & Ratings')
-
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <div>
-        <h4 class="mb-0 fw-bold text-dark"><i class="bi bi-star-half me-2 text-warning"></i>Product Reviews</h4>
-        <span class="text-muted small fw-medium mt-1 d-block">Monitor customer feedback and ratings for your products</span>
+@section('content')
+<div class="container-fluid" style="padding-top: 24px; padding-bottom: 40px;">
+    <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 24px;">
+        <div>
+            <h1 style="font-size: 28px; font-weight: 700; color: var(--agri-primary-dark); margin: 0;">Product Reviews</h1>
+            <p style="color: var(--agri-text-muted); margin: 4px 0 0 0;">Monitor customer feedback and ratings for your products.</p>
+        </div>
     </div>
-</div>
 
-{{-- Stats row --}}
-<div class="row g-3 mb-4">
-    <div class="col-md-5 col-lg-4">
-        <div class="card border-0 shadow-sm text-center p-4 hover-card h-100" style="border-radius:16px;">
+    <div class="row g-4 mb-4">
+        <div class="col-md-5 col-lg-4">
+            <div class="card-agri text-center p-4 h-100">
             <div class="d-flex flex-column justify-content-center h-100">
                 <h5 class="text-muted small text-uppercase fw-bold mb-3">Average Rating</h5>
                 <div class="display-3 fw-bold text-dark mb-2 lh-1">{{ number_format($avgRating ?? 0, 1) }}</div>
@@ -25,8 +24,8 @@
             </div>
         </div>
     </div>
-    <div class="col-md-7 col-lg-8">
-        <div class="card border-0 shadow-sm p-4 hover-card h-100" style="border-radius:16px;">
+        <div class="col-md-7 col-lg-8">
+            <div class="card-agri p-4 h-100">
             <h6 class="mb-4 fw-bold text-dark"><i class="bi bi-bar-chart-fill me-2 text-primary"></i>Rating Breakdown</h6>
             <div class="d-flex flex-column gap-2 justify-content-center h-100">
                 @for($r=5;$r>=1;$r--)
@@ -44,31 +43,23 @@
             </div>
         </div>
     </div>
-</div>
-
-<div class="card border-0 shadow-sm hover-card mb-4" style="border-radius:16px;">
-    <div class="card-header bg-white border-bottom py-3 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
-        <h6 class="mb-0 fw-bold text-dark"><i class="bi bi-list-check me-2 text-primary fs-5"></i>Recent Reviews</h6>
-        {{-- Filters --}}
-        <form method="GET" class="d-flex align-items-center gap-2 m-0">
-            <label class="text-muted small fw-bold text-uppercase text-nowrap mb-0 d-none d-sm-block">Filter:</label>
-            <select name="rating" class="form-select border-0 bg-light rounded-pill px-3 py-2 fw-medium shadow-sm w-auto">
-                <option value="">All Ratings</option>
-                @foreach([5,4,3,2,1] as $r)
-                    <option value="{{ $r }}" @selected(request('rating') == $r)>{{ $r }} Stars</option>
-                @endforeach
-            </select>
-            <button type="submit" class="btn btn-primary rounded-pill px-3 py-2 fw-bold shadow-sm d-flex align-items-center">
-                <i class="bi bi-funnel-fill d-sm-none"></i><span class="d-none d-sm-inline">Apply</span>
-            </button>
-            @if(request()->hasAny(['rating','product_id']))
-                <a href="{{ route('vendor.reviews.index') }}" class="btn btn-outline-secondary rounded-pill px-3 py-2 fw-bold shadow-sm" title="Clear Filters">
-                    <i class="bi bi-x-circle d-sm-none"></i><span class="d-none d-sm-inline">Clear</span>
-                </a>
-            @endif
-        </form>
     </div>
-    <div class="card-body p-0">
+
+    <x-card style="padding: 0; overflow: hidden;">
+        <x-slot name="header">
+            <div class="d-flex justify-content-between align-items-center" style="gap:10px; flex-wrap:wrap;">
+                <h4 class="mb-0 fw-bold text-dark" style="font-size: 18px;">Recent Reviews</h4>
+                <form method="GET" action="{{ route('vendor.reviews.index') }}" style="display:flex; align-items:center; gap:10px;">
+                    <select name="rating" class="form-agri" style="height:42px; min-width:140px; margin-bottom:0;">
+                        <option value="">All Ratings</option>
+                        @foreach([5,4,3,2,1] as $r)
+                            <option value="{{ $r }}" @selected(request('rating') == $r)>{{ $r }} Stars</option>
+                        @endforeach
+                    </select>
+                    <x-button type="submit" variant="primary" style="height:42px;">Filter</x-button>
+                </form>
+            </div>
+        </x-slot>
         @if($reviews->isEmpty())
             <div class="text-center text-muted py-5 my-4">
                 <div class="bg-light rounded-circle d-inline-flex align-items-center justify-content-center mb-3 text-muted" style="width: 80px; height: 80px;">
@@ -78,8 +69,7 @@
                 <p class="small mb-0">There are currently no reviews matching your criteria.</p>
             </div>
         @else
-            <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0">
+            <x-table>
                     <thead class="table-light">
                         <tr>
                             <th class="ps-4 fw-semibold text-muted text-uppercase small">Product</th>
@@ -145,19 +135,16 @@
                                 </div>
                             </td>
                             <td class="text-end pe-4">
-                                <a href="{{ route('vendor.reviews.show', $review->id) }}" class="btn btn-sm btn-outline-primary rounded-pill px-3 shadow-sm d-inline-flex align-items-center">
-                                    <i class="bi bi-eye-fill me-1"></i>View
-                                </a>
+                                <x-button :href="route('vendor.reviews.show', $review->id)" variant="icon" title="View" style="color: #2563eb; background: var(--agri-bg); width:34px; height:34px;"><i class="fas fa-eye"></i></x-button>
                             </td>
                         </tr>
                         @endforeach
                     </tbody>
-                </table>
-            </div>
+            </x-table>
         @endif
-    </div>
+    </x-card>
     @if($reviews->hasPages())
-        <div class="card-footer bg-white border-top p-4 d-flex justify-content-center" style="border-radius: 0 0 16px 16px;">
+        <div style="padding: 24px; background: white; border-top: 1px solid var(--agri-border); display: flex; justify-content: center;">
             {{ $reviews->links() }}
         </div>
     @endif
