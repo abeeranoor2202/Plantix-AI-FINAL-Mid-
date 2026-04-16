@@ -281,27 +281,26 @@ class CartController extends Controller
 
         try {
             if ($payload['payment_method'] === 'stripe') {
-                // Stripe: create order + PI
+                // Stripe: create order + Checkout Session and redirect to Stripe only
                 $result = $this->checkout->initiate($user, $payload);
 
                 /** @var \App\Models\Order $order */
                 $order = $result['order'];
 
+                $checkoutUrl = (string) ($result['checkout_url'] ?? '');
+                if ($checkoutUrl === '') {
+                    throw new \RuntimeException('Stripe Checkout URL is missing.');
+                }
+
                 if ($request->expectsJson()) {
                     return response()->json([
-                        'client_secret'     => $result['client_secret'],
+                        'checkout_url'      => $checkoutUrl,
                         'order_id'          => $order->id,
                         'payment_intent_id' => $order->payment_intent_id,
                     ]);
                 }
 
-                // Regular form POST — store PI secret in session, redirect to payment page
-                session([
-                    'pending_order_id' => $order->id,
-                    'stripe_secret'    => $result['client_secret'],
-                ]);
-
-                return redirect()->route('checkout.pay', ['order' => $order->id]);
+                return redirect()->away($checkoutUrl);
             }
 
             // COD: deduct stock immediately, redirect to success
