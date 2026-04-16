@@ -29,7 +29,7 @@ class PaymentFailedNotification extends Notification implements ShouldQueue
             ->error()
             ->line("Unfortunately, the payment for **Order #{$order->order_number}** could not be processed.")
             ->line('This can happen due to insufficient funds, an incorrect card number, or a temporary issue with your bank.')
-            ->action('Try Again', route('checkout.pay', $order->id))
+            ->action('Try Again', route('checkout.stripe.pay', $order->id))
             ->line('Your cart items are still saved. If you continue to experience issues, please contact support.');
     }
 
