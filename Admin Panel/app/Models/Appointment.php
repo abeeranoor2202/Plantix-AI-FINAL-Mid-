@@ -32,10 +32,7 @@ class Appointment extends Model
     public const STATUS_CANCELLED               = 'cancelled';
     public const STATUS_RESCHEDULE_REQUESTED    = 'reschedule_requested';
 
-    // Legacy aliases — kept for backwards compat with existing service code
-    public const STATUS_REQUESTED   = 'requested';
     public const STATUS_PENDING     = 'pending';
-    public const STATUS_ACCEPTED    = 'accepted';
     public const STATUS_RESCHEDULED = 'rescheduled';
 
     /**
@@ -48,15 +45,12 @@ class Appointment extends Model
         self::STATUS_PAYMENT_FAILED          => [self::STATUS_PENDING_PAYMENT],
         self::STATUS_PENDING_EXPERT_APPROVAL => [self::STATUS_CONFIRMED, self::STATUS_REJECTED],
         self::STATUS_CONFIRMED               => [self::STATUS_COMPLETED, self::STATUS_CANCELLED, self::STATUS_RESCHEDULE_REQUESTED],
-        self::STATUS_RESCHEDULE_REQUESTED    => [self::STATUS_CONFIRMED, self::STATUS_CANCELLED],
+        self::STATUS_RESCHEDULE_REQUESTED    => [self::STATUS_RESCHEDULED, self::STATUS_CONFIRMED],
+        self::STATUS_RESCHEDULED             => [self::STATUS_COMPLETED, self::STATUS_CANCELLED, self::STATUS_RESCHEDULE_REQUESTED],
         self::STATUS_REJECTED                => [],
         self::STATUS_COMPLETED               => [],
         self::STATUS_CANCELLED               => [],
-        // Legacy
-        self::STATUS_REQUESTED               => [self::STATUS_PENDING_EXPERT_APPROVAL, self::STATUS_CANCELLED],
         self::STATUS_PENDING                 => [self::STATUS_PENDING_PAYMENT, self::STATUS_CANCELLED],
-        self::STATUS_ACCEPTED                => [self::STATUS_CONFIRMED, self::STATUS_CANCELLED, self::STATUS_COMPLETED],
-        self::STATUS_RESCHEDULED             => [self::STATUS_CONFIRMED, self::STATUS_CANCELLED],
     ];
 
     protected $fillable = [
@@ -162,10 +156,7 @@ class Appointment extends Model
     public function scopeCancelled($query)     { return $query->where('status', self::STATUS_CANCELLED); }
     public function scopeUpcoming($query)      { return $query->where('scheduled_at', '>=', now()); }
     public function scopeForExpert($q, int $id){ return $q->where('expert_id', $id); }
-    // Legacy
     public function scopePending($query)       { return $query->where('status', self::STATUS_PENDING); }
-    public function scopeRequested($query)     { return $query->where('status', self::STATUS_REQUESTED); }
-    public function scopeAccepted($query)      { return $query->where('status', self::STATUS_ACCEPTED); }
     public function scopeRescheduled($query)   { return $query->where('status', self::STATUS_RESCHEDULED); }
 
     // ── State machine ─────────────────────────────────────────────────────────
@@ -193,7 +184,6 @@ class Appointment extends Model
     {
         return in_array($this->status, [
             self::STATUS_PENDING_EXPERT_APPROVAL,
-            self::STATUS_REQUESTED,
             self::STATUS_PENDING,
         ]);
     }
@@ -204,7 +194,6 @@ class Appointment extends Model
     {
         return in_array($this->status, [
             self::STATUS_CONFIRMED,
-            self::STATUS_ACCEPTED,
         ]);
     }
 
@@ -212,7 +201,7 @@ class Appointment extends Model
     {
         return in_array($this->status, [
             self::STATUS_CONFIRMED,
-            self::STATUS_ACCEPTED,
+            self::STATUS_RESCHEDULED,
         ]);
     }
 
@@ -240,9 +229,7 @@ class Appointment extends Model
             self::STATUS_PENDING_EXPERT_APPROVAL,
             self::STATUS_CONFIRMED,
             self::STATUS_RESCHEDULE_REQUESTED,
-            self::STATUS_REQUESTED,
             self::STATUS_PENDING,
-            self::STATUS_ACCEPTED,
             self::STATUS_RESCHEDULED,
         ]);
     }
@@ -261,9 +248,7 @@ class Appointment extends Model
             self::STATUS_RESCHEDULE_REQUESTED    => 'secondary',
             self::STATUS_COMPLETED               => 'success',
             self::STATUS_CANCELLED               => 'dark',
-            self::STATUS_REQUESTED               => 'primary',
             self::STATUS_PENDING                 => 'warning',
-            self::STATUS_ACCEPTED                => 'info',
             self::STATUS_RESCHEDULED             => 'secondary',
             default                              => 'light',
         };
@@ -277,7 +262,8 @@ class Appointment extends Model
             self::STATUS_REJECTED                => 'Rejected',
             self::STATUS_COMPLETED               => 'Completed',
             self::STATUS_CANCELLED               => 'Cancelled',
-            self::STATUS_RESCHEDULE_REQUESTED    => 'Rescheduled',
+            self::STATUS_RESCHEDULE_REQUESTED    => 'Reschedule Requested',
+            self::STATUS_RESCHEDULED             => 'Rescheduled',
             self::STATUS_PENDING_PAYMENT         => 'Pending Payment',
             self::STATUS_PAYMENT_FAILED          => 'Payment Failed',
             self::STATUS_DRAFT                   => 'Draft',
