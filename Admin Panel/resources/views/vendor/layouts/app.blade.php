@@ -91,6 +91,28 @@
     </div>
 </div>
 
+@if(session('success') || session('error'))
+    <div class="position-fixed" style="top: 82px; right: 20px; z-index: 1090; min-width: 300px;">
+        @if(session('success'))
+            <div class="toast align-items-center text-bg-success border-0 mb-2 js-session-toast" role="alert" aria-live="assertive" aria-atomic="true">
+                <div class="d-flex">
+                    <div class="toast-body">{{ session('success') }}</div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+            </div>
+        @endif
+
+        @if(session('error'))
+            <div class="toast align-items-center text-bg-danger border-0 mb-2 js-session-toast" role="alert" aria-live="assertive" aria-atomic="true">
+                <div class="d-flex">
+                    <div class="toast-body">{{ session('error') }}</div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+            </div>
+        @endif
+    </div>
+@endif
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
 <script src="{{ asset('assets/plugins/bootstrap/js/popper.min.js') }}"></script>
 <script src="{{ asset('assets/plugins/bootstrap/js/bootstrap.min.js') }}"></script>
@@ -130,6 +152,19 @@
         });
         $(keepSidebarExpanded);
     })(jQuery);
+</script>
+
+<script>
+    (function () {
+        if (typeof bootstrap === 'undefined' || typeof bootstrap.Toast === 'undefined') {
+            return;
+        }
+
+        document.querySelectorAll('.js-session-toast').forEach(function (el) {
+            var toast = new bootstrap.Toast(el, { delay: 3500 });
+            toast.show();
+        });
+    })();
 </script>
 
 <script src="{{ asset('js/chosen.jquery.js') }}"></script>

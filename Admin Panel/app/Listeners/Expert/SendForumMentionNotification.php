@@ -36,10 +36,16 @@ class SendForumMentionNotification implements ShouldQueue
         // 2) Expert panel log entry
         $this->notificationService->notify(
             $expert,
-            ExpertNotificationService::TYPE_FORUM_MENTION,
+            ExpertNotificationService::TYPE_FORUM_REPLY,
             "{$mentionedBy} replied in: {$thread->title}",
             $reply->body,
-            ['thread_id' => $thread->id, 'reply_id' => $reply->id]
+            [
+                'thread_id' => $thread->id,
+                'reply_id' => $reply->id,
+                'action_url' => route('expert.forum.show', $thread->id),
+            ],
+            $reply->user_id,
+            route('expert.forum.show', $thread->id)
         );
     }
 }

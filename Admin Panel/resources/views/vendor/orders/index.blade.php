@@ -26,11 +26,9 @@
                         <option value="{{ $s }}" @selected(request('status') === $s)>{{ strtoupper(str_replace('_', ' ', $s)) }}</option>
                     @endforeach
                 </select>
-                <div class="input-group" style="width: 320px;">
-                    <span class="input-group-text bg-white border-end-0" style="border-radius: 10px 0 0 10px;">
-                        <i class="fas fa-search" style="color: var(--agri-text-muted); font-size: 14px;"></i>
-                    </span>
-                    <input type="text" name="search" class="form-agri border-start-0" placeholder="Search orders..." value="{{ request('search') }}" style="margin-bottom: 0; border-radius: 0 10px 10px 0; height: 42px;">
+                <div class="agri-search-wrap" style="width: 320px;">
+                    <i class="fas fa-search agri-search-icon"></i>
+                    <input type="text" name="search" class="form-agri agri-search-input" placeholder="Search orders..." value="{{ request('search') }}">
                 </div>
                 <button type="submit" class="btn-agri btn-agri-primary" style="height: 42px; padding: 0 16px;">Filter</button>
             </form>
@@ -70,7 +68,16 @@
                                 <div class="text-end" style="display: flex; justify-content: flex-end; gap: 8px;">
                                     <a href="{{ route('vendor.orders.show', $order->id) }}" class="btn-agri" style="padding: 8px; background: var(--agri-bg); color: #2563eb; border-radius: 999px;" title="View"><i class="fas fa-eye"></i></a>
                                     <a href="{{ route('vendor.orders.show', $order->id) }}" class="btn-agri" style="padding: 8px; background: var(--agri-bg); color: var(--agri-primary); border-radius: 999px;" title="Edit"><i class="fas fa-pen"></i></a>
-                                    <button type="button" class="btn-agri" style="padding: 8px; background: #fef2f2; color: #ef4444; border-radius: 999px; border: none; opacity: .6; cursor: not-allowed;" title="Delete unavailable on this page" disabled>
+                                    <button
+                                        type="button"
+                                        class="btn-agri js-order-delete-trigger"
+                                        style="padding: 8px; background: #fef2f2; color: #ef4444; border-radius: 999px; border: none;"
+                                        data-order-id="{{ $order->id }}"
+                                        data-order-number="{{ $order->order_number ?? ('#'.$order->id) }}"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#deleteOrderModal"
+                                        title="Delete"
+                                    >
                                         <i class="fas fa-trash"></i>
                                     </button>
                                 </div>
@@ -90,4 +97,69 @@
         @endif
     </div>
 </div>
+
+<div class="modal fade" id="deleteOrderModal" tabindex="-1" aria-labelledby="deleteOrderModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius: 14px; border: 1px solid var(--agri-border);">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteOrderModalLabel">Delete Order</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-2">Are you sure you want to delete this order?</p>
+                <p class="mb-0 text-muted" id="deleteOrderHelpText" style="font-size: 13px;"></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                <form id="deleteOrderForm" method="POST" action="">
+                    @csrf
+                    @method('DELETE')
+                    <button type="submit" class="btn btn-danger">Delete Order</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
 @endsection
+
+@push('styles')
+<style>
+    .agri-search-wrap {
+        position: relative;
+    }
+
+    .agri-search-icon {
+        position: absolute;
+        left: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--agri-text-muted);
+        font-size: 14px;
+        pointer-events: none;
+    }
+
+    .agri-search-input {
+        margin-bottom: 0;
+        height: 42px;
+        padding-left: 36px;
+    }
+</style>
+@endpush
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const deleteForm = document.getElementById('deleteOrderForm');
+    const helpText = document.getElementById('deleteOrderHelpText');
+
+    document.querySelectorAll('.js-order-delete-trigger').forEach(function (button) {
+        button.addEventListener('click', function () {
+            const orderId = this.getAttribute('data-order-id');
+            const orderNumber = this.getAttribute('data-order-number');
+            deleteForm.action = '{{ route('vendor.orders.destroy', '__ORDER__') }}'.replace('__ORDER__', orderId);
+            helpText.textContent = 'Order ' + orderNumber + ' will be removed from your vendor order list.';
+        });
+    });
+});
+</script>
+@endpush

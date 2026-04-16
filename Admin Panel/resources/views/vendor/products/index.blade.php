@@ -22,11 +22,9 @@
             <div class="d-flex justify-content-between align-items-center">
                 <h4 class="mb-0 fw-bold text-dark" style="font-size: 18px;">Product List</h4>
                 <form method="GET" action="{{ route('vendor.products.index') }}" style="display: flex; align-items: center; gap: 10px;">
-                    <div class="input-group" style="width: 320px;">
-                        <span class="input-group-text bg-white border-end-0" style="border-radius: 10px 0 0 10px;">
-                            <i class="fas fa-search" style="color: var(--agri-text-muted); font-size: 14px;"></i>
-                        </span>
-                        <input type="text" name="search" class="form-agri border-start-0" placeholder="Search products..." value="{{ request('search') }}" style="margin-bottom: 0; border-radius: 0 10px 10px 0; height: 42px;">
+                    <div class="agri-search-wrap" style="width: 320px;">
+                        <i class="fas fa-search agri-search-icon"></i>
+                        <input type="text" name="search" class="form-agri agri-search-input" placeholder="Search products..." value="{{ request('search') }}">
                     </div>
                     <button type="submit" class="btn-agri btn-agri-primary" style="height: 42px; padding: 0 16px;">Filter</button>
                 </form>
@@ -106,3 +104,27 @@
     @endif
 </div>
 @endsection
+
+@push('styles')
+<style>
+    .agri-search-wrap {
+        position: relative;
+    }
+
+    .agri-search-icon {
+        position: absolute;
+        left: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--agri-text-muted);
+        font-size: 14px;
+        pointer-events: none;
+    }
+
+    .agri-search-input {
+        margin-bottom: 0;
+        height: 42px;
+        padding-left: 36px;
+    }
+</style>
+@endpush

@@ -41,8 +41,8 @@
                 </select>
             </div>
             <div class="col-md-2 d-flex gap-2">
-                <x-button type="submit" variant="primary" icon="fas fa-filter" style="width:100%;">Apply</x-button>
-                <x-button :href="route('expert.forum.index')" variant="outline" style="width:100%;">Reset</x-button>
+                <x-button type="submit" variant="primary" icon="fas fa-filter" class="w-100">Apply</x-button>
+                <x-button :href="route('expert.forum.index')" variant="outline" class="w-100">Clear Filters</x-button>
             </div>
         </div>
     </form>

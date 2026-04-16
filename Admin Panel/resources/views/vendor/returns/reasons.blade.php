@@ -1,169 +1,275 @@
 @extends('vendor.layouts.app')
+
 @section('title', 'Return Reasons')
 
 @section('content')
 <div class="container-fluid" style="padding-top: 24px; padding-bottom: 40px;">
-@if(session('success'))
-    <div class="alert alert-success alert-dismissible fade show border-0 shadow-sm rounded-3 mb-4">
-        <div class="d-flex align-items-center">
-            <i class="bi bi-check-circle-fill text-success fs-4 me-3"></i>
-            <div>{{ session('success') }}</div>
+    <div class="d-flex flex-wrap justify-content-between align-items-end mb-4" style="gap: 12px;">
+        <div>
+            <h1 style="font-size: 28px; font-weight: 700; margin: 0;">Return Reasons</h1>
+            <p class="text-muted mb-0">Manage return reason options used by your customers.</p>
         </div>
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        <x-button :href="route('vendor.returns.index')" variant="outline" icon="fas fa-arrow-left">Back to Return Requests</x-button>
     </div>
-@endif
-@if($errors->any())
-    <div class="alert alert-danger alert-dismissible fade show border-0 shadow-sm rounded-3 mb-4">
-        <div class="d-flex align-items-start">
-            <i class="bi bi-exclamation-triangle-fill text-danger fs-4 me-3 mt-1"></i>
-            <ul class="mb-0 ps-3">@foreach($errors->all() as $e)<li class="small">{{ $e }}</li>@endforeach</ul>
-        </div>
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>
-@endif
 
-@php
-    $vendorId = auth('vendor')->user()->vendor->id;
-@endphp
-
-<div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 24px; flex-wrap: wrap; gap: 12px;">
-    <div>
-        <h1 style="font-size: 28px; font-weight: 700; color: var(--agri-primary-dark); margin: 0;">Return Reasons</h1>
-        <p style="color: var(--agri-text-muted); margin: 4px 0 0 0;">Configure the reasons customers can select when requesting a return.</p>
-    </div>
-    <x-button :href="route('vendor.returns.index')" variant="outline" icon="fas fa-arrow-left">Back to Returns</x-button>
-</div>
-
-<div class="row g-4">
-    {{-- Add New Reason --}}
-    <div class="col-lg-4">
-        <div class="card-agri" style="position:sticky; top:90px; padding: 0; overflow: hidden;">
-            <div class="card-header bg-white border-bottom py-3">
-                <h6 class="mb-0 fw-bold text-dark"><i class="bi bi-plus-circle-fill me-2 text-success fs-5"></i>Add New Reason</h6>
-            </div>
-            <div class="card-body p-4">
-                <form method="POST" action="{{ route('vendor.return-reasons.store') }}">
-                    @csrf
-                    <div class="mb-3">
-                        <label class="form-label fw-bold small text-muted text-uppercase mb-2">Reason Text <span class="text-danger">*</span></label>
-                        <input type="text" name="reason" value="{{ old('reason') }}" required maxlength="255"
-                               class="form-control bg-light border-0 rounded-3 @error('reason') is-invalid @enderror"
-                               placeholder="e.g. Damaged on arrival">
-                        @error('reason')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+    <x-card>
+        <x-slot name="header">
+            <div class="d-flex justify-content-between align-items-center flex-wrap" style="gap: 10px;">
+                <h4 class="mb-0 fw-bold text-dark" style="font-size: 18px;">Reason List</h4>
+                <form method="GET" action="{{ route('vendor.return-reasons.index') }}" class="d-flex align-items-center flex-wrap" style="gap: 10px;">
+                    <div class="agri-search-wrap" style="width: 320px;">
+                        <i class="fas fa-search agri-search-icon"></i>
+                        <input type="text" name="search" class="form-agri agri-search-input" value="{{ $filters['search'] ?? '' }}" placeholder="Search reasons...">
                     </div>
-                    <div class="form-check form-switch mb-4">
-                        <input class="form-check-input" type="checkbox" name="is_active" id="is_active_new" value="1" checked>
-                        <label class="form-check-label small fw-medium text-muted" for="is_active_new">Active (visible to customers)</label>
-                    </div>
-                    <x-button type="submit" variant="primary" icon="fas fa-plus" style="width: 100%;">Add Reason</x-button>
+
+                    <select name="status" class="form-agri" style="height: 42px; min-width: 140px; margin-bottom: 0;">
+                        <option value="">All Statuses</option>
+                        <option value="active" @selected(($filters['status'] ?? '') === 'active')>Active</option>
+                        <option value="inactive" @selected(($filters['status'] ?? '') === 'inactive')>Inactive</option>
+                    </select>
+
+                    <x-button type="submit" variant="primary">Apply Filters</x-button>
+                    <x-button :href="route('vendor.return-reasons.index')" variant="outline">Clear</x-button>
                 </form>
             </div>
-        </div>
-    </div>
+        </x-slot>
 
-    {{-- Reasons List --}}
-    <div class="col-lg-8">
-        <div class="card-agri" style="padding: 0; overflow: hidden;">
-            <div class="card-header bg-white border-bottom py-3 d-flex align-items-center justify-content-between">
-                <h6 class="mb-0 fw-bold text-dark"><i class="bi bi-list-check me-2 text-primary fs-5"></i>All Reasons
-                    <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 rounded-pill ms-2 px-2 py-1" style="font-size:11px;">{{ $reasons->count() }} total</span>
-                </h6>
-                <span class="text-muted small">
-                    <span class="text-success fw-bold">{{ $reasons->where('is_active', true)->count() }}</span> active &nbsp;·&nbsp;
-                    <span class="text-secondary fw-bold">{{ $reasons->where('is_active', false)->count() }}</span> inactive
-                </span>
-            </div>
-            <div class="card-body p-0">
-                @if($reasons->isEmpty())
-                    <div class="text-center text-muted py-5 my-2">
-                        <i class="bi bi-tags fs-1 d-block mb-3 opacity-25"></i>
-                        <h6 class="fw-bold">No return reasons yet</h6>
-                        <p class="small mb-0">Add your first reason using the form on the left.</p>
-                    </div>
-                @else
-                    <ul class="list-group list-group-flush">
-                        @foreach($reasons as $reason)
-                        @php
-                            $isOwned = (int) ($reason->vendor_id ?? 0) === (int) $vendorId;
-                        @endphp
-                        <li class="list-group-item px-4 py-3 d-flex align-items-center gap-3 {{ !$reason->is_active ? 'bg-light' : '' }}">
-                            {{-- Status indicator --}}
-                            <span class="d-inline-flex align-items-center justify-content-center rounded-circle {{ $reason->is_active ? 'bg-success' : 'bg-secondary' }} bg-opacity-15"
-                                  style="width:10px; height:10px; min-width:10px;">
-                                <span class="rounded-circle {{ $reason->is_active ? 'bg-success' : 'bg-secondary' }}" style="width:6px; height:6px; display:block;"></span>
-                            </span>
-
-                            {{-- Inline edit form --}}
+        <x-table>
+            <thead style="background: var(--agri-bg);">
+                <tr>
+                    <th style="padding: 16px 24px; font-size: 12px; font-weight: 600; text-transform: uppercase; border: none;">Name</th>
+                    <th style="padding: 16px 24px; font-size: 12px; font-weight: 600; text-transform: uppercase; border: none;">Description</th>
+                    <th style="padding: 16px 24px; font-size: 12px; font-weight: 600; text-transform: uppercase; border: none;">Status</th>
+                    <th style="padding: 16px 24px; font-size: 12px; font-weight: 600; text-transform: uppercase; border: none;">Usage Count</th>
+                    <th class="text-end" style="padding: 16px 24px; font-size: 12px; font-weight: 600; text-transform: uppercase; border: none;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @forelse($reasons as $reason)
+                    @php
+                        $isOwned = (int) ($reason->vendor_id ?? 0) === (int) auth('vendor')->user()->vendor->id;
+                    @endphp
+                    <tr>
+                        <td class="px-4 py-3">
+                            <div class="fw-bold text-dark">{{ $reason->name }}</div>
+                            <small class="text-muted">Created {{ $reason->created_at->format('M d, Y') }}</small>
+                        </td>
+                        <td class="px-4 py-3 text-muted">{{ \Illuminate\Support\Str::limit($reason->description ?: 'No description added.', 85) }}</td>
+                        <td class="px-4 py-3">
                             @if($isOwned)
-                                <form method="POST" action="{{ route('vendor.return-reasons.update', $reason->id) }}"
-                                      class="d-flex align-items-center gap-2 flex-grow-1" id="edit-form-{{ $reason->id }}">
-                                    @csrf @method('PATCH')
-                                    <input type="text" name="reason" value="{{ $reason->reason }}" required maxlength="255"
-                                           class="form-control form-control-sm bg-{{ $reason->is_active ? 'white' : 'light' }} border rounded-3 fw-medium text-dark shadow-sm"
-                                           style="font-size:14px;">
-                                    <span class="badge bg-info bg-opacity-10 text-info border border-info border-opacity-25 rounded-pill px-2 py-1">Your Reason</span>
-                                    <x-button type="submit" variant="outline">Save</x-button>
+                                <form method="POST" action="{{ route('vendor.return-reasons.toggle', $reason->id) }}" class="d-inline-flex align-items-center" style="gap: 8px;">
+                                    @csrf
+                                    @method('PATCH')
+                                    <x-toggle :checked="$reason->is_active" onchange="this.form.submit()" />
+                                    <x-badge :variant="$reason->is_active ? 'success' : 'secondary'">{{ $reason->is_active ? 'Active' : 'Inactive' }}</x-badge>
                                 </form>
                             @else
-                                <div class="d-flex align-items-center gap-2 flex-grow-1">
-                                    <input type="text" value="{{ $reason->reason }}" readonly
-                                           class="form-control form-control-sm bg-light border rounded-3 fw-medium text-dark shadow-sm"
-                                           style="font-size:14px;">
-                                    <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 rounded-pill px-2 py-1">Global</span>
-                                </div>
+                                <x-badge :variant="$reason->is_active ? 'success' : 'secondary'">{{ $reason->is_active ? 'Active' : 'Inactive' }}</x-badge>
                             @endif
+                        </td>
+                        <td class="px-4 py-3">
+                            <x-badge variant="info">{{ $reason->returns_count }}</x-badge>
+                        </td>
+                        <td class="px-4 py-3">
+                            <div class="text-end d-flex justify-content-end" style="gap: 8px;">
+                                <button
+                                    type="button"
+                                    class="btn btn-sm btn-light border shadow-sm rounded-circle d-inline-flex align-items-center justify-content-center js-view-reason"
+                                    style="width: 34px; height: 34px;"
+                                    title="View"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#viewReasonModal"
+                                    data-name="{{ $reason->name }}"
+                                    data-description="{{ $reason->description }}"
+                                    data-status="{{ $reason->is_active ? 'Active' : 'Inactive' }}"
+                                    data-usage="{{ $reason->returns_count }}"
+                                >
+                                    <i class="fas fa-eye"></i>
+                                </button>
 
-                            {{-- Actions --}}
-                            <div class="d-flex align-items-center gap-2 ms-auto text-nowrap">
-                                {{-- Toggle active --}}
                                 @if($isOwned)
-                                    <form method="POST" action="{{ route('vendor.return-reasons.toggle', $reason->id) }}">
-                                        @csrf @method('PATCH')
-                                        <button type="submit" title="{{ $reason->is_active ? 'Deactivate' : 'Activate' }}"
-                                                class="btn btn-sm {{ $reason->is_active ? 'btn-outline-warning' : 'btn-outline-success' }} rounded-circle shadow-sm d-flex align-items-center justify-content-center"
-                                                style="width:32px; height:32px;">
-                                            <i class="bi {{ $reason->is_active ? 'bi-toggle-on' : 'bi-toggle-off' }} fs-6"></i>
+                                    <button
+                                        type="button"
+                                        class="btn btn-sm btn-light border shadow-sm rounded-circle d-inline-flex align-items-center justify-content-center js-edit-reason"
+                                        style="width: 34px; height: 34px;"
+                                        title="Edit"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#editReasonModal"
+                                        data-id="{{ $reason->id }}"
+                                        data-name="{{ $reason->name }}"
+                                        data-description="{{ $reason->description }}"
+                                    >
+                                        <i class="fas fa-pen"></i>
+                                    </button>
+
+                                    <form method="POST" action="{{ route('vendor.return-reasons.destroy', $reason->id) }}" class="d-inline" onsubmit="return confirm('Delete this return reason?');">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="btn btn-sm btn-light border shadow-sm rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 34px; height: 34px;" title="Delete">
+                                            <i class="fas fa-trash text-danger"></i>
                                         </button>
                                     </form>
-                                @endif
-
-                                {{-- Delete --}}
-                                @if($isOwned)
-                                    <form method="POST" action="{{ route('vendor.return-reasons.destroy', $reason->id) }}">
-                                        @csrf @method('DELETE')
-                                        <button type="submit" title="Delete"
-                                                class="btn btn-sm btn-outline-danger rounded-circle shadow-sm d-flex align-items-center justify-content-center"
-                                                style="width:32px; height:32px;"
-                                                onclick="return confirm('Delete this reason? If it has been used in returns, it will be deactivated instead.')">
-                                            <i class="bi bi-trash fs-6"></i>
-                                        </button>
-                                    </form>
+                                @else
+                                    <button type="button" class="btn btn-sm btn-light border shadow-sm rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 34px; height: 34px;" title="Edit unavailable" disabled>
+                                        <i class="fas fa-pen text-muted"></i>
+                                    </button>
+                                    <button type="button" class="btn btn-sm btn-light border shadow-sm rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 34px; height: 34px;" title="Delete unavailable" disabled>
+                                        <i class="fas fa-trash text-muted"></i>
+                                    </button>
                                 @endif
                             </div>
+                        </td>
+                    </tr>
+                @empty
+                    <tr>
+                        <td colspan="5" class="text-center py-5">
+                            <div class="text-muted">
+                                <i class="fas fa-inbox fs-2 d-block mb-2"></i>
+                                <div class="fw-bold">No return reasons yet</div>
+                                <div class="small">Create your first reason to help customers submit accurate return requests.</div>
+                            </div>
+                        </td>
+                    </tr>
+                @endforelse
+            </tbody>
+        </x-table>
 
-                            {{-- Usage count badge --}}
-                            @php $usageCount = (int) ($reason->returns_count ?? 0); @endphp
-                            @if($usageCount > 0)
-                                <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 rounded-pill px-2 py-1 text-nowrap" style="font-size:10px;">
-                                    {{ $usageCount }} use{{ $usageCount !== 1 ? 's' : '' }}
-                                </span>
-                            @endif
-                        </li>
-                        @endforeach
-                    </ul>
-                @endif
+        @if($reasons->hasPages())
+            <div style="padding: 24px; border-top: 1px solid var(--agri-border); display: flex; justify-content: center;">
+                {{ $reasons->withQueryString()->links('pagination::bootstrap-5') }}
             </div>
-        </div>
+        @endif
+    </x-card>
 
-        {{-- Info card --}}
-        <div class="alert alert-info bg-info bg-opacity-10 border-0 rounded-3 mt-4 d-flex align-items-start shadow-sm">
-            <i class="bi bi-info-circle-fill text-info fs-5 me-3 mt-1"></i>
-            <div class="small">
-                <strong class="d-block mb-1">How Return Reasons Work</strong>
-                Customers select from active reasons when submitting a return request. Inactive reasons are hidden from the form but preserved in historical data. Reasons with existing returns cannot be deleted and are <em>deactivated</em> instead.
+    <x-card class="mt-4">
+        <div class="p-4">
+            <h5 class="mb-3">Add New Return Reason</h5>
+            <form method="POST" action="{{ route('vendor.return-reasons.store') }}" class="row g-3 align-items-end">
+                @csrf
+                <div class="col-md-4">
+                    <label class="form-label text-muted small">Name</label>
+                    <input type="text" name="reason" class="form-agri" required maxlength="255" value="{{ old('reason') }}" placeholder="e.g. Item arrived damaged">
+                </div>
+                <div class="col-md-5">
+                    <label class="form-label text-muted small">Description</label>
+                    <input type="text" name="description" class="form-agri" maxlength="1000" value="{{ old('description') }}" placeholder="Optional context shown in management screens">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label text-muted small">Status</label>
+                    <select name="is_active" class="form-agri">
+                        <option value="1" selected>Active</option>
+                        <option value="0">Inactive</option>
+                    </select>
+                </div>
+                <div class="col-md-1">
+                    <x-button type="submit" variant="primary" class="w-100">Add</x-button>
+                </div>
+            </form>
+        </div>
+    </x-card>
+</div>
+
+<div class="modal fade" id="viewReasonModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Return Reason Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-2"><strong>Name:</strong> <span id="viewReasonName"></span></div>
+                <div class="mb-2"><strong>Description:</strong> <span id="viewReasonDescription"></span></div>
+                <div class="mb-2"><strong>Status:</strong> <span id="viewReasonStatus"></span></div>
+                <div><strong>Usage Count:</strong> <span id="viewReasonUsage"></span></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Close</button>
             </div>
         </div>
     </div>
 </div>
+
+<div class="modal fade" id="editReasonModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <form method="POST" id="editReasonForm" class="modal-content">
+            @csrf
+            @method('PATCH')
+            <div class="modal-header">
+                <h5 class="modal-title">Edit Return Reason</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label text-muted small">Name</label>
+                    <input type="text" name="reason" id="editReasonName" class="form-agri" required maxlength="255">
+                </div>
+                <div>
+                    <label class="form-label text-muted small">Description</label>
+                    <textarea name="description" id="editReasonDescription" class="form-agri" rows="4" maxlength="1000"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                <button type="submit" class="btn btn-success">Save Changes</button>
+            </div>
+        </form>
+    </div>
 </div>
 @endsection
+
+@push('styles')
+<style>
+    .agri-search-wrap {
+        position: relative;
+    }
+
+    .agri-search-icon {
+        position: absolute;
+        left: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--agri-text-muted);
+        font-size: 14px;
+        pointer-events: none;
+    }
+
+    .agri-search-input {
+        margin-bottom: 0;
+        height: 42px;
+        padding-left: 36px;
+    }
+</style>
+@endpush
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const viewName = document.getElementById('viewReasonName');
+    const viewDescription = document.getElementById('viewReasonDescription');
+    const viewStatus = document.getElementById('viewReasonStatus');
+    const viewUsage = document.getElementById('viewReasonUsage');
+
+    document.querySelectorAll('.js-view-reason').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            viewName.textContent = this.getAttribute('data-name') || '-';
+            viewDescription.textContent = this.getAttribute('data-description') || 'No description added.';
+            viewStatus.textContent = this.getAttribute('data-status') || '-';
+            viewUsage.textContent = this.getAttribute('data-usage') || '0';
+        });
+    });
+
+    const editForm = document.getElementById('editReasonForm');
+    const editName = document.getElementById('editReasonName');
+    const editDescription = document.getElementById('editReasonDescription');
+
+    document.querySelectorAll('.js-edit-reason').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            const id = this.getAttribute('data-id');
+            editForm.action = '{{ route('vendor.return-reasons.update', '__ID__') }}'.replace('__ID__', id);
+            editName.value = this.getAttribute('data-name') || '';
+            editDescription.value = this.getAttribute('data-description') || '';
+        });
+    });
+});
+</script>
+@endpush

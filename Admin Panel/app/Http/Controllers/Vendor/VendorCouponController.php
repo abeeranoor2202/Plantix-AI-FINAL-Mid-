@@ -18,14 +18,51 @@ class VendorCouponController extends Controller
 
     // ── List ─────────────────────────────────────────────────────────────────
 
-    public function index(): View
+    public function index(Request $request): View
     {
-        $coupons = Coupon::where('vendor_id', $this->vendorId())
-                         ->withCount('usages')
-                         ->latest()
-                         ->paginate(20);
+        $query = Coupon::where('vendor_id', $this->vendorId())
+            ->withCount('usages')
+            ->latest();
 
-        return view('vendor.coupons.index', compact('coupons'));
+        if ($request->filled('search')) {
+            $term = '%' . trim((string) $request->input('search')) . '%';
+            $query->where('code', 'like', $term);
+        }
+
+        if ($request->filled('status')) {
+            $status = (string) $request->input('status');
+            if ($status === 'active') {
+                $query->where('is_active', true);
+            } elseif ($status === 'inactive') {
+                $query->where('is_active', false);
+            }
+        }
+
+        if ($request->filled('expiry')) {
+            $expiry = (string) $request->input('expiry');
+            if ($expiry === 'expired') {
+                $query->whereNotNull('expires_at')->where('expires_at', '<', now());
+            } elseif ($expiry === 'expiring_soon') {
+                $query->whereBetween('expires_at', [now(), now()->addDays(7)]);
+            } elseif ($expiry === 'no_expiry') {
+                $query->whereNull('expires_at');
+            }
+        }
+
+        $coupons = $query->paginate(20)->withQueryString();
+
+        $filters = $request->only(['search', 'status', 'expiry']);
+
+        return view('vendor.coupons.index', compact('coupons', 'filters'));
+    }
+
+    public function show(int $id): View
+    {
+        $coupon = Coupon::where('vendor_id', $this->vendorId())
+            ->withCount('usages')
+            ->findOrFail($id);
+
+        return view('vendor.coupons.show', compact('coupon'));
     }
 
     // ── Create ───────────────────────────────────────────────────────────────

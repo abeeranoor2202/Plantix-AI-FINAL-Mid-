@@ -47,10 +47,16 @@ class SendAppointmentStatusNotification implements ShouldQueue
 
             $this->notificationService->notify(
                 $expert,
-                ExpertNotificationService::TYPE_APPOINTMENT_UPDATE,
+                ExpertNotificationService::TYPE_APPOINTMENT_STATUS,
                 $titleMap[$newStatus] ?? "Appointment status: {$newStatus}",
                 "Appointment #{$appointment->id} with {$farmer?->name} is now {$newStatus}.",
-                ['appointment_id' => $appointment->id, 'status' => $newStatus]
+                [
+                    'appointment_id' => $appointment->id,
+                    'status' => $newStatus,
+                    'action_url' => route('expert.appointments.show', $appointment->id),
+                ],
+                $appointment->user_id,
+                route('expert.appointments.show', $appointment->id)
             );
         }
     }

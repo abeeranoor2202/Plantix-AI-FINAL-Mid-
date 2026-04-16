@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Events\Expert\ExpertPayoutStatusChanged;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -9,6 +10,25 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class Payout extends Model
 {
     use HasFactory;
+
+    protected static function booted(): void
+    {
+        static::created(function (Payout $payout): void {
+            if ($payout->expert_id) {
+                ExpertPayoutStatusChanged::dispatch($payout, null, $payout->status);
+            }
+        });
+
+        static::updated(function (Payout $payout): void {
+            if ($payout->expert_id && $payout->wasChanged('status')) {
+                ExpertPayoutStatusChanged::dispatch(
+                    $payout,
+                    $payout->getOriginal('status'),
+                    $payout->status
+                );
+            }
+        });
+    }
 
     protected $fillable = [
         'vendor_id',

@@ -20,6 +20,9 @@ class EventServiceProvider extends ServiceProvider
         \App\Events\Expert\ExpertMentionedInForum::class => [
             \App\Listeners\Expert\SendForumMentionNotification::class,
         ],
+        \App\Events\Expert\ExpertPayoutStatusChanged::class => [
+            \App\Listeners\Expert\SendExpertPayoutNotification::class,
+        ],
 
         // ── User ─────────────────────────────────────────────────────────────
         \App\Events\User\UserRegistered::class => [
@@ -45,6 +48,7 @@ class EventServiceProvider extends ServiceProvider
         // ── Appointments (user-facing flow) ───────────────────────────────────
         \App\Events\Appointment\AppointmentCreated::class => [
             \App\Listeners\Appointment\SendAppointmentEmailListener::class,
+            \App\Listeners\Expert\SendAppointmentCreatedNotification::class,
         ],
         \App\Events\Appointment\AppointmentStatusChanged::class => [
             \App\Listeners\Appointment\SendAppointmentEmailListener::class,
@@ -56,6 +60,7 @@ class EventServiceProvider extends ServiceProvider
         ],
         \App\Events\Forum\OfficialAnswerMarked::class => [
             \App\Listeners\Forum\SendForumEmailListener::class,
+            \App\Listeners\Expert\SendForumOfficialMarkedNotification::class,
         ],
         \App\Events\Forum\ContentFlagged::class => [
             \App\Listeners\Forum\SendForumEmailListener::class,
@@ -69,6 +74,7 @@ class EventServiceProvider extends ServiceProvider
         // ── Experts (new registration & status via email flow) ────────────────
         \App\Events\Expert\ExpertStatusChanged::class => [
             \App\Listeners\Expert\SendExpertEmailListener::class,
+            \App\Listeners\Expert\SendExpertStatusSystemNotification::class,
         ],
         \App\Events\Expert\ExpertRegistered::class => [
             \App\Listeners\Expert\SendExpertEmailListener::class,

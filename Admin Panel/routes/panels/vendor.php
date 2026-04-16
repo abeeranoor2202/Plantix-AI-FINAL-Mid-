@@ -47,6 +47,7 @@ Route::prefix('vendor')->name('vendor.')->group(function () {
         // ── Products (vendor-scoped) ──────────────────────────────────────────
         Route::get('/products',            [\App\Http\Controllers\Vendor\VendorProductController::class, 'index'])->name('products.index');
         Route::get('/products/create',     [\App\Http\Controllers\Vendor\VendorProductController::class, 'create'])->name('products.create');
+        Route::get('/products/category/{category}/attributes', [\App\Http\Controllers\Vendor\VendorProductController::class, 'categoryAttributes'])->name('products.category-attributes');
         Route::post('/products',           [\App\Http\Controllers\Vendor\VendorProductController::class, 'store'])->name('products.store');
         Route::get('/products/{id}',       [\App\Http\Controllers\Vendor\VendorProductController::class, 'show'])->name('products.show');
         Route::get('/products/{id}/edit',  [\App\Http\Controllers\Vendor\VendorProductController::class, 'edit'])->name('products.edit');
@@ -61,11 +62,13 @@ Route::prefix('vendor')->name('vendor.')->group(function () {
         Route::get('/orders',               [\App\Http\Controllers\Vendor\VendorOrderController::class, 'index'])->name('orders.index');
         Route::get('/orders/{id}',          [\App\Http\Controllers\Vendor\VendorOrderController::class, 'show'])->name('orders.show');
         Route::post('/orders/{id}/status',  [\App\Http\Controllers\Vendor\VendorOrderController::class, 'updateStatus'])->name('orders.status');
+        Route::delete('/orders/{id}',       [\App\Http\Controllers\Vendor\VendorOrderController::class, 'destroy'])->name('orders.destroy');
 
         // ── Coupons (vendor-scoped) ───────────────────────────────────────────
         Route::get('/coupons',               [\App\Http\Controllers\Vendor\VendorCouponController::class, 'index'])->name('coupons.index');
         Route::get('/coupons/create',        [\App\Http\Controllers\Vendor\VendorCouponController::class, 'create'])->name('coupons.create');
         Route::post('/coupons',              [\App\Http\Controllers\Vendor\VendorCouponController::class, 'store'])->name('coupons.store');
+        Route::get('/coupons/{id}',          [\App\Http\Controllers\Vendor\VendorCouponController::class, 'show'])->name('coupons.show');
         Route::get('/coupons/{id}/edit',     [\App\Http\Controllers\Vendor\VendorCouponController::class, 'edit'])->name('coupons.edit');
         Route::put('/coupons/{id}',          [\App\Http\Controllers\Vendor\VendorCouponController::class, 'update'])->name('coupons.update');
         Route::delete('/coupons/{id}',       [\App\Http\Controllers\Vendor\VendorCouponController::class, 'destroy'])->name('coupons.destroy');

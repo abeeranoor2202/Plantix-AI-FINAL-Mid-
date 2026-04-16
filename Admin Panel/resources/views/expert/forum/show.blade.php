@@ -12,18 +12,6 @@
     </div>
 </div>
 
-@if(session('success'))
-    <div class="card-agri mb-4" style="background: #ecfdf5; border: 1px solid #86efac; border-radius: 12px; padding: 12px 20px; color: #166534; font-weight: 700;">
-        {{ session('success') }}
-    </div>
-@endif
-
-@if($errors->any())
-    <div class="card-agri mb-4" style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 12px; padding: 12px 20px; color: #991b1b; font-weight: 700;">
-        {{ $errors->first('error') ?? $errors->first('body') ?? 'Please correct the highlighted issues and try again.' }}
-    </div>
-@endif
-
 <div class="row g-4 mb-4">
     <div class="col-lg-8 d-flex flex-column gap-4">
         {{-- Thread Original Post --}}

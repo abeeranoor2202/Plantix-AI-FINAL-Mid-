@@ -16,7 +16,7 @@
         ['label' => 'Attributes', 'icon' => 'mdi-format-list-bulleted-square', 'active' => Request::is('admin/attributes*'), 'route' => route('admin.attributes'), 'ability' => 'admin.item-attribute'],
         ['label' => 'Coupons', 'icon' => 'mdi-ticket-percent-outline', 'active' => Request::is('admin/coupons*'), 'route' => route('admin.coupons'), 'ability' => 'admin.coupons'],
         ['label' => 'Reviews', 'icon' => 'mdi-star-outline', 'active' => Request::is('admin/reviews*'), 'route' => route('admin.reviews'), 'ability' => 'admin.reviews'],
-        ['label' => 'Orders', 'icon' => 'mdi-receipt-text-outline', 'active' => Request::is('admin/orders*'), 'route' => route('admin.orders.index'), 'ability' => 'admin.orders'],
+        ['label' => 'Orders', 'icon' => 'mdi-cart-outline', 'active' => Request::is('admin/orders*'), 'route' => route('admin.orders.index'), 'ability' => 'admin.orders'],
         ['label' => 'Returns', 'icon' => 'mdi-keyboard-return', 'active' => Request::is('admin/returns*'), 'route' => route('admin.returns.index'), 'ability' => 'admin.returns'],
         ['label' => 'Stock', 'icon' => 'mdi-package-variant-closed', 'active' => Request::is('admin/stock*'), 'route' => route('admin.stock.index'), 'ability' => 'admin.stock'],
         ['label' => 'Appointments', 'icon' => 'mdi-calendar-clock', 'active' => Request::is('admin/appointments*'), 'route' => route('admin.appointments.index'), 'ability' => 'admin.appointments'],
@@ -53,10 +53,12 @@
         <ul id="sidebarnav" class="admin-side-nav-list">
             @foreach($navItems as $item)
                 <li class="admin-side-nav-item">
-                    <a class="nav-link-agri {{ $item['active'] ? 'active' : '' }}" href="{{ $item['route'] }}">
-                        <i class="mdi {{ $item['icon'] }} admin-side-nav-icon" aria-hidden="true"></i>
-                        <span>{{ $item['label'] }}</span>
-                    </a>
+                    <x-sidebar-item
+                        :icon="$item['icon']"
+                        :label="$item['label']"
+                        :route="$item['route']"
+                        :active="$item['active']"
+                    />
                 </li>
             @endforeach
         </ul>

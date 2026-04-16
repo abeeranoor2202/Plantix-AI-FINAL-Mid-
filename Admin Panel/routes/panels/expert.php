@@ -48,6 +48,9 @@ Route::prefix('expert')->name('expert.')->group(function () {
         Route::prefix('appointments')->name('appointments.')->group(function () {
             Route::get('/',                          [\App\Http\Controllers\Expert\ExpertAppointmentController::class, 'index'])->name('index');
             Route::get('/{appointment}',             [\App\Http\Controllers\Expert\ExpertAppointmentController::class, 'show'])->name('show');
+            Route::get('/{appointment}/edit',        [\App\Http\Controllers\Expert\ExpertAppointmentController::class, 'edit'])->name('edit');
+            Route::put('/{appointment}',             [\App\Http\Controllers\Expert\ExpertAppointmentController::class, 'update'])->name('update');
+            Route::delete('/{appointment}',          [\App\Http\Controllers\Expert\ExpertAppointmentController::class, 'destroy'])->name('delete');
             Route::post('/{appointment}/accept',     [\App\Http\Controllers\Expert\ExpertAppointmentController::class, 'accept'])->name('accept');
             Route::post('/{appointment}/reject',     [\App\Http\Controllers\Expert\ExpertAppointmentController::class, 'reject'])->name('reject');
             Route::post('/{appointment}/complete',   [\App\Http\Controllers\Expert\ExpertAppointmentController::class, 'complete'])->name('complete');
@@ -66,8 +69,13 @@ Route::prefix('expert')->name('expert.')->group(function () {
         // ── Notifications ─────────────────────────────────────────────────────
         Route::prefix('notifications')->name('notifications.')->group(function () {
             Route::get('/',                        [\App\Http\Controllers\Expert\ExpertNotificationController::class, 'index'])->name('index');
+            Route::get('/feed',                    [\App\Http\Controllers\Expert\ExpertNotificationController::class, 'feed'])->name('feed');
             Route::post('/{notification}/read',    [\App\Http\Controllers\Expert\ExpertNotificationController::class, 'markRead'])->name('read');
+            Route::get('/{notification}/open',     [\App\Http\Controllers\Expert\ExpertNotificationController::class, 'open'])->name('open');
             Route::post('/mark-all-read',          [\App\Http\Controllers\Expert\ExpertNotificationController::class, 'markAllRead'])->name('read-all');
+            Route::post('/bulk-read',              [\App\Http\Controllers\Expert\ExpertNotificationController::class, 'bulkRead'])->name('bulk-read');
+            Route::post('/bulk-delete',            [\App\Http\Controllers\Expert\ExpertNotificationController::class, 'bulkDelete'])->name('bulk-delete');
+            Route::delete('/clear-all',            [\App\Http\Controllers\Expert\ExpertNotificationController::class, 'clearAll'])->name('clear-all');
             Route::get('/unread-count',            [\App\Http\Controllers\Expert\ExpertNotificationController::class, 'unreadCount'])->name('unread-count');
         });
 

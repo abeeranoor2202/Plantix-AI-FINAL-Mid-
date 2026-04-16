@@ -22,19 +22,19 @@
             @foreach($navItems as $item)
                 @if(isset($item['section']) && $item['section'] !== $currentSection)
                     @php $currentSection = $item['section']; @endphp
-                    <li class="admin-side-nav-item" style="padding: 10px 16px 4px;">
-                        <span style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--agri-text-muted);">{{ $currentSection }}</span>
+                    <li class="admin-side-nav-item sidebar-section-item">
+                        <span class="sidebar-section-label">{{ $currentSection }}</span>
                     </li>
                 @endif
 
                 <li class="admin-side-nav-item">
-                    <a class="nav-link-agri {{ $item['active'] ? 'active' : '' }}" href="{{ $item['route'] }}">
-                        <i class="mdi {{ $item['icon'] }} admin-side-nav-icon" aria-hidden="true"></i>
-                        <span>{{ $item['label'] }}</span>
-                        @if(!empty($item['badge']))
-                            <span class="badge rounded-pill bg-danger" style="margin-left: auto; font-size: 10px;">{{ $item['badge'] }}</span>
-                        @endif
-                    </a>
+                    <x-sidebar-item
+                        :icon="$item['icon']"
+                        :label="$item['label']"
+                        :route="$item['route']"
+                        :active="$item['active']"
+                        :badge="$item['badge'] ?? null"
+                    />
                 </li>
             @endforeach
 
