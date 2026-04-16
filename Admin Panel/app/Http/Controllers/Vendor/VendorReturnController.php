@@ -3,11 +3,12 @@
 namespace App\Http\Controllers\Vendor;
 
 use App\Http\Controllers\Controller;
-use App\Models\Order;
 use App\Models\ReturnRequest;
+use App\Notifications\ReturnLifecycleNotification;
 use App\Services\Shared\ReturnRefundService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 /**
@@ -33,18 +34,46 @@ class VendorReturnController extends Controller
      */
     public function index(Request $request): View
     {
-        $query = ReturnRequest::with(['user', 'order', 'reason'])
+        $query = ReturnRequest::with(['user', 'order', 'reason', 'items.product'])
             ->whereHas('order', fn ($q) => $q->where('vendor_id', $this->vendorId()))
             ->latest();
 
+        if ($request->filled('search')) {
+            $term = trim((string) $request->input('search'));
+
+            $query->where(function ($inner) use ($term) {
+                $inner->whereHas('order', function ($orderQuery) use ($term) {
+                    $orderQuery->where('order_number', 'like', "%{$term}%");
+                })->orWhereHas('user', function ($userQuery) use ($term) {
+                    $userQuery->where('name', 'like', "%{$term}%")
+                        ->orWhere('email', 'like', "%{$term}%");
+                })->orWhereHas('reason', function ($reasonQuery) use ($term) {
+                    $reasonQuery->where('reason', 'like', "%{$term}%");
+                })->orWhere('notes', 'like', "%{$term}%");
+            });
+        }
+
         if ($request->filled('status')) {
-            $query->where('status', $request->status);
+            if ($request->status === ReturnRequest::STATUS_COMPLETED) {
+                $query->whereIn('status', [ReturnRequest::STATUS_COMPLETED, 'refunded']);
+            } else {
+                $query->where('status', $request->status);
+            }
         }
 
         $returns  = $query->paginate(20)->withQueryString();
-        $statuses = ['pending', 'approved', 'rejected', 'refunded'];
+        $statuses = [
+            ReturnRequest::STATUS_PENDING,
+            ReturnRequest::STATUS_APPROVED,
+            ReturnRequest::STATUS_REJECTED,
+            ReturnRequest::STATUS_COMPLETED,
+        ];
 
-        return view('vendor.returns.index', compact('returns', 'statuses'));
+        return view('vendor.returns.index', [
+            'returns' => $returns,
+            'statuses' => $statuses,
+            'filters' => $request->only(['search', 'status']),
+        ]);
     }
 
     /**
@@ -53,7 +82,7 @@ class VendorReturnController extends Controller
      */
     public function show(int $id): View
     {
-        $return = ReturnRequest::with(['user', 'order.items.product', 'reason', 'refund'])
+        $return = ReturnRequest::with(['user', 'order.items.product', 'reason', 'refund', 'items.product'])
             ->whereHas('order', fn ($q) => $q->where('vendor_id', $this->vendorId()))
             ->findOrFail($id);
 
@@ -85,15 +114,50 @@ class VendorReturnController extends Controller
      */
     public function approve(Request $request, int $id): RedirectResponse
     {
-        $request->validate(['admin_notes' => 'nullable|string|max:1000']);
+        $request->validate([
+            'resolution_type' => 'required|in:refund,replace,store_credit',
+            'response_notes' => 'nullable|string|max:1000',
+        ]);
+
+        $vendor = auth('vendor')->user();
 
         $return = ReturnRequest::whereHas('order', fn ($q) => $q->where('vendor_id', $this->vendorId()))
-                               ->where('status', 'pending')
-                               ->findOrFail($id);
+            ->where('status', ReturnRequest::STATUS_PENDING)
+            ->findOrFail($id);
 
-        $this->service->approve($return, $request->admin_notes);
+        $resolution = (string) $request->input('resolution_type');
+        $notes = trim((string) $request->input('response_notes', ''));
 
-        return back()->with('success', 'Return request approved. Stock has been restored.');
+        DB::transaction(function () use ($return, $vendor, $resolution, $notes) {
+            $this->service->approve($return, $notes !== '' ? $notes : null);
+
+            $payload = [
+                'resolution_type' => $resolution,
+                'vendor_response_notes' => $notes !== '' ? $notes : null,
+                'vendor_responded_at' => now(),
+                'rejection_reason' => null,
+            ];
+
+            if ($resolution !== ReturnRequest::RESOLUTION_REFUND) {
+                $payload['status'] = ReturnRequest::STATUS_COMPLETED;
+                $payload['completed_at'] = now();
+            }
+
+            $return->update($payload);
+
+            if ($resolution !== ReturnRequest::RESOLUTION_REFUND && $return->user) {
+                $message = $resolution === ReturnRequest::RESOLUTION_REPLACE
+                    ? 'Your return has been approved for replacement.'
+                    : 'Your return has been approved as store credit.';
+                $return->user->notify(new ReturnLifecycleNotification($return->fresh(), 'completed', $message));
+            }
+        });
+
+        $statusMessage = $resolution === ReturnRequest::RESOLUTION_REFUND
+            ? 'Return approved. Refund processing can now be completed by admin.'
+            : 'Return approved and marked completed.';
+
+        return back()->with('success', $statusMessage);
     }
 
     /**
@@ -102,14 +166,33 @@ class VendorReturnController extends Controller
      */
     public function reject(Request $request, int $id): RedirectResponse
     {
-        $request->validate(['admin_notes' => 'required|string|max:1000']);
+        $request->validate([
+            'rejection_reason' => 'required|string|max:1000',
+            'response_notes' => 'nullable|string|max:1000',
+        ]);
+
+        $reason = trim((string) $request->input('rejection_reason'));
+        $notes = trim((string) $request->input('response_notes', ''));
 
         $return = ReturnRequest::whereHas('order', fn ($q) => $q->where('vendor_id', $this->vendorId()))
-                               ->where('status', 'pending')
-                               ->findOrFail($id);
+            ->where('status', ReturnRequest::STATUS_PENDING)
+            ->findOrFail($id);
 
-        $this->service->reject($return, $request->admin_notes);
+        DB::transaction(function () use ($return, $reason, $notes) {
+            $composed = $notes !== ''
+                ? $reason . "\n\nAdditional Note: " . $notes
+                : $reason;
 
-        return back()->with('success', 'Return request has been rejected.');
+            $this->service->reject($return, $composed);
+
+            $return->update([
+                'rejection_reason' => $reason,
+                'vendor_response_notes' => $notes !== '' ? $notes : null,
+                'vendor_responded_at' => now(),
+                'resolution_type' => null,
+            ]);
+        });
+
+        return back()->with('success', 'Return rejected and customer has been notified.');
     }
 }
