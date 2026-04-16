@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Vendor;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class UpdateVendorProductRequest extends FormRequest
 {
@@ -14,11 +15,19 @@ class UpdateVendorProductRequest extends FormRequest
     public function rules(): array
     {
         $productId = (int) $this->route('id');
+        $vendorId = (int) auth('vendor')->user()->vendor->id;
 
         return [
             'category_id'    => 'nullable|exists:categories,id',
             'name'           => 'sometimes|required|string|max:255',
-            'sku'            => 'nullable|string|max:100|unique:products,sku,'.$productId,
+            'sku'            => [
+                'nullable',
+                'string',
+                'max:100',
+                Rule::unique('products', 'sku')
+                    ->where(fn ($query) => $query->where('vendor_id', $vendorId))
+                    ->ignore($productId),
+            ],
             'description'    => 'nullable|string|max:5000',
             'price'          => 'sometimes|required|numeric|min:0',
             'discount_price' => 'nullable|numeric|min:0',
