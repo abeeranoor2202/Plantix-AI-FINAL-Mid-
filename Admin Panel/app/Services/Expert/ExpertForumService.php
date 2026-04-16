@@ -3,7 +3,6 @@
 namespace App\Services\Expert;
 
 use App\Models\Expert;
-use App\Models\ForumExpertResponse;
 use App\Models\ForumReply;
 use App\Models\ForumThread;
 use App\Notifications\ForumReplyNotification;
@@ -67,17 +66,14 @@ class ExpertForumService
                 'expert_id'       => $expert->id,
             ]);
 
-            // Attach structured expert response if provided
-            if ($recommendation || true) {
-                ForumExpertResponse::create([
-                    'forum_reply_id'   => $reply->id,
-                    'expert_id'        => $expert->id,
-                    'is_expert_advice' => true,
-                    'recommendation'   => $recommendation,
+            // Structured recommendation is kept inline to avoid legacy table usage.
+            if (! empty($recommendation)) {
+                $reply->update([
+                    'body' => trim($body) . "\n\nRecommendation:\n" . trim($recommendation),
                 ]);
             }
 
-            return $reply->load(['expert', 'expertResponse']);
+            return $reply->load(['expert']);
         });
 
         // Section 14 – Trigger: Expert reply added → Thread owner → Email + In-app
@@ -98,7 +94,7 @@ class ExpertForumService
      */
     public function getExpertReplies(Expert $expert): LengthAwarePaginator
     {
-        return ForumReply::with(['thread', 'expertResponse'])
+        return ForumReply::with(['thread'])
             ->where('expert_id', $expert->id)
             ->where('is_expert_reply', true)
             ->orderBy('created_at', 'desc')
@@ -108,8 +104,8 @@ class ExpertForumService
     /**
      * Increment helpful votes on a forum expert response.
      */
-    public function voteHelpful(ForumExpertResponse $response): void
+    public function voteHelpful(ForumReply $reply): void
     {
-        $response->incrementVotes();
+        // Deprecated: helpful voting was tied to the removed forum_expert_responses table.
     }
 }
