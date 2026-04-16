@@ -105,6 +105,7 @@
                                     <input type="text" name="reason" value="{{ $reason->reason }}" required maxlength="255"
                                            class="form-control form-control-sm bg-{{ $reason->is_active ? 'white' : 'light' }} border rounded-3 fw-medium text-dark shadow-sm"
                                            style="font-size:14px;">
+                                    <span class="badge bg-info bg-opacity-10 text-info border border-info border-opacity-25 rounded-pill px-2 py-1">Your Reason</span>
                                     <button type="submit" class="btn btn-sm btn-outline-primary rounded-pill px-3 text-nowrap shadow-sm">
                                         <i class="bi bi-save me-1"></i>Save
                                     </button>
@@ -147,7 +148,7 @@
                             </div>
 
                             {{-- Usage count badge --}}
-                            @php $usageCount = $reason->returns()->count(); @endphp
+                            @php $usageCount = (int) ($reason->returns_count ?? 0); @endphp
                             @if($usageCount > 0)
                                 <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 rounded-pill px-2 py-1 text-nowrap" style="font-size:10px;">
                                     {{ $usageCount }} use{{ $usageCount !== 1 ? 's' : '' }}
