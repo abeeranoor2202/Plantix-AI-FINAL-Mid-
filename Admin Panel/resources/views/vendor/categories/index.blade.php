@@ -1,21 +1,20 @@
 @extends('vendor.layouts.app')
 @section('title', 'Categories')
-@section('page-title', 'Product Categories')
 
 @section('content')
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <div>
-        <h4 class="mb-0 fw-bold text-dark"><i class="bi bi-tags-fill me-2 text-primary"></i>Product Categories</h4>
-        <span class="text-muted small fw-medium mt-1 d-block">View available categories managed by administrators for your products</span>
+<div class="container-fluid" style="padding-top: 24px; padding-bottom: 40px;">
+    <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 24px;">
+        <div>
+            <h1 style="font-size: 28px; font-weight: 700; color: var(--agri-primary-dark); margin: 0;">Product Categories</h1>
+            <p style="color: var(--agri-text-muted); margin: 4px 0 0 0;">View available categories managed by administrators.</p>
+        </div>
+        <x-badge variant="success">{{ $categories->total() }} Categories</x-badge>
     </div>
-</div>
 
-<div class="card border-0 shadow-sm hover-card pt-2" style="border-radius:16px;">
-    <div class="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-center">
-        <h6 class="mb-0 fw-bold text-dark"><i class="bi bi-list-ul me-2 text-success fs-5"></i>All Categories</h6>
-        <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 rounded-pill px-3 py-1 shadow-sm">{{ $categories->total() }} Categories</span>
-    </div>
-    <div class="card-body p-0">
+    <x-card style="padding: 0; overflow: hidden;">
+        <x-slot name="header">
+            <h4 class="mb-0 fw-bold text-dark" style="font-size: 18px;">All Categories</h4>
+        </x-slot>
         @if($categories->isEmpty())
             <div class="text-center text-muted py-5 my-4">
                 <div class="bg-light rounded-circle d-inline-flex align-items-center justify-content-center mb-3 text-muted" style="width: 80px; height: 80px;">
@@ -25,8 +24,7 @@
                 <p class="small mb-0">There are currently no product categories available.</p>
             </div>
         @else
-            <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0">
+            <x-table>
                     <thead class="table-light">
                         <tr>
                             <th class="ps-4 fw-semibold text-muted text-uppercase small" style="width: 80px;">ID</th>
@@ -61,19 +59,16 @@
                                 </span>
                             </td>
                             <td class="text-center pe-4">
-                                <span class="badge {{ ($cat->products_count ?? 0) > 0 ? 'bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25' : 'bg-light border text-muted' }} rounded-pill px-3 py-1 shadow-sm fs-6">
-                                    {{ $cat->products_count ?? '0' }} Products
-                                </span>
+                                <x-badge :variant="($cat->products_count ?? 0) > 0 ? 'info' : 'secondary'">{{ $cat->products_count ?? '0' }} Products</x-badge>
                             </td>
                         </tr>
                         @endforeach
                     </tbody>
-                </table>
-            </div>
+            </x-table>
         @endif
-    </div>
+    </x-card>
     @if($categories->hasPages())
-        <div class="card-footer bg-white border-top p-4 d-flex justify-content-center" style="border-radius: 0 0 16px 16px;">
+        <div style="padding: 24px; background: white; border-top: 1px solid var(--agri-border); display: flex; justify-content: center;">
             {{ $categories->links() }}
         </div>
     @endif
