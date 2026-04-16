@@ -72,23 +72,35 @@ class AdminForumController extends Controller
 
     public function threads(Request $request): View
     {
+        $filters = $request->validate([
+            'search' => ['nullable', 'string', 'max:255'],
+            'status' => ['nullable', 'in:' . implode(',', [
+                ForumThread::STATUS_OPEN,
+                ForumThread::STATUS_LOCKED,
+                ForumThread::STATUS_RESOLVED,
+                ForumThread::STATUS_ARCHIVED,
+            ])],
+            'forum_category_id' => ['nullable', 'integer', 'exists:forum_categories,id'],
+            'approved' => ['nullable', 'in:0,1'],
+        ]);
+
         $query = ForumThread::with(['user', 'category'])
             ->withCount('allReplies as replies_count');
 
-        if ($request->filled('status')) {
-            $query->where('status', $request->status);
+        if (! empty($filters['status'])) {
+            $query->where('status', $filters['status']);
         }
 
-        if ($request->filled('forum_category_id')) {
-            $query->where('forum_category_id', $request->forum_category_id);
+        if (! empty($filters['forum_category_id'])) {
+            $query->where('forum_category_id', (int) $filters['forum_category_id']);
         }
 
-        if ($request->filled('approved')) {
-            $query->where('is_approved', (bool) $request->approved);
+        if (array_key_exists('approved', $filters) && $filters['approved'] !== null && $filters['approved'] !== '') {
+            $query->where('is_approved', (bool) $filters['approved']);
         }
 
-        if ($request->filled('search')) {
-            $search = '%' . $request->search . '%';
+        if (! empty($filters['search'])) {
+            $search = '%' . $filters['search'] . '%';
             $query->where(fn ($q) => $q
                 ->where('title', 'like', $search)
                 ->orWhere('body', 'like', $search)
