@@ -185,7 +185,7 @@ class AppointmentService
     }
 
     // =========================================================================
-    // STEP 2 — Stripe webhook confirms payment → status = pending_expert_approval
+    // STEP 2 — Stripe webhook confirms payment → status = confirmed
     // =========================================================================
 
     /**
@@ -227,7 +227,7 @@ class AppointmentService
             $appointment->update([
                 'stripe_payment_status' => $stripeStatus,
                 'payment_status'        => 'paid',
-                'status'                => Appointment::STATUS_PENDING_EXPERT_APPROVAL,
+                'status'                => Appointment::STATUS_CONFIRMED,
             ]);
 
             Payment::where('appointment_id', $appointment->id)
@@ -240,8 +240,8 @@ class AppointmentService
                     'gateway_transaction_id'   => $paymentIntentId,
                 ]);
 
-            $this->recordStatusHistory($appointment, null, $from, Appointment::STATUS_PENDING_EXPERT_APPROVAL, null, 'Stripe payment confirmed.');
-            AppointmentLog::record($appointment, 'payment_confirmed', null, $from, Appointment::STATUS_PENDING_EXPERT_APPROVAL, 'Webhook: payment_intent.succeeded');
+            $this->recordStatusHistory($appointment, null, $from, Appointment::STATUS_CONFIRMED, null, 'Stripe payment confirmed.');
+            AppointmentLog::record($appointment, 'payment_confirmed', null, $from, Appointment::STATUS_CONFIRMED, 'Webhook: payment_intent.succeeded');
 
             // Notify customer + expert
             $this->notifyCustomer('payment_success', $appointment);
