@@ -14,9 +14,7 @@
             <h1 style="font-size: 28px; font-weight: 700; color: var(--agri-primary-dark); margin: 0;">Products</h1>
             <p style="color: var(--agri-text-muted); margin: 4px 0 0 0;">View, edit, and manage all products.</p>
         </div>
-        <a href="{{ route('admin.products.create') }}" class="btn-agri btn-agri-primary" style="text-decoration: none; display: flex; align-items: center; gap: 10px; font-weight: 700;">
-            <i class="fas fa-plus"></i> Add Product
-        </a>
+        <x-button :href="route('admin.products.create')" variant="primary" icon="fas fa-plus">Add Product</x-button>
     </div>
 
     <div class="card-agri" style="padding: 0; overflow: hidden;">
@@ -70,23 +68,17 @@
                                 <div style="font-weight: 700; color: var(--agri-primary-dark);">PKR {{ number_format($product->price, 0) }}</div>
                             </td>
                             <td class="px-4 py-3">
-                                <span class="badge rounded-pill {{ $product->is_active ? 'bg-success' : 'bg-secondary' }}">{{ $product->is_active ? 'Active' : 'Inactive' }}</span>
+                                <x-badge :variant="$product->is_active ? 'success' : 'secondary'">{{ $product->is_active ? 'Active' : 'Inactive' }}</x-badge>
                                 <form method="POST" action="{{ route('admin.products.toggle-active', $product->id) }}" class="mt-2">
                                     @csrf
-                                    <label class="switch">
-                                        <input type="checkbox" {{ $product->is_active ? 'checked' : '' }} onchange="this.form.submit()">
-                                        <span class="slider"></span>
-                                    </label>
+                                    <x-toggle :checked="$product->is_active" onchange="this.form.submit()" />
                                 </form>
                             </td>
                             <td class="px-4 py-3">
-                                <span class="badge rounded-pill {{ $product->is_returnable ? 'bg-success' : 'bg-secondary' }}">{{ $product->is_returnable ? 'Yes' : 'No' }}</span>
+                                <x-badge :variant="$product->is_returnable ? 'success' : 'secondary'">{{ $product->is_returnable ? 'Yes' : 'No' }}</x-badge>
                                 <form method="POST" action="{{ route('admin.products.toggle-returnable', $product->id) }}" class="mt-2">
                                     @csrf
-                                    <label class="switch">
-                                        <input type="checkbox" {{ $product->is_returnable ? 'checked' : '' }} onchange="this.form.submit()">
-                                        <span class="slider"></span>
-                                    </label>
+                                    <x-toggle :checked="$product->is_returnable" onchange="this.form.submit()" />
                                 </form>
                             </td>
                             <td class="px-4 py-3">
