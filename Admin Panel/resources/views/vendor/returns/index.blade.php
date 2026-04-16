@@ -15,7 +15,7 @@
 
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
-        <h4 class="mb-0 fw-bold text-dark">Return Requests</h4>
+        <h4 class="mb-0 fw-bold text-dark"><i class="bi bi-arrow-return-left me-2 text-warning"></i>Return Requests</h4>
         <span class="text-muted small fw-medium mt-1 d-block">Manage and process customer return and refund requests</span>
     </div>
 </div>
@@ -24,8 +24,9 @@
     <div class="card-header bg-white border-bottom py-3 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
         <h6 class="mb-0 fw-bold text-dark"><i class="bi bi-list-check me-2 text-primary fs-5"></i>All Returns</h6>
         {{-- Filter --}}
-        <form method="GET" class="panel-filter-wrap">
-            <select name="status" class="form-agri" style="min-width: 170px;" onchange="this.form.submit()">
+        <form method="GET" class="d-flex align-items-center gap-2">
+            <label class="text-muted small fw-bold text-uppercase text-nowrap mb-0">Filter by:</label>
+            <select name="status" class="form-select border-0 bg-light rounded-pill px-3 py-2 fw-medium shadow-sm w-auto" onchange="this.form.submit()">
                 <option value="">All Statuses</option>
                 @foreach($statuses as $s)
                     <option value="{{ $s }}" @selected(request('status') === $s)>{{ ucfirst($s) }}</option>
@@ -111,7 +112,9 @@
                                 </div>
                             </td>
                             <td class="text-end pe-4">
-                                <x-ui.button :href="route('vendor.returns.show', $ret->id)" variant="info-soft" size="sm" :circle="true" icon="fas fa-eye" title="View Return" />
+                                <a href="{{ route('vendor.returns.show', $ret->id) }}" class="btn btn-sm btn-outline-primary rounded-pill px-3 shadow-sm d-inline-flex align-items-center">
+                                    <i class="bi bi-eye-fill me-1"></i>View
+                                </a>
                             </td>
                         </tr>
                         @endforeach
