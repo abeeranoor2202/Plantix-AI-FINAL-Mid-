@@ -50,12 +50,12 @@ class StripePaymentController extends Controller
 
                 if ($appointment->status !== Appointment::STATUS_PENDING_PAYMENT) {
                     if ($appointment->payment_status === 'paid') {
-                        return redirect()->route('appointment.details', $appointment->id)
-                            ->with('info', 'This appointment is already paid.');
+                        return redirect()->route('payment.success', ['appointment_id' => $appointment->id])
+                            ->with('success', 'Payment completed successfully');
                     }
 
-                    return redirect()->route('appointment.details', $appointment->id)
-                        ->withErrors(['appointment' => 'This appointment cannot be paid in its current state.']);
+                    return redirect()->route('payment.cancel', ['appointment_id' => $appointment->id])
+                        ->with('error', 'Payment failed or cancelled');
                 }
 
                 $checkout = $this->stripe->createAppointmentCheckoutSession($appointment, [
@@ -109,11 +109,12 @@ class StripePaymentController extends Controller
 
             if (! $order->isPendingPayment()) {
                 if ($order->payment_status === 'paid') {
-                    return redirect()->route('order.success', $order->id);
+                    return redirect()->route('payment.success', ['order_id' => $order->id])
+                        ->with('success', 'Payment completed successfully');
                 }
 
-                return redirect()->route('order.details', ['id' => $order->id])
-                    ->withErrors(['order' => 'This order cannot be paid in its current state.']);
+                return redirect()->route('payment.cancel', ['order_id' => $order->id])
+                    ->with('error', 'Payment failed or cancelled');
             }
 
             $checkout = $this->stripe->createOrderCheckoutSession($order, [
@@ -160,7 +161,10 @@ class StripePaymentController extends Controller
                 'message' => $e->getMessage(),
             ]);
 
-            return back()->withErrors(['payment' => 'Unable to start Stripe Checkout. Please try again.']);
+            return redirect()->route('payment.cancel', [
+                'order_id' => $order?->id,
+                'appointment_id' => $id,
+            ])->with('error', 'Payment failed or cancelled');
         }
     }
 
@@ -220,7 +224,32 @@ class StripePaymentController extends Controller
      */
     public function showPaymentPage(Order $order): RedirectResponse|JsonResponse
     {
-        return $this->createCheckoutSession(request(), $order);
+        if (! config('payment.manual_payment_enabled')) {
+            Log::warning('Manual payment attempted while disabled', [
+                'route' => 'checkout.pay',
+                'order_id' => $order->id,
+                'user_id' => Auth::id(),
+            ]);
+
+            abort(404);
+        }
+
+        if ((int) $order->user_id !== (int) Auth::id()) {
+            abort(403);
+        }
+
+        if (! $order->isPendingPayment()) {
+            if ($order->payment_status === 'paid') {
+                return redirect()->route('order.success', $order->id);
+            }
+
+            return redirect()->route('order.details', ['id' => $order->id])
+                ->withErrors(['order' => 'This order cannot be paid in its current state.']);
+        }
+
+        $order->loadMissing('items.product');
+
+        return response()->view('frontend.checkout.stripe-payment', compact('order'));
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -233,7 +262,17 @@ class StripePaymentController extends Controller
      */
     public function processOrderPayment(Request $request, Order $order): RedirectResponse
     {
-        return $this->createCheckoutSession($request, $order);
+        if (! config('payment.manual_payment_enabled')) {
+            Log::warning('Manual payment attempted while disabled', [
+                'route' => 'checkout.pay.confirm',
+                'order_id' => $order->id,
+                'user_id' => Auth::id(),
+            ]);
+
+            abort(404);
+        }
+
+        return redirect()->route('checkout.stripe.pay', $order->id);
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -299,6 +338,16 @@ class StripePaymentController extends Controller
 
     public function success(Request $request)
     {
+        if (! session()->has('success')) {
+            session()->flash('success', 'Payment completed successfully');
+        }
+
+        $appointmentId = $request->query('appointment_id');
+        if ($appointmentId) {
+            return redirect()->route('appointment.details', (int) $appointmentId)
+                ->with('success', 'Payment completed successfully');
+        }
+
         $orderId = $request->query('order_id') ?? session('pending_order_id');
         $order   = $orderId ? Order::find($orderId) : null;
 
@@ -306,7 +355,25 @@ class StripePaymentController extends Controller
             return view('customer.payment-success', compact('order'));
         }
 
-        return redirect()->route('orders')->with('info', 'Payment is being processed.');
+        return redirect()->route('orders')->with('success', 'Payment completed successfully');
+    }
+
+    public function cancel(Request $request): RedirectResponse
+    {
+        $appointmentId = (int) $request->query('appointment_id', 0);
+        if ($appointmentId > 0) {
+            return redirect()->route('appointment.details', $appointmentId)
+                ->with('error', 'Payment failed or cancelled');
+        }
+
+        $orderId = (int) $request->query('order_id', 0);
+        if ($orderId > 0) {
+            return redirect()->route('order.details', ['id' => $orderId])
+                ->with('error', 'Payment failed or cancelled');
+        }
+
+        return redirect()->route('checkout')
+            ->with('error', 'Payment failed or cancelled');
     }
 
 }
