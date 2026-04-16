@@ -14,11 +14,25 @@
         $is_logged_in = true;
         $logout_route = route('expert.logout'); // Assuming expert.logout exists
         $profile_route = route('expert.profile.show');
+    } elseif(Auth::guard('vendor')->check()){
+        $user = Auth::guard('vendor')->user();
+        $is_logged_in = true;
+        $logout_route = route('vendor.logout');
+        $profile_route = route('vendor.profile');
     } elseif(Auth::check()) {
         // Default customer or generic web guard
         if (Route::has('account.profile')) {
             $profile_route = route('account.profile');
         }
+    }
+
+    $roleLabel = session()->get('user_role', 'Explorer');
+    if (Auth::guard('vendor')->check()) {
+        $roleLabel = 'Vendor';
+    } elseif (Auth::guard('admin')->check()) {
+        $roleLabel = 'Admin';
+    } elseif (Auth::guard('expert')->check()) {
+        $roleLabel = 'Expert';
     }
 @endphp
 
@@ -59,7 +73,7 @@
                 <div class="admin-profile-chip">
                     <div class="admin-profile-meta hidden-sm-down">
                         <p>{{ $is_logged_in ? $user->name : 'Guest' }}</p>
-                        <p>{{ session()->get('user_role', 'Explorer') }}</p>
+                        <p>{{ $roleLabel }}</p>
                     </div>
                     <img src="{{ asset('/images/users/user-new.png') }}" alt="user" class="profile-pic admin-profile-avatar">
                 </div>
