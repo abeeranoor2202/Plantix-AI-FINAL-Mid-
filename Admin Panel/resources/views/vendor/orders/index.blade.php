@@ -1,131 +1,93 @@
 @extends('vendor.layouts.app')
-@section('title', 'Orders Management')
-@section('page-title', 'Orders')
+
+@section('title', 'Orders')
 
 @section('content')
-<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
-    <div>
-        <h4 class="mb-1 fw-bold text-dark"><i class="fas fa-shopping-cart text-primary me-2"></i>Recent Orders</h4>
-        <span class="text-muted small fw-medium d-block">Manage and track customer orders</span>
+<div class="container-fluid" style="padding-top: 24px; padding-bottom: 40px;">
+    <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 32px;">
+        <div>
+            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
+                <a href="{{ route('vendor.dashboard') }}" style="text-decoration: none; color: var(--agri-text-muted); font-size: 14px; font-weight: 600;">Dashboard</a>
+                <i class="fas fa-chevron-right" style="font-size: 10px; color: var(--agri-text-muted);"></i>
+                <span style="color: var(--agri-primary); font-size: 14px; font-weight: 600;">Orders</span>
+            </div>
+            <h1 style="font-size: 28px; font-weight: 700; color: var(--agri-primary-dark); margin: 0;">Orders</h1>
+            <p style="color: var(--agri-text-muted); margin: 4px 0 0 0;">Manage and track all customer orders.</p>
+        </div>
     </div>
-</div>
 
-{{-- Filter Bar --}}
-<form method="GET" class="card-agri border-0 mb-4 p-4">
-    <div class="row g-3 align-items-end">
-        <div class="col-md-3">
-            <label class="form-label small text-uppercase fw-bold text-muted mb-2">Order Status</label>
-            <select name="status" class="form-agri">
-                <option value="">All Statuses</option>
-                @foreach(['pending','accepted','preparing','ready','delivered','cancelled'] as $s)
-                    <option value="{{ $s }}" {{ request('status') === $s ? 'selected' : '' }}>
-                        {{ ucfirst($s) }}
-                    </option>
-                @endforeach
-            </select>
+    <div class="card-agri" style="padding: 0; overflow: hidden;">
+        <div class="card-header bg-white border-bottom-0 pt-4 pb-3 px-4 d-flex justify-content-between align-items-center" style="gap: 10px; flex-wrap: wrap;">
+            <h4 class="mb-0 fw-bold text-dark" style="font-size: 18px;">Order List</h4>
+            <form method="GET" action="{{ route('vendor.orders.index') }}" style="display: flex; align-items: center; gap: 10px;">
+                <select name="status" class="form-agri" style="height: 42px; min-width: 150px; margin-bottom: 0;">
+                    <option value="">All Statuses</option>
+                    @foreach($statuses ?? ['pending','confirmed','processing','shipped','delivered','cancelled'] as $s)
+                        <option value="{{ $s }}" @selected(request('status') === $s)>{{ strtoupper(str_replace('_', ' ', $s)) }}</option>
+                    @endforeach
+                </select>
+                <div class="input-group" style="width: 320px;">
+                    <span class="input-group-text bg-white border-end-0" style="border-radius: 10px 0 0 10px;">
+                        <i class="fas fa-search" style="color: var(--agri-text-muted); font-size: 14px;"></i>
+                    </span>
+                    <input type="text" name="search" class="form-agri border-start-0" placeholder="Search orders..." value="{{ request('search') }}" style="margin-bottom: 0; border-radius: 0 10px 10px 0; height: 42px;">
+                </div>
+                <button type="submit" class="btn-agri btn-agri-primary" style="height: 42px; padding: 0 16px;">Filter</button>
+            </form>
         </div>
-        <div class="col-md-3">
-            <label class="form-label small text-uppercase fw-bold text-muted mb-2">Date Filter</label>
-            <input type="date" name="date" class="form-agri" value="{{ request('date') }}">
-        </div>
-        <div class="col-md-4 d-flex gap-2">
-            <button type="submit" class="btn-agri btn-agri-primary px-4 shadow-sm flex-grow-1">
-                <i class="fas fa-filter me-1"></i> Apply
-            </button>
-            <a href="{{ route('vendor.orders.index') }}" class="btn-agri btn-agri-outline px-4">Reset</a>
-        </div>
-    </div>
-</form>
 
-<div class="card-agri border-0 p-0 overflow-hidden">
-    <div class="table-responsive">
-        <table class="table align-middle mb-0" style="border-collapse: separate; border-spacing: 0;">
-            <thead style="background: var(--agri-bg);">
-                <tr>
-                    <th class="py-3 px-4 border-0 text-muted text-uppercase fw-bold" style="font-size: 13px;">Order ID</th>
-                    <th class="py-3 border-0 text-muted text-uppercase fw-bold" style="font-size: 13px;">Customer</th>
-                    <th class="py-3 text-center border-0 text-muted text-uppercase fw-bold" style="font-size: 13px;">Items</th>
-                    <th class="py-3 border-0 text-muted text-uppercase fw-bold" style="font-size: 13px;">Total Amount</th>
-                    <th class="py-3 border-0 text-muted text-uppercase fw-bold" style="font-size: 13px;">Payment</th>
-                    <th class="py-3 border-0 text-muted text-uppercase fw-bold" style="font-size: 13px;">Status</th>
-                    <th class="py-3 border-0 text-muted text-uppercase fw-bold" style="font-size: 13px;">Date Ordered</th>
-                    <th class="text-end py-3 px-4 border-0 text-muted text-uppercase fw-bold" style="font-size: 13px;">Action</th>
-                </tr>
-            </thead>
-            <tbody>
-                @forelse($orders as $order)
-                <tr style="background: white; border-bottom: 1px solid var(--sidebar-border); transition: background 0.2s;" onmouseover="this.style.background='#F9FAFB'" onmouseout="this.style.background='white'">
-                    <td class="px-4 py-3">
-                        <a href="{{ route('vendor.orders.show', $order->id) }}" class="fw-bold text-decoration-none" style="color: var(--agri-primary);">#{{ $order->id }}</a>
-                    </td>
-                    <td class="py-3">
-                        <div class="fw-bold text-dark">{{ $order->user->name ?? 'N/A' }}</div>
-                        <div class="small text-muted"><i class="fas fa-phone-alt me-1" style="font-size: 10px;"></i>{{ $order->user->phone ?? 'No phone' }}</div>
-                    </td>
-                    <td class="text-center py-3">
-                        <span class="badge-agri bg-light text-dark border">{{ $order->order_items_count ?? $order->orderItems->count() }}</span>
-                    </td>
-                    <td class="py-3">
-                        <div class="fw-bold text-success fs-6">{{ config('plantix.currency_symbol') }}{{ number_format($order->total, 2) }}</div>
-                    </td>
-                    <td class="py-3">
-                        <span class="badge-agri border {{ $order->payment_status === 'paid' ? 'badge-success-agri border-success border-opacity-25' : 'badge-warning-agri border-warning border-opacity-25' }}">
-                            <i class="fas {{ $order->payment_status === 'paid' ? 'fa-check-circle' : 'fa-hourglass-half' }} me-1"></i>
-                            {{ ucfirst($order->payment_status ?? 'pending') }}
-                        </span>
-                    </td>
-                    <td class="py-3">
-                        <span class="badge-agri border badge-{{ match($order->status) {
-                                'pending'=>'warning',
-                                'accepted'=>'info',
-                                'preparing'=>'primary',
-                                'ready'=>'success',
-                                'delivered'=>'success',
-                                'cancelled'=>'danger',
-                                default=>'secondary'
-                            } }}-agri border-{{ match($order->status) {
-                                'pending'=>'warning',
-                                'accepted'=>'info',
-                                'preparing'=>'primary',
-                                'ready'=>'success',
-                                'delivered'=>'success',
-                                'cancelled'=>'danger',
-                                default=>'secondary'
-                            } }} border-opacity-25">
-                            {{ ucfirst($order->status) }}
-                        </span>
-                    </td>
-                    <td class="py-3">
-                        <div class="text-dark fw-medium small"><i class="far fa-calendar-alt text-muted me-1"></i>{{ $order->created_at->format('d M Y, h:i A') }}</div>
-                    </td>
-                    <td class="text-end px-4 py-3">
-                        <div class="d-flex justify-content-end">
-                            <a href="{{ route('vendor.orders.show', $order->id) }}"
-                               class="btn btn-sm btn-light border shadow-sm text-primary rounded-circle d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;" title="View Order Details">
-                                <i class="fas fa-eye"></i>
-                            </a>
-                        </div>
-                    </td>
-                </tr>
-                @empty
-                <tr>
-                    <td colspan="8" class="text-center py-5 border-0">
-                        <div class="d-inline-flex align-items-center justify-content-center bg-light rounded-circle mb-3 border border-dashed" style="width:100px; height:100px;">
-                            <i class="fas fa-shopping-basket fs-1 text-muted opacity-50"></i>
-                        </div>
-                        <h5 class="fw-bold text-dark">No Orders Found</h5>
-                        <p class="text-muted">You do not have any orders matching these criteria right now.</p>
-                    </td>
-                </tr>
-                @endforelse
-            </tbody>
-        </table>
+        <div class="table-responsive">
+            <table class="table mb-0" style="vertical-align: middle;">
+                <thead style="background: var(--agri-bg);">
+                    <tr>
+                        <th style="padding: 16px 24px; font-size: 12px; font-weight: 600; color: var(--agri-text-muted); text-transform: uppercase; border: none;">Order ID</th>
+                        <th style="padding: 16px 24px; font-size: 12px; font-weight: 600; color: var(--agri-text-muted); text-transform: uppercase; border: none;">Customer</th>
+                        <th style="padding: 16px 24px; font-size: 12px; font-weight: 600; color: var(--agri-text-muted); text-transform: uppercase; border: none;">Items</th>
+                        <th style="padding: 16px 24px; font-size: 12px; font-weight: 600; color: var(--agri-text-muted); text-transform: uppercase; border: none;">Amount</th>
+                        <th style="padding: 16px 24px; font-size: 12px; font-weight: 600; color: var(--agri-text-muted); text-transform: uppercase; border: none;">Payment</th>
+                        <th style="padding: 16px 24px; font-size: 12px; font-weight: 600; color: var(--agri-text-muted); text-transform: uppercase; border: none;">Order Status</th>
+                        <th class="text-end" style="padding: 16px 24px; font-size: 12px; font-weight: 600; color: var(--agri-text-muted); text-transform: uppercase; border: none;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse($orders as $order)
+                        <tr>
+                            <td class="px-4 py-3">
+                                <div style="font-weight: 700; color: var(--agri-primary-dark);">{{ $order->order_number ?? ('#'.$order->id) }}</div>
+                                <small class="text-muted">{{ $order->created_at->format('M d, Y') }}</small>
+                            </td>
+                            <td class="px-4 py-3">{{ $order->user->name ?? 'Deleted User' }}</td>
+                            <td class="px-4 py-3">{{ $order->order_items_count ?? $order->items->count() }}</td>
+                            <td class="px-4 py-3"><strong>{{ config('plantix.currency_symbol', 'PKR') }}{{ number_format($order->total, 2) }}</strong></td>
+                            <td class="px-4 py-3">
+                                @php($ps = strtolower((string) ($order->payment_status ?? 'pending')))
+                                <span class="badge rounded-pill {{ $ps === 'paid' ? 'bg-success' : ($ps === 'pending' ? 'bg-warning' : 'bg-danger') }}">{{ strtoupper($ps) }}</span>
+                            </td>
+                            <td class="px-4 py-3">
+                                <span class="badge rounded-pill bg-info">{{ strtoupper(str_replace('_', ' ', (string) $order->status)) }}</span>
+                            </td>
+                            <td class="px-4 py-3">
+                                <div class="text-end" style="display: flex; justify-content: flex-end; gap: 8px;">
+                                    <a href="{{ route('vendor.orders.show', $order->id) }}" class="btn-agri" style="padding: 8px; background: var(--agri-bg); color: #2563eb; border-radius: 999px;" title="View"><i class="fas fa-eye"></i></a>
+                                    <a href="{{ route('vendor.orders.show', $order->id) }}" class="btn-agri" style="padding: 8px; background: var(--agri-bg); color: var(--agri-primary); border-radius: 999px;" title="Edit"><i class="fas fa-pen"></i></a>
+                                    <button type="button" class="btn-agri" style="padding: 8px; background: #fef2f2; color: #ef4444; border-radius: 999px; border: none; opacity: .6; cursor: not-allowed;" title="Delete unavailable on this page" disabled>
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr><td colspan="7" class="text-center py-5" style="color: var(--agri-text-muted);">No orders found.</td></tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+
+        @if($orders->hasPages())
+            <div style="padding: 24px; background: white; border-top: 1px solid var(--agri-border); display: flex; justify-content: center;">
+                {{ $orders->withQueryString()->links('pagination::bootstrap-5') }}
+            </div>
+        @endif
     </div>
-    
-    @if($orders->hasPages())
-    <div class="p-4 border-top bg-light text-center">
-        {{ $orders->withQueryString()->links('pagination::bootstrap-5') }}
-    </div>
-    @endif
 </div>
 @endsection
