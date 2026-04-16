@@ -7,15 +7,12 @@
     <title>@yield('title', 'Vendor Portal') | Plantix-AI</title>
 
     <!-- Google Fonts -->
-    <link rel="dns-prefetch" href="//fonts.gstatic.com">
-    <link href="https://fonts.googleapis.com/css?family=Nunito" rel="stylesheet">
-
-    <!-- Admin design system assets -->
-    <link href="{{ asset('assets/plugins/bootstrap/css/bootstrap.min.css') }}" rel="stylesheet">
-    <link href="{{ asset('css/style.css') }}" rel="stylesheet">
-    <link href="{{ asset('css/colors/green.css') }}" rel="stylesheet">
-    <link href="{{ asset('css/agritech-redesign.css') }}" rel="stylesheet">
-    <link href="{{ asset('css/admin-customer-unified.css') }}" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@500;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Bootstrap 5 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
     
     <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
@@ -49,8 +46,8 @@
             --agri-radius: 0.75rem;
             
             /* Fonts */
-            --font-main: 'Nunito', sans-serif;
-            --font-heading: 'Nunito', sans-serif;
+            --font-main: 'Inter', sans-serif;
+            --font-heading: 'Outfit', sans-serif;
         }
 
         body { 
@@ -275,10 +272,10 @@
     <link href="{{ asset('css/panel-unified.css') }}" rel="stylesheet">
     @stack('styles')
 </head>
-<body class="admin-sidebar-lock panel-unified-ui vendor-unified-ui fix-header fix-sidebar card-no-border">
+<body class="panel-unified-ui vendor-unified-ui">
 
 {{-- Sidebar --}}
-<aside class="left-sidebar sidebar" id="vendorSidebar">
+<aside class="sidebar" id="vendorSidebar">
     <a href="{{ route('vendor.dashboard') }}" class="sidebar-brand">
         <div class="icon-box"><i class="fas fa-store"></i></div>
         <span>Vendor Portal</span>
@@ -367,9 +364,9 @@
 </aside>
 
 {{-- Main Content --}}
-<div class="main-wrapper page-wrapper" style="min-height: 100vh;">
+<div class="main-wrapper">
     {{-- Topbar --}}
-    <header class="topbar topbar-agri">
+    <header class="topbar-agri">
         <div class="d-flex align-items-center gap-3">
             <button class="btn btn-light d-lg-none" type="button" onclick="document.getElementById('vendorSidebar').classList.toggle('show')">
                 <i class="fas fa-bars"></i>
