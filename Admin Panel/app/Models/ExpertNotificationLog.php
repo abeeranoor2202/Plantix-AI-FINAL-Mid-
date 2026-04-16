@@ -9,9 +9,12 @@ class ExpertNotificationLog extends Model
 {
     protected $fillable = [
         'expert_id',
+        'user_id',
         'type',
         'title',
+        'message',
         'body',
+        'action_url',
         'data',
         'related_id',
         'is_read',
@@ -22,6 +25,10 @@ class ExpertNotificationLog extends Model
         'data'     => 'array',
         'is_read'  => 'boolean',
         'read_at'  => 'datetime',
+    ];
+
+    protected $appends = [
+        'display_message',
     ];
 
     // ── Relationships ─────────────────────────────────────────────────────────
@@ -50,5 +57,10 @@ class ExpertNotificationLog extends Model
     public function scopeOfType($query, string $type)
     {
         return $query->where('type', $type);
+    }
+
+    public function getDisplayMessageAttribute(): string
+    {
+        return (string) ($this->message ?? $this->body ?? '');
     }
 }
