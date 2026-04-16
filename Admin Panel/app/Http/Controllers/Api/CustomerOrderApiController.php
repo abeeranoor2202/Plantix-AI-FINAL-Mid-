@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\VendorResource;
 use App\Models\Order;
 use App\Models\ReturnReason;
 use App\Services\Shared\ReturnRefundService;
@@ -100,12 +101,14 @@ class CustomerOrderApiController extends Controller
 
     private function orderSummary(Order $order): array
     {
+        $vendor = $order->vendor ? (new VendorResource($order->vendor))->resolve() : ['vendor_name' => 'Unknown Vendor'];
+
         return [
             'id'           => $order->id,
             'status'       => $order->status,
             'total'        => $order->total,
             'item_count'   => $order->items->count(),
-            'vendor_name'  => optional($order->vendor)->store_name,
+            'vendor_name'  => $vendor['vendor_name'],
             'created_at'   => $order->created_at?->toISOString(),
         ];
     }
