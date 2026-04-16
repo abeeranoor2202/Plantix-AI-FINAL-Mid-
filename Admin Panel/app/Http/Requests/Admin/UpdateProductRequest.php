@@ -2,7 +2,9 @@
 
 namespace App\Http\Requests\Admin;
 
+use App\Models\Product;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class UpdateProductRequest extends FormRequest
 {
@@ -14,13 +16,21 @@ class UpdateProductRequest extends FormRequest
     public function rules(): array
     {
         $productId = (int) $this->route('id');
+        $vendorId = (int) ($this->input('vendor_id') ?: Product::query()->whereKey($productId)->value('vendor_id'));
 
         return [
             'vendor_id'       => 'sometimes|required|exists:vendors,id',
             'category_id'     => 'sometimes|required|exists:categories,id',
             'brand_id'        => 'nullable|exists:brands,id',
             'name'            => 'sometimes|required|string|max:255',
-            'sku'             => 'nullable|string|max:100|unique:products,sku,'.$productId,
+            'sku'             => [
+                'nullable',
+                'string',
+                'max:100',
+                Rule::unique('products', 'sku')
+                    ->where(fn ($query) => $query->where('vendor_id', $vendorId))
+                    ->ignore($productId),
+            ],
             'short_description' => 'nullable|string|max:255',
             'unit'            => 'nullable|string|max:50',
             'description'     => 'nullable|string|max:5000',
