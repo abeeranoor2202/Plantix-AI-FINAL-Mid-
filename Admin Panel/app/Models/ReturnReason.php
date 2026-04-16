@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class ReturnReason extends Model
 {
-    protected $fillable = ['title', 'reason', 'is_active', 'vendor_id'];
+    protected $fillable = ['title', 'reason', 'description', 'is_active', 'vendor_id'];
 
     protected $casts = ['is_active' => 'boolean'];
 
@@ -42,6 +42,11 @@ class ReturnReason extends Model
     public function getTitleAttribute($value): ?string
     {
         return $value ?: $this->attributes['reason'] ?? null;
+    }
+
+    public function getNameAttribute(): string
+    {
+        return (string) ($this->attributes['reason'] ?? $this->attributes['title'] ?? 'Reason');
     }
 
     public function setTitleAttribute($value): void
