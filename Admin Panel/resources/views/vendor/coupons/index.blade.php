@@ -5,10 +5,12 @@
 @section('content')
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
-        <h4 class="mb-0 fw-bold text-dark">Discount Coupons</h4>
+        <h4 class="mb-0 fw-bold text-dark"><i class="bi bi-tags-fill me-2 text-success"></i>Discount Coupons</h4>
         <span class="text-muted small fw-medium mt-1 d-block">Create and manage discount coupons for your store</span>
     </div>
-    <x-ui.button :href="route('vendor.coupons.create')" variant="primary" size="md" icon="fas fa-plus">New Coupon</x-ui.button>
+    <a href="{{ route('vendor.coupons.create') }}" class="btn btn-primary rounded-pill px-4 fw-bold shadow-sm">
+        <i class="bi bi-plus-lg me-1"></i>New Coupon
+    </a>
 </div>
 
 <div class="card border-0 shadow-sm hover-card" style="border-radius:16px;">
@@ -105,20 +107,28 @@
                                     @endif
                                 </td>
                                 <td class="text-end pe-4">
-                                    <div class="panel-action-group">
+                                    <div class="d-flex justify-content-end gap-2">
                                         {{-- Toggle active --}}
                                         <form action="{{ route('vendor.coupons.toggle', $coupon->id) }}" method="POST" class="d-inline">
                                             @csrf
-                                            <x-ui.button variant="success-soft" size="sm" :circle="true" :icon="$coupon->is_active ? 'fas fa-toggle-on' : 'fas fa-toggle-off'" type="submit" :title="$coupon->is_active ? 'Disable Coupon' : 'Enable Coupon'" />
+                                            <button type="submit" class="btn btn-sm rounded-circle d-flex align-items-center justify-content-center shadow-sm {{ $coupon->is_active ? 'btn-outline-warning' : 'btn-outline-success' }}"
+                                                    style="width: 32px; height: 32px;" title="{{ $coupon->is_active ? 'Disable Coupon' : 'Enable Coupon' }}">
+                                                <i class="bi bi-{{ $coupon->is_active ? 'pause-fill' : 'play-fill' }}"></i>
+                                            </button>
                                         </form>
 
-                                        <x-ui.button :href="route('vendor.coupons.edit', $coupon->id)" variant="success-soft" size="sm" :circle="true" icon="fas fa-pen" title="Edit Coupon" />
+                                        <a href="{{ route('vendor.coupons.edit', $coupon->id) }}"
+                                           class="btn btn-sm btn-outline-primary rounded-circle d-flex align-items-center justify-content-center shadow-sm" style="width: 32px; height: 32px;" title="Edit Coupon">
+                                            <i class="bi bi-pencil-fill"></i>
+                                        </a>
 
                                         <form action="{{ route('vendor.coupons.destroy', $coupon->id) }}" method="POST"
                                               class="d-inline"
                                               onsubmit="return confirm('Delete coupon {{ $coupon->code }}?')">
                                             @csrf @method('DELETE')
-                                            <x-ui.button variant="danger-soft" size="sm" :circle="true" icon="fas fa-trash" type="submit" title="Delete Coupon" />
+                                            <button type="submit" class="btn btn-sm btn-outline-danger rounded-circle d-flex align-items-center justify-content-center shadow-sm" style="width: 32px; height: 32px;" title="Delete Coupon">
+                                                <i class="bi bi-trash-fill"></i>
+                                            </button>
                                         </form>
                                     </div>
                                 </td>
