@@ -27,6 +27,7 @@ use App\Policies\VendorPolicy;
 use App\Services\Security\PermissionService;
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Schema;
 
 class AuthServiceProvider extends ServiceProvider
 {
@@ -69,12 +70,16 @@ class AuthServiceProvider extends ServiceProvider
         // Each gate checks whether the admin user's role has ANY permission
         // belonging to the specified group.
 
-        $adminGroups = \App\Models\Permission::query()
-            ->whereNotNull('group')
-            ->pluck('group')
-            ->unique()
-            ->values()
-            ->all();
+        $adminGroups = [];
+
+        if (Schema::hasTable('permissions')) {
+            $adminGroups = \App\Models\Permission::query()
+                ->whereNotNull('group')
+                ->pluck('group')
+                ->unique()
+                ->values()
+                ->all();
+        }
 
         foreach ($adminGroups as $group) {
             Gate::define('admin.' . $group, function (User $user) use ($group) {
