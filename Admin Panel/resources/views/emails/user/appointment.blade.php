@@ -6,6 +6,7 @@
         'cancelled'               => ['icon' => '🚫', 'title' => 'Appointment Cancelled',        'badge' => 'badge-danger',  'label' => 'Cancelled'],
         'completed'               => ['icon' => '⭐', 'title' => 'Appointment Completed',        'badge' => 'badge-success', 'label' => 'Completed'],
         'reschedule_requested'    => ['icon' => '📅', 'title' => 'Reschedule Requested',         'badge' => 'badge-info',    'label' => 'Reschedule Pending'],
+        'rescheduled'             => ['icon' => '🗓️', 'title' => 'Appointment Rescheduled',      'badge' => 'badge-info',    'label' => 'Rescheduled'],
         'payment_failed'          => ['icon' => '⚠️',  'title' => 'Appointment Payment Failed',  'badge' => 'badge-danger',  'label' => 'Payment Failed'],
     ];
     $meta = $config[$appointment->status] ?? ['icon' => '📋', 'title' => 'Appointment Update', 'badge' => 'badge-secondary', 'label' => ucfirst($appointment->status)];
@@ -34,6 +35,8 @@
 <p>Your consultation with <strong>{{ $appointment->expert->user->name ?? 'our expert' }}</strong> has been marked as completed. We hope it was helpful!</p>
 @elseif($appointment->status === 'reschedule_requested')
 <p>A reschedule has been requested for your appointment. The expert will confirm the new date shortly.</p>
+@elseif($appointment->status === 'rescheduled')
+<p>Your appointment time has been updated after your reschedule confirmation.</p>
 @endif
 
 {{-- Appointment details --}}
