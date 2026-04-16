@@ -1,16 +1,16 @@
 @extends('vendor.layouts.app')
 @section('title', 'Inventory')
-@section('page-title', 'Inventory Management')
 
 @section('content')
+<div class="container-fluid" style="padding-top: 24px; padding-bottom: 40px;">
 @if(session('success'))
     <div class="alert alert-success alert-dismissible fade show">{{ session('success') }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
 @endif
 
-<div class="d-flex justify-content-between align-items-center mb-4">
+<div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 24px;">
     <div>
-        <h4 class="mb-0 fw-bold text-dark"><i class="bi bi-box-seam me-2 text-primary"></i>Inventory Management</h4>
-        <span class="text-muted small fw-medium mt-1 d-block">Track and update stock levels for your products</span>
+        <h1 style="font-size: 28px; font-weight: 700; color: var(--agri-primary-dark); margin: 0;">Inventory Management</h1>
+        <p style="color: var(--agri-text-muted); margin: 4px 0 0 0;">Track and update stock levels for your products.</p>
     </div>
 </div>
 
@@ -51,8 +51,9 @@
     </div>
 </div>
 
-<div class="card border-0 shadow-sm hover-card" style="border-radius:16px;">
-    <div class="card-header bg-white border-bottom py-3 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+<x-card style="padding: 0; overflow: hidden;">
+    <x-slot name="header">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
         <h6 class="mb-0 fw-bold text-dark"><i class="bi bi-list-columns-reverse me-2 text-primary fs-5"></i>Stock List</h6>
         
         {{-- Filters --}}
@@ -80,7 +81,7 @@
             @endif
         </form>
     </div>
-    <div class="card-body p-0">
+    </x-slot>
         @if($stocks->isEmpty())
             <div class="text-center text-muted py-5 my-4">
                 <div class="bg-light rounded-circle d-inline-flex align-items-center justify-content-center mb-3 text-muted" style="width: 80px; height: 80px;">
@@ -90,8 +91,7 @@
                 <p class="small mb-0">Try adjusting your filters or search term.</p>
             </div>
         @else
-            <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0">
+            <x-table>
                     <thead class="table-light">
                         <tr>
                             <th class="ps-4 fw-semibold text-muted text-uppercase small">Product</th>
@@ -156,24 +156,20 @@
                         </tr>
                         @endforeach
                     </tbody>
-                </table>
-            </div>
+            </x-table>
         @endif
-    </div>
     @if($stocks->hasPages())
-        <div class="card-footer bg-white border-top p-4 d-flex justify-content-center" style="border-radius: 0 0 16px 16px;">
+        <div style="padding: 24px; background: white; border-top: 1px solid var(--agri-border); display: flex; justify-content: center;">
             {{ $stocks->links() }}
         </div>
     @endif
-</div>
+</x-card>
 
-<div class="card border-0 shadow-sm hover-card mt-4" style="border-radius:16px;">
-    <div class="card-header bg-white border-bottom py-3">
+<x-card class="mt-4" style="padding: 0; overflow: hidden;">
+    <x-slot name="header">
         <h6 class="mb-0 fw-bold text-dark"><i class="bi bi-clock-history me-2 text-primary fs-5"></i>Recent Stock Movements</h6>
-    </div>
-    <div class="card-body p-0">
-        <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
+    </x-slot>
+        <x-table>
                 <thead class="table-light">
                     <tr>
                         <th class="ps-4 fw-semibold text-muted text-uppercase small">Time</th>
@@ -196,8 +192,7 @@
                         <tr><td colspan="5" class="text-center text-muted py-4">No movement records available.</td></tr>
                     @endforelse
                 </tbody>
-            </table>
-        </div>
-    </div>
+        </x-table>
+</x-card>
 </div>
 @endsection
