@@ -82,23 +82,34 @@
 
         <main class="page-wrapper" style="min-height: 100vh;">
             <div class="container-fluid" style="padding-top: 24px; padding-bottom: 40px;">
-                @if(session('success'))
-                    <div class="card-agri mb-4" style="background: var(--agri-primary-light); border: 1px solid var(--agri-primary); border-radius: 12px; padding: 12px 20px;">
-                        <div style="display: flex; align-items: center; gap: 12px; color: var(--agri-primary);">
-                            <i class="fas fa-check-circle"></i>
-                            <span style="font-weight: 700;">{{ session('success') }}</span>
+                <div class="toast-container position-fixed top-0 end-0 p-3">
+                    @if(session('success'))
+                        <div class="toast align-items-center text-bg-success border-0 js-session-toast" role="alert" aria-live="assertive" aria-atomic="true">
+                            <div class="d-flex">
+                                <div class="toast-body fw-semibold">{{ session('success') }}</div>
+                                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                            </div>
                         </div>
-                    </div>
-                @endif
+                    @endif
 
-                @if(session('error'))
-                    <div class="card-agri mb-4" style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 12px; padding: 12px 20px;">
-                        <div style="display: flex; align-items: center; gap: 12px; color: var(--agri-error);">
-                            <i class="fas fa-exclamation-circle"></i>
-                            <span style="font-weight: 700;">{{ session('error') }}</span>
+                    @if(session('error'))
+                        <div class="toast align-items-center text-bg-danger border-0 js-session-toast" role="alert" aria-live="assertive" aria-atomic="true">
+                            <div class="d-flex">
+                                <div class="toast-body fw-semibold">{{ session('error') }}</div>
+                                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                            </div>
                         </div>
-                    </div>
-                @endif
+                    @endif
+
+                    @if($errors->any())
+                        <div class="toast align-items-center text-bg-danger border-0 js-session-toast" role="alert" aria-live="assertive" aria-atomic="true">
+                            <div class="d-flex">
+                                <div class="toast-body fw-semibold">{{ $errors->first() }}</div>
+                                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                            </div>
+                        </div>
+                    @endif
+                </div>
 
                 @yield('content')
             </div>
@@ -142,6 +153,19 @@
         });
         $(keepSidebarExpanded);
     })(jQuery);
+</script>
+
+<script>
+    (function () {
+        if (typeof bootstrap === 'undefined' || typeof bootstrap.Toast === 'undefined') {
+            return;
+        }
+
+        document.querySelectorAll('.js-session-toast').forEach(function (el) {
+            var toast = new bootstrap.Toast(el, { delay: 3500 });
+            toast.show();
+        });
+    })();
 </script>
 
 @stack('scripts')
