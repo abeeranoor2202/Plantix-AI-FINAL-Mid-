@@ -38,9 +38,10 @@ class SendAppointmentStatusNotification implements ShouldQueue
         $expert = $appointment->expert;
         if ($expert) {
             $titleMap = [
-                Appointment::STATUS_ACCEPTED    => 'Appointment accepted',
+                Appointment::STATUS_CONFIRMED   => 'Appointment accepted',
                 Appointment::STATUS_REJECTED    => 'Appointment rejection sent',
-                Appointment::STATUS_RESCHEDULED => 'Reschedule request sent',
+                Appointment::STATUS_RESCHEDULE_REQUESTED => 'Reschedule request sent',
+                Appointment::STATUS_RESCHEDULED => 'Appointment rescheduled',
                 Appointment::STATUS_COMPLETED   => 'Appointment completed',
             ];
 
