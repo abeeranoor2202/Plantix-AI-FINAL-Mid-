@@ -258,7 +258,7 @@ class Appointment extends Model
     {
         return match ($this->status) {
             self::STATUS_PENDING_EXPERT_APPROVAL => 'Pending',
-            self::STATUS_CONFIRMED               => 'Accepted',
+            self::STATUS_CONFIRMED               => 'Confirmed',
             self::STATUS_REJECTED                => 'Rejected',
             self::STATUS_COMPLETED               => 'Completed',
             self::STATUS_CANCELLED               => 'Cancelled',
