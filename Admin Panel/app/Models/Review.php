@@ -18,6 +18,7 @@ class Review extends Model
     protected $fillable = [
         'user_id', 'vendor_id', 'product_id', 'order_id',
         'title', 'rating', 'comment', 'review_images', 'is_active', 'status', 'edit_locked_at',
+        'vendor_response', 'vendor_responded_at',
     ];
 
     protected $casts = [
@@ -25,6 +26,7 @@ class Review extends Model
         'review_images'  => 'array',
         'is_active'      => 'boolean',
         'edit_locked_at' => 'datetime',
+        'vendor_responded_at' => 'datetime',
     ];
 
     protected static function booted(): void
