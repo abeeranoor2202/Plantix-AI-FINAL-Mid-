@@ -13,9 +13,8 @@ use Illuminate\View\View;
 /**
  * VendorReturnController
  *
- * Allows vendors to view return requests for their own orders and add notes.
- * The actual approve / reject / refund actions are admin-only; vendors provide
- * context through notes which the admin can act upon.
+ * Allows vendors to manage return requests for their own orders,
+ * including notes and vendor-side approve/reject decisions.
  */
 class VendorReturnController extends Controller
 {
