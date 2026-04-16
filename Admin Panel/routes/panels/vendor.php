@@ -51,6 +51,7 @@ Route::prefix('vendor')->name('vendor.')->group(function () {
         Route::get('/products/{id}',       [\App\Http\Controllers\Vendor\VendorProductController::class, 'show'])->name('products.show');
         Route::get('/products/{id}/edit',  [\App\Http\Controllers\Vendor\VendorProductController::class, 'edit'])->name('products.edit');
         Route::put('/products/{id}',       [\App\Http\Controllers\Vendor\VendorProductController::class, 'update'])->name('products.update');
+        Route::post('/products/{id}/toggle-status', [\App\Http\Controllers\Vendor\VendorProductController::class, 'toggleStatus'])->name('products.toggle-status');
         Route::delete('/products/{id}',    [\App\Http\Controllers\Vendor\VendorProductController::class, 'destroy'])->name('products.destroy');
 
         // ── Orders (vendor-scoped) ────────────────────────────────────────────
@@ -87,10 +88,12 @@ Route::prefix('vendor')->name('vendor.')->group(function () {
         // ── Product Reviews (vendor view) ─────────────────────────────────────
         Route::get('/reviews',       [\App\Http\Controllers\Vendor\VendorReviewController::class, 'index'])->name('reviews.index');
         Route::get('/reviews/{id}',  [\App\Http\Controllers\Vendor\VendorReviewController::class, 'show'])->name('reviews.show');
+        Route::post('/reviews/{id}/respond', [\App\Http\Controllers\Vendor\VendorReviewController::class, 'respond'])->name('reviews.respond');
 
         // ── Inventory / Stock Management ────────────────────────────────────────
         Route::get('/inventory',                     [\App\Http\Controllers\Vendor\VendorInventoryController::class, 'index'])->name('inventory.index');
         Route::post('/inventory/{id}/update',        [\App\Http\Controllers\Vendor\VendorInventoryController::class, 'update'])->name('inventory.update');
+        Route::delete('/inventory/{id}',             [\App\Http\Controllers\Vendor\VendorInventoryController::class, 'destroy'])->name('inventory.destroy');
         // ── Profile & Store Settings ──────────────────────────────────────────
         Route::get('/profile',            [\App\Http\Controllers\Vendor\VendorProfileController::class, 'show'])->name('profile');
         Route::put('/profile',            [\App\Http\Controllers\Vendor\VendorProfileController::class, 'update'])->name('profile.update');
