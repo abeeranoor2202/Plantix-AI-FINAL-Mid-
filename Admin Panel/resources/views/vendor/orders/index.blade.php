@@ -5,17 +5,17 @@
 @section('content')
 <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
     <div>
-        <h4 class="mb-1 fw-bold text-dark"><i class="fas fa-shopping-cart text-primary me-2"></i>Recent Orders</h4>
+        <h4 class="mb-1 fw-bold text-dark">Orders</h4>
         <span class="text-muted small fw-medium d-block">Manage and track customer orders</span>
     </div>
 </div>
 
 {{-- Filter Bar --}}
-<form method="GET" class="card-agri border-0 mb-4 p-4">
-    <div class="row g-3 align-items-end">
-        <div class="col-md-3">
-            <label class="form-label small text-uppercase fw-bold text-muted mb-2">Order Status</label>
-            <select name="status" class="form-agri">
+<div class="card-agri" style="padding: 0; overflow: hidden; margin-bottom: 24px;">
+    <div class="card-header bg-white border-bottom-0 pt-4 pb-3 px-4 d-flex justify-content-between align-items-center" style="gap: 10px; flex-wrap: wrap;">
+        <h4 class="mb-0 fw-bold text-dark" style="font-size: 18px;">Order List</h4>
+        <form method="GET" class="panel-filter-wrap">
+            <select name="status" class="form-agri" style="min-width: 170px;">
                 <option value="">All Statuses</option>
                 @foreach(['pending','accepted','preparing','ready','delivered','cancelled'] as $s)
                     <option value="{{ $s }}" {{ request('status') === $s ? 'selected' : '' }}>
@@ -23,19 +23,12 @@
                     </option>
                 @endforeach
             </select>
-        </div>
-        <div class="col-md-3">
-            <label class="form-label small text-uppercase fw-bold text-muted mb-2">Date Filter</label>
-            <input type="date" name="date" class="form-agri" value="{{ request('date') }}">
-        </div>
-        <div class="col-md-4 d-flex gap-2">
-            <button type="submit" class="btn-agri btn-agri-primary px-4 shadow-sm flex-grow-1">
-                <i class="fas fa-filter me-1"></i> Apply
-            </button>
-            <a href="{{ route('vendor.orders.index') }}" class="btn-agri btn-agri-outline px-4">Reset</a>
-        </div>
+            <input type="date" name="date" class="form-agri" value="{{ request('date') }}" style="min-width: 170px;">
+            <x-ui.button variant="primary" size="md" type="submit">Apply Filters</x-ui.button>
+            <x-ui.button :href="route('vendor.orders.index')" variant="outline" size="md">Clear</x-ui.button>
+        </form>
     </div>
-</form>
+</div>
 
 <div class="card-agri border-0 p-0 overflow-hidden">
     <div class="table-responsive">
@@ -99,11 +92,8 @@
                         <div class="text-dark fw-medium small"><i class="far fa-calendar-alt text-muted me-1"></i>{{ $order->created_at->format('d M Y, h:i A') }}</div>
                     </td>
                     <td class="text-end px-4 py-3">
-                        <div class="d-flex justify-content-end">
-                            <a href="{{ route('vendor.orders.show', $order->id) }}"
-                               class="btn btn-sm btn-light border shadow-sm text-primary rounded-circle d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;" title="View Order Details">
-                                <i class="fas fa-eye"></i>
-                            </a>
+                        <div class="panel-action-group">
+                            <x-ui.button :href="route('vendor.orders.show', $order->id)" variant="info-soft" size="sm" :circle="true" icon="fas fa-eye" title="View Order Details" />
                         </div>
                     </td>
                 </tr>
