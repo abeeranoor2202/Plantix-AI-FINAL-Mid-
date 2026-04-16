@@ -25,15 +25,31 @@ class VendorReturnReasonController extends Controller
      * List all return reasons.
      * Route: GET /vendor/return-reasons
      */
-    public function index(): View
+    public function index(Request $request): View
     {
-        $reasons = ReturnReason::forVendorOrGlobal($this->vendorId())
+        $query = ReturnReason::forVendorOrGlobal($this->vendorId())
             ->withCount('returns')
             ->orderByDesc('is_active')
-            ->orderBy('reason')
-            ->get();
+            ->orderBy('reason');
 
-        return view('vendor.returns.reasons', compact('reasons'));
+        if ($request->filled('search')) {
+            $term = trim((string) $request->input('search'));
+            $query->where(function ($inner) use ($term) {
+                $inner->where('reason', 'like', "%{$term}%")
+                    ->orWhere('description', 'like', "%{$term}%");
+            });
+        }
+
+        if ($request->filled('status')) {
+            $query->where('is_active', $request->input('status') === 'active');
+        }
+
+        $reasons = $query->paginate(20)->withQueryString();
+
+        return view('vendor.returns.reasons', [
+            'reasons' => $reasons,
+            'filters' => $request->only(['search', 'status']),
+        ]);
     }
 
     /**
@@ -44,11 +60,13 @@ class VendorReturnReasonController extends Controller
     {
         $data = $request->validate([
             'reason'    => 'required|string|max:255|unique:return_reasons,reason,NULL,id,vendor_id,' . $this->vendorId(),
+            'description' => 'nullable|string|max:1000',
             'is_active' => 'sometimes|boolean',
         ]);
 
         ReturnReason::create([
             'reason'    => $data['reason'],
+            'description' => $data['description'] ?? null,
             'is_active' => $data['is_active'] ?? true,
             'vendor_id' => $this->vendorId(),
         ]);
@@ -66,9 +84,13 @@ class VendorReturnReasonController extends Controller
 
         $data = $request->validate([
             'reason' => 'required|string|max:255|unique:return_reasons,reason,' . $id . ',id,vendor_id,' . $this->vendorId(),
+            'description' => 'nullable|string|max:1000',
         ]);
 
-        $reason->update(['reason' => $data['reason']]);
+        $reason->update([
+            'reason' => $data['reason'],
+            'description' => $data['description'] ?? null,
+        ]);
 
         return back()->with('success', 'Return reason updated.');
     }
