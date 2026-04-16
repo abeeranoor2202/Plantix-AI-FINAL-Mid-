@@ -174,6 +174,11 @@ class VendorProductController extends Controller
 
     public function toggleStatus(int $id): RedirectResponse
     {
+        return $this->toggleActive($id);
+    }
+
+    public function toggleActive(int $id): RedirectResponse
+    {
         $product = Product::where('vendor_id', $this->vendorId())->findOrFail($id);
 
         $product->update([
@@ -181,6 +186,28 @@ class VendorProductController extends Controller
         ]);
 
         return back()->with('success', 'Product status updated successfully.');
+    }
+
+    public function toggleReturnable(int $id): RedirectResponse
+    {
+        $product = Product::where('vendor_id', $this->vendorId())->findOrFail($id);
+
+        $product->update([
+            'is_returnable' => ! $product->is_returnable,
+        ]);
+
+        return back()->with('success', 'Return eligibility updated successfully.');
+    }
+
+    public function toggleRefundable(int $id): RedirectResponse
+    {
+        $product = Product::where('vendor_id', $this->vendorId())->findOrFail($id);
+
+        $product->update([
+            'is_refundable' => ! $product->is_refundable,
+        ]);
+
+        return back()->with('success', 'Refund eligibility updated successfully.');
     }
 
     private function buildCategoryAttributeMap(): array
