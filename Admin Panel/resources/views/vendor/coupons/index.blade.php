@@ -1,20 +1,20 @@
 @extends('vendor.layouts.app')
 @section('title', 'My Coupons')
-@section('page-title', 'Discount Coupons')
 
 @section('content')
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <div>
-        <h4 class="mb-0 fw-bold text-dark"><i class="bi bi-tags-fill me-2 text-success"></i>Discount Coupons</h4>
-        <span class="text-muted small fw-medium mt-1 d-block">Create and manage discount coupons for your store</span>
+<div class="container-fluid" style="padding-top: 24px; padding-bottom: 40px;">
+    <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 32px;">
+        <div>
+            <h1 style="font-size: 28px; font-weight: 700; color: var(--agri-primary-dark); margin: 0;">Discount Coupons</h1>
+            <p style="color: var(--agri-text-muted); margin: 4px 0 0 0;">Create and manage discount coupons for your store.</p>
+        </div>
+        <x-button :href="route('vendor.coupons.create')" variant="primary" icon="fas fa-plus">New Coupon</x-button>
     </div>
-    <a href="{{ route('vendor.coupons.create') }}" class="btn btn-primary rounded-pill px-4 fw-bold shadow-sm">
-        <i class="bi bi-plus-lg me-1"></i>New Coupon
-    </a>
-</div>
 
-<div class="card border-0 shadow-sm hover-card" style="border-radius:16px;">
-    <div class="card-body p-0">
+    <x-card style="padding: 0; overflow: hidden;">
+        <x-slot name="header">
+            <h4 class="mb-0 fw-bold text-dark" style="font-size: 18px;">Coupon List</h4>
+        </x-slot>
         @if ($coupons->isEmpty())
             <div class="text-center text-muted py-5 my-3">
                 <div class="bg-light rounded-circle d-inline-flex align-items-center justify-content-center mb-3 text-muted" style="width: 80px; height: 80px;">
@@ -22,11 +22,10 @@
                 </div>
                 <h6 class="fw-bold text-dark">No coupons yet</h6>
                 <p class="small mb-3">You haven't created any discount codes for your customers.</p>
-                <a href="{{ route('vendor.coupons.create') }}" class="btn btn-outline-primary rounded-pill px-4">Create your first coupon</a>
+                <x-button :href="route('vendor.coupons.create')" variant="outline">Create your first coupon</x-button>
             </div>
         @else
-            <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0">
+            <x-table>
                     <thead class="table-light">
                         <tr>
                             <th class="ps-4 fw-semibold text-muted text-uppercase small">Code</th>
@@ -59,11 +58,11 @@
                                 </td>
                                 <td>
                                     @if ($coupon->is_active && $coupon->isValid())
-                                        <span class="badge rounded-pill border border-success text-success bg-success bg-opacity-10 px-3 py-1 fw-bold shadow-sm"><i class="bi bi-check-circle me-1"></i>Active</span>
+                                        <x-badge variant="success">Active</x-badge>
                                     @elseif (!$coupon->is_active)
-                                        <span class="badge rounded-pill border border-secondary text-secondary bg-secondary bg-opacity-10 px-3 py-1 fw-bold shadow-sm"><i class="bi bi-ban me-1"></i>Disabled</span>
+                                        <x-badge variant="secondary">Disabled</x-badge>
                                     @else
-                                        <span class="badge rounded-pill border border-warning text-dark bg-warning bg-opacity-25 px-3 py-1 fw-bold shadow-sm"><i class="bi bi-exclamation-triangle me-1"></i>Expired/Maxed</span>
+                                        <x-badge variant="warning">Expired/Maxed</x-badge>
                                     @endif
                                 </td>
                                 <td class="fw-bold text-dark fs-6">
@@ -108,41 +107,31 @@
                                 </td>
                                 <td class="text-end pe-4">
                                     <div class="d-flex justify-content-end gap-2">
-                                        {{-- Toggle active --}}
                                         <form action="{{ route('vendor.coupons.toggle', $coupon->id) }}" method="POST" class="d-inline">
                                             @csrf
-                                            <button type="submit" class="btn btn-sm rounded-circle d-flex align-items-center justify-content-center shadow-sm {{ $coupon->is_active ? 'btn-outline-warning' : 'btn-outline-success' }}"
-                                                    style="width: 32px; height: 32px;" title="{{ $coupon->is_active ? 'Disable Coupon' : 'Enable Coupon' }}">
-                                                <i class="bi bi-{{ $coupon->is_active ? 'pause-fill' : 'play-fill' }}"></i>
-                                            </button>
+                                            <x-toggle :checked="$coupon->is_active" onchange="this.form.submit()" />
                                         </form>
 
-                                        <a href="{{ route('vendor.coupons.edit', $coupon->id) }}"
-                                           class="btn btn-sm btn-outline-primary rounded-circle d-flex align-items-center justify-content-center shadow-sm" style="width: 32px; height: 32px;" title="Edit Coupon">
-                                            <i class="bi bi-pencil-fill"></i>
-                                        </a>
+                                        <x-button :href="route('vendor.coupons.edit', $coupon->id)" variant="icon" title="Edit" style="color: var(--agri-primary); background: var(--agri-bg); width:34px; height:34px;"><i class="fas fa-pen"></i></x-button>
 
                                         <form action="{{ route('vendor.coupons.destroy', $coupon->id) }}" method="POST"
                                               class="d-inline"
                                               onsubmit="return confirm('Delete coupon {{ $coupon->code }}?')">
                                             @csrf @method('DELETE')
-                                            <button type="submit" class="btn btn-sm btn-outline-danger rounded-circle d-flex align-items-center justify-content-center shadow-sm" style="width: 32px; height: 32px;" title="Delete Coupon">
-                                                <i class="bi bi-trash-fill"></i>
-                                            </button>
+                                            <x-button type="submit" variant="icon" title="Delete" style="color:#ef4444; background:#fef2f2; width:34px; height:34px;"><i class="fas fa-trash"></i></x-button>
                                         </form>
                                     </div>
                                 </td>
                             </tr>
                         @endforeach
                     </tbody>
-                </table>
-            </div>
+            </x-table>
             @if($coupons->hasPages())
-                <div class="p-4 border-top">
+                <div style="padding: 24px; background: white; border-top: 1px solid var(--agri-border); display: flex; justify-content: center;">
                     {{ $coupons->links() }}
                 </div>
             @endif
         @endif
-    </div>
+    </x-card>
 </div>
 @endsection
