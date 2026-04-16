@@ -60,24 +60,18 @@ class StripePaymentController extends Controller
 
         if ($request->expectsJson()) {
             return response()->json([
-                'client_secret'     => $result['client_secret'],
                 'checkout_url'      => $result['checkout_url'] ?? null,
                 'order_id'          => $order->id,
                 'payment_intent_id' => $order->payment_intent_id,
             ]);
         }
 
-        if (! empty($result['checkout_url'])) {
-            return redirect()->away($result['checkout_url']);
+        $checkoutUrl = (string) ($result['checkout_url'] ?? '');
+        if ($checkoutUrl === '') {
+            return back()->withErrors(['checkout' => 'Unable to create Stripe Checkout session. Please try again.']);
         }
 
-        // For blade: store PI in session then redirect to payment page
-        session([
-            'pending_order_id'  => $order->id,
-            'stripe_secret'     => $result['client_secret'],
-        ]);
-
-        return redirect()->route('checkout.pay', ['order' => $order->id]);
+        return redirect()->away($checkoutUrl);
     }
 
     // ─────────────────────────────────────────────────────────────────────────
