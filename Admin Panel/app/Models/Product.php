@@ -90,6 +90,13 @@ class Product extends Model
         return $this->hasMany(ProductAttribute::class)->with('attribute.values');
     }
 
+    public function attributeDefinitions(): BelongsToMany
+    {
+        return $this->belongsToMany(Attribute::class, 'product_attributes')
+            ->withPivot(['value', 'value_type', 'name', 'type', 'price'])
+            ->withTimestamps();
+    }
+
     public function images(): HasMany
     {
         return $this->hasMany(ProductImage::class)->orderBy('sort_order');
