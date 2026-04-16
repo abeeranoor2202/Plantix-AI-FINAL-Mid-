@@ -33,6 +33,17 @@ class ExpertAppointmentService
         $query = Appointment::with(['user', 'latestReschedule'])
             ->where('expert_id', $expert->id);
 
+        if (! empty($filters['search'])) {
+            $term = '%' . trim((string) $filters['search']) . '%';
+            $query->where(function ($q) use ($term) {
+                $q->where('topic', 'like', $term)
+                    ->orWhereHas('user', function ($u) use ($term) {
+                        $u->where('name', 'like', $term)
+                            ->orWhere('email', 'like', $term);
+                    });
+            });
+        }
+
         if (! empty($filters['status'])) {
             $query->where('status', $filters['status']);
         }
