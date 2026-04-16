@@ -4,9 +4,11 @@ namespace App\Http\Controllers\Frontend;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Frontend\CheckoutRequest;
-use App\Models\Cart;
+use App\Models\Appointment;
 use App\Models\Order;
+use App\Models\Payment;
 use App\Services\Shared\CartCheckoutService;
+use App\Services\Shared\StripeService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -25,7 +27,142 @@ class StripePaymentController extends Controller
 {
     public function __construct(
         private readonly CartCheckoutService $checkout,
+        private readonly StripeService $stripe,
     ) {}
+
+    /**
+     * Single payment entry path for both orders and appointments.
+     *
+     * Route params:
+     *  - type=order with {order}
+     *  - type=appointment with {id}
+     */
+    public function createCheckoutSession(Request $request, ?Order $order = null, ?int $id = null): RedirectResponse|JsonResponse
+    {
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+        $type = (string) $request->route('type', 'order');
+
+        try {
+            if ($type === 'appointment') {
+                $appointmentId = (int) ($id ?? $request->route('id'));
+                $appointment = Appointment::where('user_id', $user->id)->findOrFail($appointmentId);
+
+                if ($appointment->status !== Appointment::STATUS_PENDING_PAYMENT) {
+                    if ($appointment->payment_status === 'paid') {
+                        return redirect()->route('appointment.details', $appointment->id)
+                            ->with('info', 'This appointment is already paid.');
+                    }
+
+                    return redirect()->route('appointment.details', $appointment->id)
+                        ->withErrors(['appointment' => 'This appointment cannot be paid in its current state.']);
+                }
+
+                $checkout = $this->stripe->createAppointmentCheckoutSession($appointment, [
+                    'appointment_id' => (string) $appointment->id,
+                ]);
+
+                $checkoutUrl = (string) ($checkout['checkout_url'] ?? '');
+                if ($checkoutUrl === '') {
+                    throw new \RuntimeException('Stripe Checkout URL is missing for appointment payment.');
+                }
+
+                $intent = $checkout['paymentIntent'] ?? null;
+
+                $appointment->update([
+                    'stripe_payment_intent_id' => $intent?->id,
+                    'stripe_payment_status'    => $intent?->status ?? $appointment->stripe_payment_status,
+                ]);
+
+                Payment::updateOrCreate(
+                    [
+                        'appointment_id' => $appointment->id,
+                        'gateway' => 'stripe',
+                    ],
+                    [
+                        'user_id'                  => $user->id,
+                        'gateway_transaction_id'   => $intent?->id,
+                        'stripe_session_id'        => $checkout['session']->id,
+                        'stripe_payment_intent_id' => $intent?->id,
+                        'payment_type'             => 'appointment',
+                        'amount'                   => $appointment->fee,
+                        'currency'                 => strtolower(config('plantix.currency_code', 'usd')),
+                        'status'                   => 'pending',
+                    ]
+                );
+
+                if ($request->expectsJson()) {
+                    return response()->json([
+                        'checkout_url' => $checkoutUrl,
+                        'appointment_id' => $appointment->id,
+                    ]);
+                }
+
+                return redirect()->away($checkoutUrl);
+            }
+
+            $order ??= Order::findOrFail((int) $request->route('order'));
+
+            if ((int) $order->user_id !== (int) $user->id) {
+                abort(403);
+            }
+
+            if (! $order->isPendingPayment()) {
+                if ($order->payment_status === 'paid') {
+                    return redirect()->route('order.success', $order->id);
+                }
+
+                return redirect()->route('order.details', ['id' => $order->id])
+                    ->withErrors(['order' => 'This order cannot be paid in its current state.']);
+            }
+
+            $checkout = $this->stripe->createOrderCheckoutSession($order, [
+                'order_number' => $order->order_number,
+            ]);
+
+            $checkoutUrl = (string) ($checkout['checkout_url'] ?? '');
+            if ($checkoutUrl === '') {
+                throw new \RuntimeException('Stripe Checkout URL is missing for order payment.');
+            }
+
+            $intent = $checkout['paymentIntent'] ?? null;
+            $order->update([
+                'payment_intent_id' => $intent?->id,
+            ]);
+
+            Payment::updateOrCreate(
+                ['order_id' => $order->id, 'gateway' => 'stripe'],
+                [
+                    'user_id'                  => $order->user_id,
+                    'gateway_transaction_id'   => $intent?->id,
+                    'stripe_session_id'        => $checkout['session']->id,
+                    'stripe_payment_intent_id' => $intent?->id,
+                    'payment_type'             => 'product',
+                    'amount'                   => $order->total,
+                    'currency'                 => strtolower(config('plantix.currency_code', 'usd')),
+                    'status'                   => 'pending',
+                ]
+            );
+
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'checkout_url' => $checkoutUrl,
+                    'order_id' => $order->id,
+                ]);
+            }
+
+            return redirect()->away($checkoutUrl);
+        } catch (\Throwable $e) {
+            Log::error('createCheckoutSession error', [
+                'type' => $type,
+                'order_id' => $order?->id,
+                'appointment_id' => $id,
+                'message' => $e->getMessage(),
+            ]);
+
+            return back()->withErrors(['payment' => 'Unable to start Stripe Checkout. Please try again.']);
+        }
+    }
 
     // ─────────────────────────────────────────────────────────────────────────
     // Checkout initiate: create order + PI in one atomic call
@@ -81,29 +218,9 @@ class StripePaymentController extends Controller
     /**
      * Route: GET /checkout/pay/{order}
      */
-    public function showPaymentPage(Order $order): \Illuminate\View\View|RedirectResponse
+    public function showPaymentPage(Order $order): RedirectResponse|JsonResponse
     {
-        /** @var \App\Models\User $user */
-        $user = Auth::user();
-
-        if ((int) $order->user_id !== (int) $user->id) {
-            abort(403);
-        }
-
-        // Must still be awaiting payment
-        if (! $order->isPendingPayment()) {
-            if ($order->payment_status === 'paid') {
-                return redirect()->route('order.success', $order->id);
-            }
-            return redirect()->route('checkout')->withErrors(['order' => 'This order cannot be paid.']);
-        }
-
-        $clientSecret  = session('stripe_secret') ?? null;
-        $publishableKey = config('services.stripe.key');
-
-        $order->loadMissing('items.product');
-
-        return view('frontend.checkout.stripe-payment', compact('order', 'clientSecret', 'publishableKey'));
+        return $this->createCheckoutSession(request(), $order);
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -116,23 +233,7 @@ class StripePaymentController extends Controller
      */
     public function processOrderPayment(Request $request, Order $order): RedirectResponse
     {
-        /** @var \App\Models\User $user */
-        $user = Auth::user();
-
-        if ((int) $order->user_id !== (int) $user->id) {
-            abort(403);
-        }
-
-        if (! $order->isPendingPayment()) {
-            if ($order->payment_status === 'paid') {
-                return redirect()->route('order.success', $order->id);
-            }
-            return redirect()->route('checkout')->withErrors(['order' => 'This order cannot be paid.']);
-        }
-
-        // Intentionally no status mutation here.
-        return redirect()->route('checkout.pay', $order->id)
-            ->with('info', 'Payment is pending confirmation. Your order will update automatically after Stripe webhook verification.');
+        return $this->createCheckoutSession($request, $order);
     }
 
     // ─────────────────────────────────────────────────────────────────────────
