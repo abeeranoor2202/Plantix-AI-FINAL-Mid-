@@ -35,7 +35,10 @@ class CustomerOrderController extends Controller
                       ->forCustomer($user->id)
                       ->findOrFail($id);
         $canReturn = $this->returnService->orderIsReturnable($order);
-        $returnReasons = ReturnReason::active()->orderBy('title')->get();
+        $returnReasons = ReturnReason::active()
+            ->forVendorOrGlobal($order->vendor_id)
+            ->orderBy('title')
+            ->get();
 
         return view('customer.order-details', compact('order', 'canReturn', 'returnReasons'));
     }
