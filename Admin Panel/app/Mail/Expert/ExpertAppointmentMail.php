@@ -22,6 +22,7 @@ class ExpertAppointmentMail extends PlantixBaseMail
             'cancelled'               => "Appointment Cancelled by Customer — #{$this->appointment->id}",
             'completed'               => "Session Completed — #{$this->appointment->id}",
             'reschedule_requested'    => "Reschedule Requested — Booking #{$this->appointment->id}",
+            'rescheduled'             => "Appointment Rescheduled — Booking #{$this->appointment->id}",
             default                   => "Appointment Update — #{$this->appointment->id}",
         };
     }
