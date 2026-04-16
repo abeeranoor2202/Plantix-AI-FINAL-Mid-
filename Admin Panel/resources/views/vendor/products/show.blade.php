@@ -1,14 +1,8 @@
 @extends('vendor.layouts.app')
 @section('title', 'Product Details')
-@section('page-title', 'Product Details')
 
 @section('content')
-<div class="mb-4 d-flex align-items-center gap-3">
-    <a href="{{ route('vendor.products.index') }}" class="btn btn-light border rounded-circle d-flex align-items-center justify-content-center shadow-sm" style="width: 40px; height: 40px;">
-        <i class="fas fa-arrow-left text-muted"></i>
-    </a>
-    <div>
-        <h4 class="mb-0 fw-bold text-dark">
+<div class="container-fluid" style="padding-top: 24px; padding-bottom: 40px;">
     @if(session('success'))
     <div class="modal fade" id="successModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
@@ -26,17 +20,40 @@
             </div>
         </div>
     </div>
+    @push('scripts')
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var modal = new bootstrap.Modal(document.getElementById('successModal'));
+            modal.show();
+        });
+    </script>
+    @endpush
     @endif
 
-            <i class="fas fa-box-open me-2 text-primary fs-5"></i>{{ $product->name }}
-        </h4>
-        <p class="text-muted small m-0">View complete details for this listing.</p>
+    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 24px;">
+        <a href="{{ route('vendor.products.index') }}" style="text-decoration: none; color: var(--agri-text-muted); font-size: 14px; font-weight: 600;">Products</a>
+        <i class="fas fa-chevron-right" style="font-size: 10px; color: var(--agri-text-muted);"></i>
+        <span style="color: var(--agri-primary); font-size: 14px; font-weight: 600;">{{ $product->name }}</span>
     </div>
-</div>
+
+    <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 28px;">
+        <div>
+            <h1 style="font-size: 28px; font-weight: 700; color: var(--agri-primary-dark); margin: 0;">{{ $product->name }}</h1>
+            <p style="color: var(--agri-text-muted); margin: 4px 0 0 0;">View complete product information and current settings.</p>
+        </div>
+        <div style="display:flex; gap:8px;">
+            <x-button :href="route('vendor.products.edit', $product->id)" variant="primary" icon="fas fa-pen">Edit</x-button>
+            <form method="POST" action="{{ route('vendor.products.destroy', $product->id) }}" onsubmit="return confirm('Delete this product permanently?');" class="m-0">
+                @csrf
+                @method('DELETE')
+                <x-button type="submit" variant="danger" icon="fas fa-trash">Delete</x-button>
+            </form>
+        </div>
+    </div>
 
 <div class="row g-4">
     <div class="col-lg-4">
-        <div class="card-agri p-4 border-0 shadow-sm h-100">
+        <div class="card-agri p-4 h-100">
             <div class="text-center">
                 @if($product->image)
                     <img src="{{ asset('storage/' . $product->image) }}" alt="{{ $product->name }}" class="rounded-3 border" style="width: 100%; max-width: 280px; object-fit: cover;">
@@ -46,24 +63,11 @@
                     </div>
                 @endif
             </div>
-
-            <div class="mt-4 d-flex gap-2 flex-wrap">
-                <a href="{{ route('vendor.products.edit', $product->id) }}" class="btn-agri btn-agri-primary">
-                    <i class="fas fa-edit me-1"></i>Edit
-                </a>
-                <form method="POST" action="{{ route('vendor.products.destroy', $product->id) }}" onsubmit="return confirm('Delete this product permanently?');" class="m-0">
-                    @csrf
-                    @method('DELETE')
-                    <button type="submit" class="btn-agri btn-agri-outline text-danger">
-                        <i class="fas fa-trash-alt me-1"></i>Delete
-                    </button>
-                </form>
-            </div>
         </div>
     </div>
 
     <div class="col-lg-8">
-        <div class="card-agri p-4 border-0 shadow-sm h-100">
+        <div class="card-agri p-4 h-100">
             <div class="row g-4">
                 <div class="col-md-6">
                     <label class="text-uppercase small text-muted fw-bold">SKU</label>
@@ -125,5 +129,6 @@
             </div>
         </div>
     </div>
+</div>
 </div>
 @endsection
