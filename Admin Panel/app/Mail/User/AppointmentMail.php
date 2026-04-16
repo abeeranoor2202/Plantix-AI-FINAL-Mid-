@@ -24,6 +24,7 @@ class AppointmentMail extends PlantixBaseMail
             'cancelled'               => "Appointment Cancelled — Booking #{$this->appointment->id}",
             'completed'               => "Consultation Complete — How was it? #{$this->appointment->id}",
             'reschedule_requested'    => "Reschedule Requested — Booking #{$this->appointment->id}",
+            'rescheduled'             => "Appointment Rescheduled — Booking #{$this->appointment->id}",
             'payment_failed'          => "Payment Failed for Appointment #{$this->appointment->id}",
             default                   => "Appointment Update — #{$this->appointment->id}",
         };
