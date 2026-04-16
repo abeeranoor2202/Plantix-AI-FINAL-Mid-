@@ -22,6 +22,10 @@
     </div>
 @endif
 
+@php
+    $vendorId = auth('vendor')->user()->vendor->id;
+@endphp
+
 <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
     <div>
         <h4 class="mb-0 fw-bold text-dark"><i class="bi bi-tags-fill me-2 text-primary"></i>Return Reasons</h4>
@@ -83,6 +87,9 @@
                 @else
                     <ul class="list-group list-group-flush">
                         @foreach($reasons as $reason)
+                        @php
+                            $isOwned = (int) ($reason->vendor_id ?? 0) === (int) $vendorId;
+                        @endphp
                         <li class="list-group-item px-4 py-3 d-flex align-items-center gap-3 {{ !$reason->is_active ? 'bg-light' : '' }}">
                             {{-- Status indicator --}}
                             <span class="d-inline-flex align-items-center justify-content-center rounded-circle {{ $reason->is_active ? 'bg-success' : 'bg-secondary' }} bg-opacity-15"
@@ -91,39 +98,52 @@
                             </span>
 
                             {{-- Inline edit form --}}
-                            <form method="POST" action="{{ route('vendor.return-reasons.update', $reason->id) }}"
-                                  class="d-flex align-items-center gap-2 flex-grow-1" id="edit-form-{{ $reason->id }}">
-                                @csrf @method('PATCH')
-                                <input type="text" name="reason" value="{{ $reason->reason }}" required maxlength="255"
-                                       class="form-control form-control-sm bg-{{ $reason->is_active ? 'white' : 'light' }} border rounded-3 fw-medium text-dark shadow-sm"
-                                       style="font-size:14px;">
-                                <button type="submit" class="btn btn-sm btn-outline-primary rounded-pill px-3 text-nowrap shadow-sm">
-                                    <i class="bi bi-save me-1"></i>Save
-                                </button>
-                            </form>
+                            @if($isOwned)
+                                <form method="POST" action="{{ route('vendor.return-reasons.update', $reason->id) }}"
+                                      class="d-flex align-items-center gap-2 flex-grow-1" id="edit-form-{{ $reason->id }}">
+                                    @csrf @method('PATCH')
+                                    <input type="text" name="reason" value="{{ $reason->reason }}" required maxlength="255"
+                                           class="form-control form-control-sm bg-{{ $reason->is_active ? 'white' : 'light' }} border rounded-3 fw-medium text-dark shadow-sm"
+                                           style="font-size:14px;">
+                                    <button type="submit" class="btn btn-sm btn-outline-primary rounded-pill px-3 text-nowrap shadow-sm">
+                                        <i class="bi bi-save me-1"></i>Save
+                                    </button>
+                                </form>
+                            @else
+                                <div class="d-flex align-items-center gap-2 flex-grow-1">
+                                    <input type="text" value="{{ $reason->reason }}" readonly
+                                           class="form-control form-control-sm bg-light border rounded-3 fw-medium text-dark shadow-sm"
+                                           style="font-size:14px;">
+                                    <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 rounded-pill px-2 py-1">Global</span>
+                                </div>
+                            @endif
 
                             {{-- Actions --}}
                             <div class="d-flex align-items-center gap-2 ms-auto text-nowrap">
                                 {{-- Toggle active --}}
-                                <form method="POST" action="{{ route('vendor.return-reasons.toggle', $reason->id) }}">
-                                    @csrf @method('PATCH')
-                                    <button type="submit" title="{{ $reason->is_active ? 'Deactivate' : 'Activate' }}"
-                                            class="btn btn-sm {{ $reason->is_active ? 'btn-outline-warning' : 'btn-outline-success' }} rounded-circle shadow-sm d-flex align-items-center justify-content-center"
-                                            style="width:32px; height:32px;">
-                                        <i class="bi {{ $reason->is_active ? 'bi-toggle-on' : 'bi-toggle-off' }} fs-6"></i>
-                                    </button>
-                                </form>
+                                @if($isOwned)
+                                    <form method="POST" action="{{ route('vendor.return-reasons.toggle', $reason->id) }}">
+                                        @csrf @method('PATCH')
+                                        <button type="submit" title="{{ $reason->is_active ? 'Deactivate' : 'Activate' }}"
+                                                class="btn btn-sm {{ $reason->is_active ? 'btn-outline-warning' : 'btn-outline-success' }} rounded-circle shadow-sm d-flex align-items-center justify-content-center"
+                                                style="width:32px; height:32px;">
+                                            <i class="bi {{ $reason->is_active ? 'bi-toggle-on' : 'bi-toggle-off' }} fs-6"></i>
+                                        </button>
+                                    </form>
+                                @endif
 
                                 {{-- Delete --}}
-                                <form method="POST" action="{{ route('vendor.return-reasons.destroy', $reason->id) }}">
-                                    @csrf @method('DELETE')
-                                    <button type="submit" title="Delete"
-                                            class="btn btn-sm btn-outline-danger rounded-circle shadow-sm d-flex align-items-center justify-content-center"
-                                            style="width:32px; height:32px;"
-                                            onclick="return confirm('Delete this reason? If it has been used in returns, it will be deactivated instead.')">
-                                        <i class="bi bi-trash fs-6"></i>
-                                    </button>
-                                </form>
+                                @if($isOwned)
+                                    <form method="POST" action="{{ route('vendor.return-reasons.destroy', $reason->id) }}">
+                                        @csrf @method('DELETE')
+                                        <button type="submit" title="Delete"
+                                                class="btn btn-sm btn-outline-danger rounded-circle shadow-sm d-flex align-items-center justify-content-center"
+                                                style="width:32px; height:32px;"
+                                                onclick="return confirm('Delete this reason? If it has been used in returns, it will be deactivated instead.')">
+                                            <i class="bi bi-trash fs-6"></i>
+                                        </button>
+                                    </form>
+                                @endif
                             </div>
 
                             {{-- Usage count badge --}}
