@@ -11,6 +11,7 @@ use App\Models\Product;
 use App\Models\ProductAttribute;
 use App\Models\ProductImage;
 use App\Services\Shared\StockService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -54,11 +55,11 @@ class VendorProductController extends Controller
 
     public function create(): View
     {
-        $categories = Category::with(['attributes.values'])->orderBy('name')->get();
+        $categories = Category::orderBy('name')->get(['id', 'name']);
 
         return view('vendor.products.form', [
             'categories' => $categories,
-            'attributeMap' => $this->buildCategoryAttributeMap(),
+            'attributeValues' => old('attribute_values', []),
         ]);
     }
 
@@ -124,8 +125,40 @@ class VendorProductController extends Controller
 
         return view('vendor.products.form', [
             'product'    => $product,
-            'categories' => Category::with(['attributes.values'])->orderBy('name')->get(),
-            'attributeMap' => $this->buildCategoryAttributeMap(),
+            'categories' => Category::orderBy('name')->get(['id', 'name']),
+            'attributeValues' => old('attribute_values', $this->extractAttributeValues($product)),
+        ]);
+    }
+
+    public function categoryAttributes(Category $category): JsonResponse
+    {
+        $attributes = $category->attributes()
+            ->with('values')
+            ->get()
+            ->sortBy('pivot.sort_order')
+            ->values()
+            ->map(function (Attribute $attribute) {
+                return [
+                    'id' => $attribute->id,
+                    'name' => $attribute->name ?: $attribute->title,
+                    'type' => $attribute->type ?: Attribute::TYPE_TEXT,
+                    'unit' => $attribute->unit,
+                    'is_required' => (bool) ($attribute->pivot->is_required ?? false),
+                    'values' => $attribute->values
+                        ->sortBy('sort_order')
+                        ->values()
+                        ->map(fn ($value) => [
+                            'id' => $value->id,
+                            'value' => $value->value,
+                        ])
+                        ->all(),
+                ];
+            })
+            ->all();
+
+        return response()->json([
+            'category_id' => $category->id,
+            'attributes' => $attributes,
         ]);
     }
 
@@ -210,31 +243,6 @@ class VendorProductController extends Controller
         return back()->with('success', 'Refund eligibility updated successfully.');
     }
 
-    private function buildCategoryAttributeMap(): array
-    {
-        return Category::with(['attributes.values'])
-            ->get()
-            ->mapWithKeys(function (Category $category) {
-                return [
-                    $category->id => $category->attributes
-                        ->sortBy('pivot.sort_order')
-                        ->values()
-                        ->map(function (Attribute $attribute) {
-                            return [
-                                'id' => $attribute->id,
-                                'name' => $attribute->name ?: $attribute->title,
-                                'type' => $attribute->type,
-                                'unit' => $attribute->unit,
-                                'is_required' => (bool) ($attribute->pivot->is_required ?? false),
-                                'values' => $attribute->values->pluck('value')->values()->all(),
-                            ];
-                        })
-                        ->all(),
-                ];
-            })
-            ->all();
-    }
-
     private function syncProductAttributes(Product $product, int $categoryId, array $inputValues): void
     {
         if ($categoryId <= 0) {
@@ -255,6 +263,31 @@ class VendorProductController extends Controller
             $attributeName = $attribute->name ?: $attribute->title;
             $attributeInput = $inputValues[$attribute->id] ?? null;
             $isRequired = (bool) ($attribute->pivot->is_required ?? false);
+
+            if ($attribute->type === Attribute::TYPE_BOOLEAN) {
+                $normalizedBoolean = $this->normalizeBooleanAttributeValue($attributeInput);
+
+                if ($isRequired && $normalizedBoolean === null) {
+                    $errors["attribute_values.{$attribute->id}"] = "{$attributeName} is required.";
+                    continue;
+                }
+
+                if ($normalizedBoolean === null) {
+                    continue;
+                }
+
+                $rows[] = [
+                    'product_id' => $product->id,
+                    'attribute_id' => $attribute->id,
+                    'value' => $normalizedBoolean ? '1' : '0',
+                    'value_type' => $attribute->type,
+                    'name' => $attributeName,
+                    'type' => 'single',
+                    'price' => 0,
+                ];
+
+                continue;
+            }
 
             if ($attribute->type === Attribute::TYPE_MULTI_SELECT) {
                 $selectedValues = collect(is_array($attributeInput) ? $attributeInput : [])
@@ -335,5 +368,45 @@ class VendorProductController extends Controller
         if (! empty($rows)) {
             ProductAttribute::insert($rows);
         }
+    }
+
+    private function normalizeBooleanAttributeValue(mixed $value): ?bool
+    {
+        if ($value === null || $value === '') {
+            return null;
+        }
+
+        if (is_bool($value)) {
+            return $value;
+        }
+
+        if (is_numeric($value)) {
+            return (int) $value === 1;
+        }
+
+        $normalized = strtolower(trim((string) $value));
+        if (in_array($normalized, ['1', 'true', 'yes', 'on'], true)) {
+            return true;
+        }
+
+        if (in_array($normalized, ['0', 'false', 'no', 'off'], true)) {
+            return false;
+        }
+
+        return null;
+    }
+
+    private function extractAttributeValues(Product $product): array
+    {
+        return $product->attributes
+            ->mapWithKeys(function (ProductAttribute $attributeValue) {
+                if ($attributeValue->value_type === Attribute::TYPE_MULTI_SELECT) {
+                    $decoded = json_decode((string) $attributeValue->value, true);
+                    return [$attributeValue->attribute_id => is_array($decoded) ? $decoded : []];
+                }
+
+                return [$attributeValue->attribute_id => $attributeValue->value];
+            })
+            ->all();
     }
 }
