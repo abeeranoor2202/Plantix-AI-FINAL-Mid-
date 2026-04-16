@@ -77,7 +77,7 @@ class SendAppointmentEmailListener implements ShouldQueue
         $apt = $event->appointment->load(['user', 'expert.user']);
 
         // Customer email
-        $userStatuses = ['confirmed', 'rejected', 'cancelled', 'completed', 'reschedule_requested', 'payment_failed'];
+        $userStatuses = ['confirmed', 'rejected', 'cancelled', 'completed', 'reschedule_requested', 'rescheduled', 'payment_failed'];
         if (in_array($event->newStatus, $userStatuses) && $apt->user?->email) {
             $this->notifLog->send(
                 mailable:         new AppointmentMail($apt, $event->note),
