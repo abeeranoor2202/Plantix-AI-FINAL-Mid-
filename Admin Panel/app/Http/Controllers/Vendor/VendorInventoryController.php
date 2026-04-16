@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Vendor;
 
 use App\Http\Controllers\Controller;
-use App\Models\Product;
 use App\Models\Stock;
 use App\Services\Shared\InventoryService;
 use App\Services\Shared\StockService;
@@ -89,5 +88,32 @@ class VendorInventoryController extends Controller
         );
 
         return back()->with('success', 'Stock updated successfully.');
+    }
+
+    /**
+     * Delete an empty stock record for the vendor's product.
+     * Route: DELETE /vendor/inventory/{id}
+     */
+    public function destroy(int $productId): RedirectResponse
+    {
+        $stock = Stock::where('product_id', $productId)
+            ->where('vendor_id', $this->vendorId())
+            ->firstOrFail();
+
+        if ((int) $stock->quantity > 0 || (int) $stock->reserved_quantity > 0) {
+            return back()->withErrors([
+                'stock' => 'Only empty stock records can be deleted.',
+            ]);
+        }
+
+        if ($stock->movements()->exists()) {
+            return back()->withErrors([
+                'stock' => 'Stock history exists for this product. Set quantity to 0 instead of deleting.',
+            ]);
+        }
+
+        $stock->delete();
+
+        return back()->with('success', 'Stock record deleted successfully.');
     }
 }
