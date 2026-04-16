@@ -43,7 +43,12 @@ class VendorOrderController extends Controller
 
     public function show(int $id): View
     {
-        $order = Order::with(['user', 'items.product', 'statusHistory', 'returnRequest'])
+        $order = Order::with([
+                        'user',
+                        'items.product',
+                        'returnRequest',
+                        'statusHistory' => fn ($query) => $query->with('changedBy')->latest(),
+                    ])
                       ->forVendor($this->vendorId())
                       ->findOrFail($id);
 
