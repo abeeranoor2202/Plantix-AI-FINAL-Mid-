@@ -9,7 +9,7 @@
 
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
-        <h4 class="mb-0 fw-bold text-dark"><i class="bi bi-box-seam me-2 text-primary"></i>Inventory Management</h4>
+        <h4 class="mb-0 fw-bold text-dark">Inventory Management</h4>
         <span class="text-muted small fw-medium mt-1 d-block">Track and update stock levels for your products</span>
     </div>
 </div>
@@ -56,27 +56,23 @@
         <h6 class="mb-0 fw-bold text-dark"><i class="bi bi-list-columns-reverse me-2 text-primary fs-5"></i>Stock List</h6>
         
         {{-- Filters --}}
-        <form method="GET" class="d-flex flex-wrap align-items-center gap-2 m-0">
+        <form method="GET" class="panel-filter-wrap m-0">
             <div class="input-group input-group-sm rounded-pill shadow-sm" style="width: 200px;">
                 <span class="input-group-text bg-light border-0 rounded-start-pill text-muted px-3"><i class="bi bi-search"></i></span>
                 <input type="text" name="search" class="form-control border-0 bg-light rounded-end-pill py-2" placeholder="Search product..." value="{{ request('search') }}">
             </div>
             
-            <select name="stock_status" class="form-select form-select-sm border-0 bg-light rounded-pill px-3 py-2 fw-medium shadow-sm w-auto">
+            <select name="stock_status" class="form-agri" style="min-width: 160px;">
                 <option value="">All Statuses</option>
                 <option value="in_stock" @selected(request('stock_status')==='in_stock')>In Stock</option>
                 <option value="low"      @selected(request('stock_status')==='low')>Low Stock</option>
                 <option value="out"      @selected(request('stock_status')==='out')>Out of Stock</option>
             </select>
             
-            <button type="submit" class="btn btn-primary btn-sm rounded-pill px-3 py-2 fw-bold shadow-sm d-flex align-items-center">
-                <i class="bi bi-funnel-fill d-sm-none"></i><span class="d-none d-sm-inline">Filter</span>
-            </button>
+            <x-ui.button variant="primary" size="md" type="submit">Apply Filters</x-ui.button>
             
             @if(request()->hasAny(['search','stock_status']))
-                <a href="{{ route('vendor.inventory.index') }}" class="btn btn-outline-secondary btn-sm rounded-pill px-3 py-2 fw-bold shadow-sm" title="Clear Filters">
-                    <i class="bi bi-x-circle d-sm-none"></i><span class="d-none d-sm-inline">Clear</span>
-                </a>
+                <x-ui.button :href="route('vendor.inventory.index')" variant="outline" size="md" title="Clear Filters">Clear</x-ui.button>
             @endif
         </form>
     </div>
@@ -148,7 +144,7 @@
                                       onsubmit="return confirm('Delete this stock record? Quantity and reserved quantity must both be zero.');">
                                     @csrf
                                     @method('DELETE')
-                                    <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-3" title="Delete empty stock record">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger px-3" title="Delete empty stock record">
                                         <i class="bi bi-trash me-1"></i>Delete
                                     </button>
                                 </form>
