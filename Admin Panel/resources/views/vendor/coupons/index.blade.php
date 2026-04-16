@@ -82,12 +82,13 @@
                                     <div class="d-flex align-items-center">
                                         <div class="progress me-2 rounded-pill" style="width: 50px; height: 6px;">
                                             @php
-                                                $pct = $coupon->usage_limit ? min(100, ($coupon->used_count / $coupon->usage_limit) * 100) : 0;
+                                                $usedCount = isset($coupon->usages_count) ? (int) $coupon->usages_count : (int) $coupon->used_count;
+                                                $pct = $coupon->usage_limit ? min(100, ($usedCount / $coupon->usage_limit) * 100) : 0;
                                                 $bgClass = $pct >= 90 ? 'bg-danger' : ($pct >= 50 ? 'bg-warning' : 'bg-success');
                                             @endphp
                                             <div class="progress-bar {{ $bgClass }}" role="progressbar" style="width: {{ $pct }}%"></div>
                                         </div>
-                                        <span class="small fw-bold text-dark">{{ $coupon->used_count }}</span>
+                                        <span class="small fw-bold text-dark">{{ $usedCount }}</span>
                                         @if ($coupon->usage_limit)
                                             <span class="small text-muted ms-1">/ {{ $coupon->usage_limit }}</span>
                                         @else
