@@ -113,8 +113,13 @@ Route::middleware(['customer', 'verified'])->group(function () {
     Route::get('/checkout',                    [\App\Http\Controllers\Frontend\CartController::class, 'checkout'])->name('checkout');
     Route::post('/checkout',                   [\App\Http\Controllers\Frontend\CartController::class, 'placeOrder'])->name('checkout.place');
     Route::post('/checkout/stripe/initiate',   [\App\Http\Controllers\Frontend\StripePaymentController::class, 'initiateCheckout'])->name('checkout.stripe.initiate');
-    Route::get('/checkout/pay/{order}',        [\App\Http\Controllers\Frontend\StripePaymentController::class, 'createCheckoutSession'])->defaults('type', 'order')->name('checkout.pay');
-    Route::post('/checkout/pay/{order}',       [\App\Http\Controllers\Frontend\StripePaymentController::class, 'createCheckoutSession'])->defaults('type', 'order')->name('checkout.pay.confirm');
+    Route::get('/checkout/stripe/pay/{order}',  [\App\Http\Controllers\Frontend\StripePaymentController::class, 'createCheckoutSession'])->defaults('type', 'order')->name('checkout.stripe.pay');
+    Route::post('/checkout/stripe/pay/{order}', [\App\Http\Controllers\Frontend\StripePaymentController::class, 'createCheckoutSession'])->defaults('type', 'order')->name('checkout.stripe.pay.confirm');
+
+    Route::middleware('manual.payment.enabled')->group(function () {
+        Route::get('/checkout/pay/{order}',  [\App\Http\Controllers\Frontend\StripePaymentController::class, 'showPaymentPage'])->name('checkout.pay');
+        Route::post('/checkout/pay/{order}', [\App\Http\Controllers\Frontend\StripePaymentController::class, 'processOrderPayment'])->name('checkout.pay.confirm');
+    });
 
     // ── Orders ────────────────────────────────────────────────────────────────
     Route::get('/orders',                  [\App\Http\Controllers\Frontend\CustomerOrderController::class, 'index'])->name('orders');
@@ -206,5 +211,6 @@ Route::middleware(['customer', 'verified'])->group(function () {
 Route::post('payments/stripe/intent',   [\App\Http\Controllers\Frontend\StripePaymentController::class, 'createIntent'])->middleware('auth:web')->name('stripe.intent');
 Route::post('stripe/webhook',           [\App\Http\Controllers\Api\StripeWebhookController::class, 'handle'])->name('stripe.webhook');
 
-Route::get('payment/success',  [\App\Http\Controllers\Frontend\StripePaymentController::class, 'success'])->name('payment.success');
-Route::get('payment/failed',   fn () => view('customer.payment-failed'))->name('payment.failed');
+Route::get('payment/success', [\App\Http\Controllers\Frontend\StripePaymentController::class, 'success'])->name('payment.success');
+Route::get('payment/cancel',  [\App\Http\Controllers\Frontend\StripePaymentController::class, 'cancel'])->name('payment.cancel');
+Route::get('payment/failed',  fn () => redirect()->route('payment.cancel'))->name('payment.failed');
