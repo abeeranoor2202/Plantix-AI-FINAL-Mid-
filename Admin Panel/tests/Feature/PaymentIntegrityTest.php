@@ -143,6 +143,8 @@ class PaymentIntegrityTest extends TestCase
     {
         [$customer, $order] = $this->createPendingStripeOrder();
 
+        config(['payment.manual_payment_enabled' => false]);
+
         $this->actingAs($customer, 'web')
             ->post(route('checkout.pay.confirm', $order->id), [
                 'card_name' => 'Client Attempt',
@@ -150,7 +152,7 @@ class PaymentIntegrityTest extends TestCase
                 'card_exp' => '12 / 30',
                 'card_cvc' => '123',
             ])
-            ->assertRedirect(route('checkout.pay', $order->id));
+            ->assertNotFound();
 
         $this->assertDatabaseHas('orders', [
             'id' => $order->id,
@@ -196,7 +198,7 @@ class PaymentIntegrityTest extends TestCase
                 'card_exp' => '12 / 30',
                 'card_cvc' => '123',
             ])
-            ->assertRedirect(route('appointment.details', $appointment->id));
+            ->assertRedirect(route('payment.cancel', ['appointment_id' => $appointment->id]));
 
         $this->assertDatabaseHas('appointments', [
             'id' => $appointment->id,
