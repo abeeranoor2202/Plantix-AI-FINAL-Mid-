@@ -13,9 +13,12 @@ class UpdateVendorProductRequest extends FormRequest
 
     public function rules(): array
     {
+        $productId = (int) $this->route('id');
+
         return [
             'category_id'    => 'nullable|exists:categories,id',
             'name'           => 'sometimes|required|string|max:255',
+            'sku'            => 'nullable|string|max:100|unique:products,sku,'.$productId,
             'description'    => 'nullable|string|max:5000',
             'price'          => 'sometimes|required|numeric|min:0',
             'discount_price' => 'nullable|numeric|min:0',
