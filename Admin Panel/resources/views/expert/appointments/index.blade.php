@@ -31,7 +31,7 @@
             <label class="form-label small text-uppercase fw-bold text-muted mb-2">Status Filter</label>
             <select name="status" class="form-agri py-2">
                 <option value="">All Statuses</option>
-                @foreach(['requested','pending','accepted','confirmed','rescheduled','completed','rejected','cancelled'] as $st)
+                @foreach(['pending','confirmed','reschedule_requested','rescheduled','completed','rejected','cancelled'] as $st)
                     <option value="{{ $st }}" {{ ($filters['status'] ?? '') === $st ? 'selected' : '' }}>
                         {{ ucfirst($st) }}
                     </option>
