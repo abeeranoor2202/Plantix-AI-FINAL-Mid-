@@ -29,7 +29,7 @@
                     
                     <div class="d-flex gap-2 flex-wrap">
                         @if($order->status === 'pending_payment')
-                        <a href="{{ route('checkout.pay', $order->id) }}"
+                        <a href="{{ route('checkout.stripe.pay', $order->id) }}"
                            class="btn-agri btn-agri-primary text-decoration-none d-flex align-items-center gap-2"
                            style="padding: 8px 20px;">
                             <i class="fas fa-credit-card"></i> Pay Now
