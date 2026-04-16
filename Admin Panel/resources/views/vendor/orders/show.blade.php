@@ -181,7 +181,7 @@
 
             <div class="p-4">
                 @forelse($order->statusHistory as $history)
-                    <div class="pb-3 mb-3 border-bottom border-dashed last-item-border-0">
+                    <div class="pb-3 mb-3 border-bottom border-dashed">
                         <div class="d-flex justify-content-between align-items-start gap-2">
                             <div>
                                 <div class="fw-bold text-dark">{{ ucfirst(str_replace('_', ' ', $history->status)) }}</div>
