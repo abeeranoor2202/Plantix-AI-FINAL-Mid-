@@ -1,8 +1,8 @@
 @extends('vendor.layouts.app')
 @section('title', 'Return Reasons')
-@section('page-title', 'Return Reasons')
 
 @section('content')
+<div class="container-fluid" style="padding-top: 24px; padding-bottom: 40px;">
 @if(session('success'))
     <div class="alert alert-success alert-dismissible fade show border-0 shadow-sm rounded-3 mb-4">
         <div class="d-flex align-items-center">
@@ -26,20 +26,18 @@
     $vendorId = auth('vendor')->user()->vendor->id;
 @endphp
 
-<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+<div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 24px; flex-wrap: wrap; gap: 12px;">
     <div>
-        <h4 class="mb-0 fw-bold text-dark"><i class="bi bi-tags-fill me-2 text-primary"></i>Return Reasons</h4>
-        <span class="text-muted small fw-medium mt-1 d-block">Configure the reasons customers can select when requesting a return</span>
+        <h1 style="font-size: 28px; font-weight: 700; color: var(--agri-primary-dark); margin: 0;">Return Reasons</h1>
+        <p style="color: var(--agri-text-muted); margin: 4px 0 0 0;">Configure the reasons customers can select when requesting a return.</p>
     </div>
-    <a href="{{ route('vendor.returns.index') }}" class="btn btn-outline-secondary rounded-pill px-4 shadow-sm">
-        <i class="bi bi-arrow-return-left me-2"></i>Back to Returns
-    </a>
+    <x-button :href="route('vendor.returns.index')" variant="outline" icon="fas fa-arrow-left">Back to Returns</x-button>
 </div>
 
 <div class="row g-4">
     {{-- Add New Reason --}}
     <div class="col-lg-4">
-        <div class="card border-0 shadow-sm" style="border-radius:16px; position:sticky; top:90px;">
+        <div class="card-agri" style="position:sticky; top:90px; padding: 0; overflow: hidden;">
             <div class="card-header bg-white border-bottom py-3">
                 <h6 class="mb-0 fw-bold text-dark"><i class="bi bi-plus-circle-fill me-2 text-success fs-5"></i>Add New Reason</h6>
             </div>
@@ -57,9 +55,7 @@
                         <input class="form-check-input" type="checkbox" name="is_active" id="is_active_new" value="1" checked>
                         <label class="form-check-label small fw-medium text-muted" for="is_active_new">Active (visible to customers)</label>
                     </div>
-                    <button type="submit" class="btn btn-success rounded-pill fw-bold px-4 py-2 w-100 shadow-sm">
-                        <i class="bi bi-plus-lg me-2"></i>Add Reason
-                    </button>
+                    <x-button type="submit" variant="primary" icon="fas fa-plus" style="width: 100%;">Add Reason</x-button>
                 </form>
             </div>
         </div>
@@ -67,7 +63,7 @@
 
     {{-- Reasons List --}}
     <div class="col-lg-8">
-        <div class="card border-0 shadow-sm" style="border-radius:16px;">
+        <div class="card-agri" style="padding: 0; overflow: hidden;">
             <div class="card-header bg-white border-bottom py-3 d-flex align-items-center justify-content-between">
                 <h6 class="mb-0 fw-bold text-dark"><i class="bi bi-list-check me-2 text-primary fs-5"></i>All Reasons
                     <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 rounded-pill ms-2 px-2 py-1" style="font-size:11px;">{{ $reasons->count() }} total</span>
@@ -106,9 +102,7 @@
                                            class="form-control form-control-sm bg-{{ $reason->is_active ? 'white' : 'light' }} border rounded-3 fw-medium text-dark shadow-sm"
                                            style="font-size:14px;">
                                     <span class="badge bg-info bg-opacity-10 text-info border border-info border-opacity-25 rounded-pill px-2 py-1">Your Reason</span>
-                                    <button type="submit" class="btn btn-sm btn-outline-primary rounded-pill px-3 text-nowrap shadow-sm">
-                                        <i class="bi bi-save me-1"></i>Save
-                                    </button>
+                                    <x-button type="submit" variant="outline">Save</x-button>
                                 </form>
                             @else
                                 <div class="d-flex align-items-center gap-2 flex-grow-1">
@@ -170,5 +164,6 @@
             </div>
         </div>
     </div>
+</div>
 </div>
 @endsection
