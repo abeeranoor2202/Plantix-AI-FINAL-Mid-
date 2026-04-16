@@ -7,6 +7,7 @@ use App\Models\Order;
 use App\Services\Shared\CartCheckoutService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Throwable;
 use Illuminate\View\View;
 
 class VendorOrderController extends Controller
@@ -76,5 +77,23 @@ class VendorOrderController extends Controller
         $this->checkout->updateStatus($order, $request->status, $request->notes, $vendor);
 
         return back()->with('success', 'Order status updated.');
+    }
+
+    public function destroy(int $id): RedirectResponse
+    {
+        try {
+            $order = Order::forVendor($this->vendorId())->findOrFail($id);
+            $orderNumber = $order->order_number;
+
+            $order->delete();
+
+            return redirect()
+                ->route('vendor.orders.index')
+                ->with('success', "Order #{$orderNumber} deleted successfully.");
+        } catch (Throwable) {
+            return redirect()
+                ->route('vendor.orders.index')
+                ->with('error', 'Unable to delete the order right now. Please try again.');
+        }
     }
 }
