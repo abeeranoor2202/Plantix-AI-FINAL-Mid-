@@ -1,96 +1,78 @@
 @extends('expert.layouts.app')
+
 @section('title', 'Notifications')
-@section('page-title', 'Notification Center')
 
 @section('content')
-<div class="card-agri p-0 border-0 shadow-sm bg-white overflow-hidden">
-    <div class="p-4 bg-light border-bottom d-flex flex-wrap justify-content-between align-items-center gap-3">
-        <h5 class="mb-0 fw-bold text-dark d-flex align-items-center">
-            <i class="fas fa-bell me-2 text-primary"></i>Your Notifications
-            @if($unreadCount > 0)
-                <span class="badge-agri bg-danger text-white ms-2 shadow-sm" style="padding: 0.3em 0.8em; font-size: 11px;">{{ $unreadCount }} New</span>
-            @endif
-        </h5>
-        
-        @if($unreadCount > 0)
-        <form method="POST" action="{{ route('expert.notifications.read-all') }}" class="m-0">
+<div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 32px;">
+    <div>
+        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
+            <a href="{{ route('expert.dashboard') }}" style="text-decoration: none; color: var(--agri-text-muted); font-size: 14px; font-weight: 600;">Dashboard</a>
+            <i class="fas fa-chevron-right" style="font-size: 10px; color: var(--agri-text-muted);"></i>
+            <span style="color: var(--agri-primary); font-size: 14px; font-weight: 600;">Notifications</span>
+        </div>
+        <h1 style="font-size: 28px; font-weight: 700; color: var(--agri-primary-dark); margin: 0;">Notifications</h1>
+        <p style="color: var(--agri-text-muted); margin: 4px 0 0 0;">System and activity alerts.</p>
+    </div>
+    @if($unreadCount > 0)
+        <form method="POST" action="{{ route('expert.notifications.read-all') }}" style="margin: 0;">
             @csrf
-            <button type="submit" class="btn-agri btn-agri-outline py-1 px-3 fs-6 d-flex align-items-center gap-2">
-                <i class="fas fa-check-double text-success"></i> Mark All Read
-            </button>
+            <x-button type="submit" variant="primary" icon="fas fa-check-double">Mark All Read</x-button>
         </form>
-        @endif
-    </div>
-
-    <div class="list-group list-group-flush pt-1">
-        @forelse($notifications->items() as $notif)
-        <div class="list-group-item border-bottom-dashed p-4 position-relative" style="{{ !$notif->is_read ? 'background-color: var(--agri-primary-light) !important;' : 'background-color: transparent;' }} border-left: {{ !$notif->is_read ? '4px solid var(--agri-primary)' : '4px solid transparent' }}; transition: background 0.2s;" onmouseover="this.style.background='#F9FAFB'" onmouseout="this.style.background='{{ !$notif->is_read ? 'var(--agri-primary-light)' : 'transparent' }}'">
-            
-            <div class="d-flex flex-column flex-sm-row align-items-start gap-3 gap-sm-4">
-                
-                @php
-                    $iconDetails = match(true) {
-                        str_starts_with($notif->type, 'appointment') => ['icon' => 'fa-calendar-check', 'color' => 'success'],
-                        str_starts_with($notif->type, 'forum')       => ['icon' => 'fa-comments', 'color' => 'primary'],
-                        str_starts_with($notif->type, 'admin')       => ['icon' => 'fa-bullhorn', 'color' => 'warning'],
-                        default                                       => ['icon' => 'fa-bell', 'color' => 'info'],
-                    };
-                @endphp
-                
-                <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0 shadow-sm
-                            {{ !$notif->is_read ? 'bg-'.$iconDetails['color'].' text-white border border-white border-2' : 'bg-light text-'.$iconDetails['color'].' border border-'.$iconDetails['color'].' border-opacity-25' }}"
-                     style="width: 48px; height: 48px; font-size: 1.2rem;">
-                    <i class="fas {{ $iconDetails['icon'] }}"></i>
-                </div>
-                
-                <div class="flex-grow-1 w-100">
-                    <div class="d-flex flex-wrap justify-content-between align-items-center mb-1 gap-2">
-                        <div class="fw-bold fs-6 pe-3 {{ !$notif->is_read ? 'text-dark' : 'text-secondary' }}" style="line-height: 1.4;">
-                            {{ $notif->title }}
-                        </div>
-                        <div class="d-flex align-items-center gap-2 flex-shrink-0 ms-auto ms-sm-0">
-                            <span class="text-muted text-uppercase fw-bold small" style="font-size: 11px; letter-spacing: 0.5px;">
-                                <i class="far fa-clock me-1 opacity-50"></i>{{ $notif->created_at->diffForHumans() }}
-                            </span>
-                            @if(!$notif->is_read)
-                                <form method="POST" action="{{ route('expert.notifications.read', $notif) }}" class="m-0 ms-1">
-                                    @csrf
-                                    <button type="submit" class="btn btn-sm btn-white border shadow-sm rounded-circle d-flex align-items-center justify-content-center text-success"
-                                            style="width: 28px; height: 28px; padding: 0;" title="Mark as Read">
-                                        <i class="fas fa-check" style="font-size: 12px;"></i>
-                                    </button>
-                                </form>
-                            @endif
-                        </div>
-                    </div>
-                    
-                    @if($notif->body)
-                        <p class="mb-2 mt-2 {{ !$notif->is_read ? 'fw-medium text-dark' : 'text-muted' }}" style="line-height: 1.6; font-size: 14px;">
-                            {{ $notif->body }}
-                        </p>
-                    @endif
-                    
-                    <span class="badge-agri bg-light text-muted border shadow-sm mt-1" style="font-size: 11px; padding: 0.3em 0.8em;">
-                        <i class="fas fa-tag me-1 opacity-50"></i>{{ ucfirst(str_replace('_', ' ', $notif->type)) }}
-                    </span>
-                </div>
-            </div>
-        </div>
-        @empty
-        <div class="p-5 text-center my-4 d-flex flex-column align-items-center justify-content-center">
-            <div class="bg-light rounded-circle shadow-sm d-flex align-items-center justify-content-center mb-3 border border-dashed text-muted opacity-50" style="width: 90px; height: 90px;">
-                <i class="far fa-bell-slash fs-2"></i>
-            </div>
-            <h4 class="fw-bold text-dark">No Notifications</h4>
-            <p class="text-muted small fw-medium mb-0">You're all caught up! Check back later for new alerts.</p>
-        </div>
-        @endforelse
-    </div>
-    
-    @if($notifications->hasPages())
-    <div class="p-4 bg-light border-top text-center">
-        {{ $notifications->links('pagination::bootstrap-5') }}
-    </div>
     @endif
 </div>
+
+<div class="card-agri" style="padding: 0; overflow: hidden;">
+    <x-table>
+        <thead style="background: var(--agri-bg);">
+            <tr>
+                <th style="padding: 16px 24px; font-size: 12px; color: var(--agri-text-muted); border: none;">TITLE</th>
+                <th style="padding: 16px 24px; font-size: 12px; color: var(--agri-text-muted); border: none;">BODY</th>
+                <th style="padding: 16px 24px; font-size: 12px; color: var(--agri-text-muted); border: none;">TYPE</th>
+                <th style="padding: 16px 24px; font-size: 12px; color: var(--agri-text-muted); border: none;">TIME</th>
+                <th style="padding: 16px 24px; font-size: 12px; color: var(--agri-text-muted); border: none;">STATUS</th>
+                <th class="text-end" style="padding: 16px 24px; font-size: 12px; color: var(--agri-text-muted); border: none;">ACTIONS</th>
+            </tr>
+        </thead>
+        <tbody>
+            @forelse($notifications->items() as $notif)
+                <tr style="{{ !$notif->is_read ? 'background:#f9fafb;' : '' }}">
+                    <td class="px-4 py-3" style="font-weight: 700; color: var(--agri-text-heading);">{{ $notif->title }}</td>
+                    <td class="px-4 py-3">{{ Str::limit($notif->body ?? '-', 90) }}</td>
+                    <td class="px-4 py-3">{{ ucfirst(str_replace('_', ' ', $notif->type)) }}</td>
+                    <td class="px-4 py-3">{{ $notif->created_at->diffForHumans() }}</td>
+                    <td class="px-4 py-3">
+                        <x-badge :variant="$notif->is_read ? 'secondary' : 'warning'">{{ $notif->is_read ? 'Read' : 'Unread' }}</x-badge>
+                    </td>
+                    <td class="px-4 py-3 text-end">
+                        <div style="display: inline-flex; gap: 8px;">
+                            @if(!$notif->is_read)
+                                <form method="POST" action="{{ route('expert.notifications.read', $notif) }}" style="display: inline;">
+                                    @csrf
+                                    <button type="submit" class="btn-agri" style="padding: 8px; background: var(--agri-bg); color: var(--agri-primary); border-radius: 999px; border: none;" title="Mark Read"><i class="fas fa-check"></i></button>
+                                </form>
+                            @else
+                                <button type="button" class="btn-agri" style="padding: 8px; background: var(--agri-bg); color: #9ca3af; border-radius: 999px; border: none;" disabled title="Already read"><i class="fas fa-check"></i></button>
+                            @endif
+                            <button type="button" class="btn-agri" style="padding: 8px; background: var(--agri-bg); color: #9ca3af; border-radius: 999px; border: none;" title="Edit unavailable" disabled><i class="fas fa-pen"></i></button>
+                            <button type="button" class="btn-agri" style="padding: 8px; background: #fef2f2; color: #fca5a5; border-radius: 999px; border: none;" title="Delete unavailable" disabled><i class="fas fa-trash"></i></button>
+                        </div>
+                    </td>
+                </tr>
+            @empty
+                <tr>
+                    <td colspan="6" class="text-center py-5" style="color: var(--agri-text-muted);">
+                        <i class="mdi mdi-bell-outline" style="font-size: 28px; display:block; margin-bottom: 8px; opacity: .5;"></i>
+                        No notifications.
+                    </td>
+                </tr>
+            @endforelse
+        </tbody>
+    </x-table>
+</div>
+
+@if($notifications->hasPages())
+    <div style="margin-top: 24px; display: flex; justify-content: center;">
+        {{ $notifications->links('pagination::bootstrap-5') }}
+    </div>
+@endif
 @endsection
