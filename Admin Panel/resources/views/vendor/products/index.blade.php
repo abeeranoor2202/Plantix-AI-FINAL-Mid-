@@ -136,6 +136,24 @@
                     </td>
                     <td class="text-end px-4 py-3">
                         <div class="d-flex justify-content-end gap-2">
+                            <form method="POST" action="{{ route('vendor.products.toggle-active', $product->id) }}" class="m-0">
+                                @csrf
+                                <button class="btn btn-sm btn-light border shadow-sm {{ $product->is_active ? 'text-warning' : 'text-success' }} rounded-circle d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;" title="{{ $product->is_active ? 'Deactivate Product' : 'Activate Product' }}">
+                                    <i class="fas {{ $product->is_active ? 'fa-toggle-on' : 'fa-toggle-off' }}"></i>
+                                </button>
+                            </form>
+                            <form method="POST" action="{{ route('vendor.products.toggle-returnable', $product->id) }}" class="m-0">
+                                @csrf
+                                <button class="btn btn-sm btn-light border shadow-sm {{ $product->is_returnable ? 'text-info' : 'text-muted' }} rounded-circle d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;" title="{{ $product->is_returnable ? 'Disable Returns' : 'Enable Returns' }}">
+                                    <i class="fas fa-undo-alt"></i>
+                                </button>
+                            </form>
+                            <form method="POST" action="{{ route('vendor.products.toggle-refundable', $product->id) }}" class="m-0">
+                                @csrf
+                                <button class="btn btn-sm btn-light border shadow-sm {{ $product->is_refundable ? 'text-primary' : 'text-muted' }} rounded-circle d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;" title="{{ $product->is_refundable ? 'Disable Refunds' : 'Enable Refunds' }}">
+                                    <i class="fas fa-money-bill-wave"></i>
+                                </button>
+                            </form>
                             <a href="{{ route('vendor.products.edit', $product->id) }}"
                                class="btn btn-sm btn-light border shadow-sm text-success rounded-circle d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;" title="Edit Product">
                                 <i class="fas fa-edit"></i>
