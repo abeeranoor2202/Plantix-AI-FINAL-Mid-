@@ -16,13 +16,21 @@ use Illuminate\View\View;
  */
 class VendorReturnReasonController extends Controller
 {
+    private function vendorId(): int
+    {
+        return auth('vendor')->user()->vendor->id;
+    }
+
     /**
      * List all return reasons.
      * Route: GET /vendor/return-reasons
      */
     public function index(): View
     {
-        $reasons = ReturnReason::orderBy('is_active', 'desc')->orderBy('reason')->get();
+        $reasons = ReturnReason::forVendorOrGlobal($this->vendorId())
+            ->orderByDesc('is_active')
+            ->orderBy('reason')
+            ->get();
 
         return view('vendor.returns.reasons', compact('reasons'));
     }
@@ -34,13 +42,14 @@ class VendorReturnReasonController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $data = $request->validate([
-            'reason'    => 'required|string|max:255|unique:return_reasons,reason',
+            'reason'    => 'required|string|max:255|unique:return_reasons,reason,NULL,id,vendor_id,' . $this->vendorId(),
             'is_active' => 'sometimes|boolean',
         ]);
 
         ReturnReason::create([
             'reason'    => $data['reason'],
             'is_active' => $data['is_active'] ?? true,
+            'vendor_id' => $this->vendorId(),
         ]);
 
         return back()->with('success', 'Return reason added successfully.');
@@ -52,10 +61,10 @@ class VendorReturnReasonController extends Controller
      */
     public function update(Request $request, int $id): RedirectResponse
     {
-        $reason = ReturnReason::findOrFail($id);
+        $reason = ReturnReason::where('vendor_id', $this->vendorId())->findOrFail($id);
 
         $data = $request->validate([
-            'reason' => 'required|string|max:255|unique:return_reasons,reason,' . $id,
+            'reason' => 'required|string|max:255|unique:return_reasons,reason,' . $id . ',id,vendor_id,' . $this->vendorId(),
         ]);
 
         $reason->update(['reason' => $data['reason']]);
@@ -69,7 +78,7 @@ class VendorReturnReasonController extends Controller
      */
     public function toggle(int $id): RedirectResponse
     {
-        $reason = ReturnReason::findOrFail($id);
+        $reason = ReturnReason::where('vendor_id', $this->vendorId())->findOrFail($id);
         $reason->update(['is_active' => ! $reason->is_active]);
 
         $state = $reason->is_active ? 'activated' : 'deactivated';
@@ -83,7 +92,7 @@ class VendorReturnReasonController extends Controller
      */
     public function destroy(int $id): RedirectResponse
     {
-        $reason = ReturnReason::findOrFail($id);
+        $reason = ReturnReason::where('vendor_id', $this->vendorId())->findOrFail($id);
 
         // Soft-protect: don't delete if already used
         if ($reason->returns()->exists()) {
