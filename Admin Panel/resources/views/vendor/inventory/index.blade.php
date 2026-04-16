@@ -144,6 +144,14 @@
                                         </button>
                                     </div>
                                 </form>
+                                <form method="POST" action="{{ route('vendor.inventory.destroy', $stock->product_id) }}" class="mt-2"
+                                      onsubmit="return confirm('Delete this stock record? Quantity and reserved quantity must both be zero.');">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-3" title="Delete empty stock record">
+                                        <i class="bi bi-trash me-1"></i>Delete
+                                    </button>
+                                </form>
                             </td>
                         </tr>
                         @endforeach
