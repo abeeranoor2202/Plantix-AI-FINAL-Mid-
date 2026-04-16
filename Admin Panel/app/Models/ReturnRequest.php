@@ -74,7 +74,10 @@ class ReturnRequest extends Model
     public function isPending(): bool { return $this->status === self::STATUS_PENDING; }
     public function isApproved(): bool { return $this->status === self::STATUS_APPROVED; }
     public function isRejected(): bool { return $this->status === self::STATUS_REJECTED; }
-    public function isCompleted(): bool { return $this->status === self::STATUS_COMPLETED; }
+    public function isCompleted(): bool
+    {
+        return in_array($this->status, [self::STATUS_COMPLETED, 'refunded'], true);
+    }
 
     public function getStatusBadgeVariantAttribute(): string
     {
@@ -83,6 +86,7 @@ class ReturnRequest extends Model
             self::STATUS_APPROVED => 'success',
             self::STATUS_REJECTED => 'danger',
             self::STATUS_COMPLETED => 'secondary',
+            'refunded' => 'secondary',
             default => 'secondary',
         };
     }
