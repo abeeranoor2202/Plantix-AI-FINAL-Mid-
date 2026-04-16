@@ -81,7 +81,42 @@
                             <span class="text-muted">No photos attached to this review.</span>
                         @endif
                     </dd>
+
+                    <dt class="col-sm-4 text-muted small text-uppercase fw-bold">Your Response</dt>
+                    <dd class="col-sm-8">
+                        @if($review->vendor_response)
+                            <div class="bg-primary bg-opacity-10 p-3 rounded-3 border border-primary border-opacity-25">
+                                <div class="fw-medium text-dark">{{ $review->vendor_response }}</div>
+                                @if($review->vendor_responded_at)
+                                    <div class="small text-muted mt-2">Updated {{ $review->vendor_responded_at->format('d M Y, h:i A') }}</div>
+                                @endif
+                            </div>
+                        @else
+                            <span class="text-muted">No response posted yet.</span>
+                        @endif
+                    </dd>
                 </dl>
+            </div>
+        </div>
+
+        <div class="card border-0 shadow-sm hover-card" style="border-radius:16px;">
+            <div class="card-header bg-white border-bottom py-3">
+                <h6 class="mb-0 fw-bold text-dark"><i class="bi bi-reply-fill me-2 text-primary fs-5"></i>Respond to Customer</h6>
+            </div>
+            <div class="card-body p-4">
+                <form method="POST" action="{{ route('vendor.reviews.respond', $review->id) }}">
+                    @csrf
+                    <div class="mb-3">
+                        <label class="form-label small text-uppercase text-muted fw-bold">Response</label>
+                        <textarea name="vendor_response" rows="4" class="form-control bg-light border-0 @error('vendor_response') is-invalid @enderror" maxlength="2000" placeholder="Write a professional response to this review...">{{ old('vendor_response', $review->vendor_response) }}</textarea>
+                        @error('vendor_response')
+                            <div class="invalid-feedback d-block">{{ $message }}</div>
+                        @enderror
+                    </div>
+                    <button type="submit" class="btn btn-primary rounded-pill px-4 fw-bold shadow-sm">
+                        <i class="bi bi-send-fill me-2"></i>Save Response
+                    </button>
+                </form>
             </div>
         </div>
 
