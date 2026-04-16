@@ -96,7 +96,7 @@
                         <tr>
                             <th class="ps-4 fw-semibold text-muted text-uppercase small">Product</th>
                             <th class="text-center fw-semibold text-muted text-uppercase small" style="width: 120px;">Current Qty</th>
-                            <th class="text-center fw-semibold text-muted text-uppercase small" style="width: 120px;">Reserved</th>
+                            <th class="text-center fw-semibold text-muted text-uppercase small" style="width: 120px;">Reserved <i class="bi bi-question-circle text-muted" title="Units allocated to pending or processing orders"></i></th>
                             <th class="text-center fw-semibold text-muted text-uppercase small" style="width: 140px;">Low Threshold</th>
                             <th class="text-center fw-semibold text-muted text-uppercase small">Status</th>
                             <th class="text-center pe-4 fw-semibold text-muted text-uppercase small" style="width: 250px;">Update Stock</th>
