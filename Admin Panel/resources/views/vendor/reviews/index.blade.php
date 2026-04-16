@@ -120,6 +120,11 @@
                                         <i class="text-muted opacity-50">No comment provided</i>
                                     @endif
                                 </span>
+                                @if($review->vendor_response)
+                                    <div class="small mt-1 text-success fw-medium">
+                                        <i class="bi bi-reply-fill me-1"></i>Responded
+                                    </div>
+                                @endif
                             </td>
                             <td>
                                 @if(!empty($review->review_images))
