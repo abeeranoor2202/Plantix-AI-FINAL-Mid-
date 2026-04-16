@@ -42,6 +42,10 @@ class VendorProductController extends Controller
             $query->where('category_id', $request->category_id);
         }
 
+        if ($request->filled('status')) {
+            $query->where('is_active', (bool) $request->boolean('status'));
+        }
+
         $products   = $query->latest()->paginate(20)->withQueryString();
         $categories = Category::orderBy('name')->get(['id', 'name']);
 
@@ -166,6 +170,17 @@ class VendorProductController extends Controller
         Product::where('vendor_id', $this->vendorId())->findOrFail($id)->delete();
         return redirect()->route('vendor.products.index')
                          ->with('success', 'Product deleted successfully.');
+    }
+
+    public function toggleStatus(int $id): RedirectResponse
+    {
+        $product = Product::where('vendor_id', $this->vendorId())->findOrFail($id);
+
+        $product->update([
+            'is_active' => ! $product->is_active,
+        ]);
+
+        return back()->with('success', 'Product status updated successfully.');
     }
 
     private function buildCategoryAttributeMap(): array
