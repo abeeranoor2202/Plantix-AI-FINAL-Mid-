@@ -194,6 +194,22 @@ class Order extends Model
         ], true);
     }
 
+    public function canOpenDispute(): bool
+    {
+        return ! $this->isTerminal() && ! in_array($this->status, [self::STATUS_DRAFT, self::STATUS_PAYMENT_FAILED], true);
+    }
+
+    public function canCancel(): bool
+    {
+        return $this->canTransitionTo(self::STATUS_CANCELLED);
+    }
+
+    public function canResolveDisputeTo(string $status): bool
+    {
+        return in_array($status, [self::DISPUTE_RESOLVED, self::DISPUTE_REJECTED, self::DISPUTE_CANCELLED], true)
+            || ($status === self::DISPUTE_RESOLVED && $this->canTransitionTo(self::STATUS_COMPLETED));
+    }
+
     /** True if the order is in a terminal state (no further transitions) */
     public function isTerminal(): bool
     {
