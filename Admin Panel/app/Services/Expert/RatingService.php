@@ -36,7 +36,7 @@ class RatingService
      */
     public function submitRating(Appointment $appointment, int $rating, ?string $review = null): void
     {
-        if ($appointment->status !== 'completed') {
+        if ($appointment->status !== Appointment::STATUS_COMPLETED) {
             throw new \InvalidArgumentException('Can only rate completed appointments.');
         }
 
@@ -52,6 +52,19 @@ class RatingService
                 'customer_review' => $review,
                 'rated_at'        => now(),
             ]);
+
+            \App\Models\AppointmentFeedback::updateOrCreate(
+                ['appointment_id' => $appointment->id],
+                [
+                    'user_id'      => $appointment->user_id,
+                    'expert_id'    => $appointment->expert_id,
+                    'status'       => 'pending',
+                    'rating'       => $rating,
+                    'review'       => $review,
+                    'reviewed_at'  => null,
+                    'reviewed_by'  => null,
+                ]
+            );
 
             // Recalculate aggregate on the expert
             $this->recalculateRating($appointment->expert_id);
@@ -72,7 +85,7 @@ class RatingService
             ->selectRaw('
                 COUNT(*) as total_appointments,
                 SUM(CASE WHEN status = "completed" THEN 1 ELSE 0 END) as total_completed,
-                SUM(CASE WHEN status IN ("cancelled_by_customer","cancelled_by_expert","cancelled_by_admin") THEN 1 ELSE 0 END) as total_cancelled,
+                SUM(CASE WHEN status IN ("cancelled","rejected") THEN 1 ELSE 0 END) as total_cancelled,
                 ROUND(AVG(CASE WHEN customer_rating IS NOT NULL THEN customer_rating ELSE NULL END), 2) as rating_avg
             ')
             ->first();
