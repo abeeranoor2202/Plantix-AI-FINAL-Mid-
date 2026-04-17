@@ -23,6 +23,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'wallet_amount', 'fcm_token', 'profile_photo',
         'reputation_score', 'reputation_level',
         'must_reset_password', 'role_id',
+        'failed_login_attempts', 'locked_until', 'last_login_at', 'last_login_ip', 'password_changed_at',
         'is_banned', 'banned_until', 'banned_reason', 'is_shadow_banned',
         'notification_preferences',
     ];
@@ -34,6 +35,9 @@ class User extends Authenticatable implements MustVerifyEmail
     protected $casts = [
         'email_verified_at'    => 'datetime',
         'password_changed_at'  => 'datetime',
+        'last_login_at'        => 'datetime',
+        'locked_until'         => 'datetime',
+        'failed_login_attempts' => 'integer',
         'status'               => 'string',
         'active'               => 'boolean',
         'is_document_verified' => 'boolean',
