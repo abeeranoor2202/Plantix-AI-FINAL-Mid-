@@ -3,7 +3,7 @@
 namespace App\Listeners\Expert;
 
 use App\Events\Appointment\AppointmentCreated;
-use App\Services\Expert\ExpertNotificationService;
+use App\Services\Notifications\NotificationCenterService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 
 class SendAppointmentCreatedNotification implements ShouldQueue
@@ -11,7 +11,7 @@ class SendAppointmentCreatedNotification implements ShouldQueue
     public string $queue = 'notifications';
 
     public function __construct(
-        private readonly ExpertNotificationService $notifications
+        private readonly NotificationCenterService $notifications
     ) {}
 
     public function handle(AppointmentCreated $event): void
@@ -25,9 +25,9 @@ class SendAppointmentCreatedNotification implements ShouldQueue
 
         $farmerName = $appointment->user?->name ?? 'a farmer';
 
-        $this->notifications->notify(
+        $this->notifications->notifyExpert(
             $expert,
-            ExpertNotificationService::TYPE_APPOINTMENT_NEW,
+            'appointment.new_request',
             'New appointment request',
             'You have a new appointment request from ' . $farmerName . '.',
             [
