@@ -3,7 +3,7 @@
 namespace App\Listeners\Expert;
 
 use App\Events\Expert\ExpertPayoutStatusChanged;
-use App\Services\Expert\ExpertNotificationService;
+use App\Services\Notifications\NotificationCenterService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 
 class SendExpertPayoutNotification implements ShouldQueue
@@ -11,7 +11,7 @@ class SendExpertPayoutNotification implements ShouldQueue
     public string $queue = 'notifications';
 
     public function __construct(
-        private readonly ExpertNotificationService $notifications
+        private readonly NotificationCenterService $notifications
     ) {}
 
     public function handle(ExpertPayoutStatusChanged $event): void
@@ -26,9 +26,9 @@ class SendExpertPayoutNotification implements ShouldQueue
         $status = (string) ($event->toStatus ?? $payout->status);
 
         if ($status === 'paid') {
-            $this->notifications->notify(
+            $this->notifications->notifyExpert(
                 $expert,
-                ExpertNotificationService::TYPE_PAYOUT_PROCESSED,
+                'payout.processed',
                 'Payout processed',
                 'A payout of ' . number_format((float) $payout->net_amount, 2) . ' has been processed.',
                 [
@@ -43,9 +43,9 @@ class SendExpertPayoutNotification implements ShouldQueue
         }
 
         if (in_array($status, ['pending', 'processing'], true)) {
-            $this->notifications->notify(
+            $this->notifications->notifyExpert(
                 $expert,
-                ExpertNotificationService::TYPE_PAYOUT_PENDING,
+                'payout.pending',
                 'Payment pending',
                 'Your payout is pending and will be processed shortly.',
                 [
