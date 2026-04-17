@@ -67,7 +67,9 @@ class NotificationController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => "Email notification queued for {$totalSent} user(s). Processing in background.",
+            'message' => $sendEmail
+                ? "Email notification queued for {$totalSent} user(s). Processing in background."
+                : "Notification delivered to {$totalSent} user(s).",
         ]);
     }
 
@@ -97,7 +99,9 @@ class NotificationController extends Controller
 
         return response()->json([
             'success' => $result,
-            'message' => $result ? 'Email notification sent successfully.' : 'Failed to send notification.',
+            'message' => $result
+                ? ($sendEmail ? 'Email notification sent successfully.' : 'Notification sent successfully.')
+                : 'Failed to send notification.',
         ]);
     }
 
