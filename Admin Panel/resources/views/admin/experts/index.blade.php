@@ -31,6 +31,19 @@
                         <option value="{{ $s }}" @selected(request('status') === $s)>{{ ucfirst($s) }}</option>
                     @endforeach
                 </select>
+                <select name="type" class="form-agri" style="height: 42px; min-width: 140px; margin-bottom: 0;">
+                    <option value="">All Types</option>
+                    <option value="individual" @selected(request('type') === 'individual')>Individual</option>
+                    <option value="agency" @selected(request('type') === 'agency')>Agency</option>
+                </select>
+                <select name="activity" class="form-agri" style="height: 42px; min-width: 180px; margin-bottom: 0;">
+                    <option value="">All Activity</option>
+                    <option value="active_7d" @selected(request('activity') === 'active_7d')>Active in 7 days</option>
+                    <option value="active_30d" @selected(request('activity') === 'active_30d')>Active in 30 days</option>
+                    <option value="inactive_30d" @selected(request('activity') === 'inactive_30d')>Inactive 30+ days</option>
+                </select>
+                <input type="date" name="date_from" class="form-agri" value="{{ request('date_from') }}" style="height: 42px; min-width: 150px; margin-bottom: 0;">
+                <input type="date" name="date_to" class="form-agri" value="{{ request('date_to') }}" style="height: 42px; min-width: 150px; margin-bottom: 0;">
                 <div class="input-group" style="width: 320px;">
                     <span class="input-group-text bg-white border-end-0" style="border-radius: 10px 0 0 10px;">
                         <i class="fas fa-search" style="color: var(--agri-text-muted); font-size: 14px;"></i>
@@ -38,6 +51,7 @@
                     <input type="text" name="search" class="form-agri border-start-0" placeholder="Search experts..." value="{{ request('search') }}" style="margin-bottom: 0; border-radius: 0 10px 10px 0; height: 42px;">
                 </div>
                 <button type="submit" class="btn-agri btn-agri-primary" style="height: 42px; padding: 0 16px;">Filter</button>
+                <a href="{{ route('admin.experts.index') }}" class="btn-agri btn-agri-outline" style="height: 42px; padding: 0 16px; text-decoration: none; display: inline-flex; align-items: center;">Reset</a>
             </form>
         </div>
 
