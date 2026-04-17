@@ -3,17 +3,12 @@
 
 namespace App\Mail;
 
-use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Mail\Mailable;
-use Illuminate\Queue\SerializesModels;
+use Illuminate\Mail\Mailables\Content;
 
-class SetEmailData extends Mailable
+class SetEmailData extends PlantixBaseMail
 {
-    use Queueable, SerializesModels;
-
-    public $dynamicSubject;
-    public $dynamicMessage;
+    public string $dynamicSubject;
+    public string $dynamicMessage;
 
     /**
      * Create a new message instance.
@@ -22,8 +17,9 @@ class SetEmailData extends Mailable
      * @param string $message
      * @return void
      */
-    public function __construct($subject, $message)
+    public function __construct(string $subject, string $message)
     {
+        parent::__construct();
         $this->dynamicSubject = $subject;
         $this->dynamicMessage = $message;
     }
@@ -33,11 +29,19 @@ class SetEmailData extends Mailable
      *
      * @return $this
      */
-    public function build()
+    protected function resolveSubject(): string
     {
-        return $this->subject($this->dynamicSubject)->view('settings.email.send_email')->with('data', $this->dynamicMessage);
+        return $this->dynamicSubject;
+    }
+
+    public function content(): Content
+    {
+        return new Content(
+            view: 'emails.admin.manual-broadcast',
+            with: [
+                'emailSubject' => $this->dynamicSubject,
+                'messageBody' => $this->dynamicMessage,
+            ],
+        );
     }
 }
-
-
-?>
