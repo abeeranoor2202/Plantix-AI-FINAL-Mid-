@@ -31,11 +31,11 @@
                             <td style="padding: 16px 24px; border-bottom: 1px solid var(--agri-border);">{{ $log->recipient_email }}<div class="text-muted small">{{ $log->recipient_name ?? '—' }}</div></td>
                             <td style="padding: 16px 24px; border-bottom: 1px solid var(--agri-border);">
                                 @if($log->status === 'sent')
-                                    <span class="badge-agri" style="background:#DCFCE7; color:#166534; border:1px solid #BBF7D0;">Sent</span>
+                                    <x-badge variant="success">Sent</x-badge>
                                 @elseif($log->status === 'failed')
-                                    <span class="badge-agri" style="background:#FEE2E2; color:#991B1B; border:1px solid #FECACA;">Failed</span>
+                                    <x-badge variant="danger">Failed</x-badge>
                                 @else
-                                    <span class="badge-agri" style="background:#FEF3C7; color:#92400E; border:1px solid #FDE68A;">Queued</span>
+                                    <x-badge variant="warning">Queued</x-badge>
                                 @endif
                             </td>
                             <td style="padding: 16px 24px; border-bottom: 1px solid var(--agri-border);">{{ optional($log->created_at)->format('M d, Y h:i A') }}</td>
