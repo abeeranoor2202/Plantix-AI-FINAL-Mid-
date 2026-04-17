@@ -28,6 +28,17 @@ class NotificationCenterController extends Controller
         abort(403);
     }
 
+    private function currentExpert(): Expert
+    {
+        $expert = $this->currentUser()->expert;
+
+        if (! $expert instanceof Expert) {
+            abort(403, 'Expert profile is required for notifications.');
+        }
+
+        return $expert;
+    }
+
     public function index(Request $request): View
     {
         $user = $this->currentUser();
@@ -50,7 +61,7 @@ class NotificationCenterController extends Controller
 
     public function expertIndex(Request $request): View
     {
-        $expert = $this->currentUser()->expert;
+        $expert = $this->currentExpert();
         $filters = [
             'type' => (string) $request->input('type', 'all'),
             'status' => (string) $request->input('status', 'all'),
@@ -84,7 +95,7 @@ class NotificationCenterController extends Controller
 
     public function expertUnreadCount(): JsonResponse
     {
-        return response()->json(['count' => $this->service->unreadCountForExpert($this->currentUser()->expert)]);
+        return response()->json(['count' => $this->service->unreadCountForExpert($this->currentExpert())]);
     }
 
     public function markRead(Notification $notification): RedirectResponse
@@ -117,14 +128,14 @@ class NotificationCenterController extends Controller
 
     public function expertMarkRead(ExpertNotificationLog $notification): RedirectResponse
     {
-        $this->service->markExpertRead($notification, $this->currentUser()->expert);
+        $this->service->markExpertRead($notification, $this->currentExpert());
 
         return back()->with('success', 'Notification marked as read.');
     }
 
     public function expertOpen(ExpertNotificationLog $notification): RedirectResponse
     {
-        $this->service->markExpertRead($notification, $this->currentUser()->expert);
+        $this->service->markExpertRead($notification, $this->currentExpert());
 
         $target = $notification->action_url ?: data_get($notification->data, 'action_url');
 
@@ -137,7 +148,7 @@ class NotificationCenterController extends Controller
 
     public function expertMarkAllRead(): RedirectResponse
     {
-        $count = $this->service->markExpertAllRead($this->currentUser()->expert);
+        $count = $this->service->markExpertAllRead($this->currentExpert());
 
         return back()->with('success', "{$count} notifications marked as read.");
     }
@@ -145,7 +156,7 @@ class NotificationCenterController extends Controller
     public function expertBulkRead(Request $request): RedirectResponse
     {
         $ids = (array) $request->input('ids', []);
-        $count = $this->service->markExpertManyRead($this->currentUser()->expert, $ids);
+        $count = $this->service->markExpertManyRead($this->currentExpert(), $ids);
 
         return back()->with('success', "{$count} selected notifications marked as read.");
     }
@@ -153,21 +164,21 @@ class NotificationCenterController extends Controller
     public function expertBulkDelete(Request $request): RedirectResponse
     {
         $ids = (array) $request->input('ids', []);
-        $count = $this->service->deleteExpertMany($this->currentUser()->expert, $ids);
+        $count = $this->service->deleteExpertMany($this->currentExpert(), $ids);
 
         return back()->with('success', "{$count} selected notifications deleted.");
     }
 
     public function expertClearAll(): RedirectResponse
     {
-        $count = $this->service->clearExpertAll($this->currentUser()->expert);
+        $count = $this->service->clearExpertAll($this->currentExpert());
 
         return back()->with('success', "{$count} notifications cleared.");
     }
 
     public function expertFeed(Request $request): JsonResponse
     {
-        $expert = $this->currentUser()->expert;
+        $expert = $this->currentExpert();
         $limit = (int) $request->integer('limit', 5);
         $items = collect($this->service->latestForExpert($expert, $limit))
             ->map(function (array $item) {
