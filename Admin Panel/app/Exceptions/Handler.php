@@ -63,13 +63,15 @@ class Handler extends ExceptionHandler
 
     public function render($request, Throwable $e): Response|JsonResponse|\Symfony\Component\HttpFoundation\Response
     {
+        $isApiV1 = $request->is('api/v1/*');
+
         // ── Validation errors ────────────────────────────────────────────────
         if ($e instanceof ValidationException) {
-            if ($request->expectsJson()) {
+            if ($request->expectsJson() || $isApiV1) {
                 return response()->json([
                     'success' => false,
                     'message' => 'The given data was invalid.',
-                    'code'    => 'VALIDATION_ERROR',
+                    'data'    => null,
                     'errors'  => $e->errors(),
                 ], 422);
             }
@@ -77,12 +79,12 @@ class Handler extends ExceptionHandler
 
         // ── Authentication ───────────────────────────────────────────────────
         if ($e instanceof AuthenticationException) {
-            if ($request->expectsJson()) {
+            if ($request->expectsJson() || $isApiV1) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Unauthenticated.',
-                    'code'    => 'UNAUTHENTICATED',
-                    'errors'  => [],
+                    'data'    => null,
+                    'errors'  => null,
                 ], 401);
             }
             return $this->unauthenticated($request, $e);
@@ -90,12 +92,12 @@ class Handler extends ExceptionHandler
 
         // ── Model Not Found → treat as 404 ──────────────────────────────────
         if ($e instanceof ModelNotFoundException) {
-            if ($request->expectsJson()) {
+            if ($request->expectsJson() || $isApiV1) {
                 return response()->json([
                     'success' => false,
                     'message' => 'The requested resource was not found.',
-                    'code'    => 'NOT_FOUND',
-                    'errors'  => [],
+                    'data'    => null,
+                    'errors'  => null,
                 ], 404);
             }
             // Fall through to 404 view below
@@ -106,12 +108,12 @@ class Handler extends ExceptionHandler
         if ($e instanceof AccessDeniedHttpException) {
             $this->logUnauthorized($request);
 
-            if ($request->expectsJson()) {
+            if ($request->expectsJson() || $isApiV1) {
                 return response()->json([
                     'success' => false,
                     'message' => 'You are not authorized to perform this action.',
-                    'code'    => 'FORBIDDEN',
-                    'errors'  => [],
+                    'data'    => null,
+                    'errors'  => null,
                 ], 403);
             }
             return response()->view('errors.403', ['exception' => $e], 403);
@@ -119,12 +121,12 @@ class Handler extends ExceptionHandler
 
         // ── 404 Not Found ─────────────────────────────────────────────────────
         if ($e instanceof NotFoundHttpException) {
-            if ($request->expectsJson()) {
+            if ($request->expectsJson() || $isApiV1) {
                 return response()->json([
                     'success' => false,
                     'message' => 'The requested URL was not found.',
-                    'code'    => 'NOT_FOUND',
-                    'errors'  => [],
+                    'data'    => null,
+                    'errors'  => null,
                 ], 404);
             }
             return response()->view('errors.404', ['exception' => $e], 404);
@@ -134,12 +136,12 @@ class Handler extends ExceptionHandler
         if ($e instanceof HttpException) {
             $statusCode = $e->getStatusCode();
 
-            if ($request->expectsJson()) {
+            if ($request->expectsJson() || $isApiV1) {
                 return response()->json([
                     'success' => false,
                     'message' => $e->getMessage() ?: 'An HTTP error occurred.',
-                    'code'    => 'HTTP_' . $statusCode,
-                    'errors'  => [],
+                    'data'    => null,
+                    'errors'  => null,
                 ], $statusCode);
             }
 
@@ -165,13 +167,13 @@ class Handler extends ExceptionHandler
         }
 
         // ── Unhandled 500-level errors ────────────────────────────────────────
-        if ($request->expectsJson()) {
+        if ($request->expectsJson() || $isApiV1) {
             return response()->json([
                 'success' => false,
                 'message' => app()->isProduction()
                     ? 'An unexpected error occurred. Our team has been notified.'
                     : $e->getMessage(),
-                'code'    => 'SERVER_ERROR',
+                'data'    => null,
                 'errors'  => app()->isProduction() ? [] : [
                     'exception' => get_class($e),
                     'file'      => $e->getFile(),
