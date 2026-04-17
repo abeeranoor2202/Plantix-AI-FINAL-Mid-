@@ -4,6 +4,7 @@ namespace App\Exceptions;
 
 use App\Services\Security\LoggingService;
 use Illuminate\Auth\AuthenticationException;
+use Illuminate\Database\QueryException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
 use Illuminate\Http\JsonResponse;
@@ -147,6 +148,22 @@ class Handler extends ExceptionHandler
             }
         }
 
+        // ── Database integrity violations (FK/unique/check) ──────────────────
+        if ($e instanceof QueryException && $this->isIntegrityViolation($e)) {
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'The action could not be completed due to data integrity constraints.',
+                    'code'    => 'DATA_INTEGRITY_ERROR',
+                    'errors'  => [],
+                ], 422);
+            }
+
+            return back()->withInput()->withErrors([
+                'error' => 'The action was rejected because related data is missing, duplicated, or in an invalid state.',
+            ]);
+        }
+
         // ── Unhandled 500-level errors ────────────────────────────────────────
         if ($request->expectsJson()) {
             return response()->json([
@@ -193,5 +210,15 @@ class Handler extends ExceptionHandler
             }
         }
         return 'unauthenticated';
+    }
+
+    private function isIntegrityViolation(QueryException $e): bool
+    {
+        $sqlState = (string) ($e->errorInfo[0] ?? '');
+        $driverCode = (string) ($e->errorInfo[1] ?? '');
+
+        // SQLSTATE 23000: integrity constraint violation (MySQL/MariaDB)
+        // MySQL codes: 1451/1452 FK, 1062 duplicate key, 3819 check constraint
+        return $sqlState === '23000' || in_array($driverCode, ['1451', '1452', '1062', '3819'], true);
     }
 }
