@@ -98,6 +98,12 @@ class ExpertAppointmentController extends Controller
                 'string',
                 'max:255',
             ],
+        ], [
+            'meeting_link.required'    => 'Enter a valid meeting URL',
+            'meeting_link.url'         => 'Enter a valid meeting URL',
+            'scheduled_at.after'       => 'Select a future date and time.',
+            'duration_minutes.min'     => 'Duration must be greater than 0.',
+            'duration_minutes.integer' => 'Duration must be greater than 0.',
         ]);
 
         $appointment->update([
@@ -110,7 +116,7 @@ class ExpertAppointmentController extends Controller
         ]);
 
         return redirect()->route('expert.appointments.show', $appointment)
-            ->with('success', 'Appointment updated successfully.');
+            ->with('success', 'Appointment updated successfully');
     }
 
     public function destroy(Appointment $appointment): RedirectResponse
