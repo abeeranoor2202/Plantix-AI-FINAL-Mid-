@@ -32,19 +32,43 @@ class VendorProductController extends Controller
 
     public function index(Request $request): View
     {
+        $filters = $request->validate([
+            'search' => ['nullable', 'string', 'max:255'],
+            'category_id' => ['nullable', 'integer', 'exists:categories,id'],
+            'status' => ['nullable', 'in:0,1'],
+            'min_price' => ['nullable', 'numeric', 'min:0'],
+            'max_price' => ['nullable', 'numeric', 'min:0'],
+            'rating_min' => ['nullable', 'numeric', 'min:0', 'max:5'],
+        ]);
+
         $query = Product::with(['category', 'stock'])
             ->where('vendor_id', $this->vendorId());
 
-        if ($request->filled('search')) {
-            $query->where('name', 'like', "%{$request->search}%");
+        if (! empty($filters['search'])) {
+            $query->where(function ($productQuery) use ($filters): void {
+                $productQuery->where('name', 'like', '%' . $filters['search'] . '%')
+                    ->orWhere('sku', 'like', '%' . $filters['search'] . '%');
+            });
         }
 
-        if ($request->filled('category_id')) {
-            $query->where('category_id', $request->category_id);
+        if (! empty($filters['category_id'])) {
+            $query->where('category_id', (int) $filters['category_id']);
         }
 
-        if ($request->filled('status')) {
-            $query->where('is_active', (bool) $request->boolean('status'));
+        if (array_key_exists('status', $filters) && $filters['status'] !== null && $filters['status'] !== '') {
+            $query->where('is_active', (bool) ((int) $filters['status']));
+        }
+
+        if (! empty($filters['min_price'])) {
+            $query->where('price', '>=', (float) $filters['min_price']);
+        }
+
+        if (! empty($filters['max_price'])) {
+            $query->where('price', '<=', (float) $filters['max_price']);
+        }
+
+        if (! empty($filters['rating_min'])) {
+            $query->where('rating_avg', '>=', (float) $filters['rating_min']);
         }
 
         $products   = $query->latest()->paginate(20)->withQueryString();
