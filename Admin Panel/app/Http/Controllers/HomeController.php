@@ -3,10 +3,15 @@
 namespace App\Http\Controllers;
 
 use App\Models\Order;
+use App\Models\ForumFlag;
+use App\Models\ReturnRequest;
 use App\Models\User;
 use App\Models\Vendor;
 use App\Models\Product;
 use App\Models\Payout;
+use App\Models\Expert;
+use App\Models\Appointment;
+use App\Models\PlatformActivity;
 use App\Models\Setting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -138,6 +143,32 @@ class HomeController extends Controller
             ? number_format((float)$val, $decimalDigits) . $currencySymbol
             : $currencySymbol . number_format((float)$val, $decimalDigits);
 
+        $unifiedSummary = [
+            ['label' => 'Reputation', 'value' => auth('admin')->user()?->reputation_score ?? 0, 'icon' => 'fas fa-shield-alt'],
+            ['label' => 'Customers', 'value' => $totalCustomers, 'icon' => 'fas fa-users'],
+            ['label' => 'Experts', 'value' => Expert::count(), 'icon' => 'fas fa-user-md'],
+            ['label' => 'Vendors', 'value' => $totalVendors, 'icon' => 'fas fa-store'],
+        ];
+
+        $unifiedRecentActivity = PlatformActivity::with('actor')
+            ->latest('created_at')
+            ->limit(8)
+            ->get()
+            ->map(fn ($entry) => [
+                'time' => $entry->created_at?->format('d M, h:i A'),
+                'title' => str($entry->action)->replace('.', ' ')->title()->toString(),
+                'meta' => ($entry->actor?->name ?? ($entry->actor_role ?? 'system')) . ' • ' . ($entry->entity_type ?? 'n/a'),
+            ])
+            ->values()
+            ->all();
+
+        $unifiedPendingActions = [
+            ['label' => 'Forum flags pending', 'count' => ForumFlag::where('status', ForumFlag::STATUS_PENDING)->count(), 'href' => route('admin.forum.flags.index')],
+            ['label' => 'Appointments pending', 'count' => Appointment::where('status', Appointment::STATUS_PENDING_EXPERT_APPROVAL)->count(), 'href' => route('admin.appointments.index')],
+            ['label' => 'Returns requested', 'count' => ReturnRequest::where('status', 'requested')->count(), 'href' => route('admin.returns.index')],
+            ['label' => 'Orders pending', 'count' => Order::where('status', Order::STATUS_PENDING)->count(), 'href' => route('admin.orders.index')],
+        ];
+
         return view('admin.home', compact(
             'currencySymbol', 'currencyAtRight', 'decimalDigits', 'placeholderImage',
             'totalOrders', 'totalVendors', 'totalProducts', 'totalCustomers',
@@ -145,6 +176,7 @@ class HomeController extends Controller
             'ordersCanceled', 'ordersFailed', 'ordersPending',
             'totalEarnings', 'adminCommission', 'monthlyData',
             'topVendors', 'recentOrders', 'recentPayouts', 'fmt',
+            'unifiedSummary', 'unifiedRecentActivity', 'unifiedPendingActions',
         ));
     }
 
