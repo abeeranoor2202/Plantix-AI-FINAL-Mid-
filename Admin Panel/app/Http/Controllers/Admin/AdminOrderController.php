@@ -4,10 +4,13 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Order;
+use App\Models\OrderDispute;
 use App\Models\User;
+use App\Notifications\Order\OrderDisputeResolvedNotification;
 use App\Services\Shared\CartCheckoutService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\View\View;
 
 class AdminOrderController extends Controller
@@ -37,9 +40,13 @@ class AdminOrderController extends Controller
             $query->where('vendor_id', $request->vendor_id);
         }
 
+        if ($request->filled('dispute_status')) {
+            $query->where('dispute_status', $request->dispute_status);
+        }
+
         $orders = $query->paginate(20)->withQueryString();
 
-        $statuses = ['pending','confirmed','processing','shipped','delivered','cancelled','rejected','return_requested','returned'];
+        $statuses = ['draft','pending_payment','payment_failed','pending','confirmed','processing','shipped','delivered','completed','cancelled','rejected','return_requested','returned','refunded'];
 
         return view('admin.orders.index', compact('orders', 'statuses'));
     }
@@ -48,7 +55,7 @@ class AdminOrderController extends Controller
     {
         $order = Order::with([
             'user', 'vendor', 'driver', 'coupon',
-            'items.product', 'statusHistory.changedBy', 'returnRequest.reason', 'refund',
+            'items.product', 'statusHistory.changedBy', 'returnRequest.reason', 'refund', 'dispute',
         ])->findOrFail($id);
 
         return view('admin.orders.show', compact('order'));
@@ -57,7 +64,7 @@ class AdminOrderController extends Controller
     public function updateStatus(Request $request, int $id): RedirectResponse
     {
         $request->validate([
-            'status' => 'required|in:pending,confirmed,processing,shipped,delivered,cancelled,rejected,return_requested,returned',
+            'status' => 'required|in:draft,pending_payment,payment_failed,pending,confirmed,processing,shipped,delivered,completed,cancelled,rejected,return_requested,returned,refunded',
             'notes'  => 'nullable|string|max:500',
         ]);
 
@@ -85,6 +92,52 @@ class AdminOrderController extends Controller
         ]);
 
         return back()->with('success', "Driver {$driver->name} assigned.");
+    }
+
+    public function resolveDispute(Request $request, int $id): RedirectResponse
+    {
+        $request->validate([
+            'resolution' => 'required|string|max:1000',
+            'status' => 'required|in:resolved,rejected,refunded',
+        ]);
+
+        $order = Order::findOrFail($id);
+        $dispute = OrderDispute::where('order_id', $order->id)->firstOrFail();
+
+        /** @var \App\Models\User $admin */
+        $admin = auth('admin')->user();
+
+        $dispute->update([
+            'status' => $request->status,
+            'admin_notes' => $request->resolution,
+            'resolved_by' => $admin->id,
+            'resolved_at' => now(),
+        ]);
+
+        $notifyCustomer = $order->user;
+        $notifyVendor = $order->vendor?->author;
+
+        if ($notifyCustomer) {
+            $notifyCustomer->notify(new OrderDisputeResolvedNotification($order, $request->resolution, $request->status, route('order.details', $order->id)));
+        }
+
+        if ($notifyVendor) {
+            $notifyVendor->notify(new OrderDisputeResolvedNotification($order, $request->resolution, $request->status, route('vendor.orders.show', $order->id)));
+        }
+
+        $adminRecipients = User::where('role', 'admin')->whereKeyNot($admin->id)->get();
+        if ($adminRecipients->isNotEmpty()) {
+            Notification::send($adminRecipients, new OrderDisputeResolvedNotification($order, $request->resolution, $request->status, route('admin.orders.show', $order->id)));
+        }
+
+        $order->update([
+            'dispute_status' => $request->status,
+            'dispute_resolved_by' => $admin->id,
+            'dispute_resolved_at' => now(),
+            'dispute_admin_notes' => $request->resolution,
+        ]);
+
+        return back()->with('success', 'Order dispute resolved successfully.');
     }
 }
 
