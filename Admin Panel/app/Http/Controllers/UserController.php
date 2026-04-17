@@ -511,19 +511,23 @@ class UserController extends Controller
 
         if ($action === 'toggle_active') {
             $newState = ! $vendor->is_active;
-            $vendor->update(['is_active' => $newState]);
+            $vendor->update([
+                'is_active' => $newState,
+                'status' => $newState ? 'approved' : 'suspended',
+            ]);
             // Keep the users.active flag in sync so login and session middleware
             // correctly block/allow the vendor account.
             $vendor->author->update(['active' => $newState]);
             $message = 'Vendor ' . ($newState ? 'activated' : 'suspended') . ' successfully.';
         } elseif ($action === 'approve') {
             // Approve vendor AND activate their user account
-            $vendor->update(['is_approved' => true]);
-            $vendor->author->update(['active' => true]);
+            $vendor->update(['is_approved' => true, 'is_active' => true, 'status' => 'approved']);
+            $vendor->author->update(['active' => true, 'status' => 'active']);
             $message = 'Vendor approved successfully! They can now log in and manage their store.';
         } elseif ($action === 'reject') {
             // Reject vendor but keep user account inactive
-            $vendor->update(['is_approved' => false]);
+            $vendor->update(['is_approved' => false, 'is_active' => false, 'status' => 'rejected']);
+            $vendor->author->update(['active' => false, 'status' => 'suspended']);
             $message = 'Vendor approval revoked.';
         } else {
             return back()->withErrors(['action' => 'Invalid action.']);
