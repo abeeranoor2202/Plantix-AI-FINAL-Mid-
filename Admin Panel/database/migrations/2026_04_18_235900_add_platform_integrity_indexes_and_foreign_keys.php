@@ -20,39 +20,30 @@ return new class extends Migration {
         }
 
         if (Schema::hasTable('notification_logs') && Schema::hasTable('users')) {
-            Schema::table('notification_logs', function (Blueprint $table) {
-                if (Schema::hasColumn('notification_logs', 'user_id')) {
-                    try {
-                        $table->foreign('user_id')->references('id')->on('users')->cascadeOnDelete();
-                    } catch (\Throwable $e) {
-                        // Foreign key may already exist on some environments.
-                    }
-                }
-            });
+            if (Schema::hasColumn('notification_logs', 'user_id')
+                && ! $this->hasForeignKey('notification_logs', 'notification_logs_user_id_foreign')) {
+                Schema::table('notification_logs', function (Blueprint $table) {
+                    $table->foreign('user_id')->references('id')->on('users')->cascadeOnDelete();
+                });
+            }
         }
 
         if (Schema::hasTable('payments') && Schema::hasTable('orders')) {
-            Schema::table('payments', function (Blueprint $table) {
-                if (Schema::hasColumn('payments', 'order_id')) {
-                    try {
-                        $table->foreign('order_id')->references('id')->on('orders')->cascadeOnDelete();
-                    } catch (\Throwable $e) {
-                        // Keep migration idempotent across existing installs.
-                    }
-                }
-            });
+            if (Schema::hasColumn('payments', 'order_id')
+                && ! $this->hasForeignKey('payments', 'payments_order_id_foreign')) {
+                Schema::table('payments', function (Blueprint $table) {
+                    $table->foreign('order_id')->references('id')->on('orders')->cascadeOnDelete();
+                });
+            }
         }
 
         if (Schema::hasTable('appointment_status_histories') && Schema::hasTable('appointments')) {
-            Schema::table('appointment_status_histories', function (Blueprint $table) {
-                if (Schema::hasColumn('appointment_status_histories', 'appointment_id')) {
-                    try {
-                        $table->foreign('appointment_id')->references('id')->on('appointments')->cascadeOnDelete();
-                    } catch (\Throwable $e) {
-                        // Keep migration idempotent across existing installs.
-                    }
-                }
-            });
+            if (Schema::hasColumn('appointment_status_histories', 'appointment_id')
+                && ! $this->hasForeignKey('appointment_status_histories', 'appointment_status_histories_appointment_id_foreign')) {
+                Schema::table('appointment_status_histories', function (Blueprint $table) {
+                    $table->foreign('appointment_id')->references('id')->on('appointments')->cascadeOnDelete();
+                });
+            }
         }
     }
 
@@ -112,6 +103,24 @@ return new class extends Migration {
             ->where('table_schema', $database)
             ->where('table_name', $table)
             ->where('index_name', $indexName)
+            ->first();
+
+        return $row !== null;
+    }
+
+    private function hasForeignKey(string $table, string $constraintName): bool
+    {
+        if (DB::connection()->getDriverName() !== 'mysql') {
+            return false;
+        }
+
+        $database = DB::getDatabaseName();
+
+        $row = DB::table('information_schema.table_constraints')
+            ->where('constraint_schema', $database)
+            ->where('table_name', $table)
+            ->where('constraint_name', $constraintName)
+            ->where('constraint_type', 'FOREIGN KEY')
             ->first();
 
         return $row !== null;
