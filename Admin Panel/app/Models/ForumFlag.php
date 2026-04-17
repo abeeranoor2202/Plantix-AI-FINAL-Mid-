@@ -17,6 +17,7 @@ class ForumFlag extends Model
 
     protected $fillable = [
         'reply_id',
+        'thread_id',
         'flagged_by',
         'reason',
         'status',
@@ -34,6 +35,11 @@ class ForumFlag extends Model
     public function reply(): BelongsTo
     {
         return $this->belongsTo(ForumReply::class, 'reply_id');
+    }
+
+    public function thread(): BelongsTo
+    {
+        return $this->belongsTo(ForumThread::class, 'thread_id');
     }
 
     public function reporter(): BelongsTo
