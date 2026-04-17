@@ -7,9 +7,11 @@ use App\Models\Order;
 use App\Models\OrderDispute;
 use App\Models\OrderStatusHistory;
 use App\Models\ReturnReason;
+use App\Notifications\Order\OrderDisputeSubmittedNotification;
 use App\Services\Shared\ReturnRefundService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\View\View;
 
 class CustomerOrderController extends Controller
@@ -21,10 +23,15 @@ class CustomerOrderController extends Controller
     public function index(): View
     {
         $user   = auth('web')->user();
-        $orders = Order::with(['vendor', 'items.product'])
+        $ordersQuery = Order::with(['vendor', 'items.product'])
                        ->forCustomer($user->id)
-                       ->latest()
-                       ->paginate(10);
+                       ->latest();
+
+        if (request()->filled('dispute_status')) {
+            $ordersQuery->where('dispute_status', request('dispute_status'));
+        }
+
+        $orders = $ordersQuery->paginate(10)->withQueryString();
 
         return view('customer.orders', compact('orders'));
     }
@@ -123,6 +130,15 @@ class CustomerOrderController extends Controller
                 'escalated_at' => now(),
             ]
         );
+
+        if ($order->vendor?->author) {
+            $order->vendor->author->notify(new OrderDisputeSubmittedNotification($order, $request->reason, route('vendor.orders.show', $order->id)));
+        }
+
+        $adminRecipients = \App\Models\User::where('role', 'admin')->get();
+        if ($adminRecipients->isNotEmpty()) {
+            Notification::send($adminRecipients, new OrderDisputeSubmittedNotification($order, $request->reason, route('admin.orders.show', $order->id)));
+        }
 
         $order->update([
             'dispute_status' => 'pending',
