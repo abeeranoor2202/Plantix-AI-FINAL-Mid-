@@ -115,7 +115,7 @@
                                     @if($app->isPending())
                                     <form action="{{ route('admin.experts.applications.under-review', $app->id) }}" method="POST">
                                         @csrf
-                                        <button class="btn-agri" style="padding: 6px 10px; background: #e0f2fe; color: #0c4a6e; border: 1px solid #bae6fd; font-size: 12px;">Start Review</button>
+                                        <button class="btn-agri btn-agri-info" style="padding: 6px 10px; font-size: 12px;">Start Review</button>
                                     </form>
                                     @endif
 
@@ -128,7 +128,7 @@
                                     </form>
 
                                     {{-- Reject --}}
-                                    <button class="btn-agri" style="padding: 6px 10px; background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; font-size: 12px;"
+                                    <button class="btn-agri btn-agri-danger" style="padding: 6px 10px; font-size: 12px;"
                                             data-bs-toggle="modal"
                                             data-bs-target="#rejectModal{{ $app->id }}">
                                         Reject
@@ -154,7 +154,7 @@
                                                 </div>
                                                 <div class="modal-footer">
                                                     <button type="button" class="btn-agri btn-agri-outline" data-bs-dismiss="modal">Cancel</button>
-                                                    <button type="submit" class="btn-agri" style="background: #fef2f2; color: #991b1b; border: 1px solid #fecaca;">Confirm Rejection</button>
+                                                    <button type="submit" class="btn-agri btn-agri-danger">Confirm Rejection</button>
                                                 </div>
                                             </form>
                                         </div>
