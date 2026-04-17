@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Frontend;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Frontend\AiChatEscalateRequest;
 use App\Models\AiChatSession;
 use App\Services\Customer\AiChatService;
 use Illuminate\Http\Request;
@@ -117,6 +118,45 @@ class AiChatController extends Controller
             ->get(['id', 'session_key', 'context_type', 'message_count', 'last_active_at', 'created_at']);
 
         return response()->json(['success' => true, 'data' => $sessions]);
+    }
+
+    /**
+     * Escalate the current chat session to an expert review queue.
+     */
+    public function escalate(AiChatEscalateRequest $request)
+    {
+        $sessionKey = $request->session()->get('ai_chat_session_key');
+        if (! $sessionKey) {
+            return $request->expectsJson()
+                ? response()->json(['success' => false, 'message' => 'No active chat session found.'], 422)
+                : back()->withErrors(['error' => 'No active chat session found.']);
+        }
+
+        $session = AiChatSession::where('session_key', $sessionKey)->first();
+        if (! $session) {
+            return $request->expectsJson()
+                ? response()->json(['success' => false, 'message' => 'Chat session not found.'], 404)
+                : back()->withErrors(['error' => 'Chat session not found.']);
+        }
+
+        if (Auth::check() && $session->user_id && $session->user_id !== Auth::id()) {
+            return $request->expectsJson()
+                ? response()->json(['success' => false, 'message' => 'Session ownership mismatch.'], 403)
+                : back()->withErrors(['error' => 'Session ownership mismatch.']);
+        }
+
+        $ticket = $this->chatService->escalateToExpert($sessionKey, Auth::user(), $request->input('reason'));
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'ticket_id' => $ticket->id,
+                'status' => $ticket->status,
+                'message' => 'Your request has been escalated to an expert queue.',
+            ]);
+        }
+
+        return back()->with('success', 'Your AI chat has been escalated to an expert queue.');
     }
 }
 
