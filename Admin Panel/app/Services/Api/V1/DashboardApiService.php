@@ -8,9 +8,12 @@ use App\Models\Order;
 use App\Models\PlatformActivity;
 use App\Models\Product;
 use App\Models\User;
+use App\Services\Dashboard\AlertingService;
 
 class DashboardApiService
 {
+    public function __construct(private readonly AlertingService $alertingService) {}
+
     public function summary(User $actor): array
     {
         $role = $actor->role;
@@ -23,6 +26,7 @@ class DashboardApiService
                 'vendors_total' => User::where('role', 'vendor')->count(),
                 'threads_total' => ForumThread::count(),
                 'recent_activity' => PlatformActivity::latest()->limit(10)->get(),
+                'alerts' => $this->alertingService->forAdmin(),
             ];
         }
 
@@ -33,6 +37,14 @@ class DashboardApiService
                 'orders_total' => Order::forVendor($vendorId)->count(),
                 'orders_pending' => Order::forVendor($vendorId)->where('status', Order::STATUS_PENDING)->count(),
                 'orders_processing' => Order::forVendor($vendorId)->where('status', Order::STATUS_PROCESSING)->count(),
+                'alerts' => [
+                    [
+                        'key' => 'orders.pending',
+                        'level' => 'medium',
+                        'count' => Order::forVendor($vendorId)->where('status', Order::STATUS_PENDING)->count(),
+                        'label' => 'Pending orders',
+                    ],
+                ],
             ];
         }
 
@@ -43,6 +55,14 @@ class DashboardApiService
                 'appointments_confirmed' => Appointment::where('expert_id', $expertId)->where('status', Appointment::STATUS_CONFIRMED)->count(),
                 'appointments_completed' => Appointment::where('expert_id', $expertId)->where('status', Appointment::STATUS_COMPLETED)->count(),
                 'forum_threads_total' => ForumThread::count(),
+                'alerts' => [
+                    [
+                        'key' => 'appointments.confirmed',
+                        'level' => 'medium',
+                        'count' => Appointment::where('expert_id', $expertId)->where('status', Appointment::STATUS_CONFIRMED)->count(),
+                        'label' => 'Confirmed appointments',
+                    ],
+                ],
             ];
         }
 
@@ -50,6 +70,14 @@ class DashboardApiService
             'orders_total' => Order::forCustomer($actor->id)->count(),
             'appointments_total' => Appointment::where('user_id', $actor->id)->count(),
             'forum_threads_total' => ForumThread::where('user_id', $actor->id)->count(),
+            'alerts' => [
+                [
+                    'key' => 'orders.active',
+                    'level' => 'medium',
+                    'count' => Order::forCustomer($actor->id)->whereIn('status', ['pending', 'processing', 'shipped'])->count(),
+                    'label' => 'Active orders',
+                ],
+            ],
         ];
     }
 }
