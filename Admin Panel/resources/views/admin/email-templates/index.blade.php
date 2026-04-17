@@ -55,9 +55,9 @@
                                 <td>{{ $template->variables ? \Illuminate\Support\Str::limit(is_array($template->variables) ? implode(', ', $template->variables) : $template->variables, 40) : '—' }}</td>
                                 <td>
                                     @if($template->is_active)
-                                        <span class="badge-agri" style="background:#DCFCE7; color:#166534; border:1px solid #BBF7D0;">Active</span>
+                                        <x-badge variant="success">Active</x-badge>
                                     @else
-                                        <span class="badge-agri" style="background:#FEE2E2; color:#991B1B; border:1px solid #FECACA;">Inactive</span>
+                                        <x-badge variant="danger">Inactive</x-badge>
                                     @endif
                                 </td>
                                 <td class="text-end">
