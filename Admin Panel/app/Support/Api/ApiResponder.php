@@ -32,6 +32,19 @@ trait ApiResponder
         ], $status);
     }
 
+    protected function businessError(string $code, string $message, array $details = [], int $status = 422): JsonResponse
+    {
+        return response()->json([
+            'success' => false,
+            'message' => $message,
+            'data' => null,
+            'errors' => [
+                'code' => $code,
+                'details' => $details,
+            ],
+        ], $status);
+    }
+
     protected function paginated(LengthAwarePaginator $paginator, array $items, string $message = 'OK'): JsonResponse
     {
         return $this->ok([
