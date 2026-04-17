@@ -28,7 +28,7 @@ class ExpertFactory extends Factory
             'hourly_rate'                   => $this->faker->randomFloat(2, 10, 200),
             'consultation_price'            => $this->faker->randomFloat(2, 20, 300),
             'consultation_duration_minutes' => $this->faker->randomElement([30, 45, 60]),
-            'rating_avg'                    => null,
+            'rating_avg'                    => 0,
             'total_appointments'            => 0,
             'total_completed'               => 0,
             'total_cancelled'               => 0,
