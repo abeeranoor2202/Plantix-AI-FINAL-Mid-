@@ -29,6 +29,16 @@ class AiChatSession extends Model
         return $this->hasMany(AiChatMessage::class, 'session_id')->orderBy('created_at');
     }
 
+    public function escalations(): HasMany
+    {
+        return $this->hasMany(AiChatEscalation::class, 'session_id')->latest();
+    }
+
+    public function audits(): HasMany
+    {
+        return $this->hasMany(AiChatAudit::class, 'session_id')->latest('created_at');
+    }
+
     // ── Helpers ────────────────────────────────────────────────────────────
     public function touch($attribute = null): bool
     {
