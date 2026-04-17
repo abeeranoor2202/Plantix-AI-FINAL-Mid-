@@ -67,7 +67,7 @@ class ForumService
     /**
      * List threads for the public/authenticated index with cache-assisted pinned threads.
      *
-     * @param  array{category?: string, search?: string, status?: string}  $filters
+     * @param  array{category?: string, search?: string, status?: string, date_from?: string, date_to?: string, sort_by?: string}  $filters
      */
     public function listThreads(array $filters = []): LengthAwarePaginator
     {
@@ -81,19 +81,38 @@ class ForumService
         }
 
         if (! empty($filters['search'])) {
-            // Use full-text if available; fall back to LIKE on title only (no leading %)
             $term = $filters['search'];
-            $query->where('title', 'like', $term . '%')
-                ->orWhere('title', 'like', '% ' . $term . '%');
+            $query->where(function ($searchQuery) use ($term): void {
+                $searchQuery->where('title', 'like', $term . '%')
+                    ->orWhere('title', 'like', '% ' . $term . '%')
+                    ->orWhere('body', 'like', '%' . $term . '%');
+            });
         }
 
         if (! empty($filters['status'])) {
             $query->where('status', $filters['status']);
         }
 
+        if (! empty($filters['date_from'])) {
+            $query->whereDate('created_at', '>=', $filters['date_from']);
+        }
+
+        if (! empty($filters['date_to'])) {
+            $query->whereDate('created_at', '<=', $filters['date_to']);
+        }
+
+        $sortBy = $filters['sort_by'] ?? 'latest';
+
+        if ($sortBy === 'popular') {
+            $query->orderByDesc('replies_count');
+        } elseif ($sortBy === 'oldest') {
+            $query->orderBy('created_at');
+        } else {
+            $query->orderByDesc('created_at');
+        }
+
         // Pinned threads first, then newest
         return $query->orderByDesc('is_pinned')
-                     ->orderByDesc('created_at')
                      ->paginate(15)
                      ->withQueryString();
     }
@@ -343,6 +362,10 @@ class ForumService
     {
         try {
             $flag = DB::transaction(function () use ($reporter, $reply, $reason): ForumFlag {
+                if (! $reply->thread_id) {
+                    throw new \DomainException('Cannot flag a reply without a valid thread reference.');
+                }
+
                 $flag = ForumFlag::create([
                     'reply_id'   => $reply->id,
                     'thread_id'  => $reply->thread_id,
@@ -424,7 +447,11 @@ class ForumService
         }
 
         // Fallback — no attributes on any tag (safe but lossy)
-        return strip_tags($html, $allowed);
+        $html = preg_replace('#<(script|style)\b[^>]*>.*?</\1>#is', '', $html) ?? $html;
+        $html = strip_tags($html, $allowed);
+
+        // Remove all attributes from allowed tags (e.g., onmouseover, style, href).
+        return preg_replace('/<(\/?)([a-z0-9]+)(?:\s[^>]*)?>/i', '<$1$2>', $html) ?? $html;
     }
 
     /**
