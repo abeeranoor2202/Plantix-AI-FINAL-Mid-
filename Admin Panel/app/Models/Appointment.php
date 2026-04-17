@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Events\Appointment\AppointmentCreated;
 use App\Events\Appointment\AppointmentStatusChanged;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -12,7 +13,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Appointment extends Model
 {
-    use SoftDeletes;
+    use HasFactory, SoftDeletes;
 
     // ── Status constants — must match DB ENUM from migration ──────────────────
     // Spec state machine:
