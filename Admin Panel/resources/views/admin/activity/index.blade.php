@@ -13,7 +13,7 @@
                     <a href="{{ route('admin.activity.export.csv', request()->query()) }}" class="btn-agri btn-agri-outline">Export CSV</a>
                     <form method="GET" style="display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end;">
                         <x-search-filter
-                            :action="route('admin.activity.index')"
+                            :embedded="true"
                             name="q"
                             :value="request('q', '')"
                             placeholder="Search action, entity, or context"

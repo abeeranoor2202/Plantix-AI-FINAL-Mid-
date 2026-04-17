@@ -12,6 +12,7 @@ class ActivityController extends ApiController
     public function index(Request $request)
     {
         $filters = $request->validate([
+            'q' => ['nullable', 'string', 'max:100'],
             'action' => ['nullable', 'string', 'max:100'],
             'entity_type' => ['nullable', 'string', 'max:100'],
             'actor_role' => ['nullable', 'string', 'max:32'],

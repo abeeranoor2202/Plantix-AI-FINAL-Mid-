@@ -11,6 +11,15 @@ class ActivityApiService
     {
         $query = PlatformActivity::query()->with('actor:id,name,email');
 
+        if (! empty($filters['q'])) {
+            $term = (string) $filters['q'];
+            $query->where(function ($inner) use ($term) {
+                $inner->where('action', 'like', '%' . $term . '%')
+                    ->orWhere('entity_type', 'like', '%' . $term . '%')
+                    ->orWhere('context', 'like', '%' . $term . '%');
+            });
+        }
+
         if (! empty($filters['action'])) {
             $query->where('action', 'like', '%' . $filters['action'] . '%');
         }

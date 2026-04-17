@@ -11,22 +11,31 @@ class AdminActivityController extends Controller
 {
     public function index(Request $request): View
     {
+        $validated = $request->validate([
+            'q' => ['nullable', 'string', 'max:100'],
+            'action' => ['nullable', 'string', 'max:100'],
+            'entity_type' => ['nullable', 'string', 'max:100'],
+            'actor_role' => ['nullable', 'string', 'max:32'],
+            'date_from' => ['nullable', 'date'],
+            'date_to' => ['nullable', 'date'],
+        ]);
+
         $query = PlatformActivity::query()->with('actor')->latest('created_at');
 
-        if ($request->filled('actor_role')) {
-            $query->where('actor_role', $request->string('actor_role'));
+        if (! empty($validated['actor_role'])) {
+            $query->where('actor_role', (string) $validated['actor_role']);
         }
 
-        if ($request->filled('action')) {
-            $query->where('action', 'like', '%' . $request->string('action') . '%');
+        if (! empty($validated['action'])) {
+            $query->where('action', 'like', '%' . (string) $validated['action'] . '%');
         }
 
-        if ($request->filled('entity_type')) {
-            $query->where('entity_type', $request->string('entity_type'));
+        if (! empty($validated['entity_type'])) {
+            $query->where('entity_type', (string) $validated['entity_type']);
         }
 
-        if ($request->filled('q')) {
-            $term = (string) $request->string('q');
+        if (! empty($validated['q'])) {
+            $term = (string) $validated['q'];
             $query->where(function ($inner) use ($term) {
                 $inner->where('action', 'like', '%' . $term . '%')
                     ->orWhere('entity_type', 'like', '%' . $term . '%')
@@ -34,12 +43,12 @@ class AdminActivityController extends Controller
             });
         }
 
-        if ($request->filled('date_from')) {
-            $query->whereDate('created_at', '>=', $request->date('date_from')->toDateString());
+        if (! empty($validated['date_from'])) {
+            $query->whereDate('created_at', '>=', $validated['date_from']);
         }
 
-        if ($request->filled('date_to')) {
-            $query->whereDate('created_at', '<=', $request->date('date_to')->toDateString());
+        if (! empty($validated['date_to'])) {
+            $query->whereDate('created_at', '<=', $validated['date_to']);
         }
 
         $activities = $query->paginate(30)->withQueryString();

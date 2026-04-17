@@ -14,6 +14,7 @@ class SearchController extends ApiController
     {
         $validated = $request->validate([
             'query' => ['required', 'string', 'min:2', 'max:100'],
+            'page' => ['nullable', 'integer', 'min:1'],
             'limit' => ['nullable', 'integer', 'min:1', 'max:20'],
         ]);
 
@@ -28,12 +29,13 @@ class SearchController extends ApiController
         $result = $this->searchService->search(
             $request->user(),
             $query,
-            (int) ($validated['limit'] ?? 8)
+            (int) ($validated['limit'] ?? 8),
+            (int) ($validated['page'] ?? 1)
         );
 
         return $this->ok([
             'query' => $query,
-            'result' => $result,
+            'modules' => $result,
         ], 'Search completed.');
     }
 }

@@ -2,6 +2,7 @@
 
 namespace App\Services\Dashboard;
 
+use App\Models\Appointment;
 use Illuminate\Support\Facades\DB;
 
 class AlertingService
@@ -10,7 +11,12 @@ class AlertingService
     {
         $pendingReturns = (int) DB::table('return_requests')->where('status', 'requested')->count();
         $pendingDisputes = (int) DB::table('order_disputes')->where('status', 'open')->count();
-        $pendingAppointments = (int) DB::table('appointments')->whereIn('status', ['pending', 'pending_expert_approval'])->count();
+        $pendingAppointments = (int) DB::table('appointments')
+            ->whereIn('status', [
+                Appointment::STATUS_PENDING,
+                Appointment::STATUS_PENDING_EXPERT_APPROVAL,
+            ])
+            ->count();
         $lowStockProducts = (int) DB::table('products')
             ->join('product_stocks', 'products.id', '=', 'product_stocks.product_id')
             ->where('product_stocks.quantity', '<=', DB::raw('products.low_stock_threshold'))

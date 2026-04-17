@@ -102,6 +102,10 @@ return new class extends Migration {
 
     private function hasIndex(string $table, string $indexName): bool
     {
+        if (DB::connection()->getDriverName() !== 'mysql') {
+            return false;
+        }
+
         $database = DB::getDatabaseName();
 
         $row = DB::table('information_schema.statistics')

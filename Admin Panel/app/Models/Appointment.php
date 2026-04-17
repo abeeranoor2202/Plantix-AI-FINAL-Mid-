@@ -27,7 +27,6 @@ class Appointment extends Model
     public const STATUS_PENDING_PAYMENT         = 'pending_payment';
     public const STATUS_PAYMENT_FAILED          = 'payment_failed';
     public const STATUS_PENDING_EXPERT_APPROVAL = 'pending_expert_approval';
-    public const STATUS_ACCEPTED                = 'confirmed';
     public const STATUS_CONFIRMED               = 'confirmed';
     public const STATUS_REJECTED                = 'rejected';
     public const STATUS_COMPLETED               = 'completed';
@@ -192,9 +191,7 @@ class Appointment extends Model
     {
         return in_array($this->status, [
             self::STATUS_PENDING_EXPERT_APPROVAL,
-            self::STATUS_PENDING,
-            self::STATUS_ACCEPTED,
-        ]);
+        ], true);
     }
 
     public function canBeRejected(): bool   { return $this->canBeAccepted(); }
