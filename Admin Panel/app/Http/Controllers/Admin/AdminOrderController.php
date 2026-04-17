@@ -12,6 +12,7 @@ use App\Services\Shared\CartCheckoutService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\DB;
 use App\Models\OrderStatusHistory;
 use Illuminate\View\View;
 
@@ -127,30 +128,58 @@ class AdminOrderController extends Controller
 
     public function resolveDispute(AdminOrderDisputeResolveRequest $request, int $id): RedirectResponse
     {
-        $order = Order::findOrFail($id);
-        $dispute = OrderDispute::where('order_id', $order->id)->firstOrFail();
-
-        if (! in_array($dispute->status, ['pending', 'vendor_responded', 'escalated'], true)) {
-            return back()->withErrors(['error' => 'Only active disputes can be resolved.']);
-        }
-
         $validated = $request->validated();
 
         /** @var \App\Models\User $admin */
         $admin = auth('admin')->user();
 
-        if ($validated['status'] === 'refunded' && ! $order->adminCanForceTo(Order::STATUS_REFUNDED)) {
-            return back()->withErrors(['status' => 'This order cannot be refunded from its current state.']);
-        }
+        try {
+            [$order, $dispute] = DB::transaction(function () use ($id, $validated, $admin) {
+                $order = Order::lockForUpdate()->findOrFail($id);
+                $dispute = OrderDispute::where('order_id', $order->id)
+                    ->lockForUpdate()
+                    ->firstOrFail();
 
-        $dispute->update([
-            'status' => $validated['status'],
-            'admin_notes' => $validated['resolution'],
-            'resolved_by' => $admin->id,
-            'resolved_at' => now(),
-            'refund_escalated_at' => $validated['status'] === 'refunded' ? now() : null,
-            'refund_reference' => $validated['status'] === 'refunded' ? ($validated['refund_reference'] ?: null) : null,
-        ]);
+                if (! in_array($dispute->status, [Order::DISPUTE_PENDING, Order::DISPUTE_VENDOR_RESPONDED, Order::DISPUTE_ESCALATED], true)) {
+                    throw new \DomainException('Only active disputes can be resolved.');
+                }
+
+                if ($validated['status'] === 'refunded' && ! $order->adminCanForceTo(Order::STATUS_REFUNDED)) {
+                    throw new \DomainException('This order cannot be refunded from its current state.');
+                }
+
+                $dispute->update([
+                    'status' => $validated['status'],
+                    'admin_notes' => $validated['resolution'],
+                    'resolved_by' => $admin->id,
+                    'resolved_at' => now(),
+                    'refund_escalated_at' => $validated['status'] === 'refunded' ? now() : null,
+                    'refund_reference' => $validated['status'] === 'refunded' ? ($validated['refund_reference'] ?: null) : null,
+                ]);
+
+                $order->update([
+                    'dispute_status' => $validated['status'],
+                    'dispute_resolved_by' => $admin->id,
+                    'dispute_resolved_at' => now(),
+                    'dispute_admin_notes' => $validated['resolution'],
+                    'status' => $validated['status'] === 'refunded' ? Order::STATUS_REFUNDED : $order->status,
+                    'payment_status' => $validated['status'] === 'refunded' ? 'pending_refund' : $order->payment_status,
+                ]);
+
+                if ($validated['status'] === 'refunded') {
+                    OrderStatusHistory::create([
+                        'order_id' => $order->id,
+                        'status' => Order::STATUS_REFUNDED,
+                        'changed_by' => $admin->id,
+                        'notes' => trim('Dispute refund escalation: ' . $validated['resolution']),
+                    ]);
+                }
+
+                return [$order, $dispute];
+            });
+        } catch (\DomainException $e) {
+            return back()->withErrors(['error' => $e->getMessage()]);
+        }
 
         $notifyCustomer = $order->user;
         $notifyVendor = $order->vendor?->author;
@@ -166,24 +195,6 @@ class AdminOrderController extends Controller
         $adminRecipients = User::where('role', 'admin')->whereKeyNot($admin->id)->get();
         if ($adminRecipients->isNotEmpty()) {
             Notification::send($adminRecipients, new OrderDisputeResolvedNotification($order, $validated['resolution'], $validated['status'], route('admin.orders.show', $order->id)));
-        }
-
-        $order->update([
-            'dispute_status' => $validated['status'],
-            'dispute_resolved_by' => $admin->id,
-            'dispute_resolved_at' => now(),
-            'dispute_admin_notes' => $validated['resolution'],
-            'status' => $validated['status'] === 'refunded' ? Order::STATUS_REFUNDED : $order->status,
-            'payment_status' => $validated['status'] === 'refunded' ? 'pending_refund' : $order->payment_status,
-        ]);
-
-        if ($validated['status'] === 'refunded') {
-            OrderStatusHistory::create([
-                'order_id' => $order->id,
-                'status' => Order::STATUS_REFUNDED,
-                'changed_by' => $admin->id,
-                'notes' => trim('Dispute refund escalation: ' . $validated['resolution']),
-            ]);
         }
 
         return back()->with('success', 'Order dispute resolved successfully.');
