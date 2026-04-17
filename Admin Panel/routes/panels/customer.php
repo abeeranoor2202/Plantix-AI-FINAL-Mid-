@@ -94,6 +94,8 @@ Route::middleware(['customer', 'verified'])->group(function () {
         ->middleware('throttle:5,1');
     Route::post('/forum/{thread}/reply',         [\App\Http\Controllers\Frontend\ForumController::class, 'reply'])->name('forum.reply')
         ->middleware('throttle:10,1');
+    Route::post('/forum/{thread}/flag',          [\App\Http\Controllers\Frontend\ForumController::class, 'flagThread'])->name('forum.thread.flag')
+        ->middleware('throttle:3,1');
     Route::patch('/forum/replies/{reply}',       [\App\Http\Controllers\Frontend\ForumController::class, 'editReply'])->name('forum.reply.edit');
     Route::delete('/forum/replies/{reply}',      [\App\Http\Controllers\Frontend\ForumController::class, 'destroyReply'])->name('forum.reply.destroy');
     Route::post('/forum/replies/{reply}/flag',   [\App\Http\Controllers\Frontend\ForumController::class, 'flagReply'])->name('forum.reply.flag')
