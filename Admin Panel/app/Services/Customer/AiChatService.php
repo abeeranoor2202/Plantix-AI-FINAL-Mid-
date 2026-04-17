@@ -2,6 +2,8 @@
 
 namespace App\Services\Customer;
 
+use App\Models\AiChatAudit;
+use App\Models\AiChatEscalation;
 use App\Models\AiChatMessage;
 use App\Models\AiChatSession;
 use App\Models\User;
@@ -79,9 +81,15 @@ PROMPT;
             'content'    => $message,
         ]);
 
+        $lastUserMessage = $session->messages()->latest()->first();
+        $this->audit($session, 'message_received', $user?->id, [
+            'context_type' => $contextType,
+            'length'       => mb_strlen($message),
+        ], $lastUserMessage?->id);
+
         // Get AI response
         $start = microtime(true);
-        [$response, $tokensUsed, $modelUsed] = $this->generateResponse($message, $session);
+        [$response, $tokensUsed, $modelUsed, $fallbackUsed, $fallbackReason] = $this->generateResponse($message, $session);
         $latencyMs = round((microtime(true) - $start) * 1000);
 
         // Store assistant's response
@@ -91,8 +99,27 @@ PROMPT;
             'content'     => $response,
             'model_used'  => $modelUsed,
             'tokens_used' => $tokensUsed,
-            'metadata'    => ['latency_ms' => $latencyMs, 'context_type' => $contextType],
+            'metadata'    => [
+                'latency_ms' => $latencyMs,
+                'context_type' => $contextType,
+                'fallback_used' => $fallbackUsed,
+                'fallback_reason' => $fallbackReason,
+            ],
         ]);
+
+        if ($fallbackUsed) {
+            $this->audit($session, 'fallback_triggered', $user?->id, [
+                'reason' => $fallbackReason,
+                'model'  => $modelUsed,
+            ], $assistantMsg->id);
+        }
+
+        $this->audit($session, 'response_generated', $user?->id, [
+            'model'         => $modelUsed,
+            'tokens_used'   => $tokensUsed,
+            'latency_ms'    => $latencyMs,
+            'fallback_used' => $fallbackUsed,
+        ], $assistantMsg->id);
 
         // Update session
         $session->update([
@@ -107,6 +134,52 @@ PROMPT;
             'tokens_used' => $tokensUsed,
             'model_used'  => $modelUsed,
         ];
+    }
+
+    /**
+     * Create or reuse an active expert-escalation ticket for the session.
+     */
+    public function escalateToExpert(string $sessionKey, ?User $user, ?string $reason = null): AiChatEscalation
+    {
+        $session = AiChatSession::where('session_key', $sessionKey)->firstOrFail();
+
+        $latestMessage = $session->messages()->latest()->first();
+
+        $open = AiChatEscalation::where('session_id', $session->id)
+            ->whereIn('status', [AiChatEscalation::STATUS_PENDING, AiChatEscalation::STATUS_ASSIGNED])
+            ->latest()
+            ->first();
+
+        if ($open) {
+            $open->update([
+                'reason' => $reason ?: $open->reason,
+                'latest_message_id' => $latestMessage?->id,
+            ]);
+
+            $this->audit($session, 'escalation_requested', $user?->id, [
+                'escalation_id' => $open->id,
+                'status' => $open->status,
+                'reopened' => true,
+            ], $latestMessage?->id);
+
+            return $open->fresh();
+        }
+
+        $ticket = AiChatEscalation::create([
+            'session_id' => $session->id,
+            'user_id' => $user?->id ?? $session->user_id,
+            'latest_message_id' => $latestMessage?->id,
+            'status' => AiChatEscalation::STATUS_PENDING,
+            'reason' => $reason,
+        ]);
+
+        $this->audit($session, 'escalation_requested', $user?->id, [
+            'escalation_id' => $ticket->id,
+            'status' => $ticket->status,
+            'reopened' => false,
+        ], $latestMessage?->id);
+
+        return $ticket;
     }
 
     /**
@@ -138,14 +211,28 @@ PROMPT;
         // Try OpenAI API first
         if ($this->openAiKey) {
             try {
-                return $this->callOpenAI($message, $session);
+                [$content, $tokens, $model] = $this->callOpenAI($message, $session);
+                return [$content, $tokens, $model, false, null];
             } catch (\Throwable $e) {
                 Log::warning('OpenAI API failed, using rule-based fallback: ' . $e->getMessage());
+                return [$this->ruleBasedResponse($message), 0, 'rule-based-v1', true, 'openai_unavailable'];
             }
         }
 
         // Rule-based fallback
-        return [$this->ruleBasedResponse($message), 0, 'rule-based-v1'];
+        return [$this->ruleBasedResponse($message), 0, 'rule-based-v1', true, 'no_openai_key'];
+    }
+
+    private function audit(AiChatSession $session, string $eventType, ?int $actorUserId = null, array $meta = [], ?int $messageId = null): void
+    {
+        AiChatAudit::create([
+            'session_id' => $session->id,
+            'message_id' => $messageId,
+            'event_type' => $eventType,
+            'actor_user_id' => $actorUserId,
+            'metadata' => $meta,
+            'created_at' => now(),
+        ]);
     }
 
     private function callOpenAI(string $message, AiChatSession $session): array
