@@ -14,7 +14,7 @@
     <div style="margin-top: 12px; color: var(--agri-text-heading); font-size: 14px; font-weight: 600; display: grid; gap: 6px;">
         <div><i class="fas fa-user" style="width: 18px; color: var(--agri-text-muted);"></i> {{ $appointment->user->name ?? 'N/A' }}</div>
         <div><i class="fas fa-envelope" style="width: 18px; color: var(--agri-text-muted);"></i> {{ $appointment->user->email ?? 'N/A' }}</div>
-        <div><i class="fas fa-clock" style="width: 18px; color: var(--agri-text-muted);"></i> {{ optional($appointment->scheduled_at)->format('d M Y • h:i A') }}</div>
+        <div><i class="fas fa-clock" style="width: 18px; color: var(--agri-text-muted);"></i> {{ optional($appointment->scheduled_at)->format('d M Y • h:i A') ?? 'N/A' }}</div>
     </div>
 </div>
 
