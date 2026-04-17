@@ -17,17 +17,15 @@
             
             @php
                 $statusMap = [
-                    'pending' => ['bg' => '#fffbeb', 'color' => '#d97706', 'icon' => 'clock'],
-                    'approved' => ['bg' => 'var(--agri-primary-light)', 'color' => 'var(--agri-primary)', 'icon' => 'check-circle'],
-                    'rejected' => ['bg' => '#FEF2F2', 'color' => 'var(--agri-error)', 'icon' => 'times-circle'],
-                    'refund_processing' => ['bg' => '#eff6ff', 'color' => '#2563eb', 'icon' => 'spinner'],
-                    'completed' => ['bg' => 'var(--agri-success-light)', 'color' => 'var(--agri-success)', 'icon' => 'wallet']
+                    'pending' => 'warning',
+                    'approved' => 'success',
+                    'rejected' => 'danger',
+                    'refund_processing' => 'info',
+                    'completed' => 'success'
                 ];
-                $st = $statusMap[$return->status] ?? ['bg' => 'var(--agri-bg)', 'color' => 'var(--agri-text-muted)', 'icon' => 'info-circle'];
+                $variant = $statusMap[$return->status] ?? 'secondary';
             @endphp
-            <span style="background: {{ $st['bg'] }}; color: {{ $st['color'] }}; padding: 8px 16px; border-radius: 100px; font-size: 13px; font-weight: 800; text-transform: uppercase; display: inline-flex; align-items: center; gap: 8px;">
-                <i class="fas fa-{{ $st['icon'] }}"></i> {{ $return->status }}
-            </span>
+            <x-platform.status-badge domain="return" :status="$return->status" />
         </div>
     </div>
 
