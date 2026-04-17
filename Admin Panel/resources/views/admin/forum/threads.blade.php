@@ -52,6 +52,30 @@
                         @endforeach
                     </select>
                 </div>
+                <div class="col-md-2">
+                    <label style="font-size: 12px; font-weight: 700; color: var(--agri-text-muted); text-transform: uppercase; margin-bottom: 8px; display: block;">Approval</label>
+                    <select name="approved" class="form-agri">
+                        <option value="">All</option>
+                        <option value="1" @selected(request('approved') === '1')>Approved</option>
+                        <option value="0" @selected(request('approved') === '0')>Pending</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label style="font-size: 12px; font-weight: 700; color: var(--agri-text-muted); text-transform: uppercase; margin-bottom: 8px; display: block;">Sort</label>
+                    <select name="sort_by" class="form-agri">
+                        <option value="latest" @selected(request('sort_by') === 'latest')>Latest</option>
+                        <option value="popular" @selected(request('sort_by') === 'popular')>Most Replies</option>
+                        <option value="oldest" @selected(request('sort_by') === 'oldest')>Oldest</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label style="font-size: 12px; font-weight: 700; color: var(--agri-text-muted); text-transform: uppercase; margin-bottom: 8px; display: block;">From</label>
+                    <input type="date" name="date_from" class="form-agri" value="{{ request('date_from') }}">
+                </div>
+                <div class="col-md-2">
+                    <label style="font-size: 12px; font-weight: 700; color: var(--agri-text-muted); text-transform: uppercase; margin-bottom: 8px; display: block;">To</label>
+                    <input type="date" name="date_to" class="form-agri" value="{{ request('date_to') }}">
+                </div>
                 <div class="col-md-2 d-flex gap-2">
                     <button type="submit" class="btn-agri btn-agri-primary w-50" style="justify-content: center;">Filter</button>
                     <a href="{{ route('admin.forum.threads') }}" class="btn-agri btn-agri-outline w-50" style="justify-content: center; text-decoration: none;">Reset</a>
@@ -105,18 +129,7 @@
                                 </td>
                                 <td style="padding: 18px 24px; text-align: center; font-size: 14px; font-weight: 800; color: var(--agri-primary-dark);">{{ $thread->replies_count }}</td>
                                 <td style="padding: 18px 24px;">
-                                    @php
-                                        $colors = [
-                                            'open'     => ['#D1FAE5', '#065F46'],
-                                            'locked'   => ['#F3F4F6', '#4B5563'],
-                                            'resolved' => ['#E0F2FE', '#0369A1'],
-                                            'archived' => ['#FEF3C7', '#92400E'],
-                                        ];
-                                        $c = $colors[$thread->status] ?? ['#F9FAFB', '#6B7280'];
-                                    @endphp
-                                    <span style="background: {{ $c[0] }}; color: {{ $c[1] }}; padding: 4px 10px; border-radius: 100px; font-size: 11px; font-weight: 800; border: 1px solid {{ $c[0] }};">
-                                        {{ ucfirst($thread->status) }}
-                                    </span>
+                                    <x-platform.status-badge domain="forum" :status="$thread->status" />
                                 </td>
                                 <td style="padding: 18px 24px; text-align: center;">
                                     @if($thread->is_pinned)
@@ -171,14 +184,14 @@
                                         {{-- Pin toggle --}}
                                         <form method="POST" action="{{ route('admin.forum.threads.pin', $thread->id) }}" class="d-inline">
                                             @csrf
-                                            <button type="submit" class="btn-agri" style="width: 36px; height: 36px; padding: 0; display: inline-flex; align-items: center; justify-content: center; background: #FEF3C7; color: #D97706; border: 1px solid #FDE68A; font-size: 12px; font-weight: 600; border-radius: 999px;" title="{{ $thread->is_pinned ? 'Unpin' : 'Pin' }}">
+                                            <button type="submit" class="btn-agri btn-agri-outline" style="width: 36px; height: 36px; padding: 0; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; border-radius: 999px;" title="{{ $thread->is_pinned ? 'Unpin' : 'Pin' }}">
                                                 <i class="fa fa-thumbtack"></i>
                                             </button>
                                         </form>
                                         {{-- Delete --}}
                                         <form method="POST" action="{{ route('admin.forum.threads.destroy', $thread->id) }}" class="d-inline" onsubmit="return confirm('Delete thread permanently?')">
                                             @csrf @method('DELETE')
-                                            <button type="submit" class="btn-agri" style="width: 36px; height: 36px; padding: 0; display: inline-flex; align-items: center; justify-content: center; background: #FEE2E2; color: #991B1B; border: 1px solid #FECACA; font-size: 12px; font-weight: 600; border-radius: 999px;">
+                                            <button type="submit" class="btn-agri btn-agri-danger" style="width: 36px; height: 36px; padding: 0; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; border-radius: 999px;">
                                                 <i class="fa fa-trash"></i>
                                             </button>
                                         </form>
