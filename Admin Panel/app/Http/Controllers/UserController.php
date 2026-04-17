@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Password;
+use Illuminate\Support\Facades\Schema;
 use App\Services\Security\PermissionService;
 use Illuminate\Support\Facades\Validator;
 use PaypalPayoutsSDK\Core\PayPalHttpClient;
@@ -29,11 +30,58 @@ class UserController extends Controller
     }
 
 
-    public function index()
+    public function index(Request $request)
     {
-        $users = User::where('role', 'user')
-                     ->orderByDesc('created_at')
-                     ->get();
+        $filters = $request->validate([
+            'search' => ['nullable', 'string', 'max:255'],
+            'status' => ['nullable', 'in:active,suspended,banned'],
+            'activity' => ['nullable', 'in:active_7d,active_30d,inactive_30d,never_logged_in'],
+            'date_from' => ['nullable', 'date'],
+            'date_to' => ['nullable', 'date'],
+        ]);
+
+        $query = User::where('role', 'user');
+
+        if (! empty($filters['search'])) {
+            $term = $filters['search'];
+            $query->where(function ($userQuery) use ($term): void {
+                $userQuery->where('name', 'like', '%' . $term . '%')
+                    ->orWhere('email', 'like', '%' . $term . '%')
+                    ->orWhere('phone', 'like', '%' . $term . '%');
+            });
+        }
+
+        if (! empty($filters['status']) && Schema::hasColumn('users', 'status')) {
+            $query->where('status', $filters['status']);
+        }
+
+        if (! empty($filters['date_from'])) {
+            $query->whereDate('created_at', '>=', $filters['date_from']);
+        }
+
+        if (! empty($filters['date_to'])) {
+            $query->whereDate('created_at', '<=', $filters['date_to']);
+        }
+
+        if (! empty($filters['activity']) && Schema::hasColumn('users', 'last_login_at')) {
+            if ($filters['activity'] === 'active_7d') {
+                $query->whereNotNull('last_login_at')->where('last_login_at', '>=', now()->subDays(7));
+            } elseif ($filters['activity'] === 'active_30d') {
+                $query->whereNotNull('last_login_at')->where('last_login_at', '>=', now()->subDays(30));
+            } elseif ($filters['activity'] === 'inactive_30d') {
+                $query->where(function ($activityQuery): void {
+                    $activityQuery->whereNull('last_login_at')
+                        ->orWhere('last_login_at', '<', now()->subDays(30));
+                });
+            } elseif ($filters['activity'] === 'never_logged_in') {
+                $query->whereNull('last_login_at');
+            }
+        }
+
+        $users = $query->orderByDesc('created_at')
+            ->paginate(20)
+            ->withQueryString();
+
         return view("admin.settings.users.index", compact('users'));
     }
 
@@ -329,8 +377,15 @@ class UserController extends Controller
         $query = Vendor::with('author', 'category');
 
         if ($request->filled('search')) {
-            $query->where('title', 'like', '%' . $request->search . '%')
-                  ->orWhere('phone', 'like', '%' . $request->search . '%');
+            $term = $request->search;
+            $query->where(function ($vendorQuery) use ($term): void {
+                $vendorQuery->where('title', 'like', '%' . $term . '%')
+                    ->orWhere('phone', 'like', '%' . $term . '%')
+                    ->orWhereHas('author', fn ($authorQuery) => $authorQuery
+                        ->where('name', 'like', '%' . $term . '%')
+                        ->orWhere('email', 'like', '%' . $term . '%')
+                    );
+            });
         }
 
         if ($request->filled('approval')) {
@@ -345,7 +400,15 @@ class UserController extends Controller
             $query->where('is_active', $request->status === 'active' ? true : false);
         }
 
-        $vendors = $query->latest()->paginate(20);
+        if ($request->filled('date_from')) {
+            $query->whereDate('created_at', '>=', $request->date_from);
+        }
+
+        if ($request->filled('date_to')) {
+            $query->whereDate('created_at', '<=', $request->date_to);
+        }
+
+        $vendors = $query->latest()->paginate(20)->withQueryString();
 
         return view('admin.vendors.index', compact('vendors'));
     }
