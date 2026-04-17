@@ -4,7 +4,7 @@ namespace App\Listeners\Expert;
 
 use App\Events\Forum\OfficialAnswerMarked;
 use App\Models\Expert;
-use App\Services\Expert\ExpertNotificationService;
+use App\Services\Notifications\NotificationCenterService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 
 class SendForumOfficialMarkedNotification implements ShouldQueue
@@ -12,7 +12,7 @@ class SendForumOfficialMarkedNotification implements ShouldQueue
     public string $queue = 'notifications';
 
     public function __construct(
-        private readonly ExpertNotificationService $notifications
+        private readonly NotificationCenterService $notifications
     ) {}
 
     public function handle(OfficialAnswerMarked $event): void
@@ -29,9 +29,9 @@ class SendForumOfficialMarkedNotification implements ShouldQueue
             return;
         }
 
-        $this->notifications->notify(
+        $this->notifications->notifyExpert(
             $expert,
-            ExpertNotificationService::TYPE_FORUM_HELPFUL,
+            'forum.reply_marked_helpful',
             'Your reply was marked helpful',
             'Your reply in "' . $thread->title . '" is now marked as official helpful guidance.',
             [
