@@ -20,7 +20,7 @@ use Illuminate\Queue\SerializesModels;
  * - Queue support for async delivery
  * - Proper error handling
  */
-class CustomNotificationMail extends Mailable
+class CustomNotificationMail extends PlantixBaseMail
 {
     use Queueable, SerializesModels;
 
@@ -30,25 +30,12 @@ class CustomNotificationMail extends Mailable
         private readonly string $body,
         private readonly ?string $actionUrl = null,
     ) {
-        $this->queue = 'notifications';
-        $this->tries = 3;
+        parent::__construct();
     }
 
-    public function envelope(): Envelope
+    protected function resolveSubject(): string
     {
-        return new Envelope(
-            from: new Address(
-                config('mail.from.address'),
-                config('mail.from.name') ?? 'Plantix AI'
-            ),
-            subject: $this->title,
-            tags: ['admin-notification', 'custom'],
-            metadata: [
-                'user_id' => $this->user->id,
-                'user_role' => $this->user->role,
-                'sent_at' => now()->toIso8601String(),
-            ],
-        );
+        return $this->title;
     }
 
     public function content(): Content
@@ -56,12 +43,11 @@ class CustomNotificationMail extends Mailable
         return new Content(
             view: 'emails.custom-notification',
             with: [
-                'user'      => $this->user,
-                'title'     => $this->title,
-                'body'      => $this->body,
-                'actionUrl' => $this->actionUrl,
-                'appName'   => config('app.name'),
-                'appUrl'    => config('app.url'),
+                'user'           => $this->user,
+                'title'          => $this->title,
+                'body'           => $this->body,
+                'actionUrl'      => $this->actionUrl,
+                'recipientEmail' => $this->user->email,
             ],
         );
     }
