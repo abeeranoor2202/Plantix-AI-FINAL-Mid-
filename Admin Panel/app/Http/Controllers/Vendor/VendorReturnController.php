@@ -97,13 +97,24 @@ class VendorReturnController extends Controller
     {
         $request->validate(['notes' => 'required|string|max:1000']);
 
-        $return = ReturnRequest::whereHas('order', fn ($q) => $q->where('vendor_id', $this->vendorId()))
-                               ->where('status', 'pending')
-                               ->findOrFail($id);
+        try {
+            DB::transaction(function () use ($id, $request): void {
+                $return = ReturnRequest::whereHas('order', fn ($q) => $q->where('vendor_id', $this->vendorId()))
+                    ->whereKey($id)
+                    ->lockForUpdate()
+                    ->firstOrFail();
 
-        $return->update([
-            'vendor_notes' => $request->notes,
-        ]);
+                if (! $return->isPending()) {
+                    throw new \DomainException('Notes can only be added to pending return requests.');
+                }
+
+                $return->update([
+                    'vendor_notes' => $request->notes,
+                ]);
+            });
+        } catch (\DomainException $e) {
+            return back()->withErrors(['error' => $e->getMessage()]);
+        }
 
         return back()->with('success', 'Note added. Admin will review the return request.');
     }
@@ -128,30 +139,43 @@ class VendorReturnController extends Controller
         $resolution = (string) $request->input('resolution_type');
         $notes = trim((string) $request->input('response_notes', ''));
 
-        DB::transaction(function () use ($return, $vendor, $resolution, $notes) {
-            $this->service->approve($return, $notes !== '' ? $notes : null);
+        try {
+            DB::transaction(function () use ($return, $resolution, $notes): void {
+                $lockedReturn = ReturnRequest::query()
+                    ->whereKey($return->id)
+                    ->lockForUpdate()
+                    ->firstOrFail();
 
-            $payload = [
-                'resolution_type' => $resolution,
-                'vendor_response_notes' => $notes !== '' ? $notes : null,
-                'vendor_responded_at' => now(),
-                'rejection_reason' => null,
-            ];
+                if (! $lockedReturn->isPending()) {
+                    throw new \DomainException('This return request is no longer pending.');
+                }
 
-            if ($resolution !== ReturnRequest::RESOLUTION_REFUND) {
-                $payload['status'] = ReturnRequest::STATUS_COMPLETED;
-                $payload['completed_at'] = now();
-            }
+                $this->service->approve($lockedReturn, $notes !== '' ? $notes : null);
 
-            $return->update($payload);
+                $payload = [
+                    'resolution_type' => $resolution,
+                    'vendor_response_notes' => $notes !== '' ? $notes : null,
+                    'vendor_responded_at' => now(),
+                    'rejection_reason' => null,
+                ];
 
-            if ($resolution !== ReturnRequest::RESOLUTION_REFUND && $return->user) {
-                $message = $resolution === ReturnRequest::RESOLUTION_REPLACE
-                    ? 'Your return has been approved for replacement.'
-                    : 'Your return has been approved as store credit.';
-                $return->user->notify(new ReturnLifecycleNotification($return->fresh(), 'completed', $message));
-            }
-        });
+                if ($resolution !== ReturnRequest::RESOLUTION_REFUND) {
+                    $payload['status'] = ReturnRequest::STATUS_COMPLETED;
+                    $payload['completed_at'] = now();
+                }
+
+                $lockedReturn->update($payload);
+
+                if ($resolution !== ReturnRequest::RESOLUTION_REFUND && $lockedReturn->user) {
+                    $message = $resolution === ReturnRequest::RESOLUTION_REPLACE
+                        ? 'Your return has been approved for replacement.'
+                        : 'Your return has been approved as store credit.';
+                    $lockedReturn->user->notify(new ReturnLifecycleNotification($lockedReturn->fresh(), 'completed', $message));
+                }
+            });
+        } catch (\DomainException $e) {
+            return back()->withErrors(['error' => $e->getMessage()]);
+        }
 
         $statusMessage = $resolution === ReturnRequest::RESOLUTION_REFUND
             ? 'Return approved. Refund processing can now be completed by admin.'
@@ -178,20 +202,33 @@ class VendorReturnController extends Controller
             ->where('status', ReturnRequest::STATUS_PENDING)
             ->findOrFail($id);
 
-        DB::transaction(function () use ($return, $reason, $notes) {
-            $composed = $notes !== ''
-                ? $reason . "\n\nAdditional Note: " . $notes
-                : $reason;
+        try {
+            DB::transaction(function () use ($return, $reason, $notes): void {
+                $lockedReturn = ReturnRequest::query()
+                    ->whereKey($return->id)
+                    ->lockForUpdate()
+                    ->firstOrFail();
 
-            $this->service->reject($return, $composed);
+                if (! $lockedReturn->isPending()) {
+                    throw new \DomainException('This return request is no longer pending.');
+                }
 
-            $return->update([
-                'rejection_reason' => $reason,
-                'vendor_response_notes' => $notes !== '' ? $notes : null,
-                'vendor_responded_at' => now(),
-                'resolution_type' => null,
-            ]);
-        });
+                $composed = $notes !== ''
+                    ? $reason . "\n\nAdditional Note: " . $notes
+                    : $reason;
+
+                $this->service->reject($lockedReturn, $composed);
+
+                $lockedReturn->update([
+                    'rejection_reason' => $reason,
+                    'vendor_response_notes' => $notes !== '' ? $notes : null,
+                    'vendor_responded_at' => now(),
+                    'resolution_type' => null,
+                ]);
+            });
+        } catch (\DomainException $e) {
+            return back()->withErrors(['error' => $e->getMessage()]);
+        }
 
         return back()->with('success', 'Return rejected and customer has been notified.');
     }
