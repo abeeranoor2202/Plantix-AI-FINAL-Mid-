@@ -6,6 +6,7 @@ use App\Models\ExpertNotificationLog;
 use App\Models\Notification;
 use App\Services\Api\V1\NotificationApiService;
 use App\Services\Notifications\NotificationCenterService;
+use App\Services\Platform\PlatformActivityService;
 use Illuminate\Http\Request;
 
 class NotificationController extends ApiController
@@ -13,6 +14,7 @@ class NotificationController extends ApiController
     public function __construct(
         private readonly NotificationApiService $service,
         private readonly NotificationCenterService $center,
+        private readonly PlatformActivityService $activity,
     ) {}
 
     public function index(Request $request)
@@ -46,6 +48,14 @@ class NotificationController extends ApiController
             $this->center->markRead($notification, $actor);
         }
 
+        $this->activity->log(
+            actorUserId: $actor->id,
+            action: 'notification.read',
+            entityType: 'notification',
+            entityId: $id,
+            context: ['channel' => 'api_v1']
+        );
+
         return $this->ok(null, 'Notification marked as read.');
     }
 
@@ -58,6 +68,17 @@ class NotificationController extends ApiController
         } else {
             $count = $this->center->markAllRead($actor);
         }
+
+        $this->activity->log(
+            actorUserId: $actor->id,
+            action: 'notification.read_all',
+            entityType: 'notification',
+            entityId: null,
+            context: [
+                'channel' => 'api_v1',
+                'updated' => $count,
+            ]
+        );
 
         return $this->ok(['updated' => $count], 'Notifications marked as read.');
     }
