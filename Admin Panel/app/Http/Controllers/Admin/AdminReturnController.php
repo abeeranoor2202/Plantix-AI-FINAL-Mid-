@@ -9,6 +9,7 @@ use App\Models\ReturnRequest;
 use App\Services\Shared\ReturnRefundService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class AdminReturnController extends Controller
@@ -44,8 +45,19 @@ class AdminReturnController extends Controller
     {
         $request->validate(['admin_notes' => 'nullable|string|max:1000']);
 
-        $return = ReturnRequest::findOrFail($id);
-        $this->service->forceApprove($return, $request->admin_notes, auth('admin')->user());
+        try {
+            DB::transaction(function () use ($id, $request): void {
+                $return = ReturnRequest::query()->whereKey($id)->lockForUpdate()->firstOrFail();
+
+                if (! $return->isPending()) {
+                    throw new \DomainException('Only pending return requests can be approved.');
+                }
+
+                $this->service->forceApprove($return, $request->admin_notes, auth('admin')->user());
+            });
+        } catch (\DomainException $e) {
+            return back()->withErrors(['error' => $e->getMessage()]);
+        }
 
         return back()->with('success', 'Return request approved.');
     }
@@ -54,8 +66,19 @@ class AdminReturnController extends Controller
     {
         $request->validate(['admin_notes' => 'required|string|max:1000']);
 
-        $return = ReturnRequest::findOrFail($id);
-        $this->service->forceReject($return, $request->admin_notes, auth('admin')->user());
+        try {
+            DB::transaction(function () use ($id, $request): void {
+                $return = ReturnRequest::query()->whereKey($id)->lockForUpdate()->firstOrFail();
+
+                if (! $return->isPending()) {
+                    throw new \DomainException('Only pending return requests can be rejected.');
+                }
+
+                $this->service->forceReject($return, $request->admin_notes, auth('admin')->user());
+            });
+        } catch (\DomainException $e) {
+            return back()->withErrors(['error' => $e->getMessage()]);
+        }
 
         return back()->with('success', 'Return request rejected.');
     }
@@ -69,13 +92,24 @@ class AdminReturnController extends Controller
             'notes'           => 'nullable|string|max:500',
         ]);
 
-        $return = ReturnRequest::findOrFail($id);
         /** @var \App\Models\User $admin */
         $admin = auth('admin')->user();
 
-        abort_unless($this->service->orderIsRefundable($return->order), 403, 'Refund not allowed for this product');
+        try {
+            DB::transaction(function () use ($id, $request, $admin): void {
+                $return = ReturnRequest::query()
+                    ->with('order.items.product')
+                    ->whereKey($id)
+                    ->lockForUpdate()
+                    ->firstOrFail();
 
-        $this->service->processRefund($return, $request->validated(), $admin);
+                abort_unless($this->service->orderIsRefundable($return->order), 403, 'Refund not allowed for this product');
+
+                $this->service->processRefund($return, $request->validated(), $admin);
+            });
+        } catch (\DomainException $e) {
+            return back()->withErrors(['error' => $e->getMessage()]);
+        }
 
         return back()->with('success', 'Refund processed successfully.');
     }
