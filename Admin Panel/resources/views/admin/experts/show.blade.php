@@ -54,20 +54,17 @@
     </div>
 
     @if(session('success'))
-        <div class="alert mb-4" style="border-radius: 14px; border: none; background: #D1FAE5; color: #065F46; font-weight: 700; padding: 18px 24px; display: flex; align-items: center; justify-content: space-between;">
-            <div style="display: flex; align-items: center; gap: 12px;"><i class="fas fa-check-circle" style="font-size: 18px;"></i> {{ session('success') }}</div>
-            <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-        </div>
+        <x-alert variant="success" class="mb-4" dismissible>{{ session('success') }}</x-alert>
     @endif
 
     @if($errors->any())
-        <div class="alert mb-4" style="border-radius: 14px; border: none; background: #FEE2E2; color: #991B1B; font-weight: 700; padding: 18px 24px;">
+        <x-alert variant="danger" class="mb-4">
             <ul style="margin: 0; padding-left: 20px;">
                 @foreach($errors->all() as $error)
                     <li>{{ $error }}</li>
                 @endforeach
             </ul>
-        </div>
+        </x-alert>
     @endif
 
     <div style="display: flex; gap: 24px; border-bottom: 2px solid var(--agri-border); margin-bottom: 32px; padding-bottom: 2px;">
@@ -125,7 +122,7 @@
                     <form action="{{ route('admin.experts.reject', $expert->id) }}" method="POST" style="margin-bottom: 10px;" onsubmit="return confirm('Reject this expert?');">
                         @csrf
                         <textarea name="reason" rows="2" class="form-agri" placeholder="Rejection reason" style="margin-bottom: 8px;" required>{{ old('reason') }}</textarea>
-                        <button type="submit" class="btn-agri" style="width: 100%; justify-content: center; gap: 8px; background: #FEE2E2; color: #991B1B; border: 1px solid #FECACA;">
+                        <button type="submit" class="btn-agri btn-agri-danger" style="width: 100%; justify-content: center; gap: 8px;">
                             <i class="fas fa-times-circle"></i> Reject Expert
                         </button>
                     </form>
@@ -135,7 +132,7 @@
                     <form action="{{ route('admin.experts.suspend', $expert->id) }}" method="POST" style="margin-bottom: 10px;" onsubmit="return confirm('Suspend this expert?');">
                         @csrf
                         <textarea name="reason" rows="2" class="form-agri" placeholder="Suspension reason" style="margin-bottom: 8px;" required>{{ old('reason') }}</textarea>
-                        <button type="submit" class="btn-agri" style="width: 100%; justify-content: center; gap: 8px; background: #F3F4F6; color: #374151; border: 1px solid #D1D5DB;">
+                        <button type="submit" class="btn-agri btn-agri-outline" style="width: 100%; justify-content: center; gap: 8px;">
                             <i class="fas fa-pause-circle"></i> Suspend Expert
                         </button>
                     </form>
