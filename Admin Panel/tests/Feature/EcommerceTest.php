@@ -431,7 +431,7 @@ class EcommerceTest extends TestCase
     /** @test */
     public function admin_can_force_status_that_customer_cannot(): void
     {
-        $customer = User::factory()->create(['role' => 'customer']);
+        $customer = User::factory()->create(['role' => 'user']);
         $admin    = User::factory()->create(['role' => 'admin']);
 
         $order = Order::factory()->create([
