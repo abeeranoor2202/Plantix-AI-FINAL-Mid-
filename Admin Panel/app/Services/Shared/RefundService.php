@@ -50,30 +50,34 @@ class RefundService
 
     public function process(ReturnRequest $return, array $data, User $processedBy): Refund
     {
-        $return->loadMissing('order.items.product', 'user');
+        return DB::transaction(function () use ($return, $processedBy, $data) {
+            $lockedReturn = ReturnRequest::query()
+                ->with(['order.items.product', 'user'])
+                ->whereKey($return->id)
+                ->lockForUpdate()
+                ->firstOrFail();
 
-        if ($return->status !== 'approved') {
-            throw new \DomainException('Return must be approved before a refund can be issued.');
-        }
+            if ($lockedReturn->status !== 'approved') {
+                throw new \DomainException('Return must be approved before a refund can be issued.');
+            }
 
-        if ($return->refund()->exists()) {
-            throw new \DomainException('A refund has already been created for this return.');
-        }
+            if ($lockedReturn->refund()->exists()) {
+                throw new \DomainException('A refund has already been created for this return.');
+            }
 
-        if (! $this->returns->orderIsRefundable($return->order)) {
-            throw new \DomainException('Refund not allowed for this product.');
-        }
+            if (! $this->returns->orderIsRefundable($lockedReturn->order)) {
+                throw new \DomainException('Refund not allowed for this product.');
+            }
 
-        $amount = (float) ($data['amount'] ?? $this->calculateAmount($return));
-        $method = $this->normalizeMethod($data['method'] ?? 'manual');
-        $transactionRef = $data['transaction_ref'] ?? null;
+            $amount = (float) ($data['amount'] ?? $this->calculateAmount($lockedReturn));
+            $method = $this->normalizeMethod($data['method'] ?? 'manual');
+            $transactionRef = $data['transaction_ref'] ?? null;
 
-        $this->returns->markRefundProcessing($return, $processedBy);
+            $this->returns->markRefundProcessing($lockedReturn, $processedBy);
 
-        return DB::transaction(function () use ($return, $processedBy, $amount, $method, $transactionRef, $data) {
             $refund = Refund::create([
-                'return_id'       => $return->id,
-                'order_id'        => $return->order_id,
+                'return_id'       => $lockedReturn->id,
+                'order_id'        => $lockedReturn->order_id,
                 'amount'          => $amount,
                 'method'          => $method,
                 'status'          => 'pending',
@@ -87,14 +91,14 @@ class RefundService
             try {
                 if ($method === 'wallet') {
                     $this->wallet->creditUser(
-                        $return->user,
+                        $lockedReturn->user,
                         $amount,
-                        "Refund for Order #{$return->order->order_number}",
-                        $return->order
+                        "Refund for Order #{$lockedReturn->order->order_number}",
+                        $lockedReturn->order
                     );
                     $gatewayRef = 'wallet-credit-' . $refund->id;
                 } elseif ($method === 'original') {
-                    $gatewayRef = $this->refundOriginalPayment($return, $amount, $processedBy, $refund->id);
+                    $gatewayRef = $this->refundOriginalPayment($lockedReturn, $amount, $processedBy, $refund->id);
                 } else {
                     $gatewayRef = $transactionRef ?: 'manual-refund-' . $refund->id;
                 }
@@ -105,8 +109,8 @@ class RefundService
                     'processed_at'     => now(),
                 ]);
 
-                $this->returns->complete($return, 'Refund processed successfully.', $processedBy);
-                $return->order->update(['status' => Order::STATUS_REFUNDED, 'payment_status' => 'refunded']);
+                $this->returns->complete($lockedReturn, 'Refund processed successfully.', $processedBy);
+                $lockedReturn->order->update(['status' => Order::STATUS_REFUNDED, 'payment_status' => 'refunded']);
 
                 return $refund->fresh();
             } catch (\Throwable $e) {
@@ -115,11 +119,11 @@ class RefundService
                     'notes'  => trim(($refund->notes ? $refund->notes . ' ' : '') . $e->getMessage()),
                 ]);
 
-                $return->update(['status' => 'approved']);
-                $return->order->update(['status' => Order::STATUS_RETURNED]);
+                $lockedReturn->update(['status' => 'approved']);
+                $lockedReturn->order->update(['status' => Order::STATUS_RETURNED]);
 
                 Log::error('Return refund processing failed', [
-                    'return_id' => $return->id,
+                    'return_id' => $lockedReturn->id,
                     'refund_id' => $refund->id,
                     'error'     => $e->getMessage(),
                 ]);
