@@ -3,9 +3,8 @@
 @section('content')
 <div class="container-fluid" style="padding-top: 24px;">
     @php
+        $statusVariant = $vendor->is_approved ? ($vendor->is_active ? 'success' : 'warning') : 'secondary';
         $statusText = $vendor->is_approved ? ($vendor->is_active ? 'Approved' : 'Suspended') : 'Pending Approval';
-        $statusBg = $vendor->is_approved ? ($vendor->is_active ? '#D1FAE5' : '#FEF3C7') : '#F3F4F6';
-        $statusColor = $vendor->is_approved ? ($vendor->is_active ? '#065F46' : '#92400E') : '#374151';
         $placeholderImage = asset('images/placeholder.png');
         $profileImage = $vendor->image ? asset('storage/' . $vendor->image) : $placeholderImage;
     @endphp
@@ -73,7 +72,7 @@
                     <form method="POST" action="{{ route('admin.vendors.toggle', $vendor->id) }}">
                         @csrf
                         <input type="hidden" name="action" value="toggle_active">
-                        <button type="submit" class="btn-agri" style="width: 100%; justify-content: center; {{ $vendor->is_active ? 'background:#FEF2F2;color:#991B1B;border:1px solid #FECACA;' : 'background:#D1FAE5;color:#065F46;border:1px solid #A7F3D0;' }}">
+                        <button type="submit" class="btn-agri {{ $vendor->is_active ? 'btn-agri-danger' : 'btn-agri-success' }}" style="width: 100%; justify-content: center;">
                             <i class="fas fa-{{ $vendor->is_active ? 'lock' : 'unlock' }}"></i>
                             {{ $vendor->is_active ? 'Deactivate' : 'Activate' }} Vendor
                         </button>
@@ -132,9 +131,7 @@
             <div class="card-agri" style="padding: 24px;">
                 <h4 style="font-size: 16px; font-weight: 700; color: var(--agri-primary-dark); margin-bottom: 16px;">Vendor Status</h4>
                 <div style="display:flex; flex-wrap:wrap; gap:12px;">
-                    <span style="display:inline-flex; align-items:center; gap:6px; background: {{ $statusBg }}; color: {{ $statusColor }}; padding: 8px 12px; border-radius: 999px; font-size: 13px; font-weight: 700;">
-                        <i class="fas fa-shield-alt"></i> {{ $statusText }}
-                    </span>
+                    <x-badge :variant="$statusVariant"><i class="fas fa-shield-alt"></i> {{ $statusText }}</x-badge>
                     <span style="display:inline-flex; align-items:center; gap:6px; background: var(--agri-bg); color: var(--agri-text-heading); padding: 8px 12px; border-radius: 999px; font-size: 13px; font-weight: 700; border:1px solid var(--agri-border);">
                         <i class="fas fa-star" style="color:#D97706;"></i> {{ number_format((float)($vendor->rating ?? 0), 1) }} / 5 ({{ (int)($vendor->review_count ?? 0) }} reviews)
                     </span>
