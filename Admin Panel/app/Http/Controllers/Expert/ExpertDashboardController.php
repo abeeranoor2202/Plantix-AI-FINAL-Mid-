@@ -7,8 +7,8 @@ use App\Models\Appointment;
 use App\Models\Expert;
 use App\Models\PlatformActivity;
 use App\Services\Expert\ExpertAppointmentService;
-use App\Services\Expert\ExpertNotificationService;
 use App\Services\Expert\ExpertForumService;
+use App\Services\Notifications\NotificationCenterService;
 use Illuminate\View\View;
 
 /**
@@ -21,7 +21,7 @@ class ExpertDashboardController extends Controller
 {
     public function __construct(
         private readonly ExpertAppointmentService  $appointmentService,
-        private readonly ExpertNotificationService $notificationService,
+        private readonly NotificationCenterService $notificationService,
         private readonly ExpertForumService        $forumService,
     ) {}
 
@@ -34,7 +34,7 @@ class ExpertDashboardController extends Controller
         $stats         = $this->appointmentService->getStats($expert);
         $upcoming      = $this->appointmentService->listForExpert($expert, ['status' => Appointment::STATUS_CONFIRMED]);
         $requested     = $this->appointmentService->listForExpert($expert, ['status' => Appointment::STATUS_RESCHEDULE_REQUESTED]);
-        $unreadCount   = $this->notificationService->unreadCount($expert);
+        $unreadCount   = $this->notificationService->unreadCountForExpert($expert);
         $recentReplies = $this->forumService->getExpertReplies($expert);
 
         $unifiedSummary = [
