@@ -35,14 +35,31 @@
                  <div id="data-table_processing" class="spinner-border spinner-border-sm text-primary" role="status" style="display: none;"></div>
             </div>
             
-            <div style="display: flex; align-items: center; gap: 16px;">
-                <div class="input-group" style="width: 300px;">
+            <form method="GET" action="{{ route('admin.users') }}" style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                <div class="input-group" style="width: 280px;">
                     <span class="input-group-text bg-white border-end-0" style="border-radius: 10px 0 0 10px; border-color: var(--agri-border);">
                         <i class="fas fa-search" style="color: var(--agri-text-muted); font-size: 14px;"></i>
                     </span>
-                    <input type="text" id="search-input" class="form-agri border-start-0" placeholder="Search customers..." style="margin-bottom: 0; border-radius: 0 10px 10px 0; height: 42px;">
+                    <input type="text" name="search" class="form-agri border-start-0" value="{{ request('search') }}" placeholder="Search customers..." style="margin-bottom: 0; border-radius: 0 10px 10px 0; height: 42px;">
                 </div>
-            </div>
+                <select name="status" class="form-agri" style="height: 42px; min-width: 140px; margin-bottom: 0;">
+                    <option value="">All Statuses</option>
+                    <option value="active" @selected(request('status') === 'active')>Active</option>
+                    <option value="suspended" @selected(request('status') === 'suspended')>Suspended</option>
+                    <option value="banned" @selected(request('status') === 'banned')>Banned</option>
+                </select>
+                <select name="activity" class="form-agri" style="height: 42px; min-width: 180px; margin-bottom: 0;">
+                    <option value="">All Activity</option>
+                    <option value="active_7d" @selected(request('activity') === 'active_7d')>Active in 7 days</option>
+                    <option value="active_30d" @selected(request('activity') === 'active_30d')>Active in 30 days</option>
+                    <option value="inactive_30d" @selected(request('activity') === 'inactive_30d')>Inactive 30+ days</option>
+                    <option value="never_logged_in" @selected(request('activity') === 'never_logged_in')>Never logged in</option>
+                </select>
+                <input type="date" name="date_from" class="form-agri" value="{{ request('date_from') }}" style="height: 42px; min-width: 150px; margin-bottom: 0;">
+                <input type="date" name="date_to" class="form-agri" value="{{ request('date_to') }}" style="height: 42px; min-width: 150px; margin-bottom: 0;">
+                <button type="submit" class="btn-agri btn-agri-primary" style="height: 42px; padding: 0 16px;">Filter</button>
+                <a href="{{ route('admin.users') }}" class="btn-agri btn-agri-outline" style="height: 42px; padding: 0 16px; text-decoration: none; display: inline-flex; align-items: center;">Reset</a>
+            </form>
         </div>
         
         <div class="table-responsive">
@@ -124,12 +141,16 @@
                         </td>
                     </tr>
                     @empty
-                    <tr><td colspan="6" class="text-center py-5" style="color:var(--agri-text-muted);">{{trans('lang.no_record_found')}}</td></tr>
+                    <tr><td colspan="6" class="text-center py-5" style="color:var(--agri-text-muted);">No users match your current filters.</td></tr>
                     @endforelse
                 </tbody>
             </table>
         </div>
-        
+        @if($users->hasPages())
+            <div style="padding: 20px 24px; background: #fff; border-top: 1px solid var(--agri-border); display: flex; justify-content: center;">
+                {{ $users->links('pagination::bootstrap-5') }}
+            </div>
+        @endif
 
     </div>
 </div>
@@ -188,14 +209,6 @@
 <script type="text/javascript">
 
     $(document).ready(function () {
-
-    $('#search-input').on('keyup', function () {
-        var val = $(this).val().toLowerCase();
-        $('#userTable tbody tr').filter(function () {
-            $(this).toggle($(this).text().toLowerCase().indexOf(val) > -1);
-        });
-    });
-
         $(document).on('change', '.toggle-active', function () {
             var id  = $(this).data('id');
             var val = $(this).is(':checked') ? 1 : 0;
