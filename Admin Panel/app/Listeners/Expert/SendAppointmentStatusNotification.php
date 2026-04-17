@@ -5,22 +5,21 @@ namespace App\Listeners\Expert;
 use App\Events\Expert\AppointmentStatusChanged;
 use App\Models\Appointment;
 use App\Notifications\Expert\ExpertAppointmentNotification;
-use App\Services\Expert\ExpertNotificationService;
+use App\Services\Notifications\NotificationCenterService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 
 /**
  * SendAppointmentStatusNotification
  *
- * Queued listener.  On every appointment status change:
- *   1. Notifies the farmer via database + email (ExpertAppointmentNotification)
- *   2. Logs the event in expert_notification_logs for the expert panel nav badge
+ * Queued listener. On every appointment status change, notifies the farmer
+ * and records the expert-facing notification feed entry.
  */
 class SendAppointmentStatusNotification implements ShouldQueue
 {
     public string $queue = 'notifications';
 
     public function __construct(
-        private readonly ExpertNotificationService $notificationService
+        private readonly NotificationCenterService $notificationService
     ) {}
 
     public function handle(AppointmentStatusChanged $event): void
@@ -34,7 +33,6 @@ class SendAppointmentStatusNotification implements ShouldQueue
             $farmer->notify(new ExpertAppointmentNotification($appointment, $newStatus));
         }
 
-        // 2) Log in expert panel (for nav badge)
         $expert = $appointment->expert;
         if ($expert) {
             $titleMap = [
@@ -45,9 +43,9 @@ class SendAppointmentStatusNotification implements ShouldQueue
                 Appointment::STATUS_COMPLETED   => 'Appointment completed',
             ];
 
-            $this->notificationService->notify(
+            $this->notificationService->notifyExpert(
                 $expert,
-                ExpertNotificationService::TYPE_APPOINTMENT_STATUS,
+                'appointment.status_updated',
                 $titleMap[$newStatus] ?? "Appointment status: {$newStatus}",
                 "Appointment #{$appointment->id} with {$farmer?->name} is now {$newStatus}.",
                 [
