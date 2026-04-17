@@ -4,7 +4,10 @@ namespace App\Http\Controllers\Frontend;
 
 use App\Http\Controllers\Controller;
 use App\Models\Notification;
+use App\Models\User;
+use App\Services\Notifications\NotificationCenterService;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 /**
@@ -15,22 +18,35 @@ use Illuminate\View\View;
  */
 class CustomerNotificationController extends Controller
 {
+    public function __construct(private readonly NotificationCenterService $service) {}
+
+    private function currentUser(): User
+    {
+        $user = auth('web')->user();
+
+        if ($user instanceof User) {
+            return $user;
+        }
+
+        abort(403);
+    }
+
     /**
      * List all notifications for the authenticated user.
      * Route: GET /notifications
      */
-    public function index(): View
+    public function index(Request $request): View
     {
-        $user          = auth('web')->user();
-        $notifications = Notification::where('recipient_id', $user->id)
-                                     ->latest('sent_at')
-                                     ->paginate(20);
+        $user = $this->currentUser();
+        $filters = [
+            'status' => (string) $request->input('status', 'all'),
+            'type' => (string) $request->input('type', 'all'),
+        ];
 
-        $unreadCount = Notification::where('recipient_id', $user->id)
-                                   ->where('read', false)
-                                   ->count();
+        $notifications = $this->service->listForUser($user, $filters, 20);
+        $unreadCount = $this->service->unreadCount($user);
 
-        return view('customer.notifications', compact('notifications', 'unreadCount'));
+        return view('customer.notifications', compact('notifications', 'unreadCount', 'filters'));
     }
 
     /**
@@ -39,11 +55,9 @@ class CustomerNotificationController extends Controller
      */
     public function markRead(int $id): RedirectResponse
     {
-        $user = auth('web')->user();
+        $notification = Notification::query()->findOrFail($id);
 
-        Notification::where('id', $id)
-                    ->where('recipient_id', $user->id)
-                    ->update(['read' => true]);
+        $this->service->markRead($notification, $this->currentUser());
 
         return back()->with('success', 'Notification marked as read.');
     }
@@ -54,12 +68,15 @@ class CustomerNotificationController extends Controller
      */
     public function markAllRead(): RedirectResponse
     {
-        $user = auth('web')->user();
+        $count = $this->service->markAllRead($this->currentUser());
 
-        Notification::where('recipient_id', $user->id)
-                    ->where('read', false)
-                    ->update(['read' => true]);
+        return back()->with('success', "{$count} notifications marked as read.");
+    }
 
-        return back()->with('success', 'All notifications marked as read.');
+    public function clearAll(): RedirectResponse
+    {
+        $count = $this->service->clearAll($this->currentUser());
+
+        return back()->with('success', "{$count} notifications cleared.");
     }
 }
