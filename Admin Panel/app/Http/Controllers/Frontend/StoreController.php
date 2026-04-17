@@ -14,7 +14,7 @@ class StoreController extends Controller
      */
     public function index(Request $request): View
     {
-        $query = Vendor::where('is_active', true)->where('is_approved', true);
+        $query = Vendor::where('is_active', true)->where('status', 'approved');
 
         if ($request->filled('search')) {
             $query->where(function ($q) use ($request) {
@@ -42,7 +42,7 @@ class StoreController extends Controller
     {
         // Find the active/approved vendor
         $store = Vendor::where('is_active', true)
-                       ->where('is_approved', true)
+                   ->where('status', 'approved')
                        ->findOrFail($id);
 
         // Fetch their associated active/in-stock products
