@@ -213,6 +213,20 @@ class Appointment extends Model
         ]);
     }
 
+    public function canBeReviewed(): bool
+    {
+        return $this->status === self::STATUS_COMPLETED;
+    }
+
+    public function canBeUpdatedByExpert(): bool
+    {
+        return ! in_array($this->status, [
+            self::STATUS_COMPLETED,
+            self::STATUS_CANCELLED,
+            self::STATUS_REJECTED,
+        ], true);
+    }
+
     public function canBeCancelledByCustomer(): bool
     {
         return in_array($this->status, [
