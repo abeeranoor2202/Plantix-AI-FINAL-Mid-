@@ -32,6 +32,13 @@ class Order extends Model
     public const STATUS_RETURN_REQUESTED = 'return_requested';
     public const STATUS_RETURNED        = 'returned';
     public const STATUS_REFUNDED        = 'refunded';
+    public const DISPUTE_NONE           = 'none';
+    public const DISPUTE_PENDING        = 'pending';
+    public const DISPUTE_VENDOR_RESPONDED = 'vendor_responded';
+    public const DISPUTE_ESCALATED      = 'escalated';
+    public const DISPUTE_RESOLVED       = 'resolved';
+    public const DISPUTE_REJECTED       = 'rejected';
+    public const DISPUTE_CANCELLED      = 'cancelled';
 
     protected $fillable = [
         'order_number', 'user_id', 'vendor_id', 'coupon_id',
@@ -39,6 +46,8 @@ class Order extends Model
         'total', 'payment_method', 'payment_status', 'payment_intent_id',
         'delivery_address', 'delivery_lat', 'delivery_lng',
         'notes', 'estimated_delivery', 'delivered_at',
+        'dispute_status', 'disputed_at', 'dispute_reason', 'vendor_dispute_response',
+        'dispute_resolved_by', 'dispute_resolved_at', 'dispute_admin_notes',
     ];
 
     protected $casts = [
@@ -49,6 +58,8 @@ class Order extends Model
         'total'              => 'decimal:2',
         'estimated_delivery' => 'datetime',
         'delivered_at'       => 'datetime',
+        'disputed_at'        => 'datetime',
+        'dispute_resolved_at'=> 'datetime',
     ];
 
     protected static function booted(): void
@@ -135,6 +146,11 @@ class Order extends Model
         return $this->hasOne(Refund::class);
     }
 
+    public function dispute(): HasOne
+    {
+        return $this->hasOne(OrderDispute::class);
+    }
+
     // ── Scopes ────────────────────────────────────────────────────────────────
 
     public function scopeForVendor($query, int $vendorId)
@@ -168,6 +184,15 @@ class Order extends Model
     public function isCancelled(): bool      { return $this->status === self::STATUS_CANCELLED; }
     public function isRefunded(): bool       { return $this->status === self::STATUS_REFUNDED; }
     public function isPaid(): bool           { return $this->payment_status === 'paid'; }
+
+    public function hasOpenDispute(): bool
+    {
+        return in_array($this->dispute_status ?? self::DISPUTE_NONE, [
+            self::DISPUTE_PENDING,
+            self::DISPUTE_VENDOR_RESPONDED,
+            self::DISPUTE_ESCALATED,
+        ], true);
+    }
 
     /** True if the order is in a terminal state (no further transitions) */
     public function isTerminal(): bool
