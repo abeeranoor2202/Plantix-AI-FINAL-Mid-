@@ -64,6 +64,18 @@ class RouteServiceProvider extends ServiceProvider
             );
         });
 
+        // Strict bucket for /api/v1 application traffic
+        RateLimiter::for('api-v1', function (Request $request) {
+            return Limit::perMinute(90)->by(
+                optional($request->user())->id ?: $request->ip()
+            );
+        });
+
+        // Tight auth bucket for /api/v1/auth/login
+        RateLimiter::for('api-v1-auth', function (Request $request) {
+            return Limit::perMinute(10)->by($request->ip());
+        });
+
         // Admin-panel API calls (higher limit – server-side, not public)
         RateLimiter::for('admin-api', function (Request $request) {
             return Limit::perMinute(200)->by(
