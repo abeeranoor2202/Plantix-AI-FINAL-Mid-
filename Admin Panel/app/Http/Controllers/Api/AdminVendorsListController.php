@@ -14,7 +14,7 @@ class AdminVendorsListController extends Controller
     public function index(Request $request)
     {
         try {
-            $type = $request->get('type', 'all'); // all, pending, approved
+            $type = $request->get('type', 'all'); // all, pending, approved, rejected, suspended
             $page = $request->get('page', 1);
             $limit = $request->get('limit', 10);
             $search = $request->get('search', '');
@@ -25,9 +25,13 @@ class AdminVendorsListController extends Controller
 
             // Filter by verification status
             if ($type === 'pending') {
-                $query->where('is_document_verified', false);
+                $query->where('status', 'pending');
             } elseif ($type === 'approved') {
-                $query->where('is_document_verified', true);
+                $query->where('status', 'approved');
+            } elseif ($type === 'rejected') {
+                $query->where('status', 'rejected');
+            } elseif ($type === 'suspended') {
+                $query->where('status', 'suspended');
             }
 
             // Search functionality
@@ -53,6 +57,7 @@ class AdminVendorsListController extends Controller
                                     'email' => $vendor->email,
                                     'phone_number' => $vendor->phone_number,
                                     'profile_picture_url' => $vendor->profile_picture_url ?? asset('images/placeholder.png'),
+                                    'status' => $vendor->status ?? 'pending',
                                     'is_document_verified' => $vendor->is_document_verified ?? false,
                                     'is_active' => $vendor->is_active ?? true,
                                     'created_at' => $vendor->created_at,
@@ -98,6 +103,7 @@ class AdminVendorsListController extends Controller
 
             $vendor->is_active = $validated['is_active'];
             $vendor->active = $validated['is_active'];
+            $vendor->status = $validated['is_active'] ? 'approved' : 'suspended';
             $vendor->save();
 
             return response()->json([
