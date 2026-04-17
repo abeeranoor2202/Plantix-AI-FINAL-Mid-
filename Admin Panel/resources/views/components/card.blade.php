@@ -1,5 +1,6 @@
 @props([
     'header' => null,
+    'bodyClass' => 'p-0',
 ])
 
 <div {{ $attributes->merge(['class' => 'card-agri']) }}>
@@ -8,7 +9,7 @@
             {!! $header !!}
         </div>
     @endif
-    <div class="card-body p-0">
+    <div class="card-body {{ $bodyClass }}">
         {{ $slot }}
     </div>
 </div>
