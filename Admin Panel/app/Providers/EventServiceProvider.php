@@ -32,9 +32,11 @@ class EventServiceProvider extends ServiceProvider
         // ── Orders ───────────────────────────────────────────────────────────
         \App\Events\Order\OrderPlaced::class => [
             \App\Listeners\Order\SendOrderEmailListener::class,
+            \App\Listeners\Platform\ApplyPlatformImpactAndLog::class,
         ],
         \App\Events\Order\OrderStatusUpdated::class => [
             \App\Listeners\Order\SendOrderEmailListener::class,
+            \App\Listeners\Platform\ApplyPlatformImpactAndLog::class,
         ],
 
         // ── Payments ─────────────────────────────────────────────────────────
@@ -49,21 +51,26 @@ class EventServiceProvider extends ServiceProvider
         \App\Events\Appointment\AppointmentCreated::class => [
             \App\Listeners\Appointment\SendAppointmentEmailListener::class,
             \App\Listeners\Expert\SendAppointmentCreatedNotification::class,
+            \App\Listeners\Platform\ApplyPlatformImpactAndLog::class,
         ],
         \App\Events\Appointment\AppointmentStatusChanged::class => [
             \App\Listeners\Appointment\SendAppointmentEmailListener::class,
+            \App\Listeners\Platform\ApplyPlatformImpactAndLog::class,
         ],
 
         // ── Forum ────────────────────────────────────────────────────────────
         \App\Events\Forum\ForumReplyCreated::class => [
             \App\Listeners\Forum\SendForumEmailListener::class,
+            \App\Listeners\Platform\ApplyPlatformImpactAndLog::class,
         ],
         \App\Events\Forum\OfficialAnswerMarked::class => [
             \App\Listeners\Forum\SendForumEmailListener::class,
             \App\Listeners\Expert\SendForumOfficialMarkedNotification::class,
+            \App\Listeners\Platform\ApplyPlatformImpactAndLog::class,
         ],
         \App\Events\Forum\ContentFlagged::class => [
             \App\Listeners\Forum\SendForumEmailListener::class,
+            \App\Listeners\Platform\ApplyPlatformImpactAndLog::class,
         ],
 
         // ── Vendors ──────────────────────────────────────────────────────────
@@ -83,6 +90,7 @@ class EventServiceProvider extends ServiceProvider
         // ── Reviews ──────────────────────────────────────────────────────────
         \App\Events\Review\ReviewCreated::class => [
             \App\Listeners\Review\SendReviewEmailListener::class,
+            \App\Listeners\Platform\ApplyPlatformImpactAndLog::class,
         ],
 
         // ── Coupons ──────────────────────────────────────────────────────────
