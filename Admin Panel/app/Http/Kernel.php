@@ -67,6 +67,7 @@ class Kernel extends HttpKernel
         'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
         'permission' => \App\Http\Middleware\PermissionMiddleware::class,
         'role'       => \App\Http\Middleware\RoleMiddleware::class,
+        'api.role'   => \App\Http\Middleware\EnsureApiRole::class,
         // ── Guard-specific panel middleware ───────────────────────────────────
         'admin'      => \App\Http\Middleware\EnsureAdminGuard::class,
         'vendor.auth'=> \App\Http\Middleware\EnsureVendorGuard::class,
