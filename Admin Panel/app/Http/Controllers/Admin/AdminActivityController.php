@@ -25,6 +25,14 @@ class AdminActivityController extends Controller
             $query->where('entity_type', $request->string('entity_type'));
         }
 
+        if ($request->filled('date_from')) {
+            $query->whereDate('created_at', '>=', $request->date('date_from')->toDateString());
+        }
+
+        if ($request->filled('date_to')) {
+            $query->whereDate('created_at', '<=', $request->date('date_to')->toDateString());
+        }
+
         $activities = $query->paginate(30)->withQueryString();
 
         return view('admin.activity.index', compact('activities'));
