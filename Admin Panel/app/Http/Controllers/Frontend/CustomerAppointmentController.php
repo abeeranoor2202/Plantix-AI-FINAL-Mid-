@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Frontend;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Frontend\AppointmentRescheduleResponseRequest;
+use App\Http\Requests\Frontend\CustomerAppointmentReviewRequest;
 use App\Http\Requests\Frontend\StoreAppointmentRequest;
 use App\Models\Appointment;
 use App\Models\AppointmentReschedule;
@@ -24,12 +26,55 @@ class CustomerAppointmentController extends Controller
         private readonly AppointmentStatusService $appointmentStatus,
     ) {}
 
-    public function index(): View
+    public function index(Request $request): View
     {
-        $user         = auth('web')->user();
-        $appointments = $user->appointments()->with(['expert.user', 'expert.profile'])->latest()->paginate(10);
+        $user = auth('web')->user();
+        $filters = $request->validate([
+            'search' => ['nullable', 'string', 'max:255'],
+            'status' => ['nullable', 'string', 'max:50'],
+            'type' => ['nullable', 'in:online,physical'],
+            'expert_id' => ['nullable', 'integer', 'exists:experts,id'],
+            'date_from' => ['nullable', 'date'],
+            'date_to' => ['nullable', 'date'],
+        ]);
 
-        return view('customer.appointments', compact('appointments'));
+        $appointmentsQuery = $user->appointments()->with(['expert.user', 'expert.profile'])->latest();
+
+        if (! empty($filters['search'])) {
+            $term = $filters['search'];
+            $appointmentsQuery->where(function ($query) use ($term): void {
+                $query->where('topic', 'like', '%' . $term . '%')
+                    ->orWhereHas('expert.user', fn ($expertUserQuery) => $expertUserQuery
+                        ->where('name', 'like', '%' . $term . '%')
+                        ->orWhere('email', 'like', '%' . $term . '%')
+                    );
+            });
+        }
+
+        if (! empty($filters['status'])) {
+            $appointmentsQuery->where('status', $filters['status']);
+        }
+
+        if (! empty($filters['type'])) {
+            $appointmentsQuery->where('type', $filters['type']);
+        }
+
+        if (! empty($filters['expert_id'])) {
+            $appointmentsQuery->where('expert_id', (int) $filters['expert_id']);
+        }
+
+        if (! empty($filters['date_from'])) {
+            $appointmentsQuery->whereDate('scheduled_at', '>=', $filters['date_from']);
+        }
+
+        if (! empty($filters['date_to'])) {
+            $appointmentsQuery->whereDate('scheduled_at', '<=', $filters['date_to']);
+        }
+
+        $appointments = $appointmentsQuery->paginate(10)->withQueryString();
+        $experts = Expert::with('user:id,name')->orderBy('id')->get(['id', 'user_id']);
+
+        return view('customer.appointments', compact('appointments', 'filters', 'experts'));
     }
 
     public function create(): View
@@ -113,12 +158,8 @@ class CustomerAppointmentController extends Controller
      * Section 6 – Reschedule Logic: POST /appointment/{id}/reschedule-response
      * Input: action[accept|reject]
      */
-    public function rescheduleResponse(Request $request, int $id): RedirectResponse
+    public function rescheduleResponse(AppointmentRescheduleResponseRequest $request, int $id): RedirectResponse
     {
-        $request->validate([
-            'action' => 'required|in:accept,reject',
-        ]);
-
         $user        = auth('web')->user();
         $appointment = $user->appointments()
             ->where('status', Appointment::STATUS_RESCHEDULE_REQUESTED)
@@ -129,7 +170,7 @@ class CustomerAppointmentController extends Controller
             ->latest()
             ->firstOrFail();
 
-        if ($request->action === 'accept') {
+        if ($request->input('action') === 'accept') {
             $appointment = $this->appointmentStatus->acceptReschedule($appointment, $user->id);
         } else {
             $appointment = $this->appointmentStatus->rejectReschedule($appointment, $user->id);
@@ -142,7 +183,7 @@ class CustomerAppointmentController extends Controller
                     new AppointmentRescheduledNotification(
                         $appointment->fresh(),
                         $reschedule->fresh(),
-                        $request->action === 'accept' ? 'accepted' : 'rejected'
+                        $request->input('action') === 'accept' ? 'accepted' : 'rejected'
                     )
                 );
             } catch (\Throwable $e) {
@@ -150,24 +191,19 @@ class CustomerAppointmentController extends Controller
             }
         }
 
-        $message = $request->action === 'accept'
+        $message = $request->input('action') === 'accept'
             ? 'Reschedule accepted. Your appointment has been updated.'
             : 'Reschedule rejected. Your appointment remains at the original time.';
 
         return redirect()->route('appointment.details', $id)->with('success', $message);
     }
 
-    public function review(Request $request, int $id): RedirectResponse
+    public function review(CustomerAppointmentReviewRequest $request, int $id): RedirectResponse
     {
-        $request->validate([
-            'customer_rating' => 'required|integer|min:1|max:5',
-            'customer_review'  => 'nullable|string|max:2000',
-        ]);
-
         $user        = auth('web')->user();
         $appointment = $user->appointments()->findOrFail($id);
 
-        if ($appointment->status !== Appointment::STATUS_COMPLETED) {
+        if (! $appointment->canBeReviewed()) {
             return back()->withErrors([
                 'customer_rating' => 'You can only review a completed appointment.',
             ]);
