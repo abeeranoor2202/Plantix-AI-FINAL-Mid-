@@ -5,6 +5,7 @@ namespace App\Notifications\Order;
 use App\Models\Order;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
 class OrderDisputeResolvedNotification extends Notification implements ShouldQueue
@@ -20,7 +21,19 @@ class OrderDisputeResolvedNotification extends Notification implements ShouldQue
 
     public function via(object $notifiable): array
     {
-        return ['database'];
+        return ['database', 'mail'];
+    }
+
+    public function toMail(object $notifiable): MailMessage
+    {
+        return (new MailMessage())
+            ->subject('Order Dispute Resolved — #' . $this->order->order_number)
+            ->greeting('Hello ' . ($notifiable->name ?? 'there') . ',')
+            ->line('The dispute for Order #' . $this->order->order_number . ' has been resolved.')
+            ->line('Final status: ' . $this->status)
+            ->line('Resolution: ' . $this->resolution)
+            ->action('View Resolution', $this->actionUrl)
+            ->line('Thank you for using Plantix AI.');
     }
 
     public function toArray(object $notifiable): array
