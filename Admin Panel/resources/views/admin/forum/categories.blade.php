@@ -17,15 +17,11 @@
     </div>
 
     @if(session('success'))
-        <div class="card-agri mb-4" style="background: #ecfdf5; border: 1px solid #86efac; border-radius: 12px; padding: 12px 20px; color: #166534; font-weight: 700;">
-            {{ session('success') }}
-        </div>
+        <x-alert variant="success" class="mb-4">{{ session('success') }}</x-alert>
     @endif
 
     @if(session('error'))
-        <div class="card-agri mb-4" style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 12px; padding: 12px 20px; color: #991b1b; font-weight: 700;">
-            {{ session('error') }}
-        </div>
+        <x-alert variant="danger" class="mb-4">{{ session('error') }}</x-alert>
     @endif
 
     <div class="row g-4">
@@ -85,7 +81,7 @@
                                             <form method="POST" action="{{ route('admin.forum.categories.destroy', $cat->id) }}" class="d-inline" onsubmit="return confirm('Delete category?')">
                                                 @csrf
                                                 @method('DELETE')
-                                                <button type="submit" class="btn-agri" style="padding: 8px; background: #fef2f2; color: #ef4444; border-radius: 999px; border: none;" title="Delete"><i class="fas fa-trash"></i></button>
+                                                <button type="submit" class="btn-agri btn-agri-danger" style="padding: 8px; border-radius: 999px; border: none;" title="Delete"><i class="fas fa-trash"></i></button>
                                             </form>
                                         </div>
                                     </td>
