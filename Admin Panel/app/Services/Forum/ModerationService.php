@@ -286,6 +286,39 @@ class ModerationService
     }
 
     /**
+     * Resolve a thread-targeted flag by archiving the reported thread.
+     */
+    public function resolveFlagByArchivingThread(User $admin, ForumFlag $flag): void
+    {
+        $thread = $flag->thread;
+
+        if (! $thread) {
+            throw new \DomainException('This report is not linked to an active thread.');
+        }
+
+        DB::transaction(function () use ($admin, $flag, $thread): void {
+            $thread->update(['status' => ForumThread::STATUS_ARCHIVED]);
+
+            $flag->update([
+                'status'      => ForumFlag::STATUS_RESOLVED,
+                'reviewed_by' => $admin->id,
+                'reviewed_at' => now(),
+            ]);
+
+            ForumLog::record(
+                $admin->id,
+                ForumLog::ACTION_FLAG_RESOLVE,
+                $thread->id,
+                null,
+                ['flag_id' => $flag->id, 'mode' => 'archive_thread']
+            );
+        });
+
+        Cache::forget('forum.pinned_threads');
+        Cache::forget('forum.category_counts');
+    }
+
+    /**
      * Ignore a report without changing reply visibility/content.
      */
     public function ignoreFlag(User $admin, ForumFlag $flag): void
