@@ -11,21 +11,17 @@
                 <i class="fas fa-chevron-right" style="font-size: 10px; color: var(--agri-text-muted);"></i>
                 <span style="color: var(--agri-primary); font-size: 14px; font-weight: 600;">Flags</span>
             </div>
-            <h1 style="font-size: 28px; font-weight: 700; color: var(--agri-primary-dark); margin: 0;">Flagged Replies</h1>
-            <p style="color: var(--agri-text-muted); margin: 4px 0 0 0;">Review and resolve forum reports in one unified moderation table.</p>
+            <h1 style="font-size: 28px; font-weight: 700; color: var(--agri-primary-dark); margin: 0;">Flagged Content</h1>
+            <p style="color: var(--agri-text-muted); margin: 4px 0 0 0;">Review and resolve thread and reply reports in one unified moderation table.</p>
         </div>
     </div>
 
     @if(session('success'))
-        <div class="card-agri mb-4" style="background: #ecfdf5; border: 1px solid #86efac; border-radius: 12px; padding: 12px 20px; color: #166534; font-weight: 700;">
-            {{ session('success') }}
-        </div>
+        <x-alert variant="success" class="mb-4">{{ session('success') }}</x-alert>
     @endif
 
     @if(session('error'))
-        <div class="card-agri mb-4" style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 12px; padding: 12px 20px; color: #991b1b; font-weight: 700;">
-            {{ session('error') }}
-        </div>
+        <x-alert variant="danger" class="mb-4">{{ session('error') }}</x-alert>
     @endif
 
     <div class="card-agri" style="padding: 0; overflow: hidden;">
@@ -48,7 +44,8 @@
                 <thead style="background: var(--agri-bg);">
                     <tr>
                         <th style="padding: 16px 24px; font-size: 12px; font-weight: 600; color: var(--agri-text-muted); text-transform: uppercase; border: none;">ID</th>
-                        <th style="padding: 16px 24px; font-size: 12px; font-weight: 600; color: var(--agri-text-muted); text-transform: uppercase; border: none;">Reply</th>
+                        <th style="padding: 16px 24px; font-size: 12px; font-weight: 600; color: var(--agri-text-muted); text-transform: uppercase; border: none;">Type</th>
+                        <th style="padding: 16px 24px; font-size: 12px; font-weight: 600; color: var(--agri-text-muted); text-transform: uppercase; border: none;">Content</th>
                         <th style="padding: 16px 24px; font-size: 12px; font-weight: 600; color: var(--agri-text-muted); text-transform: uppercase; border: none;">Thread</th>
                         <th style="padding: 16px 24px; font-size: 12px; font-weight: 600; color: var(--agri-text-muted); text-transform: uppercase; border: none;">Reporter</th>
                         <th style="padding: 16px 24px; font-size: 12px; font-weight: 600; color: var(--agri-text-muted); text-transform: uppercase; border: none;">Reason</th>
@@ -58,10 +55,17 @@
                 </thead>
                 <tbody>
                     @forelse($flags as $flag)
-                        @php $thread = $flag->reply?->thread; @endphp
+                        @php
+                            $thread = $flag->thread ?? $flag->reply?->thread;
+                            $isReplyFlag = $flag->reply !== null;
+                            $contentPreview = $isReplyFlag
+                                ? \Illuminate\Support\Str::limit(strip_tags($flag->reply->body ?? 'Reply deleted'), 45)
+                                : \Illuminate\Support\Str::limit($thread->title ?? 'Thread deleted', 45);
+                        @endphp
                         <tr>
                             <td class="px-4 py-3">{{ $flag->id }}</td>
-                            <td class="px-4 py-3">{{ \Illuminate\Support\Str::limit(strip_tags($flag->reply->body ?? 'Reply deleted'), 45) }}</td>
+                            <td class="px-4 py-3">{{ $isReplyFlag ? 'Reply' : 'Thread' }}</td>
+                            <td class="px-4 py-3">{{ $contentPreview }}</td>
                             <td class="px-4 py-3">{{ $thread ? \Illuminate\Support\Str::limit($thread->title, 35) : 'Deleted thread' }}</td>
                             <td class="px-4 py-3">{{ optional($flag->reporter)->name ?? '—' }}</td>
                             <td class="px-4 py-3">{{ \Illuminate\Support\Str::limit($flag->reason, 30) }}</td>
@@ -83,22 +87,29 @@
                                     @if($st === 'pending')
                                         <form method="POST" action="{{ route('admin.forum.flags.confirm', $flag->id) }}" class="d-inline">
                                             @csrf
-                                            <button type="submit" class="btn-agri" style="padding: 8px; background: #ecfdf5; color: #059669; border-radius: 999px; border: none;" title="Approve / Keep Reply"><i class="fas fa-check"></i></button>
+                                            <button type="submit" class="btn-agri btn-agri-success" style="padding: 8px; border-radius: 999px;" title="Approve / Keep Content"><i class="fas fa-check"></i></button>
                                         </form>
-                                        <form method="POST" action="{{ route('admin.forum.flags.delete-reply', $flag->id) }}" class="d-inline" onsubmit="return confirm('Delete this reply and resolve report?')">
-                                            @csrf
-                                            <button type="submit" class="btn-agri" style="padding: 8px; background: #fef2f2; color: #ef4444; border-radius: 999px; border: none;" title="Delete Reply"><i class="fas fa-trash"></i></button>
-                                        </form>
+                                        @if($isReplyFlag)
+                                            <form method="POST" action="{{ route('admin.forum.flags.delete-reply', $flag->id) }}" class="d-inline" onsubmit="return confirm('Delete this reply and resolve report?')">
+                                                @csrf
+                                                <button type="submit" class="btn-agri btn-agri-danger" style="padding: 8px; border-radius: 999px;" title="Delete Reply"><i class="fas fa-trash"></i></button>
+                                            </form>
+                                        @elseif($thread)
+                                            <form method="POST" action="{{ route('admin.forum.flags.archive-thread', $flag->id) }}" class="d-inline" onsubmit="return confirm('Archive this thread and resolve report?')">
+                                                @csrf
+                                                <button type="submit" class="btn-agri btn-agri-danger" style="padding: 8px; border-radius: 999px;" title="Archive Thread"><i class="fas fa-box-archive"></i></button>
+                                            </form>
+                                        @endif
                                         <form method="POST" action="{{ route('admin.forum.flags.dismiss', $flag->id) }}" class="d-inline">
                                             @csrf
-                                            <button type="submit" class="btn-agri" style="padding: 8px; background: #f3f4f6; color: #4b5563; border-radius: 999px; border: none;" title="Ignore Report"><i class="fas fa-times"></i></button>
+                                            <button type="submit" class="btn-agri btn-agri-outline" style="padding: 8px; border-radius: 999px;" title="Ignore Report"><i class="fas fa-times"></i></button>
                                         </form>
                                     @endif
                                 </div>
                             </td>
                         </tr>
                     @empty
-                        <tr><td colspan="7" class="text-center py-5" style="color: var(--agri-text-muted);">No flag reports found.</td></tr>
+                        <tr><td colspan="8" class="text-center py-5" style="color: var(--agri-text-muted);">No flag reports found.</td></tr>
                     @endforelse
                 </tbody>
             </table>
