@@ -82,6 +82,9 @@ class AdminForumController extends Controller
             ])],
             'forum_category_id' => ['nullable', 'integer', 'exists:forum_categories,id'],
             'approved' => ['nullable', 'in:0,1'],
+            'date_from' => ['nullable', 'date'],
+            'date_to' => ['nullable', 'date'],
+            'sort_by' => ['nullable', 'in:latest,oldest,popular'],
         ]);
 
         $query = ForumThread::with(['user', 'category'])
@@ -107,7 +110,25 @@ class AdminForumController extends Controller
             );
         }
 
-        $threads    = $query->orderByDesc('created_at')->paginate(20)->withQueryString();
+        if (! empty($filters['date_from'])) {
+            $query->whereDate('created_at', '>=', $filters['date_from']);
+        }
+
+        if (! empty($filters['date_to'])) {
+            $query->whereDate('created_at', '<=', $filters['date_to']);
+        }
+
+        $sortBy = $filters['sort_by'] ?? 'latest';
+
+        if ($sortBy === 'popular') {
+            $query->orderByDesc('replies_count');
+        } elseif ($sortBy === 'oldest') {
+            $query->orderBy('created_at');
+        } else {
+            $query->orderByDesc('created_at');
+        }
+
+        $threads    = $query->paginate(20)->withQueryString();
         $categories = ForumCategory::orderBy('name')->get();
         $statuses   = [
             ForumThread::STATUS_OPEN,
