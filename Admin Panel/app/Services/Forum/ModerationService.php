@@ -236,25 +236,37 @@ class ModerationService
      */
     public function resolveFlag(User $admin, ForumFlag $flag): void
     {
-        $reply = $flag->reply;
+        DB::transaction(function () use ($admin, $flag): void {
+            $lockedFlag = ForumFlag::query()
+                ->with('reply')
+                ->whereKey($flag->id)
+                ->lockForUpdate()
+                ->firstOrFail();
 
-        $flag->update([
-            'status'      => ForumFlag::STATUS_RESOLVED,
-            'reviewed_by' => $admin->id,
-            'reviewed_at' => now(),
-        ]);
+            if (! in_array($lockedFlag->status, [ForumFlag::STATUS_PENDING], true)) {
+                throw new \DomainException('This report has already been processed.');
+            }
 
-        if ($reply) {
-            $reply->update(['status' => ForumReply::STATUS_VISIBLE]);
-        }
+            $reply = $lockedFlag->reply;
 
-        ForumLog::record(
-            $admin->id,
-            ForumLog::ACTION_FLAG_RESOLVE,
-            $reply?->thread_id,
-            $reply?->id,
-            ['flag_id' => $flag->id, 'mode' => 'keep']
-        );
+            $lockedFlag->update([
+                'status'      => ForumFlag::STATUS_RESOLVED,
+                'reviewed_by' => $admin->id,
+                'reviewed_at' => now(),
+            ]);
+
+            if ($reply) {
+                ForumReply::query()->whereKey($reply->id)->lockForUpdate()->update(['status' => ForumReply::STATUS_VISIBLE]);
+            }
+
+            ForumLog::record(
+                $admin->id,
+                ForumLog::ACTION_FLAG_RESOLVE,
+                $reply?->thread_id,
+                $reply?->id,
+                ['flag_id' => $lockedFlag->id, 'mode' => 'keep']
+            );
+        });
     }
 
     /**
@@ -262,27 +274,42 @@ class ModerationService
      */
     public function resolveFlagByDeletingReply(User $admin, ForumFlag $flag): void
     {
-        $reply = $flag->reply;
-        $threadId = $reply?->thread_id;
-        $deletedReplyId = $reply?->id;
+        DB::transaction(function () use ($admin, $flag): void {
+            $lockedFlag = ForumFlag::query()
+                ->with('reply')
+                ->whereKey($flag->id)
+                ->lockForUpdate()
+                ->firstOrFail();
 
-        if ($reply) {
-            $this->deleteReply($admin, $reply);
-        }
+            if (! in_array($lockedFlag->status, [ForumFlag::STATUS_PENDING], true)) {
+                throw new \DomainException('This report has already been processed.');
+            }
 
-        $flag->update([
-            'status'      => ForumFlag::STATUS_RESOLVED,
-            'reviewed_by' => $admin->id,
-            'reviewed_at' => now(),
-        ]);
+            $reply = $lockedFlag->reply
+                ? ForumReply::query()->whereKey($lockedFlag->reply->id)->lockForUpdate()->first()
+                : null;
 
-        ForumLog::record(
-            $admin->id,
-            ForumLog::ACTION_FLAG_RESOLVE,
-            $threadId,
-            null,
-            ['flag_id' => $flag->id, 'mode' => 'delete_reply', 'deleted_reply_id' => $deletedReplyId]
-        );
+            $threadId = $reply?->thread_id;
+            $deletedReplyId = $reply?->id;
+
+            if ($reply) {
+                $this->deleteReply($admin, $reply);
+            }
+
+            $lockedFlag->update([
+                'status'      => ForumFlag::STATUS_RESOLVED,
+                'reviewed_by' => $admin->id,
+                'reviewed_at' => now(),
+            ]);
+
+            ForumLog::record(
+                $admin->id,
+                ForumLog::ACTION_FLAG_RESOLVE,
+                $threadId,
+                null,
+                ['flag_id' => $lockedFlag->id, 'mode' => 'delete_reply', 'deleted_reply_id' => $deletedReplyId]
+            );
+        });
     }
 
     /**
@@ -297,9 +324,17 @@ class ModerationService
         }
 
         DB::transaction(function () use ($admin, $flag, $thread): void {
-            $thread->update(['status' => ForumThread::STATUS_ARCHIVED]);
+            $lockedFlag = ForumFlag::query()->whereKey($flag->id)->lockForUpdate()->firstOrFail();
 
-            $flag->update([
+            if (! in_array($lockedFlag->status, [ForumFlag::STATUS_PENDING], true)) {
+                throw new \DomainException('This report has already been processed.');
+            }
+
+            $lockedThread = ForumThread::query()->whereKey($thread->id)->lockForUpdate()->firstOrFail();
+
+            $lockedThread->update(['status' => ForumThread::STATUS_ARCHIVED]);
+
+            $lockedFlag->update([
                 'status'      => ForumFlag::STATUS_RESOLVED,
                 'reviewed_by' => $admin->id,
                 'reviewed_at' => now(),
@@ -308,9 +343,9 @@ class ModerationService
             ForumLog::record(
                 $admin->id,
                 ForumLog::ACTION_FLAG_RESOLVE,
-                $thread->id,
+                $lockedThread->id,
                 null,
-                ['flag_id' => $flag->id, 'mode' => 'archive_thread']
+                ['flag_id' => $lockedFlag->id, 'mode' => 'archive_thread']
             );
         });
 
@@ -323,21 +358,33 @@ class ModerationService
      */
     public function ignoreFlag(User $admin, ForumFlag $flag): void
     {
-        $reply = $flag->reply;
+        DB::transaction(function () use ($admin, $flag): void {
+            $lockedFlag = ForumFlag::query()
+                ->with('reply')
+                ->whereKey($flag->id)
+                ->lockForUpdate()
+                ->firstOrFail();
 
-        $flag->update([
-            'status'      => ForumFlag::STATUS_IGNORED,
-            'reviewed_by' => $admin->id,
-            'reviewed_at' => now(),
-        ]);
+            if (! in_array($lockedFlag->status, [ForumFlag::STATUS_PENDING], true)) {
+                throw new \DomainException('This report has already been processed.');
+            }
 
-        ForumLog::record(
-            $admin->id,
-            ForumLog::ACTION_FLAG_IGNORE,
-            $reply?->thread_id,
-            $reply?->id,
-            ['flag_id' => $flag->id]
-        );
+            $reply = $lockedFlag->reply;
+
+            $lockedFlag->update([
+                'status'      => ForumFlag::STATUS_IGNORED,
+                'reviewed_by' => $admin->id,
+                'reviewed_at' => now(),
+            ]);
+
+            ForumLog::record(
+                $admin->id,
+                ForumLog::ACTION_FLAG_IGNORE,
+                $reply?->thread_id,
+                $reply?->id,
+                ['flag_id' => $lockedFlag->id]
+            );
+        });
     }
 
     // ── User Banning ──────────────────────────────────────────────────────────
@@ -364,6 +411,8 @@ class ModerationService
                 'is_shadow_banned' => $shadow,
                 'banned_until'     => $until,
                 'banned_reason'    => $reason,
+                'status'           => $shadow ? 'suspended' : 'banned',
+                'active'           => false,
             ]);
 
             ForumLog::record(
@@ -392,6 +441,8 @@ class ModerationService
                 'is_shadow_banned' => false,
                 'banned_until'     => null,
                 'banned_reason'    => null,
+                'status'           => 'active',
+                'active'           => true,
             ]);
 
             ForumLog::record(
