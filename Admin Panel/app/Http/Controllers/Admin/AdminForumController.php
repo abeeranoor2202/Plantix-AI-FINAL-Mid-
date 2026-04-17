@@ -327,14 +327,22 @@ class AdminForumController extends Controller
 
     public function dismissFlag(int $id): RedirectResponse
     {
-        $this->moderation->ignoreFlag($this->adminUser(), ForumFlag::findOrFail($id));
+        try {
+            $this->moderation->ignoreFlag($this->adminUser(), ForumFlag::findOrFail($id));
+        } catch (\DomainException $e) {
+            return back()->withErrors(['error' => $e->getMessage()]);
+        }
 
         return back()->with('success', 'Report ignored.');
     }
 
     public function confirmFlag(int $id): RedirectResponse
     {
-        $this->moderation->resolveFlag($this->adminUser(), ForumFlag::findOrFail($id));
+        try {
+            $this->moderation->resolveFlag($this->adminUser(), ForumFlag::findOrFail($id));
+        } catch (\DomainException $e) {
+            return back()->withErrors(['error' => $e->getMessage()]);
+        }
 
         return back()->with('success', 'Reply kept and report resolved.');
     }
@@ -347,7 +355,11 @@ class AdminForumController extends Controller
             return back()->withErrors(['error' => 'This report is not linked to a reply.']);
         }
 
-        $this->moderation->resolveFlagByDeletingReply($this->adminUser(), $flag);
+        try {
+            $this->moderation->resolveFlagByDeletingReply($this->adminUser(), $flag);
+        } catch (\DomainException $e) {
+            return back()->withErrors(['error' => $e->getMessage()]);
+        }
 
         return back()->with('success', 'Reply deleted and report resolved.');
     }
