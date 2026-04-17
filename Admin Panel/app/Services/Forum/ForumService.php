@@ -345,6 +345,7 @@ class ForumService
             $flag = DB::transaction(function () use ($reporter, $reply, $reason): ForumFlag {
                 $flag = ForumFlag::create([
                     'reply_id'   => $reply->id,
+                    'thread_id'  => $reply->thread_id,
                     'flagged_by' => $reporter->id,
                     'reason'     => $reason,
                     'status'     => ForumFlag::STATUS_PENDING,
@@ -369,6 +370,32 @@ class ForumService
             }
         } catch (\Throwable $e) {
             Log::warning('forum.notify.reply_flagged failed', ['error' => $e->getMessage()]);
+        }
+
+        return $flag;
+    }
+
+    /**
+     * Flag a thread for moderation review.
+     */
+    public function flagThread(User $reporter, ForumThread $thread, string $reason): ForumFlag
+    {
+        try {
+            $flag = DB::transaction(function () use ($reporter, $thread, $reason): ForumFlag {
+                $flag = ForumFlag::create([
+                    'reply_id'   => null,
+                    'thread_id'  => $thread->id,
+                    'flagged_by' => $reporter->id,
+                    'reason'     => $reason,
+                    'status'     => ForumFlag::STATUS_PENDING,
+                ]);
+
+                ForumLog::record($reporter->id, ForumLog::ACTION_THREAD_FLAG, $thread->id, null);
+
+                return $flag;
+            });
+        } catch (\Illuminate\Database\UniqueConstraintViolationException $e) {
+            throw new \DomainException('You have already flagged this thread.');
         }
 
         return $flag;
