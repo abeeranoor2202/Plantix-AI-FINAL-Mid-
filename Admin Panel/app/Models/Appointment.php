@@ -26,6 +26,7 @@ class Appointment extends Model
     public const STATUS_PENDING_PAYMENT         = 'pending_payment';
     public const STATUS_PAYMENT_FAILED          = 'payment_failed';
     public const STATUS_PENDING_EXPERT_APPROVAL = 'pending_expert_approval';
+    public const STATUS_ACCEPTED                = 'confirmed';
     public const STATUS_CONFIRMED               = 'confirmed';
     public const STATUS_REJECTED                = 'rejected';
     public const STATUS_COMPLETED               = 'completed';
@@ -67,6 +68,7 @@ class Appointment extends Model
         'reschedule_requested_at', 'accepted_at', 'rejected_at',
         'cancelled_at', 'completed_at', 'reject_reason',
         'reminder_sent_at', 'payment_idempotency_key',
+        'customer_rating', 'customer_review', 'rated_at',
     ];
 
     protected $casts = [
@@ -141,6 +143,11 @@ class Appointment extends Model
         return $this->hasOne(AppointmentReschedule::class)->latestOfMany();
     }
 
+    public function feedback(): HasOne
+    {
+        return $this->hasOne(AppointmentFeedback::class);
+    }
+
     public function slot(): HasOne
     {
         return $this->hasOne(AppointmentSlot::class);
@@ -185,6 +192,7 @@ class Appointment extends Model
         return in_array($this->status, [
             self::STATUS_PENDING_EXPERT_APPROVAL,
             self::STATUS_PENDING,
+            self::STATUS_ACCEPTED,
         ]);
     }
 
@@ -258,7 +266,7 @@ class Appointment extends Model
     {
         return match ($this->status) {
             self::STATUS_PENDING_EXPERT_APPROVAL => 'Pending',
-            self::STATUS_CONFIRMED               => 'Confirmed',
+            self::STATUS_CONFIRMED               => 'Accepted',
             self::STATUS_REJECTED                => 'Rejected',
             self::STATUS_COMPLETED               => 'Completed',
             self::STATUS_CANCELLED               => 'Cancelled',
