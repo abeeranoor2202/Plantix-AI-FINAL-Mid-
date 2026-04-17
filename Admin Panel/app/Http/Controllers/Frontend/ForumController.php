@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Forum\CreateReplyRequest;
 use App\Http\Requests\Forum\CreateThreadRequest;
 use App\Http\Requests\Forum\FlagReplyRequest;
+use App\Http\Requests\Forum\FlagThreadRequest;
 use App\Http\Requests\Forum\UpdateReplyRequest;
 use App\Models\ForumCategory;
 use App\Models\ForumReply;
@@ -141,5 +142,18 @@ class ForumController extends Controller
         }
 
         return back()->with('success', 'Reply reported to moderators. Thank you.');
+    }
+
+    public function flagThread(FlagThreadRequest $request, ForumThread $thread): RedirectResponse
+    {
+        $this->authorize('flag', $thread);
+
+        try {
+            $this->forum->flagThread(auth('web')->user(), $thread, $request->validated('reason'));
+        } catch (\DomainException $e) {
+            return back()->withErrors(['error' => $e->getMessage()]);
+        }
+
+        return back()->with('success', 'Thread reported to moderators. Thank you.');
     }
 }
