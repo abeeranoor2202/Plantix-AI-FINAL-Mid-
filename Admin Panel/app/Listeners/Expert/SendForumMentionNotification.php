@@ -4,13 +4,13 @@ namespace App\Listeners\Expert;
 
 use App\Events\Expert\ExpertMentionedInForum;
 use App\Notifications\Expert\ExpertForumMentionNotification;
-use App\Services\Expert\ExpertNotificationService;
+use App\Services\Notifications\NotificationCenterService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 
 /**
  * SendForumMentionNotification
  *
- * Queued listener.  Notifies the expert via email + database when
+ * Queued listener. Notifies the expert via email + database when
  * a farmer replies to their forum answer or mentions them.
  */
 class SendForumMentionNotification implements ShouldQueue
@@ -18,7 +18,7 @@ class SendForumMentionNotification implements ShouldQueue
     public string $queue = 'notifications';
 
     public function __construct(
-        private readonly ExpertNotificationService $notificationService
+        private readonly NotificationCenterService $notificationService
     ) {}
 
     public function handle(ExpertMentionedInForum $event): void
@@ -33,10 +33,9 @@ class SendForumMentionNotification implements ShouldQueue
             new ExpertForumMentionNotification($thread, $reply, $mentionedBy)
         );
 
-        // 2) Expert panel log entry
-        $this->notificationService->notify(
+        $this->notificationService->notifyExpert(
             $expert,
-            ExpertNotificationService::TYPE_FORUM_REPLY,
+            'forum.reply_on_answer',
             "{$mentionedBy} replied in: {$thread->title}",
             $reply->body,
             [
