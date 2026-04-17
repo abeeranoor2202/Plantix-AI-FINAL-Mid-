@@ -240,12 +240,28 @@ class AuthSecurityService
     // ── Internal log writer ───────────────────────────────────────────────────
 
     public function writeLog(
-        ?int    $userId,
-        ?string $email,
-        string  $event,
-        Request $request,
+        mixed   $arg1,
+        mixed   $arg2,
+        mixed   $arg3,
+        mixed   $arg4,
         array   $context = []
     ): void {
+        // New signature: writeLog(?int $userId, ?string $email, string $event, Request $request, array $context = [])
+        // Legacy signature compatibility: writeLog(string $event, User $user, Request $request, array $context = [])
+        if (is_string($arg1) && $arg2 instanceof User && $arg3 instanceof Request) {
+            $event = $arg1;
+            $user = $arg2;
+            $request = $arg3;
+            $context = is_array($arg4) ? $arg4 : $context;
+            $userId = $user->id;
+            $email = $user->email;
+        } else {
+            $userId = is_int($arg1) || $arg1 === null ? $arg1 : null;
+            $email = is_string($arg2) || $arg2 === null ? $arg2 : null;
+            $event = (string) $arg3;
+            $request = $arg4 instanceof Request ? $arg4 : request();
+        }
+
         AuthLog::create([
             'user_id'    => $userId,
             'email'      => $email,
