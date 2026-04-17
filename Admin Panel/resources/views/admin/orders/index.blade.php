@@ -19,11 +19,17 @@
     <div class="card-agri" style="padding: 0; overflow: hidden;">
         <div class="card-header bg-white border-bottom-0 pt-4 pb-3 px-4 d-flex justify-content-between align-items-center" style="gap: 10px; flex-wrap: wrap;">
             <h4 class="mb-0 fw-bold text-dark" style="font-size: 18px;">Order List</h4>
-            <form method="GET" action="{{ route('admin.orders.index') }}" style="display: flex; align-items: center; gap: 10px;">
+            <form method="GET" action="{{ route('admin.orders.index') }}" style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
                 <select name="status" class="form-agri" style="height: 42px; min-width: 150px; margin-bottom: 0;">
                     <option value="">All Statuses</option>
                     @foreach($statuses as $s)
                         <option value="{{ $s }}" @selected(request('status') === $s)>{{ strtoupper(str_replace('_', ' ', $s)) }}</option>
+                    @endforeach
+                </select>
+                <select name="dispute_status" class="form-agri" style="height: 42px; min-width: 170px; margin-bottom: 0;">
+                    <option value="">All Disputes</option>
+                    @foreach(['pending', 'vendor_responded', 'escalated', 'resolved', 'rejected', 'cancelled'] as $disputeStatus)
+                        <option value="{{ $disputeStatus }}" @selected(request('dispute_status') === $disputeStatus)>{{ strtoupper(str_replace('_', ' ', $disputeStatus)) }}</option>
                     @endforeach
                 </select>
                 <div class="input-group" style="width: 320px;">
@@ -32,7 +38,12 @@
                     </span>
                     <input type="text" name="search" class="form-agri border-start-0" placeholder="Search orders..." value="{{ request('search') }}" style="margin-bottom: 0; border-radius: 0 10px 10px 0; height: 42px;">
                 </div>
+                <input type="number" min="0" step="0.01" name="min_total" class="form-agri" placeholder="Min amount" value="{{ request('min_total') }}" style="height: 42px; width: 130px; margin-bottom: 0;">
+                <input type="number" min="0" step="0.01" name="max_total" class="form-agri" placeholder="Max amount" value="{{ request('max_total') }}" style="height: 42px; width: 130px; margin-bottom: 0;">
+                <input type="date" name="date_from" class="form-agri" value="{{ request('date_from') }}" style="height: 42px; min-width: 150px; margin-bottom: 0;">
+                <input type="date" name="date_to" class="form-agri" value="{{ request('date_to') }}" style="height: 42px; min-width: 150px; margin-bottom: 0;">
                 <button type="submit" class="btn-agri btn-agri-primary" style="height: 42px; padding: 0 16px;">Filter</button>
+                <a href="{{ route('admin.orders.index') }}" class="btn-agri btn-agri-outline" style="height: 42px; padding: 0 16px; text-decoration: none; display: inline-flex; align-items: center;">Reset</a>
             </form>
         </div>
 
@@ -64,7 +75,12 @@
                                 <span class="badge rounded-pill {{ $ps === 'paid' ? 'bg-success' : ($ps === 'pending' ? 'bg-warning' : 'bg-danger') }}">{{ strtoupper($ps) }}</span>
                             </td>
                             <td class="px-4 py-3">
-                                <span class="badge rounded-pill bg-info">{{ strtoupper(str_replace('_', ' ', (string) $order->status)) }}</span>
+                                <div class="d-flex flex-column gap-2">
+                                    <span class="badge rounded-pill bg-info" style="width: fit-content;">{{ strtoupper(str_replace('_', ' ', (string) $order->status)) }}</span>
+                                    @if(($order->dispute_status ?? 'none') !== 'none')
+                                        <span class="badge rounded-pill bg-warning text-dark" style="width: fit-content;">DISPUTE: {{ strtoupper(str_replace('_', ' ', $order->dispute_status)) }}</span>
+                                    @endif
+                                </div>
                             </td>
                             <td class="px-4 py-3">
                                 <div class="text-end" style="display: flex; justify-content: flex-end; gap: 8px;">
