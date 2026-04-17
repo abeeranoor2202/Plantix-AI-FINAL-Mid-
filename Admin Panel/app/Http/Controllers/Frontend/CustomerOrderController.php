@@ -3,6 +3,9 @@
 namespace App\Http\Controllers\Frontend;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Frontend\CustomerOrderCancelRequest;
+use App\Http\Requests\Frontend\CustomerOrderDisputeEscalateRequest;
+use App\Http\Requests\Frontend\CustomerOrderDisputeRequest;
 use App\Models\Order;
 use App\Models\OrderDispute;
 use App\Models\OrderStatusHistory;
@@ -20,15 +23,54 @@ class CustomerOrderController extends Controller
         private readonly ReturnRefundService $returnService,
     ) {}
 
-    public function index(): View
+    public function index(Request $request): View
     {
         $user   = auth('web')->user();
+        $filters = $request->validate([
+            'search' => ['nullable', 'string', 'max:255'],
+            'status' => ['nullable', 'string', 'max:50'],
+            'dispute_status' => ['nullable', 'string', 'max:50'],
+            'min_total' => ['nullable', 'numeric', 'min:0'],
+            'max_total' => ['nullable', 'numeric', 'min:0'],
+            'date_from' => ['nullable', 'date'],
+            'date_to' => ['nullable', 'date'],
+        ]);
+
         $ordersQuery = Order::with(['vendor', 'items.product'])
                        ->forCustomer($user->id)
                        ->latest();
 
-        if (request()->filled('dispute_status')) {
-            $ordersQuery->where('dispute_status', request('dispute_status'));
+        if (! empty($filters['search'])) {
+            $term = $filters['search'];
+            $ordersQuery->where(function ($query) use ($term): void {
+                $query->where('order_number', 'like', '%' . $term . '%')
+                    ->orWhere('id', $term)
+                    ->orWhereHas('items.product', fn ($productQuery) => $productQuery->where('name', 'like', '%' . $term . '%'));
+            });
+        }
+
+        if (! empty($filters['status'])) {
+            $ordersQuery->where('status', $filters['status']);
+        }
+
+        if (! empty($filters['dispute_status'])) {
+            $ordersQuery->where('dispute_status', $filters['dispute_status']);
+        }
+
+        if (! empty($filters['min_total'])) {
+            $ordersQuery->where('total', '>=', (float) $filters['min_total']);
+        }
+
+        if (! empty($filters['max_total'])) {
+            $ordersQuery->where('total', '<=', (float) $filters['max_total']);
+        }
+
+        if (! empty($filters['date_from'])) {
+            $ordersQuery->whereDate('created_at', '>=', $filters['date_from']);
+        }
+
+        if (! empty($filters['date_to'])) {
+            $ordersQuery->whereDate('created_at', '<=', $filters['date_to']);
         }
 
         $orders = $ordersQuery->paginate(10)->withQueryString();
@@ -86,16 +128,14 @@ class CustomerOrderController extends Controller
      * Cancel a pending or confirmed order.
      * Route: POST /orders/{id}/cancel
      */
-    public function cancel(Request $request, int $id): RedirectResponse
+    public function cancel(CustomerOrderCancelRequest $request, int $id): RedirectResponse
     {
-        $request->validate([
-            'reason' => 'nullable|string|max:500',
-        ]);
-
         $user  = auth('web')->user();
-        $order = Order::forCustomer($user->id)
-                      ->whereIn('status', ['pending', 'confirmed'])
-                      ->findOrFail($id);
+        $order = Order::forCustomer($user->id)->findOrFail($id);
+
+        if (! $order->canCancel()) {
+            return back()->withErrors(['error' => 'This order can no longer be cancelled.']);
+        }
 
         $order->update(['status' => 'cancelled']);
 
@@ -109,16 +149,20 @@ class CustomerOrderController extends Controller
         return back()->with('success', 'Your order has been cancelled successfully.');
     }
 
-    public function dispute(Request $request, int $id): RedirectResponse
+    public function dispute(CustomerOrderDisputeRequest $request, int $id): RedirectResponse
     {
-        $request->validate([
-            'reason' => 'required|string|max:1000',
-        ]);
-
         $user = auth('web')->user();
-        $order = Order::forCustomer($user->id)
-                      ->whereNotIn('status', ['cancelled', 'rejected', 'refunded'])
-                      ->findOrFail($id);
+        $order = Order::forCustomer($user->id)->findOrFail($id);
+
+        if (! $order->canOpenDispute()) {
+            return back()->withErrors(['reason' => 'This order cannot be disputed at its current stage.']);
+        }
+
+        if ($order->hasOpenDispute()) {
+            return back()->with('info', 'This order already has an active dispute.');
+        }
+
+        $validated = $request->validated();
 
         OrderDispute::updateOrCreate(
             ['order_id' => $order->id],
@@ -126,27 +170,72 @@ class CustomerOrderController extends Controller
                 'user_id' => $user->id,
                 'vendor_id' => $order->vendor_id,
                 'status' => 'pending',
-                'reason' => $request->reason,
-                'escalated_at' => now(),
+                'reason' => $validated['reason'],
+                'escalation_reason' => null,
+                'escalated_at' => null,
+                'responded_at' => null,
+                'resolved_at' => null,
+                'admin_notes' => null,
+                'resolved_by' => null,
+                'refund_escalated_at' => null,
+                'refund_reference' => null,
             ]
         );
 
         if ($order->vendor?->author) {
-            $order->vendor->author->notify(new OrderDisputeSubmittedNotification($order, $request->reason, route('vendor.orders.show', $order->id)));
+            $order->vendor->author->notify(new OrderDisputeSubmittedNotification($order, $validated['reason'], route('vendor.orders.show', $order->id)));
         }
 
         $adminRecipients = \App\Models\User::where('role', 'admin')->get();
         if ($adminRecipients->isNotEmpty()) {
-            Notification::send($adminRecipients, new OrderDisputeSubmittedNotification($order, $request->reason, route('admin.orders.show', $order->id)));
+            Notification::send($adminRecipients, new OrderDisputeSubmittedNotification($order, $validated['reason'], route('admin.orders.show', $order->id)));
         }
 
         $order->update([
             'dispute_status' => 'pending',
             'disputed_at' => now(),
-            'dispute_reason' => $request->reason,
+            'dispute_reason' => $validated['reason'],
         ]);
 
         return back()->with('success', 'Your dispute has been submitted for review.');
+    }
+
+    public function escalateDispute(CustomerOrderDisputeEscalateRequest $request, int $id): RedirectResponse
+    {
+        $user = auth('web')->user();
+        $order = Order::forCustomer($user->id)->findOrFail($id);
+        $dispute = OrderDispute::where('order_id', $order->id)->firstOrFail();
+
+        if ($dispute->status !== 'vendor_responded') {
+            return back()->withErrors(['error' => 'Only vendor-responded disputes can be escalated.']);
+        }
+
+        $validated = $request->validated();
+
+        $dispute->update([
+            'status' => 'escalated',
+            'escalation_reason' => $validated['escalation_reason'],
+            'escalated_at' => now(),
+        ]);
+
+        $order->update([
+            'dispute_status' => 'escalated',
+            'dispute_reason' => $validated['escalation_reason'],
+        ]);
+
+        $adminRecipients = \App\Models\User::where('role', 'admin')->get();
+        if ($adminRecipients->isNotEmpty()) {
+            Notification::send(
+                $adminRecipients,
+                new OrderDisputeSubmittedNotification(
+                    $order,
+                    'Escalated by customer: ' . $validated['escalation_reason'],
+                    route('admin.orders.show', $order->id)
+                )
+            );
+        }
+
+        return back()->with('success', 'Dispute escalated to admin for final review.');
     }
 }
 
