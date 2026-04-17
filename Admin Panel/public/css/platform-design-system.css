@@ -1,0 +1,178 @@
+:root {
+    --ds-color-primary: #234d20;
+    --ds-color-primary-700: #1a3c19;
+    --ds-color-secondary: #3f7d20;
+    --ds-color-bg: #f5f7f4;
+    --ds-color-surface: #ffffff;
+    --ds-color-border: #d9e2d4;
+    --ds-color-text: #17211a;
+    --ds-color-muted: #5f6d62;
+
+    --ds-color-success: #1f7a3e;
+    --ds-color-success-soft: #e7f6ec;
+    --ds-color-error: #b42318;
+    --ds-color-error-soft: #fdecea;
+    --ds-color-warning: #b54708;
+    --ds-color-warning-soft: #fff4e5;
+    --ds-color-info: #175cd3;
+    --ds-color-info-soft: #eef4ff;
+
+    --ds-font-family: "Nunito", "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    --ds-text-h1: 32px;
+    --ds-text-h2: 28px;
+    --ds-text-h3: 22px;
+    --ds-text-h4: 18px;
+    --ds-text-h5: 16px;
+    --ds-text-h6: 14px;
+    --ds-text-body: 15px;
+    --ds-text-label: 13px;
+    --ds-text-button: 14px;
+
+    --ds-space-1: 4px;
+    --ds-space-2: 8px;
+    --ds-space-3: 12px;
+    --ds-space-4: 16px;
+    --ds-space-5: 20px;
+    --ds-space-6: 24px;
+    --ds-space-7: 32px;
+    --ds-space-8: 40px;
+
+    --ds-radius-sm: 8px;
+    --ds-radius-md: 12px;
+    --ds-radius-lg: 18px;
+}
+
+html,
+body {
+    font-family: var(--ds-font-family);
+    color: var(--ds-color-text);
+}
+
+h1,
+.ds-h1 {
+    font-size: var(--ds-text-h1);
+    font-weight: 800;
+    line-height: 1.2;
+}
+
+h2,
+.ds-h2 {
+    font-size: var(--ds-text-h2);
+    font-weight: 800;
+    line-height: 1.25;
+}
+
+h3,
+.ds-h3 {
+    font-size: var(--ds-text-h3);
+    font-weight: 700;
+    line-height: 1.3;
+}
+
+h4,
+.ds-h4 {
+    font-size: var(--ds-text-h4);
+    font-weight: 700;
+}
+
+h5,
+.ds-h5 {
+    font-size: var(--ds-text-h5);
+    font-weight: 700;
+}
+
+h6,
+.ds-h6 {
+    font-size: var(--ds-text-h6);
+    font-weight: 700;
+}
+
+p,
+.ds-body {
+    font-size: var(--ds-text-body);
+    line-height: 1.6;
+}
+
+label,
+.agri-label,
+.ds-label {
+    font-size: var(--ds-text-label);
+    font-weight: 700;
+    color: var(--ds-color-muted);
+}
+
+.btn,
+.btn-agri,
+.ds-button {
+    font-size: var(--ds-text-button);
+    font-weight: 700;
+}
+
+.platform-role-shell {
+    display: grid;
+    grid-template-columns: 240px minmax(0, 1fr);
+    gap: var(--ds-space-6);
+    min-height: calc(100vh - 180px);
+    padding: var(--ds-space-6) 0 var(--ds-space-7);
+}
+
+.platform-role-sidebar {
+    background: var(--ds-color-surface);
+    border: 1px solid var(--ds-color-border);
+    border-radius: var(--ds-radius-lg);
+    box-shadow: 0 8px 20px rgba(15, 23, 42, 0.06);
+    padding: var(--ds-space-5);
+    position: sticky;
+    top: 94px;
+    align-self: start;
+}
+
+.platform-role-sidebar .role-nav-title {
+    font-size: var(--ds-text-label);
+    color: var(--ds-color-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: var(--ds-space-4);
+    display: block;
+}
+
+.platform-role-sidebar .role-nav-link {
+    display: flex;
+    align-items: center;
+    gap: var(--ds-space-3);
+    padding: 10px 12px;
+    border-radius: var(--ds-radius-md);
+    color: var(--ds-color-text);
+    text-decoration: none;
+    font-weight: 700;
+    margin-bottom: var(--ds-space-2);
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.platform-role-sidebar .role-nav-link:hover {
+    background: #e9f1e7;
+    color: var(--ds-color-primary);
+}
+
+.platform-role-sidebar .role-nav-link.active {
+    background: #dcead8;
+    color: var(--ds-color-primary);
+}
+
+.platform-role-main {
+    min-width: 0;
+}
+
+.platform-page-wrap {
+    background: var(--ds-color-bg);
+}
+
+@media (max-width: 991px) {
+    .platform-role-shell {
+        grid-template-columns: 1fr;
+    }
+
+    .platform-role-sidebar {
+        position: static;
+    }
+}
