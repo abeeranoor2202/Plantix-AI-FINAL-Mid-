@@ -285,7 +285,7 @@ class AdminForumController extends Controller
 
     public function flags(Request $request): View
     {
-        $query = ForumFlag::with(['reply.thread', 'reporter', 'reviewer']);
+        $query = ForumFlag::with(['reply.thread', 'thread', 'reporter', 'reviewer']);
 
         if ($request->filled('status')) {
             $status = strtolower((string) $request->status);
@@ -320,9 +320,32 @@ class AdminForumController extends Controller
 
     public function deleteFlaggedReply(int $id): RedirectResponse
     {
-        $this->moderation->resolveFlagByDeletingReply($this->adminUser(), ForumFlag::findOrFail($id));
+        $flag = ForumFlag::with('reply')->findOrFail($id);
+
+        if (! $flag->reply) {
+            return back()->withErrors(['error' => 'This report is not linked to a reply.']);
+        }
+
+        $this->moderation->resolveFlagByDeletingReply($this->adminUser(), $flag);
 
         return back()->with('success', 'Reply deleted and report resolved.');
+    }
+
+    public function archiveFlaggedThread(int $id): RedirectResponse
+    {
+        $flag = ForumFlag::with('thread')->findOrFail($id);
+
+        if (! $flag->thread) {
+            return back()->withErrors(['error' => 'This report is not linked to a thread.']);
+        }
+
+        try {
+            $this->moderation->resolveFlagByArchivingThread($this->adminUser(), $flag);
+        } catch (\DomainException $e) {
+            return back()->withErrors(['error' => $e->getMessage()]);
+        }
+
+        return back()->with('success', 'Thread archived and report resolved.');
     }
 
     // ── Ban Management ────────────────────────────────────────────────────────
