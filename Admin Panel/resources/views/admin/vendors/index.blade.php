@@ -20,12 +20,28 @@
     <div class="card-agri" style="padding: 0; overflow: hidden;">
         <div class="card-header bg-white border-bottom-0 pt-4 pb-3 px-4 d-flex justify-content-between align-items-center">
             <h4 class="mb-0 fw-bold text-dark" style="font-size: 18px;">Vendor List</h4>
-            <div class="input-group" style="width: 320px;">
-                <span class="input-group-text bg-white border-end-0" style="border-radius: 10px 0 0 10px;">
-                    <i class="fas fa-search" style="color: var(--agri-text-muted); font-size: 14px;"></i>
-                </span>
-                <input type="text" id="search-input" class="form-agri border-start-0" placeholder="Search vendors..." style="margin-bottom: 0; border-radius: 0 10px 10px 0; height: 42px;">
-            </div>
+            <form method="GET" action="{{ route('admin.vendors') }}" style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: flex-end;">
+                <div class="input-group" style="width: 260px;">
+                    <span class="input-group-text bg-white border-end-0" style="border-radius: 10px 0 0 10px;">
+                        <i class="fas fa-search" style="color: var(--agri-text-muted); font-size: 14px;"></i>
+                    </span>
+                    <input type="text" name="search" class="form-agri border-start-0" value="{{ request('search') }}" placeholder="Search vendors..." style="margin-bottom: 0; border-radius: 0 10px 10px 0; height: 42px;">
+                </div>
+                <select name="approval" class="form-agri" style="height: 42px; min-width: 140px; margin-bottom: 0;">
+                    <option value="">All Approval</option>
+                    <option value="approved" @selected(request('approval') === 'approved')>Approved</option>
+                    <option value="pending" @selected(request('approval') === 'pending')>Pending</option>
+                </select>
+                <select name="status" class="form-agri" style="height: 42px; min-width: 120px; margin-bottom: 0;">
+                    <option value="">All Status</option>
+                    <option value="active" @selected(request('status') === 'active')>Active</option>
+                    <option value="inactive" @selected(request('status') === 'inactive')>Inactive</option>
+                </select>
+                <input type="date" name="date_from" class="form-agri" value="{{ request('date_from') }}" style="height: 42px; min-width: 150px; margin-bottom: 0;">
+                <input type="date" name="date_to" class="form-agri" value="{{ request('date_to') }}" style="height: 42px; min-width: 150px; margin-bottom: 0;">
+                <button type="submit" class="btn-agri btn-agri-primary" style="height: 42px; padding: 0 16px;">Filter</button>
+                <a href="{{ route('admin.vendors') }}" class="btn-agri btn-agri-outline" style="height: 42px; padding: 0 16px; text-decoration: none; display: inline-flex; align-items: center;">Reset</a>
+            </form>
         </div>
 
         <div class="table-responsive">
@@ -92,13 +108,6 @@
 @section('scripts')
 <script>
 $(document).ready(function () {
-    $('#search-input').on('keyup', function () {
-        var val = $(this).val().toLowerCase();
-        $('#vendorTable tbody tr').filter(function () {
-            $(this).toggle($(this).text().toLowerCase().indexOf(val) > -1);
-        });
-    });
-
 });
 </script>
 @endsection

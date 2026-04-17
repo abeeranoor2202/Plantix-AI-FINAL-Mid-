@@ -37,7 +37,7 @@ class AuthHardeningTest extends TestCase
         $this->user = User::factory()->create([
             'email'    => 'brute@example.com',
             'password' => Hash::make('ValidP@ss123!'),
-            'role'     => 'customer',
+            'role'     => 'user',
             'failed_login_attempts' => 0,
             'locked_until'          => null,
             'password_changed_at'   => null,
@@ -149,8 +149,8 @@ class AuthHardeningTest extends TestCase
         $this->actingAs($this->user);
         $this->user->update(['password_changed_at' => now()->addSecond()]);
 
-        // Subsequent request via web guard should be bounced to login
-        $response = $this->get('/');
+        // Subsequent request to an authenticated route should be bounced to login
+        $response = $this->get('/dashboard');
 
         // EnforceSessionFreshness should redirect to login
         $response->assertRedirect();

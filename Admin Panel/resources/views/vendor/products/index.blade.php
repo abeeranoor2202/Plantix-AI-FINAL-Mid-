@@ -19,16 +19,56 @@
 
     <x-card>
         <x-slot name="header">
-            <div class="d-flex justify-content-between align-items-center">
+            <div class="d-flex justify-content-between align-items-center mb-3">
                 <h4 class="mb-0 fw-bold text-dark" style="font-size: 18px;">Product List</h4>
-                <form method="GET" action="{{ route('vendor.products.index') }}" style="display: flex; align-items: center; gap: 10px;">
-                    <div class="agri-search-wrap" style="width: 320px;">
-                        <i class="fas fa-search agri-search-icon"></i>
-                        <input type="text" name="search" class="form-agri agri-search-input" placeholder="Search products..." value="{{ request('search') }}">
-                    </div>
-                    <button type="submit" class="btn-agri btn-agri-primary" style="height: 42px; padding: 0 16px;">Filter</button>
-                </form>
             </div>
+            <form method="GET" action="{{ route('vendor.products.index') }}" class="row g-3 align-items-end">
+                <div class="col-lg-3">
+                    <label class="agri-label">Search</label>
+                    <div class="agri-search-wrap">
+                        <i class="fas fa-search agri-search-icon"></i>
+                        <input type="text" name="search" class="form-agri agri-search-input" placeholder="Name or SKU" value="{{ request('search') }}">
+                    </div>
+                </div>
+                <div class="col-lg-2">
+                    <label class="agri-label">Category</label>
+                    <select name="category_id" class="form-agri">
+                        <option value="">All Categories</option>
+                        @foreach($categories as $category)
+                            <option value="{{ $category->id }}" @selected((string) request('category_id') === (string) $category->id)>{{ $category->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="col-lg-1">
+                    <label class="agri-label">Status</label>
+                    <select name="status" class="form-agri">
+                        <option value="">All</option>
+                        <option value="1" @selected(request('status') === '1')>Active</option>
+                        <option value="0" @selected(request('status') === '0')>Inactive</option>
+                    </select>
+                </div>
+                <div class="col-lg-1">
+                    <label class="agri-label">Min PKR</label>
+                    <input type="number" min="0" step="0.01" name="min_price" class="form-agri" value="{{ request('min_price') }}" placeholder="0">
+                </div>
+                <div class="col-lg-1">
+                    <label class="agri-label">Max PKR</label>
+                    <input type="number" min="0" step="0.01" name="max_price" class="form-agri" value="{{ request('max_price') }}" placeholder="0">
+                </div>
+                <div class="col-lg-2">
+                    <label class="agri-label">Min Rating</label>
+                    <select name="rating_min" class="form-agri">
+                        <option value="">Any Rating</option>
+                        @foreach(['4.5', '4', '3', '2'] as $ratingMin)
+                            <option value="{{ $ratingMin }}" @selected((string) request('rating_min') === (string) $ratingMin)>{{ $ratingMin }}+</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="col-lg-2 d-flex gap-2">
+                    <button type="submit" class="btn-agri btn-agri-primary w-100">Apply</button>
+                    <a href="{{ route('vendor.products.index') }}" class="btn-agri btn-agri-outline w-100" style="text-decoration: none;">Reset</a>
+                </div>
+            </form>
         </x-slot>
 
         <x-table>

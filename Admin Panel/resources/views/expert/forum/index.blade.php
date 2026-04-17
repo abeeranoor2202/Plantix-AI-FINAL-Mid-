@@ -40,6 +40,22 @@
                     @endforeach
                 </select>
             </div>
+            <div class="col-md-2">
+                <label class="agri-label">Sort</label>
+                <select name="sort_by" class="form-agri">
+                    <option value="latest" @selected(($filters['sort_by'] ?? 'latest') === 'latest')>Latest</option>
+                    <option value="popular" @selected(($filters['sort_by'] ?? '') === 'popular')>Most Replies</option>
+                    <option value="oldest" @selected(($filters['sort_by'] ?? '') === 'oldest')>Oldest</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="agri-label">Date From</label>
+                <x-input type="date" name="date_from" :value="$filters['date_from'] ?? ''" />
+            </div>
+            <div class="col-md-2">
+                <label class="agri-label">Date To</label>
+                <x-input type="date" name="date_to" :value="$filters['date_to'] ?? ''" />
+            </div>
             <div class="col-md-2 d-flex gap-2">
                 <x-button type="submit" variant="primary" icon="fas fa-filter" class="w-100">Apply</x-button>
                 <x-button :href="route('expert.forum.index')" variant="outline" class="w-100">Clear Filters</x-button>

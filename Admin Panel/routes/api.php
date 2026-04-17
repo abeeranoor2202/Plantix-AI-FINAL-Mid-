@@ -1,6 +1,17 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Api\V1\AuthController as V1AuthController;
+use App\Http\Controllers\Api\V1\ForumController as V1ForumController;
+use App\Http\Controllers\Api\V1\OrderController as V1OrderController;
+use App\Http\Controllers\Api\V1\AppointmentController as V1AppointmentController;
+use App\Http\Controllers\Api\V1\NotificationController as V1NotificationController;
+use App\Http\Controllers\Api\V1\DashboardController as V1DashboardController;
+use App\Http\Controllers\Api\V1\ActivityController as V1ActivityController;
+use App\Http\Controllers\Api\V1\ProductController as V1ProductController;
+use App\Http\Controllers\Api\V1\ReturnController as V1ReturnController;
+use App\Http\Controllers\Api\V1\DisputeController as V1DisputeController;
+use App\Http\Controllers\Api\V1\SearchController as V1SearchController;
 use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\CustomerAuthApiController;
 use App\Http\Controllers\Api\CustomerAiApiController;
@@ -18,6 +29,81 @@ use App\Http\Controllers\Api\AdminPayoutsController;
 use App\Http\Controllers\Api\AdminCategoriesController;
 use App\Http\Controllers\Api\AdminEmailTemplatesController;
 use App\Http\Controllers\Admin\VendorApplicationController;
+
+// =============================================================================
+// API V1 (strict, versioned, standardized)
+// =============================================================================
+Route::prefix('v1')->group(function () {
+    // Authentication
+    Route::post('/auth/login', [V1AuthController::class, 'login'])->middleware('throttle:api-v1-auth');
+
+    Route::middleware(['auth:sanctum', 'throttle:api-v1'])->group(function () {
+        Route::get('/auth/me', [V1AuthController::class, 'me']);
+        Route::post('/auth/logout', [V1AuthController::class, 'logout']);
+
+        // Forum module
+        Route::prefix('forum')->group(function () {
+            Route::get('/threads', [V1ForumController::class, 'index']);
+            Route::get('/threads/{thread}', [V1ForumController::class, 'show']);
+        });
+
+        // Orders module
+        Route::prefix('orders')->group(function () {
+            Route::get('/', [V1OrderController::class, 'index']);
+            Route::get('/{id}', [V1OrderController::class, 'show']);
+        });
+
+        // Products module
+        Route::prefix('products')->group(function () {
+            Route::get('/', [V1ProductController::class, 'index']);
+            Route::get('/{id}', [V1ProductController::class, 'show']);
+        });
+
+        // Returns module
+        Route::prefix('returns')->group(function () {
+            Route::get('/', [V1ReturnController::class, 'index']);
+            Route::get('/{id}', [V1ReturnController::class, 'show']);
+            Route::post('/', [V1ReturnController::class, 'store']);
+            Route::patch('/{id}/status', [V1ReturnController::class, 'updateStatus'])->middleware('api.role:admin');
+        });
+
+        // Disputes module
+        Route::prefix('disputes')->group(function () {
+            Route::get('/', [V1DisputeController::class, 'index']);
+            Route::post('/', [V1DisputeController::class, 'store']);
+            Route::post('/orders/{orderId}/escalate', [V1DisputeController::class, 'escalate']);
+            Route::post('/orders/{orderId}/respond', [V1DisputeController::class, 'vendorRespond']);
+            Route::post('/orders/{orderId}/resolve', [V1DisputeController::class, 'resolve']);
+        });
+
+        // Appointments module
+        Route::prefix('appointments')->group(function () {
+            Route::get('/', [V1AppointmentController::class, 'index']);
+            Route::get('/{id}', [V1AppointmentController::class, 'show']);
+        });
+
+        // Notifications module
+        Route::prefix('notifications')->group(function () {
+            Route::get('/', [V1NotificationController::class, 'index']);
+            Route::get('/unread-count', [V1NotificationController::class, 'unreadCount']);
+            Route::patch('/{id}/read', [V1NotificationController::class, 'markRead']);
+            Route::patch('/read-all', [V1NotificationController::class, 'markAllRead']);
+        });
+
+        // Dashboards module
+        Route::prefix('dashboards')->group(function () {
+            Route::get('/summary', [V1DashboardController::class, 'summary']);
+        });
+
+        // Universal search module
+        Route::get('/search', [V1SearchController::class, 'index']);
+
+        // Activity logs module (admin-only)
+        Route::prefix('activity')->middleware('api.role:admin')->group(function () {
+            Route::get('/logs', [V1ActivityController::class, 'index']);
+        });
+    });
+});
 
 /*
 |--------------------------------------------------------------------------

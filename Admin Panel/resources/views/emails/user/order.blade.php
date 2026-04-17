@@ -98,4 +98,8 @@
 
 <hr class="divider">
 <p style="font-size:13px;color:#888;">Questions about your order? <a href="{{ config('app.url') }}/contact" style="color:#2e7d32">Contact Support</a></p>
+<p style="font-size:12px;color:#9aa0a6;">
+    To control order and appointment email notifications, update your preferences from
+    <a href="{{ route('account.profile') }}" style="color:#2e7d32;">your account settings</a>.
+</p>
 @endsection

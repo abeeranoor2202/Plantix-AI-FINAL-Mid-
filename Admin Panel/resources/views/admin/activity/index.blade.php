@@ -9,17 +9,34 @@
                     <h2 style="margin: 0;">Platform Activity Stream</h2>
                     <p style="margin: 6px 0 0 0;">Unified feed for forum, orders, appointments, and moderation.</p>
                 </div>
-                <form method="GET" style="display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end;">
-                    <input type="text" name="action" value="{{ request('action') }}" class="form-control" placeholder="Action" style="min-width: 180px;">
-                    <input type="text" name="entity_type" value="{{ request('entity_type') }}" class="form-control" placeholder="Entity" style="min-width: 160px;">
-                    <select name="actor_role" class="form-select" style="min-width: 140px;">
+                <div style="display:flex; align-items:center; gap: 10px; flex-wrap: wrap; justify-content: flex-end;">
+                    <a href="{{ route('admin.activity.export.csv', request()->query()) }}" class="btn-agri btn-agri-outline">Export CSV</a>
+                    <form method="GET" style="display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end;">
+                        <x-search-filter
+                            :action="route('admin.activity.index')"
+                            name="q"
+                            :value="request('q', '')"
+                            placeholder="Search action, entity, or context"
+                        />
+                        <input type="text" name="action" value="{{ request('action') }}" class="form-control" placeholder="Action" style="min-width: 180px;">
+                        <input type="text" name="entity_type" value="{{ request('entity_type') }}" class="form-control" placeholder="Entity" style="min-width: 160px;">
+                        <input type="date" name="date_from" value="{{ request('date_from') }}" class="form-control" style="min-width: 150px;">
+                        <input type="date" name="date_to" value="{{ request('date_to') }}" class="form-control" style="min-width: 150px;">
+                        <select name="actor_role" class="form-select" style="min-width: 140px;">
                         <option value="">All Roles</option>
                         @foreach(['admin', 'user', 'expert', 'vendor', 'system'] as $role)
                             <option value="{{ $role }}" @selected(request('actor_role') === $role)>{{ ucfirst($role) }}</option>
                         @endforeach
-                    </select>
-                    <button type="submit" class="btn-agri btn-agri-primary">Filter</button>
-                </form>
+                        </select>
+                        <button type="submit" class="btn-agri btn-agri-primary">Filter</button>
+                    </form>
+                </div>
+            </div>
+
+            <div style="display:flex; gap: 12px; flex-wrap: wrap; margin-top: 14px;">
+                <span class="badge bg-light text-dark">Total: {{ $summary['total'] ?? 0 }}</span>
+                <span class="badge bg-success">Today: {{ $summary['today'] ?? 0 }}</span>
+                <span class="badge bg-danger">Critical: {{ $summary['critical'] ?? 0 }}</span>
             </div>
         </div>
 

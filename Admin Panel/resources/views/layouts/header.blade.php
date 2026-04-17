@@ -1,46 +1,84 @@
 @php
-    use App\Models\ExpertNotificationLog;
+    use App\Models\Notification;
+    use App\Services\Notifications\NotificationCenterService;
 
     $user = Auth::user();
     $is_logged_in = Auth::check();
     $logout_route = route('logout');
     $profile_route = '#';
-    $expertNotifications = collect();
-    $expertUnreadCount = 0;
+    $notificationFeed = collect();
+    $notificationUnreadCount = 0;
+    $notificationIndexUrl = '#';
+    $notificationReadAllUrl = '#';
+    $notificationClearAllUrl = null;
+    $notificationFeedUrl = null;
+    $notificationReadUrlBase = null;
+    $notificationRole = 'user';
     
     if(Auth::guard('admin')->check()){
         $user = Auth::guard('admin')->user();
         $is_logged_in = true;
         $logout_route = route('admin.logout'); 
         $profile_route = route('admin.users.profile');
+        $notificationRole = 'admin';
+        $notificationIndexUrl = route('admin.notifications.index');
+        $notificationReadAllUrl = route('admin.notifications.read-all');
+        $notificationClearAllUrl = route('admin.notifications.clear-all');
+        $notificationFeedUrl = route('admin.notifications.feed', ['limit' => 5, 'grouped' => 1]);
+        $notificationReadUrlBase = route('admin.notifications.read', ['notification' => 0]);
+
+        $center = app(NotificationCenterService::class);
+        $notificationUnreadCount = $center->unreadCount($user);
+        $notificationFeed = $center->latestForUser($user, 5);
     } elseif(Auth::guard('expert')->check()){
         $user = Auth::guard('expert')->user();
         $is_logged_in = true;
         $logout_route = route('expert.logout'); // Assuming expert.logout exists
         $profile_route = route('expert.profile.show');
+        $notificationRole = 'expert';
+        $notificationIndexUrl = route('expert.notifications.index');
+        $notificationReadAllUrl = route('expert.notifications.read-all');
+        $notificationClearAllUrl = route('expert.notifications.clear-all');
+        $notificationFeedUrl = route('expert.notifications.feed', ['limit' => 5, 'grouped' => 1]);
+        $notificationReadUrlBase = route('expert.notifications.read', ['notification' => 0]);
 
         $expertId = $user->expert?->id;
         if ($expertId) {
-            $expertUnreadCount = ExpertNotificationLog::query()
-                ->where('expert_id', $expertId)
-                ->where('is_read', false)
-                ->count();
-
-            $expertNotifications = ExpertNotificationLog::query()
-                ->where('expert_id', $expertId)
-                ->orderByDesc('created_at')
-                ->limit(5)
-                ->get();
+            $center = app(NotificationCenterService::class);
+            $notificationUnreadCount = $center->unreadCountForExpert($user->expert);
+            $notificationFeed = $center->latestForExpert($user->expert, 5);
         }
     } elseif(Auth::guard('vendor')->check()){
         $user = Auth::guard('vendor')->user();
         $is_logged_in = true;
         $logout_route = route('vendor.logout');
         $profile_route = route('vendor.profile');
+        $notificationRole = 'vendor';
+        $notificationIndexUrl = route('vendor.notifications.index');
+        $notificationReadAllUrl = route('vendor.notifications.read-all');
+        $notificationClearAllUrl = route('vendor.notifications.clear-all');
+        $notificationFeedUrl = route('vendor.notifications.feed', ['limit' => 5, 'grouped' => 1]);
+        $notificationReadUrlBase = route('vendor.notifications.read', ['notification' => 0]);
+
+        $center = app(NotificationCenterService::class);
+        $notificationUnreadCount = $center->unreadCount($user);
+        $notificationFeed = $center->latestForUser($user, 5);
     } elseif(Auth::check()) {
         // Default customer or generic web guard
         if (Route::has('account.profile')) {
             $profile_route = route('account.profile');
+        }
+
+        $notificationRole = 'user';
+        $notificationIndexUrl = route('notifications.index');
+        $notificationReadAllUrl = route('notifications.read-all');
+        $notificationFeedUrl = route('notifications.feed', ['limit' => 5, 'grouped' => 1]);
+        $notificationReadUrlBase = route('notifications.read', ['notification' => 0]);
+
+        if ($user) {
+            $center = app(NotificationCenterService::class);
+            $notificationUnreadCount = $center->unreadCount($user);
+            $notificationFeed = $center->latestForUser($user, 5);
         }
     }
 
@@ -86,11 +124,20 @@
             </div>
         </li>
 
-        @if(Auth::guard('expert')->check())
-            <li class="nav-item dropdown me-3" id="expertNotificationBellRoot">
+        @if($is_logged_in)
+            <li class="nav-item m-r-20 hidden-sm-down">
+                <div class="admin-status-pill" style="gap: 10px;">
+                    <i class="mdi mdi-shield-check" style="font-size: 16px; color: var(--agri-primary);"></i>
+                    <span>Reputation {{ $platformReputation['score'] ?? 0 }} ({{ strtoupper($platformReputation['level'] ?? 'neutral') }})</span>
+                </div>
+            </li>
+        @endif
+
+        @if($is_logged_in)
+            <li class="nav-item dropdown me-3" id="sharedNotificationBellRoot">
                 <a class="nav-link dropdown-toggle text-muted waves-effect waves-dark" href="#" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" style="position: relative; padding: 6px 10px;">
                     <i class="mdi mdi-bell-outline" style="font-size: 24px;"></i>
-                    <span id="expertNotificationBadge" class="badge rounded-pill bg-danger" style="position:absolute; top:0; right:0; min-width: 20px; {{ $expertUnreadCount > 0 ? '' : 'display:none;' }}">{{ $expertUnreadCount }}</span>
+                    <span id="sharedNotificationBadge" class="badge rounded-pill bg-danger" style="position:absolute; top:0; right:0; min-width: 20px; {{ $notificationUnreadCount > 0 ? '' : 'display:none;' }}">{{ $notificationUnreadCount }}</span>
                 </a>
                 <div class="dropdown-menu dropdown-menu-right scale-up" style="border-radius: var(--agri-radius-md); box-shadow: var(--agri-shadow-lg); border: 1px solid var(--agri-border); padding: 0; min-width: 360px; margin-top: 15px;">
                     <div style="padding: 12px 14px; border-bottom: 1px solid var(--agri-border); display:flex; justify-content:space-between; align-items:center;">
@@ -98,16 +145,16 @@
                             <div style="font-weight: 800; color: var(--agri-text-heading);">Notifications</div>
                             <div style="font-size: 12px; color: var(--agri-text-muted);">Latest updates</div>
                         </div>
-                        <a href="{{ route('expert.notifications.index') }}" style="font-size: 12px; font-weight: 700; color: var(--agri-primary); text-decoration:none;">View all</a>
+                        <a href="{{ $notificationIndexUrl }}" style="font-size: 12px; font-weight: 700; color: var(--agri-primary); text-decoration:none;">View all</a>
                     </div>
-                    <div id="expertNotificationBellList" style="max-height: 360px; overflow-y: auto;">
-                        @forelse($expertNotifications as $note)
-                            <a href="{{ route('expert.notifications.open', $note) }}" style="display:block; padding: 12px 14px; text-decoration:none; border-bottom: 1px solid var(--agri-border); background: {{ $note->is_read ? 'var(--agri-white)' : '#F0FDF4' }};">
+                    <div id="sharedNotificationBellList" style="max-height: 360px; overflow-y: auto;">
+                        @forelse($notificationFeed as $note)
+                            <a href="{{ $note['action_url'] ?? $note['open_url'] ?? '#' }}" style="display:block; padding: 12px 14px; text-decoration:none; border-bottom: 1px solid var(--agri-border); background: {{ !empty($note['is_read']) ? 'var(--agri-white)' : '#F0FDF4' }};">
                                 <div style="display:flex; justify-content:space-between; gap: 10px; margin-bottom:4px;">
-                                    <div style="font-size: 13px; font-weight: {{ $note->is_read ? '700' : '800' }}; color: var(--agri-text-heading);">{{ $note->title }}</div>
-                                    <div style="font-size: 11px; color: var(--agri-text-muted); white-space: nowrap;">{{ $note->created_at?->diffForHumans() }}</div>
+                                    <div style="font-size: 13px; font-weight: {{ !empty($note['is_read']) ? '700' : '800' }}; color: var(--agri-text-heading);">{{ $note['title'] ?? 'Notification' }}</div>
+                                    <div style="font-size: 11px; color: var(--agri-text-muted); white-space: nowrap;">{{ $note['created_at_human'] ?? '' }}</div>
                                 </div>
-                                <div style="font-size: 12px; color: var(--agri-text-muted);">{{ \Illuminate\Support\Str::limit($note->message ?? $note->body ?? '', 72) }}</div>
+                                <div style="font-size: 12px; color: var(--agri-text-muted);">{{ \Illuminate\Support\Str::limit($note['message'] ?? '', 72) }}</div>
                             </a>
                         @empty
                             <div style="padding: 18px 14px; text-align:center; color: var(--agri-text-muted); font-size: 13px;">
@@ -157,13 +204,14 @@
     <form id="logout-form" action="{{ $logout_route }}" method="POST" class="d-none">@csrf</form>
 </div>
 
-@if(Auth::guard('expert')->check())
 <script>
     (function () {
-        const feedUrl = "{{ route('expert.notifications.feed', ['limit' => 5]) }}";
+        const feedUrl = "{{ $notificationFeedUrl ?? '' }}";
+        const badgeId = 'sharedNotificationBadge';
+        const listId = 'sharedNotificationBellList';
 
         function renderBellItems(items) {
-            const root = document.getElementById('expertNotificationBellList');
+            const root = document.getElementById(listId);
             if (!root) {
                 return;
             }
@@ -202,7 +250,7 @@
         }
 
         function updateBadge(count) {
-            const badge = document.getElementById('expertNotificationBadge');
+            const badge = document.getElementById(badgeId);
             if (!badge) {
                 return;
             }
@@ -216,6 +264,10 @@
         }
 
         async function syncBell() {
+            if (!feedUrl) {
+                return;
+            }
+
             try {
                 const response = await fetch(feedUrl, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
                 if (!response.ok) {
@@ -231,6 +283,6 @@
         }
 
         setInterval(syncBell, 15000);
+        syncBell();
     })();
 </script>
-@endif

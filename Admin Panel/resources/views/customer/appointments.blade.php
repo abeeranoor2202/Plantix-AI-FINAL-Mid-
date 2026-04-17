@@ -53,10 +53,53 @@
                         </a>
                     </div>
 
-                    @if(session('success'))
-                        <div class="alert alert-success d-flex align-items-center mb-4" role="alert" style="border-radius: var(--agri-radius-sm);">
-                            <i class="fas fa-check-circle me-2"></i> {{ session('success') }}
+                    <form method="GET" action="{{ route('appointments') }}" class="row g-3 align-items-end mb-4">
+                        <div class="col-md-3">
+                            <label class="agri-label">Search</label>
+                            <input type="text" name="search" class="form-agri" value="{{ request('search') }}" placeholder="Topic or expert name">
                         </div>
+                        <div class="col-md-2">
+                            <label class="agri-label">Status</label>
+                            <select name="status" class="form-agri">
+                                <option value="">All Statuses</option>
+                                @foreach(['pending_payment','pending_expert_approval','confirmed','reschedule_requested','rescheduled','completed','rejected','cancelled'] as $appointmentStatus)
+                                    <option value="{{ $appointmentStatus }}" @selected(request('status') === $appointmentStatus)>{{ ucfirst(str_replace('_', ' ', $appointmentStatus)) }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="agri-label">Type</label>
+                            <select name="type" class="form-agri">
+                                <option value="">All Types</option>
+                                <option value="online" @selected(request('type') === 'online')>Online</option>
+                                <option value="physical" @selected(request('type') === 'physical')>Physical</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="agri-label">Expert</label>
+                            <select name="expert_id" class="form-agri">
+                                <option value="">All Experts</option>
+                                @foreach(($experts ?? collect()) as $expertFilter)
+                                    <option value="{{ $expertFilter->id }}" @selected((string) request('expert_id') === (string) $expertFilter->id)>{{ $expertFilter->user->name ?? ('Expert #' . $expertFilter->id) }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-md-1">
+                            <label class="agri-label">From</label>
+                            <input type="date" name="date_from" class="form-agri" value="{{ request('date_from') }}">
+                        </div>
+                        <div class="col-md-1">
+                            <label class="agri-label">To</label>
+                            <input type="date" name="date_to" class="form-agri" value="{{ request('date_to') }}">
+                        </div>
+                        <div class="col-md-1 d-flex gap-2 justify-content-end">
+                            <button type="submit" class="btn-agri btn-agri-primary" style="padding: 8px 16px; font-size: 14px;">Apply</button>
+                            <a href="{{ route('appointments') }}" class="btn-agri btn-agri-outline text-decoration-none" style="padding: 8px 16px; font-size: 14px;">Reset</a>
+                        </div>
+                    </form>
+
+                    @if(session('success'))
+                        <x-alert variant="success" class="mb-4">{{ session('success') }}</x-alert>
                     @endif
 
                     @if($appointments->isEmpty())
@@ -65,7 +108,7 @@
                                 <i class="fas fa-calendar-times text-muted fs-1"></i>
                             </div>
                             <h5 class="fw-bold text-dark">No appointments found</h5>
-                            <p class="text-muted">You haven't booked any expert consultations yet.</p>
+                            <p class="text-muted">No appointments match your current filters.</p>
                             <a href="{{ route('appointment.book') }}" class="btn-agri btn-agri-outline mt-2 text-decoration-none">Book your first session</a>
                         </div>
                     @else
@@ -97,14 +140,12 @@
                                         </div>
                                     </td>
                                     <td class="border-bottom-0 py-3">
-                                        <span class="badge rounded-pill fw-medium" style="background: {{ $appt->type === 'physical' ? 'rgba(16, 185, 129, 0.1); color: #10B981;' : 'rgba(37, 99, 235, 0.1); color: #2563EB;' }} padding: 6px 12px; font-size: 12px;">
+                                        <x-badge :variant="$appt->type === 'physical' ? 'success' : 'info'">
                                             {{ strtoupper($appt->type_label) }}
-                                        </span>
+                                        </x-badge>
                                     </td>
                                     <td class="border-bottom-0 py-3">
-                                        <span class="badge rounded-pill fw-medium" style="background: {{ $appt->status === 'completed' ? 'rgba(16, 185, 129, 0.1); color: #10B981;' : ($appt->status === 'cancelled' ? 'rgba(239, 68, 68, 0.1); color: #EF4444;' : 'rgba(245, 158, 11, 0.1); color: #F59E0B;') }} padding: 6px 12px; font-size: 12px;">
-                                            {{ ucwords(str_replace('_', ' ', $appt->status)) }}
-                                        </span>
+                                        <x-platform.status-badge domain="appointment" :status="$appt->status" />
                                     </td>
                                     <td class="border-bottom-0 py-3 rounded-end">
                                         <div class="d-flex gap-2">
@@ -122,7 +163,7 @@
                                             @if($appt->canBeCancelledByCustomer())
                                             <form method="POST" action="{{ route('appointment.cancel', $appt->id) }}">
                                                 @csrf
-                                                <button class="btn-agri text-danger" style="padding: 6px 12px; font-size: 13px; background: rgba(239, 68, 68, 0.1); border: none;" onclick="return confirm('Are you sure you want to cancel this appointment?')"><i class="fas fa-times"></i></button>
+                                                <button class="btn-agri btn-agri-danger" style="padding: 6px 12px; font-size: 13px; border: none;" onclick="return confirm('Are you sure you want to cancel this appointment?')"><i class="fas fa-times"></i></button>
                                             </form>
                                             @endif
                                         </div>

@@ -156,6 +156,51 @@
                     @endforelse
                 </div>
             </x-card>
+
+            <x-card>
+                <x-slot name="header">
+                    <h4 class="mb-0 fw-bold text-dark" style="font-size: 18px;">Dispute Management</h4>
+                </x-slot>
+                <div style="padding: 18px;">
+                    @if($order->dispute && in_array($order->dispute->status, ['pending', 'escalated']))
+                        <div style="padding: 12px; border: 1px solid var(--agri-border); border-radius: 12px; background: var(--agri-bg); margin-bottom: 12px;">
+                            <div style="font-weight: 700; color: var(--agri-text-heading); margin-bottom: 6px;">Customer Reason</div>
+                            <div class="small text-muted">{{ $order->dispute->reason }}</div>
+                        </div>
+
+                        <form method="POST" action="{{ route('vendor.orders.dispute-response', $order->id) }}">
+                            @csrf
+                            <div class="mb-3">
+                                <label class="agri-label">Response to Dispute</label>
+                                <textarea name="response" rows="3" class="form-agri @error('response') is-invalid @enderror" placeholder="Provide your response for admin review..." required>{{ old('response') }}</textarea>
+                                @error('response')
+                                    <div class="invalid-feedback d-block">{{ $message }}</div>
+                                @enderror
+                            </div>
+                            <x-button type="submit" variant="outline" icon="fas fa-reply" style="width: 100%;">Submit Response</x-button>
+                        </form>
+                    @elseif($order->dispute)
+                        <div class="text-muted small">
+                            <div><strong>Status:</strong> {{ ucwords(str_replace('_', ' ', $order->dispute->status)) }}</div>
+                            <div class="mt-2"><strong>Reason:</strong> {{ $order->dispute->reason }}</div>
+                            @if($order->dispute->escalation_reason)
+                                <div class="mt-2"><strong>Escalation Reason:</strong> {{ $order->dispute->escalation_reason }}</div>
+                            @endif
+                            @if($order->dispute->vendor_response)
+                                <div class="mt-2"><strong>Your Response:</strong> {{ $order->dispute->vendor_response }}</div>
+                            @endif
+                            @if($order->dispute->responded_at)
+                                <div class="mt-2"><strong>Responded At:</strong> {{ $order->dispute->responded_at->format('M d, Y h:i A') }}</div>
+                            @endif
+                            @if($order->dispute->admin_notes)
+                                <div class="mt-2"><strong>Admin Notes:</strong> {{ $order->dispute->admin_notes }}</div>
+                            @endif
+                        </div>
+                    @else
+                        <div class="text-muted small">No dispute has been raised for this order.</div>
+                    @endif
+                </div>
+            </x-card>
         </div>
     </div>
 </div>

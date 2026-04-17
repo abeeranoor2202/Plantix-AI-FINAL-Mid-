@@ -8,6 +8,7 @@
 
     $navItems = [
         ['label' => 'Dashboard', 'icon' => 'mdi-view-dashboard-outline', 'active' => Request::is('admin/dashboard*') || Request::is('admin'), 'route' => route('admin.dashboard')],
+        ['label' => 'Activity Stream', 'icon' => 'mdi-timeline-text-outline', 'active' => Request::is('admin/activity*'), 'route' => route('admin.activity.index')],
         ['label' => 'Customers', 'icon' => 'mdi-account-multiple-outline', 'active' => Request::is('admin/users*'), 'route' => route('admin.users'), 'ability' => 'admin.users'],
         ['label' => 'Vendors', 'icon' => 'mdi-store-outline', 'active' => Request::is('admin/vendors*'), 'route' => route('admin.vendors'), 'ability' => 'admin.vendors'],
         ['label' => 'Experts', 'icon' => 'mdi-account-tie-outline', 'active' => Request::is('admin/experts*'), 'route' => route('admin.experts.index'), 'ability' => 'admin.experts'],

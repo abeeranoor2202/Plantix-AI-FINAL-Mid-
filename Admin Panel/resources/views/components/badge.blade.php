@@ -1,14 +1,14 @@
 @props([
-    'variant' => 'success',
+    'variant' => 'secondary',
 ])
 
 @php
     $map = [
-        'success' => 'badge rounded-pill bg-success',
-        'secondary' => 'badge rounded-pill bg-secondary',
-        'warning' => 'badge rounded-pill bg-warning',
-        'danger' => 'badge rounded-pill bg-danger',
-        'info' => 'badge rounded-pill bg-info',
+        'success' => 'badge rounded-pill badge-success-agri',
+        'secondary' => 'badge rounded-pill badge-secondary-agri',
+        'warning' => 'badge rounded-pill badge-warning-agri',
+        'danger' => 'badge rounded-pill badge-danger-agri',
+        'info' => 'badge rounded-pill badge-info-agri',
     ];
 @endphp
 

@@ -33,6 +33,7 @@
 
     <link href="{{ asset('css/agritech-redesign.css') }}" rel="stylesheet">
     <link href="{{ asset('css/admin-customer-unified.css') }}" rel="stylesheet">
+    <link href="{{ asset('css/platform-design-system.css') }}" rel="stylesheet">
     <link href="{{ asset('css/panel-unified.css') }}" rel="stylesheet">
 
     <style>
@@ -53,8 +54,8 @@
         }
 
         body.admin-unified-ui .sidebar-nav .nav-link-agri.active {
-            background: #dff5ea !important;
-            color: #0f766e !important;
+            background: #dcead8 !important;
+            color: #234d20 !important;
         }
 
         @media (min-width: 768px) {
@@ -167,6 +168,36 @@
     })();
 </script>
 
+<script>
+    (function () {
+        document.querySelectorAll('form').forEach(function (form) {
+            form.addEventListener('submit', function (event) {
+                const confirmText = form.getAttribute('data-confirm');
+                if (confirmText && !window.confirm(confirmText)) {
+                    event.preventDefault();
+                    return;
+                }
+
+                const submitButton = form.querySelector('button[type="submit"], .platform-submit-btn');
+                if (!submitButton || submitButton.classList.contains('is-loading')) {
+                    return;
+                }
+
+                submitButton.classList.add('is-loading');
+                submitButton.setAttribute('disabled', 'disabled');
+                const loadingText = submitButton.getAttribute('data-loading-text');
+                if (loadingText) {
+                    const content = submitButton.querySelector('.btn-content');
+                    if (content) {
+                        content.dataset.originalText = content.textContent;
+                        content.textContent = loadingText;
+                    }
+                }
+            });
+        });
+    })();
+</script>
+
 <script src="{{ asset('js/chosen.jquery.js') }}"></script>
 <script src="{{ asset('js/bootstrap-tagsinput.js') }}"></script>
 <script src="{{ asset('js/crypto-js.js') }}"></script>
@@ -174,6 +205,7 @@
 <script src="{{ asset('js/jquery.validate.js') }}"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-timepicker/0.5.2/js/bootstrap-timepicker.min.js"></script>
 <script src="{{ asset('js/jquery.masking.js') }}"></script>
+<script src="{{ asset('js/platform-api.js') }}"></script>
 
 @stack('scripts')
 </body>

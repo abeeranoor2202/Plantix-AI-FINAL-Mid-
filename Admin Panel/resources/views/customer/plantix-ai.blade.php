@@ -47,6 +47,30 @@
     </div>
     <!-- End Breadcrumb -->
 
+    <div class="default-padding" style="padding-top: 40px; padding-bottom: 20px; background: #fff;">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-lg-8">
+                    <div class="card-agri" style="padding: 24px; border: 1px solid #E5E7EB; border-radius: 14px; background: #F9FAFB;">
+                        <h4 style="margin-bottom: 8px; font-weight: 800; color: #1F2937;">Need Human Expert Help?</h4>
+                        <p style="margin-bottom: 16px; color: #6B7280;">If AI guidance is unclear or urgent, escalate this chat to the expert queue for manual review.</p>
+                        <form method="POST" action="{{ route('ai.chat.escalate') }}">
+                            @csrf
+                            <div class="mb-3">
+                                <label class="form-label" style="font-weight: 700; color: #374151;">Escalation Reason</label>
+                                <textarea name="reason" rows="3" class="form-control @error('reason') is-invalid @enderror" placeholder="Describe what you want an expert to review...">{{ old('reason') }}</textarea>
+                                @error('reason')
+                                    <div class="invalid-feedback d-block">{{ $message }}</div>
+                                @enderror
+                            </div>
+                            <button type="submit" class="btn btn-theme" style="border-radius: 8px;">Escalate to Expert</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Start Services 
     ============================================= -->
     <div class="services-style-one-area bg-gray default-padding bottom-less">

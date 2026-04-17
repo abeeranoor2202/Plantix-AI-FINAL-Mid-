@@ -17,7 +17,7 @@
 @section('content')
 
     <!-- Start Breadcrumb -->
-    <div class="py-4 bg-light" style="border-bottom: 1px solid var(--agri-border); background: linear-gradient(to right, rgba(16, 185, 129, 0.05), rgba(16, 185, 129, 0.01));">
+    <div class="py-4 bg-light" style="border-bottom: 1px solid var(--agri-border); background: linear-gradient(to right, rgba(35, 77, 32, 0.08), rgba(35, 77, 32, 0.02));">
         <div class="container-agri">
             <h1 class="fw-bold text-dark mb-2" style="font-size: 28px;">Community Forum</h1>
             <nav aria-label="breadcrumb">
@@ -58,14 +58,39 @@
                         </div>
                         <div class="col-md-4">
                             <label style="font-size: 12px; font-weight: 700; color: var(--agri-text-muted); text-transform: uppercase; margin-bottom: 8px; display: block;">Category</label>
-                            <select name="category" class="form-agri" onchange="this.form.submit()">
+                            <select name="category" class="form-agri">
                                 <option value="">All Categories</option>
                                 @foreach($categories as $cat)
                                     <option value="{{ $cat->slug }}" {{ request('category') === $cat->slug ? 'selected' : '' }}>{{ $cat->name }}</option>
                                 @endforeach
                             </select>
                         </div>
-                        <div class="col-md-3 d-flex gap-2">
+                        <div class="col-md-3">
+                            <label style="font-size: 12px; font-weight: 700; color: var(--agri-text-muted); text-transform: uppercase; margin-bottom: 8px; display: block;">Status</label>
+                            <select name="status" class="form-agri">
+                                <option value="">All Statuses</option>
+                                @foreach(['open', 'resolved', 'locked', 'archived'] as $forumStatus)
+                                    <option value="{{ $forumStatus }}" @selected(request('status') === $forumStatus)>{{ ucfirst($forumStatus) }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label style="font-size: 12px; font-weight: 700; color: var(--agri-text-muted); text-transform: uppercase; margin-bottom: 8px; display: block;">Sort</label>
+                            <select name="sort_by" class="form-agri">
+                                <option value="latest" @selected(request('sort_by') === 'latest')>Latest</option>
+                                <option value="popular" @selected(request('sort_by') === 'popular')>Most Replies</option>
+                                <option value="oldest" @selected(request('sort_by') === 'oldest')>Oldest</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label style="font-size: 12px; font-weight: 700; color: var(--agri-text-muted); text-transform: uppercase; margin-bottom: 8px; display: block;">From</label>
+                            <input type="date" name="date_from" class="form-agri" value="{{ request('date_from') }}">
+                        </div>
+                        <div class="col-md-2">
+                            <label style="font-size: 12px; font-weight: 700; color: var(--agri-text-muted); text-transform: uppercase; margin-bottom: 8px; display: block;">To</label>
+                            <input type="date" name="date_to" class="form-agri" value="{{ request('date_to') }}">
+                        </div>
+                        <div class="col-md-2 d-flex gap-2">
                             <button type="submit" class="btn-agri btn-agri-primary w-50" style="justify-content: center;">Filter</button>
                             <a href="{{ route('forum') }}" class="btn-agri btn-agri-outline w-50" style="justify-content: center; text-decoration: none;">Reset</a>
                         </div>
@@ -104,7 +129,7 @@
                                     </td>
                                     <td style="padding: 18px 24px; font-size: 13px; color: var(--agri-text-main); font-weight: 600;">
                                         <div style="display: flex; align-items: center; gap: 8px;">
-                                            <div style="width: 24px; height: 24px; border-radius: 6px; background: rgba(16, 185, 129, 0.1); color: var(--agri-primary); display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 800;">
+                                            <div style="width: 24px; height: 24px; border-radius: 6px; background: var(--panel-primary-soft); color: var(--panel-primary-dark); display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 800;">
                                                 {{ strtoupper(substr($thread->user->name ?? 'F', 0, 1)) }}
                                             </div>
                                             {{ $thread->user->name ?? 'Farmer' }}
@@ -119,19 +144,7 @@
                                         {{ $thread->replies->count() }}
                                     </td>
                                     <td style="padding: 18px 24px; text-align: center;">
-                                        @php
-                                            $status = $thread->status ?? 'open';
-                                            $colors = [
-                                                'open'     => ['#D1FAE5', '#065F46'],
-                                                'resolved' => ['#E0F2FE', '#0369A1'],
-                                                'locked'   => ['#F3F4F6', '#4B5563'],
-                                                'archived' => ['#FEF3C7', '#92400E'],
-                                            ];
-                                            $c = $colors[$status] ?? ['#F9FAFB', '#6B7280'];
-                                        @endphp
-                                        <span style="background: {{ $c[0] }}; color: {{ $c[1] }}; padding: 4px 10px; border-radius: 100px; font-size: 11px; font-weight: 800; border: 1px solid {{ $c[0] }};">
-                                            {{ ucfirst($status) }}
-                                        </span>
+                                        <x-platform.status-badge domain="forum" :status="$thread->status" />
                                     </td>
                                     <td style="padding: 18px 24px; text-align: center;">
                                         @if($thread->is_pinned)

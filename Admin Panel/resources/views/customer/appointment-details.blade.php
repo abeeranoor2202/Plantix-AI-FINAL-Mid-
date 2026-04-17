@@ -21,12 +21,8 @@
                         </a>
                         <h2 class="fw-bold mb-0 text-dark d-flex align-items-center gap-3">
                             Appointment #{{ $appointment->id }}
-                            <span class="badge rounded-pill fw-medium fs-6" style="background: {{ $appointment->status === 'completed' ? 'rgba(16, 185, 129, 0.1); color: #10B981;' : ($appointment->status === 'cancelled' ? 'rgba(239, 68, 68, 0.1); color: #EF4444;' : 'rgba(245, 158, 11, 0.1); color: #F59E0B;') }} padding: 6px 12px; font-size: 14px; vertical-align: middle;">
-                                {{ ucwords(str_replace('_', ' ', $appointment->status)) }}
-                            </span>
-                            <span class="badge rounded-pill fw-medium fs-6" style="background: {{ $appointment->type === 'physical' ? 'rgba(16, 185, 129, 0.1); color: #10B981;' : 'rgba(37, 99, 235, 0.1); color: #2563EB;' }} padding: 6px 12px; font-size: 14px; vertical-align: middle;">
-                                {{ strtoupper($appointment->type_label) }}
-                            </span>
+                            <x-platform.status-badge domain="appointment" :status="$appointment->status" size="md" />
+                            <x-badge :variant="$appointment->type === 'physical' ? 'success' : 'info'">{{ strtoupper($appointment->type_label) }}</x-badge>
                         </h2>
                     </div>
                     
@@ -39,16 +35,14 @@
                         @if($appointment->canBeCancelledByCustomer())
                         <form method="POST" action="{{ route('appointment.cancel', $appointment->id) }}">
                             @csrf
-                            <button class="btn-agri text-danger" style="padding: 8px 16px; background: rgba(239, 68, 68, 0.1); border: none;" onclick="return confirm('Are you sure you want to cancel this appointment?')">Cancel Appointment</button>
+                            <button class="btn-agri btn-agri-danger" style="padding: 8px 16px; border: none;" onclick="return confirm('Are you sure you want to cancel this appointment?')">Cancel Appointment</button>
                         </form>
                         @endif
                     </div>
                 </div>
 
                 @if(session('success'))
-                    <div class="alert alert-success d-flex align-items-center mb-4" role="alert" style="border-radius: var(--agri-radius-sm);">
-                        <i class="fas fa-check-circle me-2"></i> {{ session('success') }}
-                    </div>
+                    <x-alert variant="success" class="mb-4">{{ session('success') }}</x-alert>
                 @endif
 
                 <div class="card-agri p-0 overflow-hidden border-0 mb-4">

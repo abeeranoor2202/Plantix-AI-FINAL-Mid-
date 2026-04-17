@@ -37,6 +37,19 @@ Route::prefix('admin')->name('admin.')->group(function () {
         // ── Dashboard ─────────────────────────────────────────────────────────
         Route::get('/',          [\App\Http\Controllers\HomeController::class, 'index'])->name('home');
         Route::get('/dashboard', [\App\Http\Controllers\HomeController::class, 'index'])->name('dashboard');
+        Route::get('/activity',  [\App\Http\Controllers\Admin\AdminActivityController::class, 'index'])->name('activity.index');
+        Route::get('/activity/export/csv', [\App\Http\Controllers\Admin\AdminActivityExportController::class, 'csv'])->name('activity.export.csv');
+
+        // ── Notifications ────────────────────────────────────────────────────
+        Route::prefix('/notifications')->name('notifications.')->group(function () {
+            Route::get('/', [\App\Http\Controllers\NotificationCenterController::class, 'index'])->name('index');
+            Route::get('/feed', [\App\Http\Controllers\NotificationCenterController::class, 'feed'])->name('feed');
+            Route::get('/unread-count', [\App\Http\Controllers\NotificationCenterController::class, 'unreadCount'])->name('unread-count');
+            Route::post('/{notification}/read', [\App\Http\Controllers\NotificationCenterController::class, 'markRead'])->name('read');
+            Route::post('/mark-all-read', [\App\Http\Controllers\NotificationCenterController::class, 'markAllRead'])->name('read-all');
+            Route::delete('/clear-all', [\App\Http\Controllers\NotificationCenterController::class, 'clearAll'])->name('clear-all');
+            Route::get('/{notification}/open', [\App\Http\Controllers\NotificationCenterController::class, 'open'])->name('open');
+        });
 
         // ── Admin Profile Management ──────────────────────────────────────────
         Route::get('/users/profile',              [\App\Http\Controllers\UserController::class, 'profile'])->name('users.profile');
@@ -176,6 +189,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
             Route::get('/',             [\App\Http\Controllers\Admin\AdminOrderController::class, 'index'])->name('index');
             Route::get('/{id}',         [\App\Http\Controllers\Admin\AdminOrderController::class, 'show'])->name('show');
             Route::post('/{id}/status', [\App\Http\Controllers\Admin\AdminOrderController::class, 'updateStatus'])->middleware(['permission:orders,orders.status'])->name('status');
+            Route::post('/{id}/dispute/resolve', [\App\Http\Controllers\Admin\AdminOrderController::class, 'resolveDispute'])->middleware(['permission:orders,orders.status'])->name('dispute.resolve');
         });
 
         // ── Appointments ──────────────────────────────────────────────────────
@@ -346,6 +360,10 @@ Route::prefix('admin')->name('admin.')->group(function () {
             Route::post('/seasonal-data',               [\App\Http\Controllers\Admin\AdminAiModuleController::class, 'storeSeasonalData'])->middleware(['permission:ai-modules,ai-modules.edit'])->name('seasonal-data.store');
             Route::put('/seasonal-data/{id}',           [\App\Http\Controllers\Admin\AdminAiModuleController::class, 'updateSeasonalData'])->middleware(['permission:ai-modules,ai-modules.edit'])->name('seasonal-data.update');
             Route::delete('/seasonal-data/{id}',        [\App\Http\Controllers\Admin\AdminAiModuleController::class, 'deleteSeasonalData'])->middleware(['permission:ai-modules,ai-modules.edit'])->name('seasonal-data.destroy');
+
+            Route::get('/chat-monitor',                 [\App\Http\Controllers\Admin\AdminAiChatController::class, 'index'])->name('chat-monitor');
+            Route::post('/chat-escalations/{id}/assign',[\App\Http\Controllers\Admin\AdminAiChatController::class, 'assignEscalation'])->middleware(['permission:ai-modules,ai-modules.assign'])->name('chat-escalations.assign');
+            Route::post('/chat-escalations/{id}/resolve',[\App\Http\Controllers\Admin\AdminAiChatController::class, 'resolveEscalation'])->middleware(['permission:ai-modules,ai-modules.assign'])->name('chat-escalations.resolve');
         });
 
         // ── Forum Moderation ─────────────────────────────────────────────────
@@ -375,6 +393,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
             Route::post('/flags/{id}/dismiss',               [\App\Http\Controllers\Admin\AdminForumController::class, 'dismissFlag'])->middleware(['permission:forum,forum.flag.dismiss'])->name('flags.dismiss');
             Route::post('/flags/{id}/confirm',               [\App\Http\Controllers\Admin\AdminForumController::class, 'confirmFlag'])->middleware(['permission:forum,forum.flag.review'])->name('flags.confirm');
             Route::post('/flags/{id}/delete-reply',          [\App\Http\Controllers\Admin\AdminForumController::class, 'deleteFlaggedReply'])->middleware(['permission:forum,forum.flag.delete-reply'])->name('flags.delete-reply');
+            Route::post('/flags/{id}/archive-thread',        [\App\Http\Controllers\Admin\AdminForumController::class, 'archiveFlaggedThread'])->middleware(['permission:forum,forum.thread.archive'])->name('flags.archive-thread');
 
             // User banning
             Route::post('/users/{userId}/ban',               [\App\Http\Controllers\Admin\AdminForumController::class, 'banUser'])->middleware(['permission:forum,forum.flag.review'])->name('users.ban');

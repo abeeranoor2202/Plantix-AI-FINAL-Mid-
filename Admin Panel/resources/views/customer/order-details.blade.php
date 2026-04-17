@@ -21,9 +21,7 @@
                         </a>
                         <h2 class="fw-bold mb-0 text-dark d-flex align-items-center gap-3">
                             Order #{{ $order->id }}
-                            <span class="badge rounded-pill fw-medium fs-6" style="background: {{ $order->status === 'delivered' ? 'rgba(16, 185, 129, 0.1); color: #10B981;' : ($order->status === 'cancelled' ? 'rgba(239, 68, 68, 0.1); color: #EF4444;' : 'rgba(245, 158, 11, 0.1); color: #F59E0B;') }} padding: 6px 12px; font-size: 14px; vertical-align: middle;">
-                                {{ ucwords(str_replace('_', ' ', $order->status)) }}
-                            </span>
+                            <x-platform.status-badge domain="order" :status="$order->status" size="md" />
                         </h2>
                     </div>
                     
@@ -35,7 +33,7 @@
                             <i class="fas fa-credit-card"></i> Pay Now
                         </a>
                         @endif
-                        @if(in_array($order->status, ['pending','confirmed']))
+                        @if($order->canCancel())
                         <form method="POST" action="{{ route('order.cancel', $order->id) }}">
                             @csrf
                             <button class="btn-agri text-danger" style="padding: 8px 16px; background: rgba(239, 68, 68, 0.1); border: none;" onclick="return confirm('Are you sure you want to cancel this order?')">Cancel Order</button>
@@ -86,6 +84,76 @@
                                 {{ auth('web')->user()->email }}<br>
                                 {{ auth('web')->user()->phone }}
                             </p>
+                        </div>
+                    </div>
+
+                    <div class="col-12">
+                        <div class="card-agri p-4 border-0">
+                            <h4 class="fw-bold mb-3 text-dark fs-5"><i class="fas fa-gavel text-danger me-2"></i> Dispute & Escalation</h4>
+
+                            @if($order->dispute && ($order->dispute->status ?? null) !== 'cancelled')
+                                <div class="alert alert-warning mb-3" style="border-radius: 12px;">
+                                    <div class="fw-bold mb-2">Dispute Status</div>
+                                    <x-platform.status-badge domain="dispute" :status="$order->dispute->status" />
+                                    <div><strong>Reason:</strong> {{ $order->dispute->reason }}</div>
+                                    @if($order->dispute->responded_at)
+                                        <div class="mt-2"><strong>Vendor Responded At:</strong> {{ $order->dispute->responded_at->format('M d, Y H:i') }}</div>
+                                    @endif
+                                    @if($order->dispute->vendor_response)
+                                        <div class="mt-2"><strong>Vendor Response:</strong> {{ $order->dispute->vendor_response }}</div>
+                                    @endif
+                                    @if($order->dispute->escalation_reason)
+                                        <div class="mt-2"><strong>Escalation Reason:</strong> {{ $order->dispute->escalation_reason }}</div>
+                                    @endif
+                                    @if($order->dispute->admin_notes)
+                                        <div class="mt-2"><strong>Admin Resolution:</strong> {{ $order->dispute->admin_notes }}</div>
+                                    @endif
+                                </div>
+
+                                @if(($order->dispute->status ?? null) === 'vendor_responded')
+                                    <form method="POST" action="{{ route('order.dispute.escalate', $order->id) }}">
+                                        @csrf
+                                        <label class="form-label fw-bold text-dark text-sm">Escalate to Admin <span class="text-danger">*</span></label>
+                                        <textarea
+                                            name="escalation_reason"
+                                            class="form-agri @error('escalation_reason') is-invalid @enderror"
+                                            rows="3"
+                                            placeholder="Tell admin why vendor response does not resolve the issue"
+                                            required
+                                        >{{ old('escalation_reason') }}</textarea>
+                                        @error('escalation_reason')
+                                            <div class="invalid-feedback d-block">{{ $message }}</div>
+                                        @enderror
+                                        <div class="mt-3">
+                                            <button type="submit" class="btn-agri" style="background: rgba(185, 28, 28, 0.12); color: #7F1D1D; border: none;">
+                                                Escalate Dispute
+                                            </button>
+                                        </div>
+                                    </form>
+                                @endif
+                            @elseif(!in_array($order->status, ['cancelled', 'rejected', 'refunded']))
+                                <form method="POST" action="{{ route('order.dispute', $order->id) }}">
+                                    @csrf
+                                    <label class="form-label fw-bold text-dark text-sm">Raise a Dispute <span class="text-danger">*</span></label>
+                                    <textarea
+                                        name="reason"
+                                        class="form-agri @error('reason') is-invalid @enderror"
+                                        rows="3"
+                                        placeholder="Describe the issue and what resolution you expect"
+                                        required
+                                    >{{ old('reason') }}</textarea>
+                                    @error('reason')
+                                        <div class="invalid-feedback d-block">{{ $message }}</div>
+                                    @enderror
+                                    <div class="mt-3">
+                                        <button type="submit" class="btn-agri" style="background: rgba(239, 68, 68, 0.1); color: #B91C1C; border: none;">
+                                            Submit Dispute to Admin
+                                        </button>
+                                    </div>
+                                </form>
+                            @else
+                                <p class="text-muted mb-0">Disputes are not available for orders in this final state.</p>
+                            @endif
                         </div>
                     </div>
 

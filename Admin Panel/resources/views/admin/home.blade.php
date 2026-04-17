@@ -6,6 +6,7 @@
         title="Admin Dashboard"
         subtitle="Users, vendors, experts, disputes, reports, and system activity"
         :summary-cards="$unifiedSummary ?? []"
+        :alerts="$dashboardAlerts ?? []"
         :recent-activity="$unifiedRecentActivity ?? []"
         :pending-actions="$unifiedPendingActions ?? []"
     />

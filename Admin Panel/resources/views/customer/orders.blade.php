@@ -48,8 +48,55 @@
                 <div class="card-agri p-4" style="border: none;">
                     <div class="d-flex justify-content-between align-items-center mb-4">
                         <h3 class="fw-bold mb-0 text-dark" style="font-size: 20px;">Order History</h3>
-                        <a href="{{ route('shop') }}" class="btn-agri btn-agri-outline text-decoration-none" style="padding: 8px 16px; font-size: 14px;">Continue Shopping</a>
+                        <div class="d-flex align-items-center gap-2 flex-wrap">
+                            <a href="{{ route('shop') }}" class="btn-agri btn-agri-outline text-decoration-none" style="padding: 8px 16px; font-size: 14px;">Continue Shopping</a>
+                        </div>
                     </div>
+
+                    <form method="GET" action="{{ route('orders') }}" class="row g-3 align-items-end mb-4">
+                        <div class="col-md-4">
+                            <label class="agri-label">Search</label>
+                            <input type="text" name="search" class="form-agri" value="{{ request('search') }}" placeholder="Order #, ID, product name">
+                        </div>
+                        <div class="col-md-2">
+                            <label class="agri-label">Status</label>
+                            <select name="status" class="form-agri">
+                                <option value="">All Statuses</option>
+                                @foreach(['draft','pending_payment','payment_failed','pending','confirmed','processing','shipped','delivered','completed','cancelled','rejected','return_requested','returned','refunded'] as $status)
+                                    <option value="{{ $status }}" @selected(request('status') === $status)>{{ strtoupper(str_replace('_', ' ', $status)) }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="agri-label">Dispute</label>
+                            <select name="dispute_status" class="form-agri">
+                                <option value="">All Disputes</option>
+                                @foreach(['pending', 'vendor_responded', 'escalated', 'resolved', 'rejected', 'cancelled'] as $disputeStatus)
+                                    <option value="{{ $disputeStatus }}" @selected(request('dispute_status') === $disputeStatus)>{{ strtoupper(str_replace('_', ' ', $disputeStatus)) }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-md-1">
+                            <label class="agri-label">Min</label>
+                            <input type="number" min="0" step="0.01" name="min_total" class="form-agri" value="{{ request('min_total') }}" placeholder="0">
+                        </div>
+                        <div class="col-md-1">
+                            <label class="agri-label">Max</label>
+                            <input type="number" min="0" step="0.01" name="max_total" class="form-agri" value="{{ request('max_total') }}" placeholder="0">
+                        </div>
+                        <div class="col-md-1">
+                            <label class="agri-label">From</label>
+                            <input type="date" name="date_from" class="form-agri" value="{{ request('date_from') }}">
+                        </div>
+                        <div class="col-md-1">
+                            <label class="agri-label">To</label>
+                            <input type="date" name="date_to" class="form-agri" value="{{ request('date_to') }}">
+                        </div>
+                        <div class="col-md-12 d-flex gap-2 justify-content-end">
+                            <button type="submit" class="btn-agri btn-agri-primary" style="padding: 8px 16px; font-size: 14px;">Apply Filters</button>
+                            <a href="{{ route('orders') }}" class="btn-agri btn-agri-outline text-decoration-none" style="padding: 8px 16px; font-size: 14px;">Reset</a>
+                        </div>
+                    </form>
 
                     <div id="ordersListTable" class="table-responsive">
                         <table class="table align-middle" style="border-collapse: separate; border-spacing: 0 10px;">
@@ -71,24 +118,15 @@
                                     <td class="border-bottom-0 py-3 text-muted">{{ $order->items->count() }} item(s)</td>
                                     <td class="border-bottom-0 py-3 fw-bold text-dark">PKR {{ number_format($order->total ?? 0, 2) }}</td>
                                     <td class="border-bottom-0 py-3">
-                                        @php
-                                            $statusColors = [
-                                                'pending'          => ['bg' => 'rgba(245,158,11,0.1)',  'color' => '#F59E0B'],
-                                                'pending_payment'  => ['bg' => 'rgba(59,130,246,0.1)',  'color' => '#3B82F6'],
-                                                'confirmed'        => ['bg' => 'rgba(16,185,129,0.1)', 'color' => '#10B981'],
-                                                'processing'       => ['bg' => 'rgba(99,102,241,0.1)', 'color' => '#6366F1'],
-                                                'shipped'          => ['bg' => 'rgba(14,165,233,0.1)', 'color' => '#0EA5E9'],
-                                                'delivered'        => ['bg' => 'rgba(16,185,129,0.1)', 'color' => '#10B981'],
-                                                'cancelled'        => ['bg' => 'rgba(239,68,68,0.1)',  'color' => '#EF4444'],
-                                                'refunded'         => ['bg' => 'rgba(156,163,175,0.1)','color' => '#6B7280'],
-                                                'payment_failed'   => ['bg' => 'rgba(239,68,68,0.1)',  'color' => '#EF4444'],
-                                            ];
-                                            $sc = $statusColors[$order->status] ?? ['bg' => 'rgba(156,163,175,0.1)', 'color' => '#6B7280'];
-                                        @endphp
-                                        <span class="badge rounded-pill fw-medium"
-                                              style="background: {{ $sc['bg'] }}; color: {{ $sc['color'] }}; padding: 6px 12px; font-size: 12px;">
-                                            {{ ucwords(str_replace('_', ' ', $order->status)) }}
-                                        </span>
+                                        <div class="d-flex flex-column gap-2">
+                                            <x-platform.status-badge domain="order" :status="$order->status" />
+                                            @if(($order->dispute_status ?? 'none') !== 'none')
+                                                <div>
+                                                    <small class="text-muted d-block mb-1" style="font-size: 11px;">Dispute</small>
+                                                    <x-platform.status-badge domain="dispute" :status="$order->dispute_status" />
+                                                </div>
+                                            @endif
+                                        </div>
                                     </td>
                                     <td class="border-bottom-0 py-3 rounded-end">
                                         <div class="d-flex gap-2">
@@ -104,7 +142,7 @@
                                                 <i class="fas fa-credit-card me-1"></i> Pay
                                             </a>
                                             @endif
-                                            @if(in_array($order->status, ['pending', 'confirmed']))
+                                            @if($order->canCancel())
                                             <form method="POST" action="{{ route('order.cancel', $order->id) }}">
                                                 @csrf
                                                 <button class="btn-agri text-danger"
@@ -121,7 +159,7 @@
                                 <tr>
                                     <td colspan="6" class="text-center py-5 text-muted">
                                         <i class="fas fa-shopping-bag fs-2 mb-3 opacity-50 d-block"></i>
-                                        You haven't placed any orders yet.
+                                        No orders match your current filters.
                                         <a href="{{ route('shop') }}" class="d-block mt-2 text-success text-decoration-none fw-bold">Start Shopping</a>
                                     </td>
                                 </tr>

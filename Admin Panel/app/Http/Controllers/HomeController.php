@@ -13,11 +13,14 @@ use App\Models\Expert;
 use App\Models\Appointment;
 use App\Models\PlatformActivity;
 use App\Models\Setting;
+use App\Services\Dashboard\AlertingService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class HomeController extends Controller
 {
+    public function __construct(private readonly AlertingService $alertingService) {}
+
     /**
      * Admin dashboard — protected by EnsureAdminGuard route middleware.
      * All data is queried here and passed to the view — no API calls needed.
@@ -169,6 +172,8 @@ class HomeController extends Controller
             ['label' => 'Orders pending', 'count' => Order::where('status', Order::STATUS_PENDING)->count(), 'href' => route('admin.orders.index')],
         ];
 
+        $dashboardAlerts = $this->alertingService->forAdmin();
+
         return view('admin.home', compact(
             'currencySymbol', 'currencyAtRight', 'decimalDigits', 'placeholderImage',
             'totalOrders', 'totalVendors', 'totalProducts', 'totalCustomers',
@@ -176,7 +181,7 @@ class HomeController extends Controller
             'ordersCanceled', 'ordersFailed', 'ordersPending',
             'totalEarnings', 'adminCommission', 'monthlyData',
             'topVendors', 'recentOrders', 'recentPayouts', 'fmt',
-            'unifiedSummary', 'unifiedRecentActivity', 'unifiedPendingActions',
+            'unifiedSummary', 'unifiedRecentActivity', 'unifiedPendingActions', 'dashboardAlerts',
         ));
     }
 

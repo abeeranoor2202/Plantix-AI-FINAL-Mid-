@@ -21,6 +21,8 @@
     <link href="{{ asset('style.css') }}" rel="stylesheet">
     <!-- AgriTech Core Design System -->
     <link href="{{ asset('css/agritech-redesign.css') }}" rel="stylesheet">
+    <link href="{{ asset('css/platform-design-system.css') }}" rel="stylesheet">
+    <link href="{{ asset('css/panel-unified.css') }}" rel="stylesheet">
     <!--[if lte IE 9]>
         <p class="browserupgrade">You are using an <strong>outdated</strong> browser. Please <a href="https://browsehappy.com/">upgrade your browser</a> to improve your experience and security.</p>
     <![endif]-->

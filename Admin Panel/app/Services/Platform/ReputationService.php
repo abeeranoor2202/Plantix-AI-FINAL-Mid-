@@ -13,6 +13,7 @@ use App\Events\Review\ReviewCreated;
 use App\Models\Expert;
 use App\Models\User;
 use App\Models\Vendor;
+use Illuminate\Support\Facades\DB;
 
 class ReputationService
 {
@@ -195,32 +196,53 @@ class ReputationService
 
     public function adjustUser(User $user, int $delta): void
     {
-        $newScore = max(0, (int) $user->reputation_score + $delta);
+        DB::transaction(function () use ($user, $delta) {
+            $user->refresh();
+            $newScore = max(0, (int) $user->reputation_score + $delta);
 
-        $user->forceFill([
-            'reputation_score' => $newScore,
-            'reputation_level' => $this->levelFor($newScore),
-        ])->save();
+            $user->forceFill([
+                'reputation_score' => $newScore,
+                'reputation_level' => $this->levelFor($newScore),
+            ])->save();
+        });
     }
 
     public function adjustExpert(Expert $expert, int $delta): void
     {
-        $newScore = max(0, (int) $expert->reputation_score + $delta);
+        DB::transaction(function () use ($expert, $delta) {
+            $expert->refresh();
+            $newScore = max(0, (int) $expert->reputation_score + $delta);
 
-        $expert->forceFill([
-            'reputation_score' => $newScore,
-            'reputation_level' => $this->levelFor($newScore),
-        ])->save();
+            $expert->forceFill([
+                'reputation_score' => $newScore,
+                'reputation_level' => $this->levelFor($newScore),
+            ]);
+
+            if ($newScore < 10 && method_exists($expert, 'isApproved') && $expert->isApproved()) {
+                $expert->status = Expert::STATUS_UNDER_REVIEW;
+            }
+
+            $expert->save();
+        });
     }
 
     public function adjustVendor(Vendor $vendor, int $delta): void
     {
-        $newScore = max(0, (int) $vendor->reputation_score + $delta);
+        DB::transaction(function () use ($vendor, $delta) {
+            $vendor->refresh();
+            $newScore = max(0, (int) $vendor->reputation_score + $delta);
 
-        $vendor->forceFill([
-            'reputation_score' => $newScore,
-            'reputation_level' => $this->levelFor($newScore),
-        ])->save();
+            $vendor->forceFill([
+                'reputation_score' => $newScore,
+                'reputation_level' => $this->levelFor($newScore),
+            ]);
+
+            if ($newScore < 10 && ! $vendor->isSuspended()) {
+                $vendor->setLifecycleStatus(Vendor::STATUS_SUSPENDED);
+            }
+
+            $vendor->save();
+        });
     }
 
     public function levelFor(int $score): string

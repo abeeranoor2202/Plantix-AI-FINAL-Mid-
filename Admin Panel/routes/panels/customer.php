@@ -88,6 +88,8 @@ Route::get('/cart/mini',  [\App\Http\Controllers\Frontend\CartController::class,
 
 Route::middleware(['customer', 'verified'])->group(function () {
 
+    Route::get('/dashboard', [\App\Http\Controllers\Frontend\CustomerDashboardController::class, 'index'])->name('customer.dashboard');
+
     // ── Forum (write operations) ──────────────────────────────────────────────
     // Rate limits: thread creation (5/min), replies (10/min), flags (3/min)
     Route::post('/forum',                        [\App\Http\Controllers\Frontend\ForumController::class, 'store'])->name('forum.store')
@@ -129,6 +131,8 @@ Route::middleware(['customer', 'verified'])->group(function () {
     Route::get('/order/success/{id}',      [\App\Http\Controllers\Frontend\CustomerOrderController::class, 'success'])->name('order.success');
     Route::post('/orders/{id}/return',     [\App\Http\Controllers\Frontend\CustomerOrderController::class, 'requestReturn'])->name('order.return');
     Route::post('/orders/{id}/cancel',     [\App\Http\Controllers\Frontend\CustomerOrderController::class, 'cancel'])->name('order.cancel');
+    Route::post('/orders/{id}/dispute',    [\App\Http\Controllers\Frontend\CustomerOrderController::class, 'dispute'])->name('order.dispute');
+    Route::post('/orders/{id}/dispute/escalate', [\App\Http\Controllers\Frontend\CustomerOrderController::class, 'escalateDispute'])->name('order.dispute.escalate');
     Route::get('/orders/{id}/invoice',     [\App\Http\Controllers\Frontend\InvoiceController::class, 'download'])->name('order.invoice');
 
     // ── Expert quick-book (auth required to submit booking) ─────────────────
@@ -187,15 +191,20 @@ Route::middleware(['customer', 'verified'])->group(function () {
     Route::get('/weather/history',      [\App\Http\Controllers\Frontend\WeatherController::class, 'history'])->name('weather.history');
     Route::get('/weather/cities',       [\App\Http\Controllers\Frontend\WeatherController::class, 'cities'])->name('weather.cities');
     // ── Notifications ──────────────────────────────────────────────────────────
-    Route::get('/notifications',               [\App\Http\Controllers\Frontend\CustomerNotificationController::class, 'index'])->name('notifications');
-    Route::post('/notifications/read-all',     [\App\Http\Controllers\Frontend\CustomerNotificationController::class, 'markAllRead'])->name('notifications.read-all');
-    Route::post('/notifications/{id}/read',    [\App\Http\Controllers\Frontend\CustomerNotificationController::class, 'markRead'])->name('notifications.read');
+    Route::get('/notifications',               [\App\Http\Controllers\NotificationCenterController::class, 'index'])->name('notifications.index');
+    Route::get('/notifications/feed',          [\App\Http\Controllers\NotificationCenterController::class, 'feed'])->name('notifications.feed');
+    Route::get('/notifications/unread-count',  [\App\Http\Controllers\NotificationCenterController::class, 'unreadCount'])->name('notifications.unread-count');
+    Route::post('/notifications/read-all',     [\App\Http\Controllers\NotificationCenterController::class, 'markAllRead'])->name('notifications.read-all');
+    Route::post('/notifications/{notification}/read',    [\App\Http\Controllers\NotificationCenterController::class, 'markRead'])->name('notifications.read');
+    Route::delete('/notifications/clear-all',   [\App\Http\Controllers\NotificationCenterController::class, 'clearAll'])->name('notifications.clear-all');
+    Route::get('/notifications/{notification}/open', [\App\Http\Controllers\NotificationCenterController::class, 'open'])->name('notifications.open');
     // ── AI Chat (Plantix AI Assistant) ────────────────────────────────────────
     Route::get('/plantix-ai',            [\App\Http\Controllers\Frontend\AiChatController::class, 'index'])->name('ai.chat');
     Route::post('/plantix-ai/message',   [\App\Http\Controllers\Frontend\AiChatController::class, 'message'])->name('ai.chat.message')->middleware('throttle:ai-chat');
     Route::get('/plantix-ai/history',    [\App\Http\Controllers\Frontend\AiChatController::class, 'history'])->name('ai.chat.history');
     Route::post('/plantix-ai/new',       [\App\Http\Controllers\Frontend\AiChatController::class, 'newSession'])->name('ai.chat.new');
     Route::get('/plantix-ai/sessions',   [\App\Http\Controllers\Frontend\AiChatController::class, 'sessions'])->name('ai.chat.sessions');
+    Route::post('/plantix-ai/escalate',  [\App\Http\Controllers\Frontend\AiChatController::class, 'escalate'])->name('ai.chat.escalate');
 
     // ── Expert Application ────────────────────────────────────────────────────
     Route::prefix('/expert-application')->name('expert-application.')->group(function () {

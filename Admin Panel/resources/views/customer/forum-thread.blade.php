@@ -10,7 +10,7 @@
 
 @section('content')
     <!-- Start Breadcrumb -->
-    <div class="py-4 bg-light" style="border-bottom: 1px solid var(--agri-border); background: linear-gradient(to right, rgba(16, 185, 129, 0.05), rgba(16, 185, 129, 0.01));">
+    <div class="py-4 bg-light" style="border-bottom: 1px solid var(--agri-border); background: linear-gradient(to right, rgba(35, 77, 32, 0.08), rgba(35, 77, 32, 0.02));">
         <div class="container-agri">
             <h1 class="fw-bold text-dark mb-2" style="font-size: 28px;">Community Forum</h1>
             <nav aria-label="breadcrumb">
@@ -30,15 +30,11 @@
                 <div class="col-lg-9 mx-auto">
                     
                     @if(session('success'))
-                        <div class="card-agri mb-4" style="background: #ecfdf5; border: 1px solid #86efac; border-radius: 12px; padding: 12px 20px; color: #166534; font-weight: 700;">
-                            {{ session('success') }}
-                        </div>
+                        <x-alert variant="success" class="mb-4">{{ session('success') }}</x-alert>
                     @endif
 
                     @if($errors->any())
-                        <div class="card-agri mb-4" style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 12px; padding: 12px 20px; color: #991b1b; font-weight: 700;">
-                            {{ $errors->first('error') ?? $errors->first('body') ?? 'Please correct the highlighted issues and try again.' }}
-                        </div>
+                        <x-alert variant="danger" class="mb-4">{{ $errors->first('error') ?? $errors->first('body') ?? 'Please correct the highlighted issues and try again.' }}</x-alert>
                     @endif
 
                     <div class="card-agri mb-4" style="padding: 0; overflow: hidden;">
@@ -46,23 +42,11 @@
                             <div>
                                 <h5 style="margin-bottom: 12px; font-weight: 800; color: var(--agri-text-heading); font-size: 18px; line-height: 1.4;">{{ $thread->title }}</h5>
                                 <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                                    @php
-                                        $status = $thread->status ?? 'open';
-                                        $colors = [
-                                            'open'     => ['#D1FAE5', '#065F46'],
-                                            'resolved' => ['#E0F2FE', '#0369A1'],
-                                            'locked'   => ['#F3F4F6', '#4B5563'],
-                                            'archived' => ['#FEF3C7', '#92400E'],
-                                        ];
-                                        $c = $colors[$status] ?? ['#F9FAFB', '#6B7280'];
-                                    @endphp
-                                    <span style="background: {{ $c[0] }}; color: {{ $c[1] }}; padding: 4px 10px; border-radius: 100px; font-size: 11px; font-weight: 800; border: 1px solid {{ $c[0] }};">
-                                        {{ ucfirst($status) }}
-                                    </span>
+                                    <x-platform.status-badge domain="forum" :status="$thread->status" />
                                     @if($thread->is_pinned ?? false)
-                                        <span style="background: #FEF3C7; color: #D97706; padding: 4px 10px; border-radius: 100px; font-size: 11px; font-weight: 800; border: 1px solid #FDE68A;">
+                                        <x-badge variant="warning">
                                             <i class="fa fa-thumbtack me-1"></i>Pinned
-                                        </span>
+                                        </x-badge>
                                     @endif
                                     @if($thread->category)
                                     <span style="background: var(--agri-bg); border: 1px solid var(--agri-border); color: var(--agri-text-heading); padding: 4px 10px; border-radius: 100px; font-size: 11px; font-weight: 700;">
@@ -73,14 +57,27 @@
                             </div>
                             <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 12px;">
                                 <small style="color: var(--agri-text-muted); font-size: 12px; font-weight: 600;">{{ $thread->created_at->format('d M Y, H:i') }}</small>
-                                <a href="{{ route('forum') }}" class="btn-agri btn-agri-outline" style="text-decoration: none; font-size: 12px; font-weight: 600; padding: 6px 12px;">
-                                    <i class="fas fa-arrow-left me-1"></i> Forum
-                                </a>
+                                <div style="display: flex; gap: 8px; align-items: center;">
+                                    @auth
+                                        @can('flag', $thread)
+                                        <form method="POST" action="{{ route('forum.thread.flag', $thread->id) }}" onsubmit="return confirm('Report this thread?')">
+                                            @csrf
+                                            <input type="hidden" name="reason" value="Inappropriate thread content.">
+                                            <button type="submit" class="btn-agri" style="padding: 6px 10px; background: transparent; color: var(--agri-text-muted); border: 1px solid var(--agri-border); font-size: 12px; font-weight: 600;" title="Report thread">
+                                                <i class="fa fa-flag"></i>
+                                            </button>
+                                        </form>
+                                        @endcan
+                                    @endauth
+                                    <a href="{{ route('forum') }}" class="btn-agri btn-agri-outline" style="text-decoration: none; font-size: 12px; font-weight: 600; padding: 6px 12px;">
+                                        <i class="fas fa-arrow-left me-1"></i> Forum
+                                    </a>
+                                </div>
                             </div>
                         </div>
                         <div style="padding: 28px;">
                             <div style="display: flex; gap: 16px; margin-bottom: 20px;">
-                                <div style="width: 48px; height: 48px; border-radius: 14px; background: rgba(16, 185, 129, 0.1); color: var(--agri-primary); display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 800; flex-shrink: 0; border: 1px solid rgba(16, 185, 129, 0.2);">
+                                <div style="width: 48px; height: 48px; border-radius: 14px; background: var(--panel-primary-soft); color: var(--panel-primary-dark); display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 800; flex-shrink: 0; border: 1px solid #cce1c9;">
                                     {{ strtoupper(substr($thread->user->name ?? 'F', 0, 1)) }}
                                 </div>
                                 <div>
@@ -101,20 +98,20 @@
                         </div>
                         <div>
                             @forelse($replies as $reply)
-                            <div style="padding: 24px; border-bottom: 1px solid var(--agri-border); {{ $reply->is_official ? 'background: rgba(16, 185, 129, 0.03); border-left: 3px solid var(--agri-primary);' : '' }}">
+                            <div style="padding: 24px; border-bottom: 1px solid var(--agri-border); {{ $reply->is_official ? 'background: #f4faf2; border-left: 3px solid var(--panel-primary);' : '' }}">
                                 <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px;">
                                     <div style="display: flex; gap: 16px; align-items: center;">
-                                        <div style="width: 40px; height: 40px; border-radius: 12px; background: {{ $reply->is_expert_reply ? '#D97706' : ( $reply->user_id === $thread->user_id ? 'rgba(16, 185, 129, 0.1)' : '#F3F4F6' ) }}; color: {{ $reply->is_expert_reply ? 'white' : ( $reply->user_id === $thread->user_id ? 'var(--agri-primary)' : '#4B5563' ) }}; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 800; flex-shrink: 0; border: 1px solid {{ $reply->is_expert_reply ? 'transparent' : ( $reply->user_id === $thread->user_id ? 'rgba(16, 185, 129, 0.2)' : '#E5E7EB' ) }};">
+                                        <div style="width: 40px; height: 40px; border-radius: 12px; background: {{ $reply->is_expert_reply ? '#D97706' : ( $reply->user_id === $thread->user_id ? 'var(--panel-primary-soft)' : '#F3F4F6' ) }}; color: {{ $reply->is_expert_reply ? 'white' : ( $reply->user_id === $thread->user_id ? 'var(--panel-primary-dark)' : '#4B5563' ) }}; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 800; flex-shrink: 0; border: 1px solid {{ $reply->is_expert_reply ? 'transparent' : ( $reply->user_id === $thread->user_id ? '#cce1c9' : '#E5E7EB' ) }};">
                                             {{ strtoupper(substr(optional($reply->user)->name ?? 'U', 0, 1)) }}
                                         </div>
                                         <div>
                                             <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
                                                 <span style="font-weight: 800; color: var(--agri-text-heading); font-size: 14px;">{{ optional($reply->user)->name ?? 'Farmer' }}</span>
                                                 @if($reply->is_official)
-                                                    <span style="background: #D1FAE5; color: #065F46; padding: 2px 8px; border-radius: 100px; font-size: 10px; font-weight: 800;"><i class="fa fa-check-circle me-1"></i>Official</span>
+                                                    <x-badge variant="success"><i class="fa fa-check-circle me-1"></i>Official</x-badge>
                                                 @endif
                                                 @if($reply->is_expert_reply)
-                                                    <span style="background: #FEF3C7; color: #92400E; padding: 2px 8px; border-radius: 100px; font-size: 10px; font-weight: 800;"><i class="fa fa-star me-1"></i>Expert</span>
+                                                    <x-badge variant="warning"><i class="fa fa-star me-1"></i>Expert</x-badge>
                                                 @endif
                                                 @if($reply->user_id === $thread->user_id)
                                                     <span style="background: var(--agri-bg); color: var(--agri-text-muted); padding: 2px 8px; border-radius: 100px; font-size: 10px; font-weight: 700; border: 1px solid var(--agri-border);">Author</span>
@@ -201,12 +198,12 @@
                         @if($thread->isOpen())
                         <div class="card-agri" style="padding: 24px;">
                             <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 24px; border-bottom: 1px solid var(--agri-border); padding-bottom: 16px;">
-                                <div style="width: 36px; height: 36px; background: rgba(16, 185, 129, 0.1); color: var(--agri-primary); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 14px;"><i class="fa fa-reply"></i></div>
+                                <div style="width: 36px; height: 36px; background: var(--panel-primary-soft); color: var(--panel-primary-dark); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 14px;"><i class="fa fa-reply"></i></div>
                                 <h6 style="margin: 0; font-weight: 800; color: var(--agri-text-heading); font-size: 14px; text-transform: uppercase;">Leave a Reply</h6>
                             </div>
                             
                             @if($errors->any())
-                                <div class="alert mb-4" style="border-radius: 12px; border: none; background: #FEE2E2; color: #991B1B; font-weight: 600; padding: 16px;">
+                                <div class="alert alert-danger mb-4" style="border-radius: 12px; font-weight: 600; padding: 16px;">
                                     <ul style="margin: 0; padding-left: 20px; font-size: 13px;">
                                         @foreach($errors->all() as $e)<li>{{ $e }}</li>@endforeach
                                     </ul>

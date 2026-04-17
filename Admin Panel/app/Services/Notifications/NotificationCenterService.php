@@ -151,6 +151,33 @@ class NotificationCenterService
             ->map(fn (Notification $notification) => $this->toFeedItem($notification));
     }
 
+    public function groupedPreviewForUser(User $user, int $limit = 5): array
+    {
+        $items = $this->latestForUser($user, max($limit, 10));
+        $grouped = $items
+            ->groupBy(fn (array $item) => (string) ($item['type'] ?? 'system'))
+            ->map(function (Collection $group, string $type) {
+                $first = $group->first();
+
+                return [
+                    'type' => $type,
+                    'count' => $group->count(),
+                    'title' => $first['title'] ?? 'Notification',
+                    'message' => $group->count() > 1
+                        ? $group->count() . ' updates for ' . str_replace(['.', '_'], ' ', $type)
+                        : ($first['message'] ?? ''),
+                    'created_at_human' => $first['created_at_human'] ?? '',
+                    'open_url' => $first['open_url'] ?? '#',
+                    'is_read' => $group->every(fn (array $item) => (bool) ($item['is_read'] ?? false)),
+                ];
+            })
+            ->take($limit)
+            ->values()
+            ->all();
+
+        return $grouped;
+    }
+
     public function listForUser(User $user, array $filters = [], int $perPage = 20): LengthAwarePaginator
     {
         $query = Notification::query()

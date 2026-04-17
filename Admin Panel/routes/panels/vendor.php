@@ -62,7 +62,19 @@ Route::prefix('vendor')->name('vendor.')->group(function () {
         Route::get('/orders',               [\App\Http\Controllers\Vendor\VendorOrderController::class, 'index'])->name('orders.index');
         Route::get('/orders/{id}',          [\App\Http\Controllers\Vendor\VendorOrderController::class, 'show'])->name('orders.show');
         Route::post('/orders/{id}/status',  [\App\Http\Controllers\Vendor\VendorOrderController::class, 'updateStatus'])->name('orders.status');
+        Route::post('/orders/{id}/dispute-response', [\App\Http\Controllers\Vendor\VendorOrderController::class, 'respondDispute'])->name('orders.dispute-response');
         Route::delete('/orders/{id}',       [\App\Http\Controllers\Vendor\VendorOrderController::class, 'destroy'])->name('orders.destroy');
+
+        // ── Notifications ───────────────────────────────────────────────────
+        Route::prefix('/notifications')->name('notifications.')->group(function () {
+            Route::get('/', [\App\Http\Controllers\NotificationCenterController::class, 'index'])->name('index');
+            Route::get('/feed', [\App\Http\Controllers\NotificationCenterController::class, 'feed'])->name('feed');
+            Route::get('/unread-count', [\App\Http\Controllers\NotificationCenterController::class, 'unreadCount'])->name('unread-count');
+            Route::post('/{notification}/read', [\App\Http\Controllers\NotificationCenterController::class, 'markRead'])->name('read');
+            Route::post('/mark-all-read', [\App\Http\Controllers\NotificationCenterController::class, 'markAllRead'])->name('read-all');
+            Route::delete('/clear-all', [\App\Http\Controllers\NotificationCenterController::class, 'clearAll'])->name('clear-all');
+            Route::get('/{notification}/open', [\App\Http\Controllers\NotificationCenterController::class, 'open'])->name('open');
+        });
 
         // ── Coupons (vendor-scoped) ───────────────────────────────────────────
         Route::get('/coupons',               [\App\Http\Controllers\Vendor\VendorCouponController::class, 'index'])->name('coupons.index');

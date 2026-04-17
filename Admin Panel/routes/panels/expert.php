@@ -68,15 +68,15 @@ Route::prefix('expert')->name('expert.')->group(function () {
 
         // ── Notifications ─────────────────────────────────────────────────────
         Route::prefix('notifications')->name('notifications.')->group(function () {
-            Route::get('/',                        [\App\Http\Controllers\Expert\ExpertNotificationController::class, 'index'])->name('index');
-            Route::get('/feed',                    [\App\Http\Controllers\Expert\ExpertNotificationController::class, 'feed'])->name('feed');
-            Route::post('/{notification}/read',    [\App\Http\Controllers\Expert\ExpertNotificationController::class, 'markRead'])->name('read');
-            Route::get('/{notification}/open',     [\App\Http\Controllers\Expert\ExpertNotificationController::class, 'open'])->name('open');
-            Route::post('/mark-all-read',          [\App\Http\Controllers\Expert\ExpertNotificationController::class, 'markAllRead'])->name('read-all');
-            Route::post('/bulk-read',              [\App\Http\Controllers\Expert\ExpertNotificationController::class, 'bulkRead'])->name('bulk-read');
-            Route::post('/bulk-delete',            [\App\Http\Controllers\Expert\ExpertNotificationController::class, 'bulkDelete'])->name('bulk-delete');
-            Route::delete('/clear-all',            [\App\Http\Controllers\Expert\ExpertNotificationController::class, 'clearAll'])->name('clear-all');
-            Route::get('/unread-count',            [\App\Http\Controllers\Expert\ExpertNotificationController::class, 'unreadCount'])->name('unread-count');
+            Route::get('/',                        [\App\Http\Controllers\NotificationCenterController::class, 'expertIndex'])->name('index');
+            Route::get('/feed',                    [\App\Http\Controllers\NotificationCenterController::class, 'expertFeed'])->name('feed');
+            Route::post('/{notification}/read',    [\App\Http\Controllers\NotificationCenterController::class, 'expertMarkRead'])->name('read');
+            Route::get('/{notification}/open',     [\App\Http\Controllers\NotificationCenterController::class, 'expertOpen'])->name('open');
+            Route::post('/mark-all-read',          [\App\Http\Controllers\NotificationCenterController::class, 'expertMarkAllRead'])->name('read-all');
+            Route::post('/bulk-read',              [\App\Http\Controllers\NotificationCenterController::class, 'expertBulkRead'])->name('bulk-read');
+            Route::post('/bulk-delete',            [\App\Http\Controllers\NotificationCenterController::class, 'expertBulkDelete'])->name('bulk-delete');
+            Route::delete('/clear-all',            [\App\Http\Controllers\NotificationCenterController::class, 'expertClearAll'])->name('clear-all');
+            Route::get('/unread-count',            [\App\Http\Controllers\NotificationCenterController::class, 'expertUnreadCount'])->name('unread-count');
         });
 
         // ── Profile ───────────────────────────────────────────────────────────

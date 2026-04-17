@@ -11,111 +11,123 @@
     </o:OfficeDocumentSettings></xml></noscript>
     <![endif]-->
     <style>
+        :root {
+            --bg: #f3f5f2;
+            --card: #ffffff;
+            --text: #1f2933;
+            --muted: #667085;
+            --border: #e5e7eb;
+            --brand: #166534;
+            --brand-2: #0f766e;
+            --brand-soft: #ecfdf3;
+            --warning-soft: #fff7ed;
+            --danger-soft: #fef2f2;
+            --info-soft: #eff6ff;
+        }
+
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
-            background-color: #f4f6f3;
+            background: radial-gradient(circle at top, #eef5ee 0%, var(--bg) 50%, #eef2f1 100%);
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
             font-size: 15px;
             line-height: 1.6;
-            color: #333333;
+            color: var(--text);
             -webkit-text-size-adjust: 100%;
         }
-        .wrapper { width: 100%; background-color: #f4f6f3; padding: 32px 16px; }
-        .container { max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,.08); }
+        .wrapper { width: 100%; background-color: transparent; padding: 32px 16px; }
+        .container { max-width: 640px; margin: 0 auto; background: var(--card); border-radius: 18px; overflow: hidden; box-shadow: 0 18px 40px rgba(15, 23, 42, .10); border: 1px solid rgba(255,255,255,.65); }
 
-        /* Header */
         .header {
-            background: linear-gradient(135deg, #1b5e20 0%, #2e7d32 100%);
-            padding: 28px 40px;
+            background: linear-gradient(135deg, var(--brand) 0%, var(--brand-2) 100%);
+            padding: 30px 40px;
             text-align: center;
         }
         .header .logo-text {
-            font-size: 24px; font-weight: 700; color: #ffffff; letter-spacing: -.5px;
+            font-size: 24px; font-weight: 800; color: #ffffff; letter-spacing: -.4px;
         }
         .header .logo-leaf { font-size: 28px; margin-right: 6px; }
-        .header .tagline { font-size: 12px; color: #a5d6a7; margin-top: 4px; letter-spacing: .05em; text-transform: uppercase; }
+        .header .tagline { font-size: 12px; color: rgba(255,255,255,.82); margin-top: 6px; letter-spacing: .12em; text-transform: uppercase; }
 
-        /* Hero / Title strip */
         .hero {
-            background: #e8f5e9;
+            background: linear-gradient(180deg, var(--brand-soft) 0%, #f8fbf8 100%);
             padding: 24px 40px;
-            display: flex; align-items: center; gap: 14px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            border-bottom: 1px solid rgba(22, 101, 52, .08);
         }
-        .hero-icon { font-size: 36px; line-height: 1; }
-        .hero h1 { font-size: 20px; font-weight: 700; color: #1b5e20; margin: 0; }
-        .hero p  { font-size: 13px; color: #555; margin: 3px 0 0; }
+        .hero-icon { width: 52px; height: 52px; border-radius: 16px; background: #ffffff; box-shadow: 0 8px 20px rgba(22, 101, 52, .12); display: flex; align-items: center; justify-content: center; font-size: 26px; line-height: 1; flex-shrink: 0; }
+        .hero h1 { font-size: 20px; font-weight: 800; color: var(--brand); margin: 0; }
+        .hero p  { font-size: 13px; color: var(--muted); margin: 4px 0 0; }
 
-        /* Body */
         .body { padding: 32px 40px; }
-        .body p { margin-bottom: 16px; color: #444; }
+        .body p { margin-bottom: 16px; color: #344054; }
         .body p:last-child { margin-bottom: 0; }
 
-        /* Info box */
         .info-box {
-            background: #f9fbe7; border: 1px solid #dcedc8;
-            border-left: 4px solid #8bc34a;
-            border-radius: 6px; padding: 16px 20px; margin: 20px 0;
+            background: #f9fafb;
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 16px 18px;
+            margin: 20px 0;
         }
-        .info-box .info-row { display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid #f0f4e8; font-size: 14px; }
+        .info-box .info-row { display: flex; justify-content: space-between; gap: 16px; padding: 10px 0; border-bottom: 1px solid #eef2f7; font-size: 14px; }
         .info-box .info-row:last-child { border-bottom: none; }
-        .info-box .info-label { color: #777; font-weight: 500; }
-        .info-box .info-value { font-weight: 600; color: #333; text-align: right; }
+        .info-box .info-label { color: var(--muted); font-weight: 600; }
+        .info-box .info-value { font-weight: 600; color: var(--text); text-align: right; }
 
-        /* Alert box */
         .alert-box {
-            border-radius: 6px; padding: 14px 18px; margin: 20px 0; font-size: 14px;
+            border-radius: 14px; padding: 14px 18px; margin: 20px 0; font-size: 14px;
         }
-        .alert-success { background: #e8f5e9; border-left: 4px solid #4caf50; color: #2e7d32; }
-        .alert-warning { background: #fff8e1; border-left: 4px solid #ffc107; color: #856404; }
-        .alert-danger  { background: #ffebee; border-left: 4px solid #f44336; color: #c62828; }
-        .alert-info    { background: #e3f2fd; border-left: 4px solid #2196f3; color: #0d47a1; }
+        .alert-success { background: var(--brand-soft); border-left: 4px solid #22c55e; color: var(--brand); }
+        .alert-warning { background: var(--warning-soft); border-left: 4px solid #f59e0b; color: #92400e; }
+        .alert-danger  { background: var(--danger-soft); border-left: 4px solid #ef4444; color: #b91c1c; }
+        .alert-info    { background: var(--info-soft); border-left: 4px solid #3b82f6; color: #1d4ed8; }
 
-        /* CTA Button */
         .btn-wrap { text-align: center; margin: 28px 0; }
         .btn {
             display: inline-block;
-            background: #2e7d32; color: #ffffff !important;
+            background: linear-gradient(135deg, var(--brand) 0%, var(--brand-2) 100%);
+            color: #ffffff !important;
             text-decoration: none; font-weight: 700; font-size: 15px;
-            padding: 14px 36px; border-radius: 8px;
-            letter-spacing: .02em;
+            padding: 14px 34px; border-radius: 999px;
+            letter-spacing: .01em;
+            box-shadow: 0 10px 20px rgba(22, 101, 52, .18);
         }
         .btn-secondary {
-            background: #ffffff; color: #2e7d32 !important;
-            border: 2px solid #2e7d32;
+            background: #ffffff;
+            color: var(--brand) !important;
+            border: 1px solid rgba(22, 101, 52, .25);
+            box-shadow: none;
         }
-        .btn-danger { background: #d32f2f; }
-        .btn-warning { background: #f57c00; }
+        .btn-danger { background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%); }
+        .btn-warning { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); }
 
-        /* Table */
         .data-table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 14px; }
-        .data-table th { background: #e8f5e9; color: #2e7d32; font-weight: 600; text-align: left; padding: 10px 12px; border-bottom: 2px solid #c8e6c9; }
-        .data-table td { padding: 10px 12px; border-bottom: 1px solid #f0f0f0; vertical-align: top; }
+        .data-table th { background: #f8fafc; color: var(--brand); font-weight: 700; text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--border); }
+        .data-table td { padding: 10px 12px; border-bottom: 1px solid #eef2f7; vertical-align: top; }
         .data-table tr:last-child td { border-bottom: none; }
-        .data-table .total-row td { font-weight: 700; background: #f9fbe7; border-top: 2px solid #c8e6c9; }
+        .data-table .total-row td { font-weight: 700; background: #f8fafc; border-top: 1px solid var(--border); }
 
-        /* Divider */
-        .divider { border: none; border-top: 1px solid #eeeeee; margin: 24px 0; }
+        .divider { border: none; border-top: 1px solid var(--border); margin: 24px 0; }
 
-        /* Status badge */
         .badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; }
-        .badge-success  { background: #e8f5e9; color: #2e7d32; }
-        .badge-warning  { background: #fff8e1; color: #856404; }
-        .badge-danger   { background: #ffebee; color: #c62828; }
-        .badge-info     { background: #e3f2fd; color: #0d47a1; }
-        .badge-secondary{ background: #f5f5f5; color: #555; }
+        .badge-success  { background: var(--brand-soft); color: var(--brand); }
+        .badge-warning  { background: var(--warning-soft); color: #92400e; }
+        .badge-danger   { background: var(--danger-soft); color: #b91c1c; }
+        .badge-info     { background: var(--info-soft); color: #1d4ed8; }
+        .badge-secondary{ background: #f3f4f6; color: #475467; }
 
-        /* Steps */
         .step-list { list-style: none; padding: 0; margin: 16px 0; }
-        .step-list li { display: flex; gap: 12px; margin-bottom: 14px; align-items: flex-start; font-size: 14px; }
-        .step-num { flex-shrink: 0; width: 26px; height: 26px; border-radius: 50%; background: #2e7d32; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; }
+        .step-list li { display: flex; gap: 12px; margin-bottom: 14px; align-items: flex-start; font-size: 14px; color: #344054; }
+        .step-num { flex-shrink: 0; width: 28px; height: 28px; border-radius: 999px; background: var(--brand); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; }
 
-        /* Footer */
-        .footer { background: #f4f6f3; padding: 24px 40px; text-align: center; }
-        .footer p { font-size: 12px; color: #999; margin: 4px 0; }
-        .footer a { color: #2e7d32; text-decoration: none; }
-        .footer .divider-dot { margin: 0 6px; color: #ccc; }
+        .footer { background: #f8fafc; padding: 24px 40px; text-align: center; border-top: 1px solid var(--border); }
+        .footer p { font-size: 12px; color: var(--muted); margin: 4px 0; }
+        .footer a { color: var(--brand); text-decoration: none; font-weight: 600; }
+        .footer .divider-dot { margin: 0 8px; color: #cbd5e1; }
         .footer .social { margin: 10px 0; }
-        .footer .app-name { font-weight: 700; color: #555; font-size: 13px; }
+        .footer .app-name { font-weight: 800; color: var(--text); font-size: 13px; }
 
         @media only screen and (max-width: 600px) {
             .header { padding: 20px 24px; }
@@ -130,7 +142,7 @@
 <div class="wrapper">
 <div class="container">
 
-    {{-- ── Header ──────────────────────────────────────────────────────────── --}}
+    {{-- Header --}}
     <div class="header">
         <div class="logo-text">
             <span class="logo-leaf">🌱</span>Plantix AI
@@ -138,7 +150,7 @@
         <div class="tagline">Smart Agriculture Platform</div>
     </div>
 
-    {{-- ── Hero strip ──────────────────────────────────────────────────────── --}}
+    {{-- Hero strip --}}
     @isset($heroIcon, $heroTitle)
     <div class="hero">
         <div class="hero-icon">{{ $heroIcon }}</div>
@@ -149,12 +161,12 @@
     </div>
     @endisset
 
-    {{-- ── Body ───────────────────────────────────────────────────────────── --}}
+    {{-- Body --}}
     <div class="body">
         @yield('content')
     </div>
 
-    {{-- ── Footer ──────────────────────────────────────────────────────────── --}}
+    {{-- Footer --}}
     <div class="footer">
         <p class="app-name">Plantix AI — Smart Agriculture Platform</p>
         <p>

@@ -68,6 +68,7 @@
     <!-- AgriTech Redesign: Core Design System -->
     <link href="{{ asset('css/agritech-redesign.css') }}" rel="stylesheet">
     <link href="{{ asset('css/admin-customer-unified.css') }}" rel="stylesheet">
+    <link href="{{ asset('css/platform-design-system.css') }}" rel="stylesheet">
     <link href="{{ asset('css/panel-unified.css') }}" rel="stylesheet">
 
     <style>
@@ -176,7 +177,36 @@
         </aside>
 
         <main class="page-wrapper" style="min-height: 100vh;">
-            @yield('content')
+            <div class="container-fluid" style="padding-top: 24px; padding-bottom: 40px;">
+                <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 1090;">
+                    @if(session('success'))
+                        <div class="toast align-items-center text-bg-success border-0 js-session-toast" role="alert" aria-live="assertive" aria-atomic="true">
+                            <div class="d-flex">
+                                <div class="toast-body fw-semibold">{{ session('success') }}</div>
+                                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                            </div>
+                        </div>
+                    @endif
+                    @if(session('error'))
+                        <div class="toast align-items-center text-bg-danger border-0 js-session-toast" role="alert" aria-live="assertive" aria-atomic="true">
+                            <div class="d-flex">
+                                <div class="toast-body fw-semibold">{{ session('error') }}</div>
+                                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                            </div>
+                        </div>
+                    @endif
+                    @if($errors->any())
+                        <div class="toast align-items-center text-bg-danger border-0 js-session-toast" role="alert" aria-live="assertive" aria-atomic="true">
+                            <div class="d-flex">
+                                <div class="toast-body fw-semibold">{{ $errors->first() }}</div>
+                                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                            </div>
+                        </div>
+                    @endif
+                </div>
+
+                @yield('content')
+            </div>
             <footer class="footer">
                 @include('layouts.footer')
             </footer>
@@ -278,6 +308,42 @@
     })(jQuery);
 </script>
 
+<script type="text/javascript">
+    (function () {
+        if (typeof bootstrap !== 'undefined' && typeof bootstrap.Toast !== 'undefined') {
+            document.querySelectorAll('.js-session-toast').forEach(function (el) {
+                new bootstrap.Toast(el, { delay: 3500 }).show();
+            });
+        }
+
+        document.querySelectorAll('form').forEach(function (form) {
+            form.addEventListener('submit', function (event) {
+                const confirmText = form.getAttribute('data-confirm');
+                if (confirmText && !window.confirm(confirmText)) {
+                    event.preventDefault();
+                    return;
+                }
+
+                const submitButton = form.querySelector('button[type="submit"], .platform-submit-btn');
+                if (!submitButton || submitButton.classList.contains('is-loading')) {
+                    return;
+                }
+
+                submitButton.classList.add('is-loading');
+                submitButton.setAttribute('disabled', 'disabled');
+                const loadingText = submitButton.getAttribute('data-loading-text');
+                if (loadingText) {
+                    const content = submitButton.querySelector('.btn-content');
+                    if (content) {
+                        content.dataset.originalText = content.textContent;
+                        content.textContent = loadingText;
+                    }
+                }
+            });
+        });
+    })();
+</script>
+
 <!-- Firebase has been removed from the application -->
 
 <script src="{{ asset('js/chosen.jquery.js') }}"></script>
@@ -297,6 +363,8 @@
 
 
 <script src="{{ asset('js/jquery.masking.js') }}"></script>
+
+<script src="{{ asset('js/platform-api.js') }}"></script>
 
 
 

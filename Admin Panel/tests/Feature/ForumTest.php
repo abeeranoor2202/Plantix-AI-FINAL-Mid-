@@ -407,7 +407,7 @@ class ForumTest extends TestCase
     }
 
     // =========================================================================
-    // 7. Duplicate Flag Rejection + Reply Status
+    // 7. Duplicate Flag Rejection + Reply/Thread Status
     // =========================================================================
 
     /**
@@ -474,6 +474,38 @@ class ForumTest extends TestCase
             2,
             ForumFlag::where('reply_id', $reply->id)->count()
         );
+    }
+
+    /**
+     * @test
+     */
+    public function test_user_can_flag_a_thread_for_moderation(): void
+    {
+        $reporter = $this->farmer();
+        $author   = $this->expert();
+        $thread   = ForumThread::factory()->create([
+            'user_id' => $author->id,
+            'is_approved' => true,
+            'status' => ForumThread::STATUS_OPEN,
+        ]);
+
+        $flag = $this->forum->flagThread($reporter, $thread, 'spam thread');
+
+        $this->assertDatabaseHas('forum_flags', [
+            'id'         => $flag->id,
+            'thread_id'  => $thread->id,
+            'reply_id'   => null,
+            'flagged_by' => $reporter->id,
+            'reason'     => 'spam thread',
+            'status'     => ForumFlag::STATUS_PENDING,
+        ]);
+
+        $this->assertDatabaseHas('forum_logs', [
+            'user_id'   => $reporter->id,
+            'action'    => ForumLog::ACTION_THREAD_FLAG,
+            'thread_id' => $thread->id,
+            'reply_id'  => null,
+        ]);
     }
 
     // =========================================================================

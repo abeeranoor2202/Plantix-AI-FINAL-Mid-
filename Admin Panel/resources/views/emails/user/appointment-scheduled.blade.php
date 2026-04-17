@@ -70,4 +70,8 @@
     <a href="{{ $appointment->meeting_link }}" class="btn btn-secondary">🎥 Join Meeting</a>
 </div>
 @endif
+
+<hr class="divider">
+<p style="font-size:13px;color:#888;">Need help before your consultation? <a href="{{ config('app.url') }}/contact" style="color:#2e7d32;">Contact Support</a></p>
+<p style="font-size:12px;color:#9aa0a6;">Update your appointment reminder preferences in <a href="{{ route('account.profile') }}" style="color:#2e7d32;">account settings</a>.</p>
 @endsection

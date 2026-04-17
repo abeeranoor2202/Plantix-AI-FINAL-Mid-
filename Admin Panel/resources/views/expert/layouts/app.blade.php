@@ -33,6 +33,7 @@
 
     <link href="{{ asset('css/agritech-redesign.css') }}" rel="stylesheet">
     <link href="{{ asset('css/admin-customer-unified.css') }}" rel="stylesheet">
+    <link href="{{ asset('css/platform-design-system.css') }}" rel="stylesheet">
     <link href="{{ asset('css/panel-unified.css') }}" rel="stylesheet">
 
     <style>
@@ -137,6 +138,7 @@
 <script src="{{ asset('js/crypto-js.js') }}"></script>
 <script src="{{ asset('js/jquery.cookie.js') }}"></script>
 <script src="{{ asset('js/jquery.validate.js') }}"></script>
+<script src="{{ asset('js/platform-api.js') }}"></script>
 
 <script>
     (function ($) {
@@ -164,6 +166,36 @@
         document.querySelectorAll('.js-session-toast').forEach(function (el) {
             var toast = new bootstrap.Toast(el, { delay: 3500 });
             toast.show();
+        });
+    })();
+</script>
+
+<script>
+    (function () {
+        document.querySelectorAll('form').forEach(function (form) {
+            form.addEventListener('submit', function (event) {
+                const confirmText = form.getAttribute('data-confirm');
+                if (confirmText && !window.confirm(confirmText)) {
+                    event.preventDefault();
+                    return;
+                }
+
+                const submitButton = form.querySelector('button[type="submit"], .platform-submit-btn');
+                if (!submitButton || submitButton.classList.contains('is-loading')) {
+                    return;
+                }
+
+                submitButton.classList.add('is-loading');
+                submitButton.setAttribute('disabled', 'disabled');
+                const loadingText = submitButton.getAttribute('data-loading-text');
+                if (loadingText) {
+                    const content = submitButton.querySelector('.btn-content');
+                    if (content) {
+                        content.dataset.originalText = content.textContent;
+                        content.textContent = loadingText;
+                    }
+                }
+            });
         });
     })();
 </script>

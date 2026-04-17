@@ -39,12 +39,15 @@ class Kernel extends HttpKernel
             \App\Http\Middleware\CheckUserRoleMiddleware::class,
             \App\Http\Middleware\CheckAccountLocked::class,
             \App\Http\Middleware\EnforceSessionFreshness::class,
+            \App\Http\Middleware\LogPlatformMutations::class,
         ],
 
         'api' => [
             
             'throttle:api',
+            'pagination.limit',
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
+            \App\Http\Middleware\LogPlatformMutations::class,
         ],
     ];
 
@@ -75,5 +78,6 @@ class Kernel extends HttpKernel
         'customer'   => \App\Http\Middleware\EnsureCustomerAuth::class,
         'admin.ip'   => \App\Http\Middleware\AdminIpRestriction::class,
         'manual.payment.enabled' => \App\Http\Middleware\EnsureManualPaymentEnabled::class,
+        'pagination.limit' => \App\Http\Middleware\PaginationLimitMiddleware::class,
     ];
 }

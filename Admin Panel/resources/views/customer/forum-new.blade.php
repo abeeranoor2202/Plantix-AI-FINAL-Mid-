@@ -10,7 +10,7 @@
 
 @section('content')
     <!-- Start Breadcrumb -->
-    <div class="py-4 bg-light" style="border-bottom: 1px solid var(--agri-border); background: linear-gradient(to right, rgba(16, 185, 129, 0.05), rgba(16, 185, 129, 0.01));">
+    <div class="py-4 bg-light" style="border-bottom: 1px solid var(--agri-border); background: linear-gradient(to right, rgba(35, 77, 32, 0.08), rgba(35, 77, 32, 0.02));">
         <div class="container-agri">
             <h1 class="fw-bold text-dark mb-2" style="font-size: 28px;">Start a New Discussion</h1>
             <nav aria-label="breadcrumb">
@@ -31,12 +31,12 @@
                     
                     <div class="card-agri" style="padding: 32px;">
                         <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 24px; border-bottom: 1px solid var(--agri-border); padding-bottom: 16px;">
-                            <div style="width: 36px; height: 36px; background: #D1FAE5; color: #059669; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 14px;"><i class="fa fa-pen"></i></div>
+                            <div style="width: 36px; height: 36px; background: var(--panel-primary-soft); color: var(--panel-primary-dark); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 14px;"><i class="fa fa-pen"></i></div>
                             <h6 style="margin: 0; font-weight: 800; color: var(--agri-text-heading); font-size: 14px; text-transform: uppercase;">Create a Thread</h6>
                         </div>
 
                         @if($errors->any())
-                            <div class="alert mb-4" style="border-radius: 12px; border: none; background: #FEE2E2; color: #991B1B; font-weight: 600; padding: 16px;">
+                            <div class="alert alert-danger mb-4" style="border-radius: 12px; font-weight: 600; padding: 16px;">
                                 <ul style="margin: 0; padding-left: 20px; font-size: 13px;">
                                     @foreach($errors->all() as $e)
                                         <li>{{ $e }}</li>
