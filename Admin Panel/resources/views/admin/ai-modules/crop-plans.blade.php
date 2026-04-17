@@ -43,17 +43,7 @@
                         <td style="padding: 16px 24px;"><span style="background: var(--agri-bg); color: var(--agri-text-heading); font-weight: 800; font-size: 11px; padding: 4px 10px; border-radius: 6px; text-transform: uppercase; border: 1px solid var(--agri-border);">{{ $plan->season }}</span></td>
                         <td style="padding: 16px 24px; font-weight: 600;">{{ $plan->year }}</td>
                         <td style="padding: 16px 24px;">
-                            @php
-                                $statusColors = [
-                                    'active' => ['bg' => '#D1FAE5', 'text' => '#065F46', 'border' => '#A7F3D0'],
-                                    'completed' => ['bg' => '#F3F4F6', 'text' => '#374151', 'border' => '#E5E7EB'],
-                                    'draft' => ['bg' => '#FEF3C7', 'text' => '#B45309', 'border' => '#FDE68A']
-                                ];
-                                $colors = $statusColors[$plan->status ?? 'draft'] ?? $statusColors['draft'];
-                            @endphp
-                            <span style="background: {{ $colors['bg'] }}; color: {{ $colors['text'] }}; border: 1px solid {{ $colors['border'] }}; padding: 4px 10px; border-radius: 100px; font-size: 11px; font-weight: 900; text-transform: uppercase;">
-                                {{ ucfirst($plan->status ?? 'draft') }}
-                            </span>
+                            <x-platform.status-badge domain="plan" :status="$plan->status" />
                         </td>
                         <td style="padding: 16px 24px; font-weight: 700; color: var(--agri-success);">{{ $plan->estimated_revenue ? config('plantix.currency_symbol', 'PKR') . ' ' . number_format($plan->estimated_revenue) : '—' }}</td>
                         <td style="padding: 16px 24px; color: var(--agri-text-muted); font-size: 13px;">{{ $plan->created_at->format('d M Y') }}</td>
