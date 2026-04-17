@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Vendor;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Vendor\VendorOrderDisputeResponseRequest;
 use App\Models\Order;
 use App\Models\OrderDispute;
 use App\Models\User;
@@ -11,6 +12,7 @@ use App\Services\Shared\CartCheckoutService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\DB;
 use Throwable;
 use Illuminate\View\View;
 
@@ -27,21 +29,54 @@ class VendorOrderController extends Controller
 
     public function index(Request $request): View
     {
+        $filters = $request->validate([
+            'status' => ['nullable', 'string', 'max:50'],
+            'search' => ['nullable', 'string', 'max:255'],
+            'dispute_status' => ['nullable', 'string', 'max:50'],
+            'min_total' => ['nullable', 'numeric', 'min:0'],
+            'max_total' => ['nullable', 'numeric', 'min:0'],
+            'date_from' => ['nullable', 'date'],
+            'date_to' => ['nullable', 'date'],
+        ]);
+
         $query = Order::with(['user', 'items'])
                       ->withCount('items as order_items_count')
                       ->forVendor($this->vendorId())
                       ->latest();
 
-        if ($request->filled('status')) {
-            $query->where('status', $request->status);
+        if (! empty($filters['status'])) {
+            $query->where('status', $filters['status']);
         }
 
-        if ($request->filled('search')) {
-            $query->where('order_number', 'like', "%{$request->search}%");
+        if (! empty($filters['search'])) {
+            $term = $filters['search'];
+            $query->where(function ($orderQuery) use ($term): void {
+                $orderQuery->where('order_number', 'like', '%' . $term . '%')
+                    ->orWhereHas('user', fn ($userQuery) => $userQuery
+                        ->where('name', 'like', '%' . $term . '%')
+                        ->orWhere('email', 'like', '%' . $term . '%')
+                    );
+            });
         }
 
-        if ($request->filled('dispute_status')) {
-            $query->where('dispute_status', $request->dispute_status);
+        if (! empty($filters['dispute_status'])) {
+            $query->where('dispute_status', $filters['dispute_status']);
+        }
+
+        if (! empty($filters['min_total'])) {
+            $query->where('total', '>=', (float) $filters['min_total']);
+        }
+
+        if (! empty($filters['max_total'])) {
+            $query->where('total', '<=', (float) $filters['max_total']);
+        }
+
+        if (! empty($filters['date_from'])) {
+            $query->whereDate('created_at', '>=', $filters['date_from']);
+        }
+
+        if (! empty($filters['date_to'])) {
+            $query->whereDate('created_at', '<=', $filters['date_to']);
         }
 
         $orders   = $query->paginate(20)->withQueryString();
@@ -106,34 +141,49 @@ class VendorOrderController extends Controller
         }
     }
 
-    public function respondDispute(Request $request, int $id): RedirectResponse
+    public function respondDispute(VendorOrderDisputeResponseRequest $request, int $id): RedirectResponse
     {
-        $request->validate([
-            'response' => 'required|string|max:1000',
-        ]);
+        $validated = $request->validated();
 
-        $order = Order::forVendor($this->vendorId())->findOrFail($id);
-        $dispute = OrderDispute::where('order_id', $order->id)->firstOrFail();
+        try {
+            [$order, $dispute] = DB::transaction(function () use ($id, $validated) {
+                $order = Order::forVendor($this->vendorId())
+                    ->lockForUpdate()
+                    ->findOrFail($id);
 
-        $dispute->update([
-            'vendor_response' => $request->response,
-            'status' => 'vendor_responded',
-            'responded_at' => now(),
-        ]);
+                $dispute = OrderDispute::where('order_id', $order->id)
+                    ->lockForUpdate()
+                    ->firstOrFail();
+
+                if (! in_array($dispute->status, [Order::DISPUTE_PENDING, Order::DISPUTE_ESCALATED], true)) {
+                    throw new \DomainException('This dispute is no longer open for vendor response.');
+                }
+
+                $dispute->update([
+                    'vendor_response' => $validated['response'],
+                    'status' => Order::DISPUTE_VENDOR_RESPONDED,
+                    'responded_at' => now(),
+                ]);
+
+                $order->update([
+                    'dispute_status' => Order::DISPUTE_VENDOR_RESPONDED,
+                    'vendor_dispute_response' => $validated['response'],
+                ]);
+
+                return [$order, $dispute];
+            });
+        } catch (\DomainException $e) {
+            return back()->withErrors(['response' => $e->getMessage()]);
+        }
 
         if ($order->user) {
-            $order->user->notify(new OrderDisputeResponseNotification($order, $request->response, route('order.details', $order->id)));
+            $order->user->notify(new OrderDisputeResponseNotification($order, $validated['response'], route('order.details', $order->id)));
         }
 
         $adminRecipients = User::where('role', 'admin')->get();
         if ($adminRecipients->isNotEmpty()) {
-            Notification::send($adminRecipients, new OrderDisputeResponseNotification($order, $request->response, route('admin.orders.show', $order->id)));
+            Notification::send($adminRecipients, new OrderDisputeResponseNotification($order, $validated['response'], route('admin.orders.show', $order->id)));
         }
-
-        $order->update([
-            'dispute_status' => 'vendor_responded',
-            'vendor_dispute_response' => $request->response,
-        ]);
 
         return back()->with('success', 'Dispute response submitted.');
     }
