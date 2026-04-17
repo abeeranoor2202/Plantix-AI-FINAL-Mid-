@@ -2,6 +2,8 @@
 
 namespace App\Services\Expert;
 
+use App\Models\Appointment;
+use App\Models\AppointmentStatusHistory;
 use App\Models\Expert;
 use App\Models\ExpertLog;
 use App\Models\ExpertProfile;
@@ -74,7 +76,11 @@ class ExpertApprovalService
         ?int    $actorId = null,
         ?Request $request = null
     ): Expert {
-        return $this->applyTransition($expert, Expert::STATUS_SUSPENDED, ExpertLog::ACTION_SUSPENDED, $actorId, $reason, $request);
+        $updated = $this->applyTransition($expert, Expert::STATUS_SUSPENDED, ExpertLog::ACTION_SUSPENDED, $actorId, $reason, $request);
+
+        $this->cancelActiveAppointmentsForSuspendedExpert($updated, $actorId, $reason);
+
+        return $updated;
     }
 
     /**
@@ -153,5 +159,44 @@ class ExpertApprovalService
         }
 
         return $expert->fresh();
+    }
+
+    private function cancelActiveAppointmentsForSuspendedExpert(Expert $expert, ?int $actorId, string $reason): void
+    {
+        $activeStatuses = [
+            Appointment::STATUS_PENDING_EXPERT_APPROVAL,
+            Appointment::STATUS_CONFIRMED,
+            Appointment::STATUS_RESCHEDULE_REQUESTED,
+            Appointment::STATUS_RESCHEDULED,
+            Appointment::STATUS_PENDING,
+        ];
+
+        DB::transaction(function () use ($expert, $actorId, $reason, $activeStatuses): void {
+            $appointments = Appointment::query()
+                ->where('expert_id', $expert->id)
+                ->whereIn('status', $activeStatuses)
+                ->lockForUpdate()
+                ->get();
+
+            foreach ($appointments as $appointment) {
+                $fromStatus = $appointment->status;
+
+                $appointment->update([
+                    'status' => Appointment::STATUS_CANCELLED,
+                    'cancellation_reason' => trim('Auto-cancelled: expert suspended. ' . $reason),
+                    'cancelled_at' => now(),
+                    'admin_id' => $actorId,
+                ]);
+
+                AppointmentStatusHistory::create([
+                    'appointment_id' => $appointment->id,
+                    'changed_by' => $actorId,
+                    'from_status' => $fromStatus,
+                    'to_status' => Appointment::STATUS_CANCELLED,
+                    'notes' => 'Appointment auto-cancelled due to expert suspension.',
+                    'changed_at' => now(),
+                ]);
+            }
+        });
     }
 }
