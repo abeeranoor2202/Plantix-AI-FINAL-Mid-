@@ -13,6 +13,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
@@ -47,6 +48,29 @@ class AdminExpertController extends Controller
 
         if ($type = $request->input('type')) {
             $query->whereHas('profile', fn ($q) => $q->where('account_type', $type));
+        }
+
+        if ($dateFrom = $request->input('date_from')) {
+            $query->whereDate('created_at', '>=', $dateFrom);
+        }
+
+        if ($dateTo = $request->input('date_to')) {
+            $query->whereDate('created_at', '<=', $dateTo);
+        }
+
+        if (($activity = $request->input('activity')) && Schema::hasColumn('users', 'last_login_at')) {
+            if ($activity === 'active_7d') {
+                $query->whereHas('user', fn ($q) => $q->whereNotNull('last_login_at')->where('last_login_at', '>=', now()->subDays(7)));
+            } elseif ($activity === 'active_30d') {
+                $query->whereHas('user', fn ($q) => $q->whereNotNull('last_login_at')->where('last_login_at', '>=', now()->subDays(30)));
+            } elseif ($activity === 'inactive_30d') {
+                $query->whereHas('user', fn ($q) => $q
+                    ->where(function ($nested) {
+                        $nested->whereNull('last_login_at')
+                            ->orWhere('last_login_at', '<', now()->subDays(30));
+                    })
+                );
+            }
         }
 
         $experts = $query->latest()->paginate(25)->withQueryString();
