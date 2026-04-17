@@ -52,6 +52,7 @@ class AdminUsersController extends Controller
                     'phone_number' => $user->phone_number ?? '',
                     'profile_picture_url' => $user->profile_picture_url ?? null,
                     'is_active' => (bool) $user->is_active,
+                    'status' => $user->status ?? ($user->is_banned ? 'banned' : ($user->active ? 'active' : 'suspended')),
                     'addresses' => $user->addresses ?? [],
                 ]
             ]);
@@ -87,6 +88,7 @@ class AdminUsersController extends Controller
             $user->phone_number = $validated['phone_number'];
             $user->is_active = $validated['is_active'] ?? true;
             $user->role = 'customer';
+            $user->status = $user->is_active ? 'active' : 'suspended';
 
             // Handle profile picture upload
             if ($request->hasFile('profile_picture')) {
@@ -134,7 +136,10 @@ class AdminUsersController extends Controller
             if (isset($validated['first_name'])) $user->first_name = $validated['first_name'];
             if (isset($validated['last_name'])) $user->last_name = $validated['last_name'];
             if (isset($validated['phone_number'])) $user->phone_number = $validated['phone_number'];
-            if (isset($validated['is_active'])) $user->is_active = $validated['is_active'];
+            if (isset($validated['is_active'])) {
+                $user->is_active = $validated['is_active'];
+                $user->status = $validated['is_active'] ? 'active' : 'suspended';
+            }
 
             // Handle profile picture upload
             if ($request->hasFile('profile_picture')) {
@@ -206,6 +211,7 @@ class AdminUsersController extends Controller
             }
 
             $user->active = ! $user->active;
+            $user->status = $user->active ? 'active' : 'suspended';
             $user->save();
 
             // Revoke all tokens if account is being disabled
