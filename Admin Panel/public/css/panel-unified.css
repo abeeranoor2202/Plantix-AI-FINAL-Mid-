@@ -4,18 +4,38 @@
  */
 
 .panel-unified-ui {
-    --panel-bg: #f6f8fa;
+    --panel-bg: #f5f7f4;
     --panel-surface: #ffffff;
-    --panel-border: #e6edf2;
-    --panel-muted: #8ea0b8;
-    --panel-text: #1f2937;
-    --panel-title: #065f46;
-    --panel-primary: #10b981;
-    --panel-primary-dark: #059669;
-    --panel-primary-soft: #dff2e9;
-    --panel-danger-soft: #fef2f2;
-    --panel-danger: #ef4444;
+    --panel-border: #d9e2d4;
+    --panel-muted: #5f6d62;
+    --panel-text: #17211a;
+    --panel-title: #234d20;
+    --panel-primary: #234d20;
+    --panel-primary-dark: #1a3c19;
+    --panel-primary-soft: #dcead8;
+    --panel-danger-soft: #fdecea;
+    --panel-danger: #b42318;
+    --panel-success: #1f7a3e;
+    --panel-success-soft: #e7f6ec;
+    --panel-warning: #b54708;
+    --panel-warning-soft: #fff4e5;
     --panel-shadow: 0 8px 24px rgba(15, 23, 42, 0.05);
+    --panel-font-sans: "Nunito", "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    --panel-text-h1: 32px;
+    --panel-text-h2: 28px;
+    --panel-text-h3: 22px;
+    --panel-text-h4: 18px;
+    --panel-text-h5: 16px;
+    --panel-text-h6: 14px;
+    --panel-text-body: 15px;
+    --panel-text-label: 13px;
+    --panel-text-button: 14px;
+    --panel-space-1: 4px;
+    --panel-space-2: 8px;
+    --panel-space-3: 12px;
+    --panel-space-4: 16px;
+    --panel-space-5: 20px;
+    --panel-space-6: 24px;
 }
 
 .panel-unified-ui,
@@ -24,6 +44,8 @@
 .panel-unified-ui .content-body,
 .panel-unified-ui .main-wrapper {
     background: var(--panel-bg);
+    font-family: var(--panel-font-sans);
+    color: var(--panel-text);
 }
 
 .panel-unified-ui .topbar,
@@ -77,6 +99,20 @@
 .panel-unified-ui h6 {
     color: var(--panel-title);
     font-weight: 700;
+}
+
+.panel-unified-ui h1 { font-size: var(--panel-text-h1); font-weight: 800; }
+.panel-unified-ui h2 { font-size: var(--panel-text-h2); font-weight: 800; }
+.panel-unified-ui h3 { font-size: var(--panel-text-h3); }
+.panel-unified-ui h4 { font-size: var(--panel-text-h4); }
+.panel-unified-ui h5 { font-size: var(--panel-text-h5); }
+.panel-unified-ui h6 { font-size: var(--panel-text-h6); }
+
+.panel-unified-ui p,
+.panel-unified-ui .form-control,
+.panel-unified-ui .form-select,
+.panel-unified-ui .form-agri {
+    font-size: var(--panel-text-body);
 }
 
 .panel-unified-ui p,
@@ -141,6 +177,14 @@
     background: #fff;
 }
 
+.panel-unified-ui .is-invalid,
+.panel-unified-ui .form-control.is-invalid,
+.panel-unified-ui .form-select.is-invalid,
+.panel-unified-ui .form-agri.is-invalid {
+    border-color: var(--panel-danger) !important;
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.12) !important;
+}
+
 .panel-unified-ui .form-control::placeholder,
 .panel-unified-ui .form-select::placeholder,
 .panel-unified-ui .form-agri::placeholder {
@@ -151,7 +195,7 @@
 .panel-unified-ui .form-select:focus,
 .panel-unified-ui .form-agri:focus {
     border-color: var(--panel-primary);
-    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.14);
+    box-shadow: 0 0 0 3px rgba(35, 77, 32, 0.16);
 }
 
 .panel-unified-ui .input-group-text {
@@ -164,7 +208,31 @@
 .panel-unified-ui .btn-agri {
     border-radius: 12px;
     font-weight: 700;
+    font-size: var(--panel-text-button);
     transition: all 0.2s ease;
+}
+
+.panel-unified-ui .platform-submit-btn {
+    min-width: 120px;
+    justify-content: center;
+}
+
+.panel-unified-ui .platform-submit-btn.is-loading {
+    opacity: 0.85;
+    pointer-events: none;
+}
+
+.panel-unified-ui .platform-submit-btn.is-loading .btn-content::before {
+    content: "";
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    margin-right: 8px;
+    border-radius: 50%;
+    border: 2px solid rgba(255, 255, 255, 0.5);
+    border-top-color: #ffffff;
+    animation: panelSpin 0.8s linear infinite;
+    vertical-align: -2px;
 }
 
 .panel-unified-ui .btn-primary,
@@ -173,7 +241,7 @@
     background: var(--panel-primary);
     border-color: var(--panel-primary);
     color: #fff;
-    box-shadow: 0 6px 18px rgba(5, 150, 105, 0.2);
+    box-shadow: 0 6px 18px rgba(26, 60, 25, 0.22);
 }
 
 .panel-unified-ui .btn-primary:hover,
@@ -200,6 +268,20 @@
     color: var(--panel-text);
 }
 
+.panel-unified-ui .btn-danger,
+.panel-unified-ui .btn-agri-danger {
+    background: var(--panel-danger);
+    border-color: var(--panel-danger);
+    color: #fff;
+}
+
+.panel-unified-ui .btn-danger:hover,
+.panel-unified-ui .btn-agri-danger:hover {
+    background: #912018;
+    border-color: #912018;
+    color: #fff;
+}
+
 .panel-unified-ui .badge {
     border-radius: 999px;
     font-weight: 700;
@@ -208,23 +290,37 @@
 
 .panel-unified-ui .badge.bg-success,
 .panel-unified-ui .badge-success-agri {
-    background: #d1fae5 !important;
-    color: #065f46 !important;
-    border: 1px solid #b7ebd4;
+    background: var(--panel-success-soft) !important;
+    color: var(--panel-success) !important;
+    border: 1px solid #ccead8;
 }
 
 .panel-unified-ui .badge.bg-warning,
 .panel-unified-ui .badge-warning-agri {
-    background: #fef3c7 !important;
-    color: #92400e !important;
-    border: 1px solid #f5df96;
+    background: var(--panel-warning-soft) !important;
+    color: var(--panel-warning) !important;
+    border: 1px solid #f1d5ad;
+}
+
+.panel-unified-ui .badge.bg-secondary,
+.panel-unified-ui .badge-secondary-agri {
+    background: #f1f5f9 !important;
+    color: #334155 !important;
+    border: 1px solid #e2e8f0;
+}
+
+.panel-unified-ui .badge.bg-info,
+.panel-unified-ui .badge-info-agri {
+    background: #eef4ff !important;
+    color: #175cd3 !important;
+    border: 1px solid #d7e4ff;
 }
 
 .panel-unified-ui .badge.bg-danger,
 .panel-unified-ui .badge-danger-agri {
-    background: #fee2e2 !important;
-    color: #991b1b !important;
-    border: 1px solid #fecaca;
+    background: var(--panel-danger-soft) !important;
+    color: var(--panel-danger) !important;
+    border: 1px solid #f7c5c1;
 }
 
 .panel-unified-ui .switch {
@@ -294,4 +390,13 @@
 .panel-unified-ui .table .text-end [style*='color: #ef4444'] {
     background: var(--panel-danger-soft) !important;
     color: var(--panel-danger) !important;
+}
+
+.panel-unified-ui .platform-form-actions {
+    justify-content: flex-end;
+}
+
+@keyframes panelSpin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
 }
