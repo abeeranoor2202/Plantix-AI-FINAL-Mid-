@@ -4,7 +4,8 @@ namespace App\Http\Controllers\Expert;
 
 use App\Http\Controllers\Controller;
 use App\Models\ExpertNotificationLog;
-use App\Services\Expert\ExpertNotificationService;
+use App\Models\Expert;
+use App\Services\Notifications\NotificationCenterService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
@@ -18,10 +19,10 @@ use Illuminate\View\View;
 class ExpertNotificationController extends Controller
 {
     public function __construct(
-        private readonly ExpertNotificationService $service
+        private readonly NotificationCenterService $service
     ) {}
 
-    private function currentExpert(): \App\Models\Expert
+    private function currentExpert(): Expert
     {
         return auth('expert')->user()->expert;
     }
@@ -35,7 +36,7 @@ class ExpertNotificationController extends Controller
         ];
 
         $notifications = $this->service->listForExpert($expert, $filters);
-        $unreadCount   = $this->service->unreadCount($expert);
+        $unreadCount   = $this->service->unreadCountForExpert($expert);
         $latest        = $this->service->latestForExpert($expert, 5);
 
         return view('expert.notifications.index', compact('notifications', 'unreadCount', 'filters', 'latest'));
@@ -43,14 +44,14 @@ class ExpertNotificationController extends Controller
 
     public function markRead(ExpertNotificationLog $notification): RedirectResponse
     {
-        $this->service->markRead($notification, $this->currentExpert());
+        $this->service->markExpertRead($notification, $this->currentExpert());
 
         return back()->with('success', 'Notification marked as read.');
     }
 
     public function open(ExpertNotificationLog $notification): RedirectResponse
     {
-        $this->service->markRead($notification, $this->currentExpert());
+        $this->service->markExpertRead($notification, $this->currentExpert());
 
         $target = $notification->action_url ?: data_get($notification->data, 'action_url');
 
@@ -63,7 +64,7 @@ class ExpertNotificationController extends Controller
 
     public function markAllRead(): RedirectResponse
     {
-        $count = $this->service->markAllRead($this->currentExpert());
+        $count = $this->service->markExpertAllRead($this->currentExpert());
 
         return back()->with('success', "{$count} notifications marked as read.");
     }
@@ -71,7 +72,7 @@ class ExpertNotificationController extends Controller
     public function bulkRead(Request $request): RedirectResponse
     {
         $ids = (array) $request->input('ids', []);
-        $count = $this->service->markManyRead($this->currentExpert(), $ids);
+        $count = $this->service->markExpertManyRead($this->currentExpert(), $ids);
 
         return back()->with('success', "{$count} selected notifications marked as read.");
     }
@@ -79,14 +80,14 @@ class ExpertNotificationController extends Controller
     public function bulkDelete(Request $request): RedirectResponse
     {
         $ids = (array) $request->input('ids', []);
-        $count = $this->service->deleteMany($this->currentExpert(), $ids);
+        $count = $this->service->deleteExpertMany($this->currentExpert(), $ids);
 
         return back()->with('success', "{$count} selected notifications deleted.");
     }
 
     public function clearAll(): RedirectResponse
     {
-        $count = $this->service->clearAll($this->currentExpert());
+        $count = $this->service->clearExpertAll($this->currentExpert());
 
         return back()->with('success', "{$count} notifications cleared.");
     }
@@ -97,7 +98,7 @@ class ExpertNotificationController extends Controller
     public function unreadCount(): JsonResponse
     {
         return response()->json([
-            'count' => $this->service->unreadCount($this->currentExpert()),
+            'count' => $this->service->unreadCountForExpert($this->currentExpert()),
         ]);
     }
 
@@ -107,7 +108,7 @@ class ExpertNotificationController extends Controller
         $limit = (int) $request->integer('limit', 5);
 
         return response()->json([
-            'count' => $this->service->unreadCount($expert),
+            'count' => $this->service->unreadCountForExpert($expert),
             'items' => $this->service->latestForExpert($expert, $limit),
         ]);
     }
