@@ -25,6 +25,15 @@ class AdminActivityController extends Controller
             $query->where('entity_type', $request->string('entity_type'));
         }
 
+        if ($request->filled('q')) {
+            $term = (string) $request->string('q');
+            $query->where(function ($inner) use ($term) {
+                $inner->where('action', 'like', '%' . $term . '%')
+                    ->orWhere('entity_type', 'like', '%' . $term . '%')
+                    ->orWhere('context', 'like', '%' . $term . '%');
+            });
+        }
+
         if ($request->filled('date_from')) {
             $query->whereDate('created_at', '>=', $request->date('date_from')->toDateString());
         }
@@ -35,6 +44,18 @@ class AdminActivityController extends Controller
 
         $activities = $query->paginate(30)->withQueryString();
 
-        return view('admin.activity.index', compact('activities'));
+        $summary = [
+            'total' => PlatformActivity::count(),
+            'today' => PlatformActivity::whereDate('created_at', now()->toDateString())->count(),
+            'critical' => PlatformActivity::whereIn('action', [
+                'order.dispute.escalated',
+                'forum.flag.confirmed',
+                'user.banned',
+                'vendor.suspended',
+                'expert.suspended',
+            ])->count(),
+        ];
+
+        return view('admin.activity.index', compact('activities', 'summary'));
     }
 }
