@@ -19,8 +19,9 @@ class User extends Authenticatable implements MustVerifyEmail
 
     protected $fillable = [
         'name', 'email', 'phone', 'password', 'role',
-        'active', 'is_document_verified', 'vendor_id',
+        'status', 'active', 'is_document_verified', 'vendor_id',
         'wallet_amount', 'fcm_token', 'profile_photo',
+        'reputation_score', 'reputation_level',
         'must_reset_password', 'role_id',
         'is_banned', 'banned_until', 'banned_reason', 'is_shadow_banned',
         'notification_preferences',
@@ -33,10 +34,12 @@ class User extends Authenticatable implements MustVerifyEmail
     protected $casts = [
         'email_verified_at'    => 'datetime',
         'password_changed_at'  => 'datetime',
+        'status'               => 'string',
         'active'               => 'boolean',
         'is_document_verified' => 'boolean',
         'must_reset_password'  => 'boolean',
         'wallet_amount'        => 'decimal:2',
+        'reputation_score'     => 'integer',
         'is_banned'            => 'boolean',
         'is_shadow_banned'     => 'boolean',
         'banned_until'         => 'datetime',
@@ -52,6 +55,42 @@ class User extends Authenticatable implements MustVerifyEmail
     public function isUser(): bool          { return $this->role === 'user'; }
     public function isExpert(): bool        { return in_array($this->role, ['expert', 'agency_expert']); }
     public function isAgencyExpert(): bool  { return $this->role === 'agency_expert'; }
+
+    public function isActiveAccount(): bool
+    {
+        return ($this->status ?? 'active') === 'active' && $this->active && ! $this->isCurrentlyBanned();
+    }
+
+    public function isSuspendedAccount(): bool
+    {
+        return ($this->status ?? 'active') === 'suspended' || (! $this->active && ! $this->isCurrentlyBanned());
+    }
+
+    public function isBannedAccount(): bool
+    {
+        return ($this->status ?? 'active') === 'banned' || $this->isCurrentlyBanned();
+    }
+
+    public function setAccountStatus(string $status): void
+    {
+        $this->status = $status;
+
+        if ($status === 'active') {
+            $this->active = true;
+            $this->is_banned = false;
+            $this->banned_until = null;
+            $this->banned_reason = null;
+        }
+
+        if ($status === 'suspended') {
+            $this->active = false;
+        }
+
+        if ($status === 'banned') {
+            $this->active = false;
+            $this->is_banned = true;
+        }
+    }
 
     /**
      * True when the user is actively banned.
@@ -192,6 +231,16 @@ class User extends Authenticatable implements MustVerifyEmail
     public function forumReplies(): HasMany
     {
         return $this->hasMany(ForumReply::class, 'user_id');
+    }
+
+    public function appointmentFeedback(): HasMany
+    {
+        return $this->hasMany(AppointmentFeedback::class, 'user_id');
+    }
+
+    public function orderDisputes(): HasMany
+    {
+        return $this->hasMany(OrderDispute::class, 'user_id');
     }
 
     // ── AI / Agriculture Relationships ──────────────────────────────────────
