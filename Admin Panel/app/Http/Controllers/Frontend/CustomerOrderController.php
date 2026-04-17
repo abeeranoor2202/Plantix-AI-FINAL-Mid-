@@ -14,6 +14,7 @@ use App\Notifications\Order\OrderDisputeSubmittedNotification;
 use App\Services\Shared\ReturnRefundService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\View\View;
 
@@ -131,20 +132,28 @@ class CustomerOrderController extends Controller
     public function cancel(CustomerOrderCancelRequest $request, int $id): RedirectResponse
     {
         $user  = auth('web')->user();
-        $order = Order::forCustomer($user->id)->findOrFail($id);
+        try {
+            DB::transaction(function () use ($user, $id, $request) {
+                $order = Order::forCustomer($user->id)
+                    ->lockForUpdate()
+                    ->findOrFail($id);
 
-        if (! $order->canCancel()) {
-            return back()->withErrors(['error' => 'This order can no longer be cancelled.']);
+                if (! $order->canCancel()) {
+                    throw new \DomainException('This order can no longer be cancelled.');
+                }
+
+                $order->update(['status' => Order::STATUS_CANCELLED]);
+
+                OrderStatusHistory::create([
+                    'order_id'   => $order->id,
+                    'status'     => Order::STATUS_CANCELLED,
+                    'changed_by' => $user->id,
+                    'notes'      => $request->reason ?? 'Cancelled by customer.',
+                ]);
+            });
+        } catch (\DomainException $e) {
+            return back()->withErrors(['error' => $e->getMessage()]);
         }
-
-        $order->update(['status' => 'cancelled']);
-
-        OrderStatusHistory::create([
-            'order_id'   => $order->id,
-            'status'     => 'cancelled',
-            'changed_by' => $user->id,
-            'notes'      => $request->reason ?? 'Cancelled by customer.',
-        ]);
 
         return back()->with('success', 'Your order has been cancelled successfully.');
     }
@@ -152,35 +161,55 @@ class CustomerOrderController extends Controller
     public function dispute(CustomerOrderDisputeRequest $request, int $id): RedirectResponse
     {
         $user = auth('web')->user();
-        $order = Order::forCustomer($user->id)->findOrFail($id);
-
-        if (! $order->canOpenDispute()) {
-            return back()->withErrors(['reason' => 'This order cannot be disputed at its current stage.']);
-        }
-
-        if ($order->hasOpenDispute()) {
-            return back()->with('info', 'This order already has an active dispute.');
-        }
-
         $validated = $request->validated();
 
-        OrderDispute::updateOrCreate(
-            ['order_id' => $order->id],
-            [
-                'user_id' => $user->id,
-                'vendor_id' => $order->vendor_id,
-                'status' => 'pending',
-                'reason' => $validated['reason'],
-                'escalation_reason' => null,
-                'escalated_at' => null,
-                'responded_at' => null,
-                'resolved_at' => null,
-                'admin_notes' => null,
-                'resolved_by' => null,
-                'refund_escalated_at' => null,
-                'refund_reference' => null,
-            ]
-        );
+        try {
+            $order = DB::transaction(function () use ($user, $id, $validated) {
+                $order = Order::forCustomer($user->id)
+                    ->lockForUpdate()
+                    ->findOrFail($id);
+
+                if (! $order->canOpenDispute()) {
+                    throw new \DomainException('This order cannot be disputed at its current stage.');
+                }
+
+                if ($order->hasOpenDispute()) {
+                    throw new \DomainException('This order already has an active dispute.');
+                }
+
+                OrderDispute::updateOrCreate(
+                    ['order_id' => $order->id],
+                    [
+                        'user_id' => $user->id,
+                        'vendor_id' => $order->vendor_id,
+                        'status' => Order::DISPUTE_PENDING,
+                        'reason' => $validated['reason'],
+                        'escalation_reason' => null,
+                        'escalated_at' => null,
+                        'responded_at' => null,
+                        'resolved_at' => null,
+                        'admin_notes' => null,
+                        'resolved_by' => null,
+                        'refund_escalated_at' => null,
+                        'refund_reference' => null,
+                    ]
+                );
+
+                $order->update([
+                    'dispute_status' => Order::DISPUTE_PENDING,
+                    'disputed_at' => now(),
+                    'dispute_reason' => $validated['reason'],
+                ]);
+
+                return $order;
+            });
+        } catch (\DomainException $e) {
+            if (str_contains(strtolower($e->getMessage()), 'already has')) {
+                return back()->with('info', $e->getMessage());
+            }
+
+            return back()->withErrors(['reason' => $e->getMessage()]);
+        }
 
         if ($order->vendor?->author) {
             $order->vendor->author->notify(new OrderDisputeSubmittedNotification($order, $validated['reason'], route('vendor.orders.show', $order->id)));
@@ -191,37 +220,44 @@ class CustomerOrderController extends Controller
             Notification::send($adminRecipients, new OrderDisputeSubmittedNotification($order, $validated['reason'], route('admin.orders.show', $order->id)));
         }
 
-        $order->update([
-            'dispute_status' => 'pending',
-            'disputed_at' => now(),
-            'dispute_reason' => $validated['reason'],
-        ]);
-
         return back()->with('success', 'Your dispute has been submitted for review.');
     }
 
     public function escalateDispute(CustomerOrderDisputeEscalateRequest $request, int $id): RedirectResponse
     {
         $user = auth('web')->user();
-        $order = Order::forCustomer($user->id)->findOrFail($id);
-        $dispute = OrderDispute::where('order_id', $order->id)->firstOrFail();
-
-        if ($dispute->status !== 'vendor_responded') {
-            return back()->withErrors(['error' => 'Only vendor-responded disputes can be escalated.']);
-        }
-
         $validated = $request->validated();
 
-        $dispute->update([
-            'status' => 'escalated',
-            'escalation_reason' => $validated['escalation_reason'],
-            'escalated_at' => now(),
-        ]);
+        try {
+            $order = DB::transaction(function () use ($user, $id, $validated) {
+                $order = Order::forCustomer($user->id)
+                    ->lockForUpdate()
+                    ->findOrFail($id);
 
-        $order->update([
-            'dispute_status' => 'escalated',
-            'dispute_reason' => $validated['escalation_reason'],
-        ]);
+                $dispute = OrderDispute::where('order_id', $order->id)
+                    ->lockForUpdate()
+                    ->firstOrFail();
+
+                if ($dispute->status !== Order::DISPUTE_VENDOR_RESPONDED) {
+                    throw new \DomainException('Only vendor-responded disputes can be escalated.');
+                }
+
+                $dispute->update([
+                    'status' => Order::DISPUTE_ESCALATED,
+                    'escalation_reason' => $validated['escalation_reason'],
+                    'escalated_at' => now(),
+                ]);
+
+                $order->update([
+                    'dispute_status' => Order::DISPUTE_ESCALATED,
+                    'dispute_reason' => $validated['escalation_reason'],
+                ]);
+
+                return $order;
+            });
+        } catch (\DomainException $e) {
+            return back()->withErrors(['error' => $e->getMessage()]);
+        }
 
         $adminRecipients = \App\Models\User::where('role', 'admin')->get();
         if ($adminRecipients->isNotEmpty()) {
