@@ -217,13 +217,18 @@ class ReturnService
             'completed'          => [],
         ];
 
-        if (! $force && ! in_array($status, $allowed[$return->status] ?? [], true)) {
-            throw ValidationException::withMessages([
-                'status' => "Cannot transition return from {$return->status} to {$status}.",
-            ]);
-        }
+        return DB::transaction(function () use ($return, $status, $notes, $actor, $force, $allowed) {
+            $lockedReturn = ReturnRequest::query()
+                ->whereKey($return->id)
+                ->lockForUpdate()
+                ->firstOrFail();
 
-        return DB::transaction(function () use ($return, $status, $notes, $actor) {
+            if (! $force && ! in_array($status, $allowed[$lockedReturn->status] ?? [], true)) {
+                throw ValidationException::withMessages([
+                    'status' => "Cannot transition return from {$lockedReturn->status} to {$status}.",
+                ]);
+            }
+
             $payload = ['status' => $status];
 
             if ($notes !== null) {
@@ -234,25 +239,25 @@ class ReturnService
                 $payload['processed_at'] = now();
             }
 
-            $return->update($payload);
+            $lockedReturn->update($payload);
 
             if ($status === 'approved') {
-                $this->restoreStock($return);
-                $this->markOrderItemsReturned($return);
-                $this->setOrderStatus($return, Order::STATUS_RETURNED, $actor?->id, 'Return approved and stock restored.');
+                $this->restoreStock($lockedReturn);
+                $this->markOrderItemsReturned($lockedReturn);
+                $this->setOrderStatus($lockedReturn, Order::STATUS_RETURNED, $actor?->id, 'Return approved and stock restored.');
             }
 
             if ($status === 'rejected') {
-                $this->setOrderStatus($return, $return->order->status, $actor?->id, 'Return rejected.');
+                $this->setOrderStatus($lockedReturn, $lockedReturn->order->status, $actor?->id, 'Return rejected.');
             }
 
             if ($status === 'completed') {
-                $this->setOrderStatus($return, Order::STATUS_REFUNDED, $actor?->id, 'Return completed and refund settled.');
+                $this->setOrderStatus($lockedReturn, Order::STATUS_REFUNDED, $actor?->id, 'Return completed and refund settled.');
             }
 
-            $this->notifyParties($return->fresh(['order', 'user', 'reason', 'items.product', 'refund']), $status, $notes);
+            $this->notifyParties($lockedReturn->fresh(['order', 'user', 'reason', 'items.product', 'refund']), $status, $notes);
 
-            return $return->fresh(['order', 'user', 'reason', 'items.product', 'refund']);
+            return $lockedReturn->fresh(['order', 'user', 'reason', 'items.product', 'refund']);
         });
     }
 
