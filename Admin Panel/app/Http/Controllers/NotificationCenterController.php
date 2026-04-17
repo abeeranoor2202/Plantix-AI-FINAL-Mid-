@@ -66,11 +66,14 @@ class NotificationCenterController extends Controller
     public function feed(Request $request): JsonResponse
     {
         $user = $this->currentUser();
-        $limit = (int) $request->integer('limit', 5);
+        $limit = max(1, min((int) $request->integer('limit', 5), 20));
+        $grouped = $request->boolean('grouped', false);
 
         return response()->json([
             'count' => $this->service->unreadCount($user),
-            'items' => $this->service->latestForUser($user, $limit)->values(),
+            'items' => $grouped
+                ? $this->service->groupedPreviewForUser($user, $limit)
+                : $this->service->latestForUser($user, $limit)->values(),
         ]);
     }
 
@@ -166,10 +169,16 @@ class NotificationCenterController extends Controller
     {
         $expert = $this->currentUser()->expert;
         $limit = (int) $request->integer('limit', 5);
+        $items = collect($this->service->latestForExpert($expert, $limit))
+            ->map(function (array $item) {
+                $item['open_url'] = $item['action_url'] ?? '#';
+                return $item;
+            })
+            ->values();
 
         return response()->json([
             'count' => $this->service->unreadCountForExpert($expert),
-            'items' => $this->service->latestForExpert($expert, $limit),
+            'items' => $items,
         ]);
     }
 }
