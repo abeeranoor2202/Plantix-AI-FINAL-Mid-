@@ -84,42 +84,16 @@
                         <tbody>
                             @foreach($logs as $log)
                             @php
-                                // Colour-code actions by category
-                                $actionColors = [
-                                    'primary'   => ['#E0E7FF', '#3730A3'],
-                                    'danger'    => ['#FEE2E2', '#991B1B'],
-                                    'warning'   => ['#FEF3C7', '#92400E'],
-                                    'success'   => ['#D1FAE5', '#065F46'],
-                                    'info'      => ['#E0F2FE', '#0369A1'],
-                                    'secondary' => ['#F3F4F6', '#4B5563'],
-                                ];
-                                
-                                $actionColorKey = 'secondary';
-                                if (str_starts_with($log->action, 'thread.')) {
-                                    $actionColorKey = match(true) {
-                                        str_contains($log->action, 'delete')  => 'danger',
-                                        str_contains($log->action, 'lock')    => 'warning',
-                                        str_contains($log->action, 'resolve') => 'success',
-                                        str_contains($log->action, 'archive') => 'secondary',
-                                        str_contains($log->action, 'pin')     => 'info',
-                                        default                               => 'primary',
-                                    };
-                                } elseif (str_starts_with($log->action, 'reply.')) {
-                                    $actionColorKey = match(true) {
-                                        str_contains($log->action, 'delete')   => 'danger',
-                                        str_contains($log->action, 'flag')     => 'warning',
-                                        str_contains($log->action, 'official') => 'success',
-                                        default                                => 'info',
-                                    };
-                                } elseif (str_starts_with($log->action, 'user.')) {
-                                    $actionColorKey = str_contains($log->action, 'ban') ? 'danger' : 'success';
-                                }
-                                $ac = $actionColors[$actionColorKey];
+                                $badgeVariant = 'secondary';
+                                if (str_contains($log->action, 'delete'))  { $badgeVariant = 'danger'; }
+                                elseif (str_contains($log->action, 'lock') || str_contains($log->action, 'flag'))  { $badgeVariant = 'warning'; }
+                                elseif (str_contains($log->action, 'resolve') || str_contains($log->action, 'official') || str_contains($log->action, 'unban'))  { $badgeVariant = 'success'; }
+                                elseif (str_contains($log->action, 'pin'))  { $badgeVariant = 'info'; }
                             @endphp
                             <tr style="border-bottom: 1px solid var(--agri-border);">
                                 <td style="padding: 18px 24px; font-size: 13px; font-weight: 600; color: var(--agri-text-muted);">{{ $log->id }}</td>
                                 <td style="padding: 18px 24px;">
-                                    <span style="background: {{ $ac[0] }}; color: {{ $ac[1] }}; padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: 800; border: 1px solid {{ $ac[0] }}; font-family: monospace;">{{ $log->action }}</span>
+                                    <x-badge :variant="$badgeVariant" style="font-family: monospace; font-size: 11px;">{{ $log->action }}</x-badge>
                                 </td>
                                 <td style="padding: 18px 24px;">
                                     @if($log->user)
