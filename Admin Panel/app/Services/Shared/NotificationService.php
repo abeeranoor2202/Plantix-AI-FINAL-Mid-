@@ -5,6 +5,7 @@ namespace App\Services\Shared;
 use App\Mail\CustomNotificationMail;
 use App\Models\User;
 use App\Services\NotificationLogService;
+use App\Services\Notifications\NotificationCenterService;
 use Illuminate\Support\Facades\Log;
 
 /**
@@ -42,16 +43,30 @@ class NotificationService
         bool $sendEmail = false
     ): bool {
         try {
-            if (! $user->email) {
-                return false;
+            $notificationType = (string) ($data['type'] ?? 'custom_notification');
+            $message = $body !== '' ? $body : $title;
+
+            app(NotificationCenterService::class)->notify(
+                sender: null,
+                receiver: $user,
+                type: $notificationType,
+                message: $message,
+                actionUrl: $data['action_url'] ?? null,
+                metadata: array_merge($data, ['title' => $title]),
+                title: $title,
+                dedupKey: $data['dedup_key'] ?? null,
+            );
+
+            if (! $sendEmail || ! $user->email) {
+                return true;
             }
 
             return (bool) app(NotificationLogService::class)->send(
-                mailable: new CustomNotificationMail($user, $title, $body, $data['action_url'] ?? null),
+                mailable: new CustomNotificationMail($user, $title, $message, $data['action_url'] ?? null),
                 to: $user->email,
                 recipientName: $user->name,
                 recipientRole: $user->role,
-                notificationType: (string) ($data['type'] ?? 'custom_notification'),
+                notificationType: $notificationType,
                 notifiable: $user,
                 userId: $user->id,
                 dedupKey: $data['dedup_key'] ?? null,
@@ -93,32 +108,46 @@ class NotificationService
 
         collect($userIds)
             ->chunk(self::CHUNK_SIZE)
-            ->each(function ($chunk) use ($title, $body, $data, &$totalDispatched) {
+            ->each(function ($chunk) use ($title, $body, $data, $sendEmail, &$totalDispatched) {
                 $recipients = User::whereIn('id', $chunk->toArray())
                     ->where('active', true)
-                    ->get(['id', 'name', 'email', 'role'])
-                    ->map(fn (User $user) => [
-                        'email' => $user->email,
-                        'name'  => $user->name,
-                        'role'  => $user->role,
-                        'id'    => $user->id,
-                    ])
-                    ->values()
-                    ->all();
+                    ->get(['id', 'name', 'email', 'role']);
+
+                if ($recipients->isEmpty()) {
+                    return;
+                }
+
+                $message = $body !== '' ? $body : $title;
+                $notificationType = (string) ($data['type'] ?? 'custom_notification');
+
+                app(NotificationCenterService::class)->notifyMany(
+                    $recipients,
+                    null,
+                    $notificationType,
+                    $message,
+                    $data['action_url'] ?? null,
+                    array_merge($data, ['title' => $title]),
+                    $title,
+                );
 
                 foreach ($recipients as $recipient) {
+                    if (! $sendEmail || ! $recipient->email) {
+                        $totalDispatched++;
+                        continue;
+                    }
+
                     $result = app(NotificationLogService::class)->send(
                         mailable: new CustomNotificationMail(
-                            User::findOrFail($recipient['id']),
+                            $recipient,
                             $title,
-                            $body,
+                            $message,
                             $data['action_url'] ?? null,
                         ),
-                        to: $recipient['email'],
-                        recipientName: $recipient['name'],
-                        recipientRole: $recipient['role'],
-                        notificationType: (string) ($data['type'] ?? 'custom_notification'),
-                        userId: $recipient['id'],
+                        to: $recipient->email,
+                        recipientName: $recipient->name,
+                        recipientRole: $recipient->role,
+                        notificationType: $notificationType,
+                        userId: $recipient->id,
                         dedupKey: $data['dedup_key'] ?? null,
                     );
 
