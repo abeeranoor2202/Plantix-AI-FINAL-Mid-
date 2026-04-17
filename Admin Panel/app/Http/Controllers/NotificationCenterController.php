@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Notification;
+use App\Models\Expert;
+use App\Models\ExpertNotificationLog;
 use App\Models\User;
 use App\Services\Notifications\NotificationCenterService;
 use Illuminate\Http\JsonResponse;
@@ -46,6 +48,21 @@ class NotificationCenterController extends Controller
         return view($view, compact('notifications', 'unreadCount', 'filters'));
     }
 
+    public function expertIndex(Request $request): View
+    {
+        $expert = $this->currentUser()->expert;
+        $filters = [
+            'type' => (string) $request->input('type', 'all'),
+            'status' => (string) $request->input('status', 'all'),
+        ];
+
+        $notifications = $this->service->listForExpert($expert, $filters);
+        $unreadCount = $this->service->unreadCountForExpert($expert);
+        $latest = $this->service->latestForExpert($expert, 5);
+
+        return view('expert.notifications.index', compact('notifications', 'unreadCount', 'filters', 'latest'));
+    }
+
     public function feed(Request $request): JsonResponse
     {
         $user = $this->currentUser();
@@ -60,6 +77,11 @@ class NotificationCenterController extends Controller
     public function unreadCount(): JsonResponse
     {
         return response()->json(['count' => $this->service->unreadCount($this->currentUser())]);
+    }
+
+    public function expertUnreadCount(): JsonResponse
+    {
+        return response()->json(['count' => $this->service->unreadCountForExpert($this->currentUser()->expert)]);
     }
 
     public function markRead(Notification $notification): RedirectResponse
@@ -88,5 +110,66 @@ class NotificationCenterController extends Controller
         $this->service->markRead($notification, $this->currentUser());
 
         return redirect()->to($notification->action_url ?: route('notifications.index'));
+    }
+
+    public function expertMarkRead(ExpertNotificationLog $notification): RedirectResponse
+    {
+        $this->service->markExpertRead($notification, $this->currentUser()->expert);
+
+        return back()->with('success', 'Notification marked as read.');
+    }
+
+    public function expertOpen(ExpertNotificationLog $notification): RedirectResponse
+    {
+        $this->service->markExpertRead($notification, $this->currentUser()->expert);
+
+        $target = $notification->action_url ?: data_get($notification->data, 'action_url');
+
+        if (is_string($target) && $target !== '') {
+            return redirect()->to($target);
+        }
+
+        return redirect()->route('expert.notifications.index');
+    }
+
+    public function expertMarkAllRead(): RedirectResponse
+    {
+        $count = $this->service->markExpertAllRead($this->currentUser()->expert);
+
+        return back()->with('success', "{$count} notifications marked as read.");
+    }
+
+    public function expertBulkRead(Request $request): RedirectResponse
+    {
+        $ids = (array) $request->input('ids', []);
+        $count = $this->service->markExpertManyRead($this->currentUser()->expert, $ids);
+
+        return back()->with('success', "{$count} selected notifications marked as read.");
+    }
+
+    public function expertBulkDelete(Request $request): RedirectResponse
+    {
+        $ids = (array) $request->input('ids', []);
+        $count = $this->service->deleteExpertMany($this->currentUser()->expert, $ids);
+
+        return back()->with('success', "{$count} selected notifications deleted.");
+    }
+
+    public function expertClearAll(): RedirectResponse
+    {
+        $count = $this->service->clearExpertAll($this->currentUser()->expert);
+
+        return back()->with('success', "{$count} notifications cleared.");
+    }
+
+    public function expertFeed(Request $request): JsonResponse
+    {
+        $expert = $this->currentUser()->expert;
+        $limit = (int) $request->integer('limit', 5);
+
+        return response()->json([
+            'count' => $this->service->unreadCountForExpert($expert),
+            'items' => $this->service->latestForExpert($expert, $limit),
+        ]);
     }
 }
