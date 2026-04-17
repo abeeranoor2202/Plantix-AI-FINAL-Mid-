@@ -48,7 +48,7 @@
                 <div style="display:flex; flex-direction:column; gap:10px;">
                     <form method="POST" action="{{ route('admin.vendor-applications.under-review', $application) }}">
                         @csrf
-                        <button type="submit" class="btn-agri" style="width:100%; justify-content:center; background:#eff6ff; color:#1d4ed8; border:1px solid #bfdbfe;">
+                        <button type="submit" class="btn-agri btn-agri-info" style="width:100%; justify-content:center;">
                             <i class="fas fa-search"></i> Mark Under Review
                         </button>
                     </form>
@@ -61,7 +61,7 @@
                     <form method="POST" action="{{ route('admin.vendor-applications.reject', $application) }}">
                         @csrf
                         <input type="hidden" name="reason" value="Rejected from admin review">
-                        <button type="submit" class="btn-agri" style="width:100%; justify-content:center; background:#fef2f2; color:#dc2626; border:1px solid #fecaca;">
+                        <button type="submit" class="btn-agri btn-agri-danger" style="width:100%; justify-content:center;">
                             <i class="fas fa-times"></i> Reject Application
                         </button>
                     </form>
