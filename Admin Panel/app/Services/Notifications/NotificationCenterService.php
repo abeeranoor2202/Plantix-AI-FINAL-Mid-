@@ -18,6 +18,7 @@ use App\Models\Notification;
 use App\Models\User;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 
 class NotificationCenterService
@@ -53,6 +54,10 @@ class NotificationCenterService
         ?string $title = null,
         ?string $dedupKey = null,
     ): ?Notification {
+        if (! $this->notificationsTableExists()) {
+            return null;
+        }
+
         $title = $title ?: Str::of($type)->replace(['_', '.'], ' ')->title()->toString();
 
         $resolvedDedupKey = $dedupKey ?: md5(implode('|', [
@@ -133,6 +138,10 @@ class NotificationCenterService
 
     public function unreadCount(User $user): int
     {
+        if (! $this->notificationsTableExists()) {
+            return 0;
+        }
+
         return Notification::query()
             ->where('receiver_id', $user->id)
             ->where('role', $this->roleFor($user))
@@ -142,6 +151,10 @@ class NotificationCenterService
 
     public function latestForUser(User $user, int $limit = 5): Collection
     {
+        if (! $this->notificationsTableExists()) {
+            return collect();
+        }
+
         return Notification::query()
             ->where('receiver_id', $user->id)
             ->where('role', $this->roleFor($user))
@@ -153,6 +166,10 @@ class NotificationCenterService
 
     public function groupedPreviewForUser(User $user, int $limit = 5): array
     {
+        if (! $this->notificationsTableExists()) {
+            return [];
+        }
+
         $items = $this->latestForUser($user, max($limit, 10));
         $grouped = $items
             ->groupBy(fn (array $item) => (string) ($item['type'] ?? 'system'))
@@ -180,6 +197,10 @@ class NotificationCenterService
 
     public function listForUser(User $user, array $filters = [], int $perPage = 20): LengthAwarePaginator
     {
+        if (! $this->notificationsTableExists()) {
+            return new \Illuminate\Pagination\LengthAwarePaginator([], 0, $perPage);
+        }
+
         $query = Notification::query()
             ->where('receiver_id', $user->id)
             ->where('role', $this->roleFor($user))
@@ -203,6 +224,10 @@ class NotificationCenterService
 
     public function markRead(Notification $notification, User $user): void
     {
+        if (! $this->notificationsTableExists()) {
+            return;
+        }
+
         $this->guard($notification, $user);
 
         $notification->update([
@@ -214,6 +239,10 @@ class NotificationCenterService
 
     public function markAllRead(User $user): int
     {
+        if (! $this->notificationsTableExists()) {
+            return 0;
+        }
+
         return Notification::query()
             ->where('receiver_id', $user->id)
             ->where('role', $this->roleFor($user))
@@ -227,6 +256,10 @@ class NotificationCenterService
 
     public function clearAll(User $user): int
     {
+        if (! $this->notificationsTableExists()) {
+            return 0;
+        }
+
         return Notification::query()
             ->where('receiver_id', $user->id)
             ->where('role', $this->roleFor($user))
@@ -362,6 +395,11 @@ class NotificationCenterService
             'admin' => 'admin',
             default => 'user',
         };
+    }
+
+    private function notificationsTableExists(): bool
+    {
+        return Schema::hasTable((new Notification())->getTable());
     }
 
     public function syncFromEvent(object $event): void
