@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Frontend;
 
 use App\Http\Controllers\Controller;
 use App\Models\Order;
+use App\Models\OrderDispute;
 use App\Models\OrderStatusHistory;
 use App\Models\ReturnReason;
 use App\Services\Shared\ReturnRefundService;
@@ -31,7 +32,7 @@ class CustomerOrderController extends Controller
     public function show(int $id): View
     {
         $user  = auth('web')->user();
-        $order = Order::with(['vendor', 'items.product', 'statusHistory', 'returnRequest', 'refund'])
+        $order = Order::with(['vendor', 'items.product', 'statusHistory', 'returnRequest', 'refund', 'dispute'])
                       ->forCustomer($user->id)
                       ->findOrFail($id);
         $canReturn = $this->returnService->orderIsReturnable($order);
@@ -99,6 +100,37 @@ class CustomerOrderController extends Controller
         ]);
 
         return back()->with('success', 'Your order has been cancelled successfully.');
+    }
+
+    public function dispute(Request $request, int $id): RedirectResponse
+    {
+        $request->validate([
+            'reason' => 'required|string|max:1000',
+        ]);
+
+        $user = auth('web')->user();
+        $order = Order::forCustomer($user->id)
+                      ->whereNotIn('status', ['cancelled', 'rejected', 'refunded'])
+                      ->findOrFail($id);
+
+        OrderDispute::updateOrCreate(
+            ['order_id' => $order->id],
+            [
+                'user_id' => $user->id,
+                'vendor_id' => $order->vendor_id,
+                'status' => 'pending',
+                'reason' => $request->reason,
+                'escalated_at' => now(),
+            ]
+        );
+
+        $order->update([
+            'dispute_status' => 'pending',
+            'disputed_at' => now(),
+            'dispute_reason' => $request->reason,
+        ]);
+
+        return back()->with('success', 'Your dispute has been submitted for review.');
     }
 }
 
