@@ -34,7 +34,7 @@ class ExpertForumController extends Controller
 
     public function index(Request $request): View
     {
-        $filters = $request->only(['category', 'search', 'status']);
+        $filters = $request->only(['category', 'search', 'status', 'date_from', 'date_to', 'sort_by']);
         $threads = $this->forum->listThreads($filters);
         $categories = ForumCategory::active()->withCount('threads')->get();
 
