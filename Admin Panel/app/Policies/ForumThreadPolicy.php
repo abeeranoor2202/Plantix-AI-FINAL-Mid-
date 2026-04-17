@@ -24,6 +24,7 @@ use Illuminate\Auth\Access\HandlesAuthorization;
  *  resolve        |   ❌   |   ❌   |   ❌   |   ✅
  *  archive        |   ❌   |   ❌   |   ❌   |   ✅
  *  approve        |   ❌   |   ❌   |   ❌   |   ✅
+ *  flag           |   ✅   |   ✅   |   ✅   |   ✅
  */
 class ForumThreadPolicy
 {
@@ -117,5 +118,14 @@ class ForumThreadPolicy
     public function approve(User $user, ForumThread $thread): bool
     {
         return false;
+    }
+
+    /**
+     * Any authenticated, non-banned user can report a thread they do not own.
+     */
+    public function flag(User $user, ForumThread $thread): bool
+    {
+        return $user->id !== $thread->user_id
+            && ! $user->isCurrentlyBanned();
     }
 }
