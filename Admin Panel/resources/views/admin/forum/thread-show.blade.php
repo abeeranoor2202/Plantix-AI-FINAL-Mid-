@@ -25,15 +25,11 @@
 
     <div class="container-fluid">
         @if(session('success'))
-            <div class="card-agri mb-4" style="background: #ecfdf5; border: 1px solid #86efac; border-radius: 12px; padding: 12px 20px; color: #166534; font-weight: 700;">
-                {{ session('success') }}
-            </div>
+            <x-alert variant="success" class="mb-4">{{ session('success') }}</x-alert>
         @endif
 
         @if($errors->any())
-            <div class="card-agri mb-4" style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 12px; padding: 12px 20px; color: #991b1b; font-weight: 700;">
-                {{ $errors->first('error') ?? 'Please correct the highlighted issues and try again.' }}
-            </div>
+            <x-alert variant="danger" class="mb-4">{{ $errors->first('error') ?? 'Please correct the highlighted issues and try again.' }}</x-alert>
         @endif
 
         <div class="row g-4">
@@ -45,22 +41,11 @@
                         <div>
                             <h5 style="margin-bottom: 12px; font-weight: 800; color: var(--agri-text-heading); font-size: 18px;">{{ $thread->title }}</h5>
                             <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                                @php
-                                    $colors = [
-                                        'open'     => ['#D1FAE5', '#065F46'],
-                                        'locked'   => ['#FEF3C7', '#92400E'],
-                                        'resolved' => ['#E0F2FE', '#0369A1'],
-                                        'archived' => ['#F3F4F6', '#4B5563'],
-                                    ];
-                                    $c = $colors[$thread->status] ?? ['#F9FAFB', '#6B7280'];
-                                @endphp
-                                <span style="background: {{ $c[0] }}; color: {{ $c[1] }}; padding: 4px 10px; border-radius: 100px; font-size: 11px; font-weight: 800; border: 1px solid {{ $c[0] }};">
-                                    {{ ucfirst($thread->status) }}
-                                </span>
+                                <x-platform.status-badge domain="forum" :status="$thread->status" />
                                 @if($thread->is_pinned)
-                                    <span style="background: #FEF3C7; color: #D97706; padding: 4px 10px; border-radius: 100px; font-size: 11px; font-weight: 800; border: 1px solid #FDE68A;">
+                                    <x-badge variant="warning">
                                         <i class="fa fa-thumbtack me-1"></i>Pinned
-                                    </span>
+                                    </x-badge>
                                 @endif
                                 <span style="background: var(--agri-bg); border: 1px solid var(--agri-border); color: var(--agri-text-heading); padding: 4px 10px; border-radius: 100px; font-size: 11px; font-weight: 700;">
                                     {{ optional($thread->category)->name ?? 'Uncategorised' }}
@@ -71,7 +56,7 @@
                     </div>
                     <div style="padding: 28px;">
                         <div style="display: flex; gap: 16px; margin-bottom: 20px;">
-                            <div style="width: 48px; height: 48px; border-radius: 14px; background: var(--agri-primary); color: white; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 800; flex-shrink: 0; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);">
+                            <div style="width: 48px; height: 48px; border-radius: 14px; background: var(--panel-primary); color: white; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 800; flex-shrink: 0; box-shadow: 0 4px 12px rgba(35, 77, 32, 0.25);">
                                 {{ strtoupper(substr(optional($thread->user)->name ?? 'U', 0, 1)) }}
                             </div>
                             <div>
@@ -100,13 +85,13 @@
                                         <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
                                             <span style="font-weight: 800; color: var(--agri-text-heading); font-size: 14px;">{{ optional($reply->user)->name ?? 'Unknown' }}</span>
                                             @if($reply->is_official)
-                                                <span style="background: #D1FAE5; color: #065F46; padding: 2px 8px; border-radius: 100px; font-size: 10px; font-weight: 800;"><i class="fa fa-check-circle me-1"></i>Official Answer</span>
+                                                <x-badge variant="success"><i class="fa fa-check-circle me-1"></i>Official Answer</x-badge>
                                             @endif
                                             @if($reply->is_expert_reply)
-                                                <span style="background: #FEF3C7; color: #92400E; padding: 2px 8px; border-radius: 100px; font-size: 10px; font-weight: 800;"><i class="fa fa-star me-1"></i>Expert</span>
+                                                <x-badge variant="warning"><i class="fa fa-star me-1"></i>Expert</x-badge>
                                             @endif
                                             @if($reply->status === 'flagged')
-                                                <span style="background: #FEE2E2; color: #991B1B; padding: 2px 8px; border-radius: 100px; font-size: 10px; font-weight: 800;"><i class="fa fa-flag me-1"></i>Flagged</span>
+                                                <x-badge variant="danger"><i class="fa fa-flag me-1"></i>Flagged</x-badge>
                                             @endif
                                             @if($reply->parent_id)
                                                 <span style="background: var(--agri-bg); color: var(--agri-text-muted); border: 1px solid var(--agri-border); padding: 2px 8px; border-radius: 100px; font-size: 10px; font-weight: 700;">Nested</span>
@@ -166,7 +151,7 @@
                             <div style="margin-bottom: 8px;">
                                 <input type="text" name="reason" class="form-agri" placeholder="Lock reason (optional)">
                             </div>
-                            <button type="submit" class="btn-agri w-100" style="justify-content: center; font-weight: 700; padding: 12px; background: #FEF3C7; color: #92400E; border: 1px solid #FDE68A;">
+                            <button type="submit" class="btn-agri btn-agri-outline w-100" style="justify-content: center; font-weight: 700; padding: 12px;">
                                 <i class="fa fa-lock"></i> Lock Thread
                             </button>
                         </form>
@@ -194,7 +179,7 @@
                         {{-- Pin / Unpin --}}
                         <form method="POST" action="{{ route('admin.forum.threads.pin', $thread->id) }}">
                             @csrf
-                            <button type="submit" class="btn-agri w-100" style="justify-content: center; font-weight: 700; padding: 12px; background: #FEF3C7; color: #D97706; border: 1px solid #FDE68A;">
+                            <button type="submit" class="btn-agri btn-agri-outline w-100" style="justify-content: center; font-weight: 700; padding: 12px;">
                                 <i class="fa fa-thumbtack"></i>
                                 {{ $thread->is_pinned ? 'Unpin Thread' : 'Pin Thread' }}
                             </button>
@@ -205,7 +190,7 @@
                         {{-- Delete --}}
                         <form method="POST" action="{{ route('admin.forum.threads.destroy', $thread->id) }}" onsubmit="return confirm('Permanently delete this thread and all its replies?')">
                             @csrf @method('DELETE')
-                            <button type="submit" class="btn-agri w-100" style="justify-content: center; font-weight: 700; padding: 12px; background: #FEE2E2; color: #991B1B; border: 1px solid #FECACA;">
+                            <button type="submit" class="btn-agri btn-agri-danger w-100" style="justify-content: center; font-weight: 700; padding: 12px;">
                                 <i class="fa fa-trash"></i> Delete Thread
                             </button>
                         </form>
@@ -215,19 +200,10 @@
                 {{-- Thread Meta --}}
                 <div class="card-agri mb-4" style="padding: 24px;">
                     <h6 style="margin-bottom: 20px; font-weight: 800; color: var(--agri-text-heading); font-size: 14px; text-transform: uppercase;">Thread Info</h6>
-                    @php
-                        $statusColors = [
-                            'open'     => ['#D1FAE5', '#065F46'],
-                            'locked'   => ['#FEF3C7', '#92400E'],
-                            'resolved' => ['#E0F2FE', '#0369A1'],
-                            'archived' => ['#F3F4F6', '#4B5563'],
-                        ];
-                        $sc = $statusColors[$thread->status] ?? ['#F9FAFB', '#6B7280'];
-                    @endphp
                     <div style="display: flex; flex-direction: column; gap: 12px; font-size: 13px;">
                         <div style="display: flex; justify-content: space-between;"><strong style="color: var(--agri-text-muted);">ID</strong> <span style="font-weight: 700; color: var(--agri-text-heading);">#{{ $thread->id }}</span></div>
                         <div style="display: flex; justify-content: space-between;"><strong style="color: var(--agri-text-muted);">Slug</strong> <span style="color: var(--agri-text-main); word-break: break-all; max-width: 60%; text-align: right;">{{ $thread->slug }}</span></div>
-                        <div style="display: flex; justify-content: space-between;"><strong style="color: var(--agri-text-muted);">Status</strong> <span style="background: {{ $sc[0] }}; color: {{ $sc[1] }}; padding: 2px 8px; border-radius: 100px; font-size: 11px; font-weight: 800; border: 1px solid {{ $sc[0] }};">{{ ucfirst($thread->status) }}</span></div>
+                        <div style="display: flex; justify-content: space-between;"><strong style="color: var(--agri-text-muted);">Status</strong> <x-platform.status-badge domain="forum" :status="$thread->status" /></div>
                         <div style="display: flex; justify-content: space-between;"><strong style="color: var(--agri-text-muted);">Approved</strong> <span>{{ $thread->is_approved ? 'Yes' : 'No' }}</span></div>
                         <div style="display: flex; justify-content: space-between;"><strong style="color: var(--agri-text-muted);">Author</strong> <span>{{ optional($thread->user)->name }}</span></div>
                         <div style="display: flex; justify-content: space-between;"><strong style="color: var(--agri-text-muted);">Email</strong> <span style="word-break: break-all; max-width: 60%; text-align: right;">{{ optional($thread->user)->email }}</span></div>
