@@ -12,7 +12,6 @@ use App\Services\Shared\CartCheckoutService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Notification;
-use Illuminate\Support\Facades\DB;
 use Throwable;
 use Illuminate\View\View;
 
@@ -143,38 +142,20 @@ class VendorOrderController extends Controller
 
     public function respondDispute(VendorOrderDisputeResponseRequest $request, int $id): RedirectResponse
     {
+        $order = Order::forVendor($this->vendorId())->findOrFail($id);
+        $dispute = OrderDispute::where('order_id', $order->id)->firstOrFail();
+
+        if (! in_array($dispute->status, ['pending', 'escalated'], true)) {
+            return back()->withErrors(['response' => 'This dispute is no longer open for vendor response.']);
+        }
+
         $validated = $request->validated();
 
-        try {
-            [$order, $dispute] = DB::transaction(function () use ($id, $validated) {
-                $order = Order::forVendor($this->vendorId())
-                    ->lockForUpdate()
-                    ->findOrFail($id);
-
-                $dispute = OrderDispute::where('order_id', $order->id)
-                    ->lockForUpdate()
-                    ->firstOrFail();
-
-                if (! in_array($dispute->status, [Order::DISPUTE_PENDING, Order::DISPUTE_ESCALATED], true)) {
-                    throw new \DomainException('This dispute is no longer open for vendor response.');
-                }
-
-                $dispute->update([
-                    'vendor_response' => $validated['response'],
-                    'status' => Order::DISPUTE_VENDOR_RESPONDED,
-                    'responded_at' => now(),
-                ]);
-
-                $order->update([
-                    'dispute_status' => Order::DISPUTE_VENDOR_RESPONDED,
-                    'vendor_dispute_response' => $validated['response'],
-                ]);
-
-                return [$order, $dispute];
-            });
-        } catch (\DomainException $e) {
-            return back()->withErrors(['response' => $e->getMessage()]);
-        }
+        $dispute->update([
+            'vendor_response' => $validated['response'],
+            'status' => 'vendor_responded',
+            'responded_at' => now(),
+        ]);
 
         if ($order->user) {
             $order->user->notify(new OrderDisputeResponseNotification($order, $validated['response'], route('order.details', $order->id)));
@@ -184,6 +165,11 @@ class VendorOrderController extends Controller
         if ($adminRecipients->isNotEmpty()) {
             Notification::send($adminRecipients, new OrderDisputeResponseNotification($order, $validated['response'], route('admin.orders.show', $order->id)));
         }
+
+        $order->update([
+            'dispute_status' => 'vendor_responded',
+            'vendor_dispute_response' => $validated['response'],
+        ]);
 
         return back()->with('success', 'Dispute response submitted.');
     }
