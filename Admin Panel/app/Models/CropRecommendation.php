@@ -43,6 +43,6 @@ class CropRecommendation extends Model
     public function getTopCropAttribute(): ?string
     {
         $crops = $this->recommended_crops;
-        return $crops[0]['name'] ?? null;
+        return $crops[0]['crop'] ?? ($crops[0]['name'] ?? null);
     }
 }
