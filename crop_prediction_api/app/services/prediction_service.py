@@ -40,6 +40,7 @@ class PredictionService:
 
         return {
             "success": True,
+            "crop": prediction,
             "prediction": prediction,
             "confidence": confidence,
             "request_id": request_id,
