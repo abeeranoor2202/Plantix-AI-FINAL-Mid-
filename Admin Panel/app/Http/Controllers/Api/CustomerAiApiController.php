@@ -57,13 +57,19 @@ class CustomerAiApiController extends Controller
                 $data['soil_test_id'] ?? null,
             );
 
+            $topCrop = $recommendation->recommended_crops[0] ?? [];
+
             return response()->json([
                 'success'        => true,
                 'recommendation' => [
-                    'id'          => $recommendation->id,
-                    'top_crops'   => $recommendation->top_crops,
-                    'scores'      => $recommendation->scores,
-                    'notes'       => $recommendation->notes,
+                    'id' => $recommendation->id,
+                    'crop' => (string) ($topCrop['crop'] ?? $recommendation->top_crop ?? ''),
+                    'confidence' => isset($topCrop['confidence_score']) ? (float) $topCrop['confidence_score'] : null,
+                    'confidence_percent' => (float) ($topCrop['confidence'] ?? 0),
+                    'request_id' => $topCrop['request_id'] ?? null,
+                    'record_id' => $topCrop['record_id'] ?? null,
+                    'recommended_crops' => $recommendation->recommended_crops,
+                    'explanation' => $recommendation->explanation,
                     'created_at'  => $recommendation->created_at->toISOString(),
                 ],
             ]);
