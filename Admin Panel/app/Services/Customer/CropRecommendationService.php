@@ -3,8 +3,9 @@
 namespace App\Services\Customer;
 
 use App\Models\CropRecommendation;
-use App\Services\CropPredictionService;
+use App\Models\PredictionLog;
 use App\Models\User;
+use App\Services\CropPredictionService;
 use Illuminate\Support\Facades\Log;
 use Throwable;
 
@@ -50,7 +51,7 @@ class CropRecommendationService
                 (string) ($apiResult['record_id'] ?? 'n/a')
             );
 
-            return CropRecommendation::create([
+            $cropRecommendation = CropRecommendation::create([
                 'user_id' => $user->id,
                 'soil_test_id' => $soilTestId,
                 'nitrogen' => $input['nitrogen'] ?? null,
@@ -65,13 +66,97 @@ class CropRecommendationService
                 'model_version' => 'flask-api-v1',
                 'status' => 'completed',
             ]);
+
+            // Log prediction to prediction_logs table for analytics
+            $this->logPrediction($user->id, $cropRecommendation->id, $input, $apiResult, $crop, $confidenceScore, $confidencePercent);
+
+            return $cropRecommendation;
         } catch (Throwable $e) {
             Log::error('Crop recommendation inference failed.', [
                 'user_id' => $user->id,
                 'message' => $e->getMessage(),
             ]);
 
+            // Log failed prediction
+            $this->logFailedPrediction($user->id, $input, $e);
+
             throw $e;
+        }
+    }
+
+    /**
+     * Log successful prediction to the database for analytics.
+     */
+    private function logPrediction(
+        int $userId,
+        int $cropRecommendationId,
+        array $input,
+        array $apiResult,
+        string $crop,
+        ?float $confidenceScore,
+        float $confidencePercent
+    ): void {
+        try {
+            PredictionLog::create([
+                'user_id' => $userId,
+                'crop_recommendation_id' => $cropRecommendationId,
+                'nitrogen' => $input['nitrogen'] ?? null,
+                'phosphorus' => $input['phosphorus'] ?? null,
+                'potassium' => $input['potassium'] ?? null,
+                'temperature' => $input['temperature'] ?? null,
+                'humidity' => $input['humidity'] ?? null,
+                'ph_level' => $input['ph_level'] ?? null,
+                'rainfall_mm' => $input['rainfall_mm'] ?? null,
+                'predicted_crop' => strtolower($crop),
+                'confidence_score' => $confidenceScore,
+                'confidence_percent' => (int) $confidencePercent,
+                'request_id' => $apiResult['request_id'] ?? null,
+                'record_id' => $apiResult['record_id'] ?? null,
+                'model_version' => $apiResult['model_version'] ?? 'flask-api-v1',
+                'model_name' => $apiResult['model_name'] ?? 'RandomForest',
+                'status' => 'completed',
+                'predicted_at' => now(),
+            ]);
+        } catch (Throwable $e) {
+            Log::warning('Failed to log prediction to database.', [
+                'user_id' => $userId,
+                'error' => $e->getMessage(),
+            ]);
+        }
+    }
+
+    /**
+     * Log failed prediction attempts.
+     */
+    private function logFailedPrediction(int $userId, array $input, Throwable $error): void
+    {
+        try {
+            PredictionLog::create([
+                'user_id' => $userId,
+                'nitrogen' => $input['nitrogen'] ?? null,
+                'phosphorus' => $input['phosphorus'] ?? null,
+                'potassium' => $input['potassium'] ?? null,
+                'temperature' => $input['temperature'] ?? null,
+                'humidity' => $input['humidity'] ?? null,
+                'ph_level' => $input['ph_level'] ?? null,
+                'rainfall_mm' => $input['rainfall_mm'] ?? null,
+                'predicted_crop' => 'unknown',
+                'confidence_score' => 0,
+                'confidence_percent' => 0,
+                'status' => 'failed',
+                'error_details' => [
+                    'message' => $error->getMessage(),
+                    'code' => $error->getCode(),
+                    'file' => $error->getFile(),
+                    'line' => $error->getLine(),
+                ],
+                'predicted_at' => now(),
+            ]);
+        } catch (Throwable $e) {
+            Log::warning('Failed to log error prediction to database.', [
+                'user_id' => $userId,
+                'error' => $e->getMessage(),
+            ]);
         }
     }
 }
