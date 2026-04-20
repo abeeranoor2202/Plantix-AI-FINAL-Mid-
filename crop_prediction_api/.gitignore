@@ -25,3 +25,4 @@ instance/*.log
 
 .smoke_server.pid
 .smoke_venv_path
+.venv_compat
