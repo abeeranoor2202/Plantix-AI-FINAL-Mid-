@@ -13,3 +13,10 @@ npm-debug.log
 yarn-error.log
 /.idea
 /.vscode
+
+# Virtual Environments
+.venv/
+.venv_compat/
+venv/
+env/
+ENV/
