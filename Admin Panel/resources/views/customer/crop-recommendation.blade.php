@@ -98,15 +98,19 @@
 
                                 <h5 class="fw-bold text-dark mb-3 mt-4 fs-6 border-bottom pb-2">Field Environment</h5>
                                 <div class="row g-3">
-                                    <div class="col-md-4">
+                                    <div class="col-md-3">
+                                        <label for="temperature" class="form-label fw-bold small text-muted">Temperature (°C)</label>
+                                        <input type="number" class="form-agri" id="temperature" name="temperature" placeholder="25" min="-10" max="60" step="0.1" required>
+                                    </div>
+                                    <div class="col-md-3">
                                         <label for="humidity" class="form-label fw-bold small text-muted">Soil Humidity (%)</label>
                                         <input type="number" class="form-agri" id="humidity" name="humidity" placeholder="65" min="0" max="100" step="1" required>
                                     </div>
-                                    <div class="col-md-4">
+                                    <div class="col-md-3">
                                         <label for="ph" class="form-label fw-bold small text-muted">Soil pH</label>
                                         <input type="number" class="form-agri" id="ph" name="ph" placeholder="6.5" min="0" max="14" step="0.1" required>
                                     </div>
-                                    <div class="col-md-4">
+                                    <div class="col-md-3">
                                         <label for="rainfall" class="form-label fw-bold small text-muted">Rainfall (mm)</label>
                                         <input type="number" class="form-agri" id="rainfall" name="rainfall" placeholder="700" min="0" max="3000" step="1" required>
                                     </div>
@@ -197,122 +201,112 @@
         (function () {
             var form = document.getElementById('npkForm');
             if (!form) return;
-            form.addEventListener('submit', function (e) {
-                e.preventDefault();
-                var n = parseFloat(document.getElementById('nitrogen').value);
-                var p = parseFloat(document.getElementById('phosphorus').value);
-                var k = parseFloat(document.getElementById('potassium').value);
-                var humidity = parseFloat(document.getElementById('humidity').value);
-                var ph = parseFloat(document.getElementById('ph').value);
-                var rainfall = parseFloat(document.getElementById('rainfall').value);
 
-                if ([n, p, k, humidity, ph, rainfall].some(function (v) { return isNaN(v); })) {
+            var csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+
+            form.addEventListener('submit', async function (e) {
+                e.preventDefault();
+
+                var payload = {
+                    nitrogen: parseFloat(document.getElementById('nitrogen').value),
+                    phosphorus: parseFloat(document.getElementById('phosphorus').value),
+                    potassium: parseFloat(document.getElementById('potassium').value),
+                    temperature: parseFloat(document.getElementById('temperature').value),
+                    humidity: parseFloat(document.getElementById('humidity').value),
+                    ph_level: parseFloat(document.getElementById('ph').value),
+                    rainfall_mm: parseFloat(document.getElementById('rainfall').value)
+                };
+
+                if (Object.values(payload).some(function (v) { return Number.isNaN(v); })) {
                     alert('Please provide all values.');
                     return;
                 }
 
-                // Show loading state
                 var btn = form.querySelector('button[type="submit"]');
                 var originalBtnHtml = btn.innerHTML;
                 btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> Analyzing...';
                 btn.disabled = true;
 
-                setTimeout(function() {
-                    var recommendation = generateCropRecommendation(n, p, k, humidity, ph, rainfall);
-                    document.getElementById('npkResultContent').innerHTML = recommendation;
+                try {
+                    var response = await fetch("{{ route('crop.recommendation.recommend') }}", {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json',
+                            'X-CSRF-TOKEN': csrfToken,
+                        },
+                        body: JSON.stringify(payload),
+                    });
+
+                    var body = await response.json();
+                    if (!response.ok || !body.success) {
+                        var validationMessages = body.errors
+                            ? Object.values(body.errors).flat().join(' ')
+                            : (body.message || 'Prediction request failed.');
+                        throw new Error(validationMessages);
+                    }
+
+                    document.getElementById('npkResultContent').innerHTML = renderRecommendation(body.data, payload);
                     var box = document.getElementById('npkResult');
                     box.style.display = 'block';
                     box.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-
+                } catch (error) {
+                    alert(error.message || 'Unable to generate recommendation right now.');
+                } finally {
                     btn.innerHTML = originalBtnHtml;
                     btn.disabled = false;
-                }, 1000);
+                }
             });
 
-            function scoreRange(val, min, max, tolerance) {
-                if (val >= min && val <= max) return 2; // ideal
-                if (val >= (min - tolerance) && val <= (max + tolerance)) return 1; // near
-                return 0; // out
-            }
-
-            function generateCropRecommendation(n, p, k, humidity, ph, rainfall) {
-                // Dummy heuristic profiles
-                var profiles = {
-                    'Rice': { N: [80, 180], P: [40, 80], K: [40, 100], H: [60, 90], pH: [5.0, 6.5], R: [800, 2000], icon: 'fas fa-seedling' },
-                    'Wheat': { N: [100, 160], P: [50, 90], K: [40, 80], H: [40, 60], pH: [6.0, 7.5], R: [300, 700], icon: 'fas fa-leaf' },
-                    'Maize': { N: [120, 180], P: [60, 100], K: [60, 120], H: [40, 70], pH: [5.5, 7.0], R: [300, 700], icon: 'fab fa-pagelines' },
-                    'Soybean': { N: [0, 60], P: [60, 90], K: [60, 120], H: [50, 70], pH: [6.0, 7.0], R: [400, 800], icon: 'fas fa-seedling' },
-                    'Cotton': { N: [80, 150], P: [40, 80], K: [80, 120], H: [50, 70], pH: [5.5, 7.5], R: [600, 1200], icon: 'fas fa-tree' },
-                    'Potato': { N: [120, 160], P: [50, 100], K: [100, 150], H: [50, 80], pH: [5.0, 6.5], R: [500, 750], icon: 'fas fa-leaf' },
-                    'Sugarcane': { N: [150, 250], P: [60, 100], K: [120, 200], H: [60, 80], pH: [6.0, 7.5], R: [1000, 2000], icon: 'fas fa-seedling' }
-                };
-
-                var tolerance = { N: 30, P: 20, K: 30, H: 10, pH: 0.5, R: 150 };
-                var params = { N: n, P: p, K: k, H: humidity, pH: ph, R: rainfall };
-
-                var scores = Object.keys(profiles).map(function (crop) {
-                    var prof = profiles[crop];
-                    var score = 0;
-                    score += scoreRange(params.N, prof.N[0], prof.N[1], tolerance.N);
-                    score += scoreRange(params.P, prof.P[0], prof.P[1], tolerance.P);
-                    score += scoreRange(params.K, prof.K[0], prof.K[1], tolerance.K);
-                    score += scoreRange(params.H, prof.H[0], prof.H[1], tolerance.H);
-                    score += scoreRange(params.pH, prof.pH[0], prof.pH[1], tolerance.pH);
-                    score += scoreRange(params.R, prof.R[0], prof.R[1], tolerance.R);
-                    return { crop: crop, score: score, icon: prof.icon };
-                });
-
-                scores.sort(function (a, b) { return b.score - a.score; });
-                var primary = scores[0];
-                var alternatives = scores.slice(1, 4);
+            function renderRecommendation(data, payload) {
+                var topCrop = data.crop || 'N/A';
+                var confidence = (typeof data.confidence_percent === 'number') ? data.confidence_percent.toFixed(2) : 'N/A';
+                var details = data.recommended_crops || [];
 
                 var html = '';
-                
-                // Primary Recommendation
                 html += '<div class="alert alert-success mb-4 bg-success bg-opacity-10 border-success border-opacity-25">';
                 html += '<div class="d-flex align-items-center gap-3">';
-                html += '<div class="bg-success text-white rounded-circle d-flex align-items-center justify-content-center shadow-sm" style="width: 56px; height: 56px;"><i class="' + primary.icon + ' fs-3"></i></div>';
+                html += '<div class="bg-success text-white rounded-circle d-flex align-items-center justify-content-center shadow-sm" style="width: 56px; height: 56px;"><i class="fas fa-seedling fs-3"></i></div>';
                 html += '<div>';
                 html += '<h6 class="text-success text-uppercase fw-bold mb-1" style="font-size: 13px; letter-spacing: 1px;">Top Recommended Crop</h6>';
-                html += '<h3 class="fw-bold text-dark mb-0">' + primary.crop + '</h3>';
+                html += '<h3 class="fw-bold text-dark mb-0">' + topCrop + '</h3>';
+                html += '<p class="mb-0 text-muted small">Confidence: ' + confidence + '%</p>';
                 html += '</div></div>';
-                html += '<p class="mt-3 mb-0 text-dark opacity-75">Based on your NPK balance, pH, humidity, and rainfall context, ' + primary.crop + ' appears to be the most optimal choice for maximum yield.</p>';
+                html += '<p class="mt-3 mb-0 text-dark opacity-75">' + (data.explanation || 'Prediction generated using live ML inference.') + '</p>';
                 html += '</div>';
 
-                // Alternatives
-                html += '<h6 class="fw-bold text-dark mb-3">Strong Alternative Crops:</h6>';
-                html += '<div class="row g-3 mb-4">';
-                alternatives.forEach(function (s) { 
-                    html += '<div class="col-md-4">';
-                    html += '<div class="bg-light border rounded-3 p-3 text-center h-100 d-flex flex-column justify-content-center">';
-                    html += '<i class="' + s.icon + ' text-primary fs-4 mb-2"></i>';
-                    html += '<h6 class="fw-bold text-dark m-0">' + s.crop + '</h6>';
-                    html += '</div></div>';
-                });
-                html += '</div>';
+                if (details.length > 0) {
+                    html += '<h6 class="fw-bold text-dark mb-3">Model Output</h6>';
+                    html += '<div class="table-responsive mb-4"><table class="table table-sm">';
+                    html += '<thead><tr><th>Crop</th><th>Confidence</th><th>Request ID</th></tr></thead><tbody>';
+                    details.forEach(function (item) {
+                        html += '<tr>';
+                        html += '<td>' + (item.crop || item.name || 'N/A') + '</td>';
+                        html += '<td>' + ((typeof item.confidence === 'number') ? item.confidence.toFixed(2) + '%' : 'N/A') + '</td>';
+                        html += '<td><small>' + (item.request_id || data.request_id || 'N/A') + '</small></td>';
+                        html += '</tr>';
+                    });
+                    html += '</tbody></table></div>';
+                }
 
-                // Inputs summary
                 html += '<div class="accordion" id="inputsSummaryAccordion">';
                 html += '<div class="accordion-item border-0 bg-transparent">';
                 html += '<h2 class="accordion-header" id="headingOne">';
                 html += '<button class="accordion-button collapsed bg-light rounded-3 fw-bold text-dark shadow-none border" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="false" aria-controls="collapseOne">';
-                html += 'View Your Submitted Parameters';
+                html += 'View Submitted Parameters';
                 html += '</button></h2>';
                 html += '<div id="collapseOne" class="accordion-collapse collapse" aria-labelledby="headingOne" data-bs-parent="#inputsSummaryAccordion">';
                 html += '<div class="accordion-body px-0 py-3">';
                 html += '<div class="row g-3">';
-                html += '<div class="col-6 col-sm-4"><div class="p-2 border rounded bg-white text-center"><small class="text-muted d-block">Nitrogen (N)</small><strong>' + n + ' kg/ha</strong></div></div>';
-                html += '<div class="col-6 col-sm-4"><div class="p-2 border rounded bg-white text-center"><small class="text-muted d-block">Phosphorus (P)</small><strong>' + p + ' kg/ha</strong></div></div>';
-                html += '<div class="col-6 col-sm-4"><div class="p-2 border rounded bg-white text-center"><small class="text-muted d-block">Potassium (K)</small><strong>' + k + ' kg/ha</strong></div></div>';
-                html += '<div class="col-6 col-sm-4"><div class="p-2 border rounded bg-white text-center"><small class="text-muted d-block">Humidity</small><strong>' + humidity + '%</strong></div></div>';
-                html += '<div class="col-6 col-sm-4"><div class="p-2 border rounded bg-white text-center"><small class="text-muted d-block">Soil pH</small><strong>' + ph + '</strong></div></div>';
-                html += '<div class="col-6 col-sm-4"><div class="p-2 border rounded bg-white text-center"><small class="text-muted d-block">Rainfall</small><strong>' + rainfall + ' mm</strong></div></div>';
+                html += '<div class="col-6 col-sm-4"><div class="p-2 border rounded bg-white text-center"><small class="text-muted d-block">Nitrogen (N)</small><strong>' + payload.nitrogen + ' kg/ha</strong></div></div>';
+                html += '<div class="col-6 col-sm-4"><div class="p-2 border rounded bg-white text-center"><small class="text-muted d-block">Phosphorus (P)</small><strong>' + payload.phosphorus + ' kg/ha</strong></div></div>';
+                html += '<div class="col-6 col-sm-4"><div class="p-2 border rounded bg-white text-center"><small class="text-muted d-block">Potassium (K)</small><strong>' + payload.potassium + ' kg/ha</strong></div></div>';
+                html += '<div class="col-6 col-sm-4"><div class="p-2 border rounded bg-white text-center"><small class="text-muted d-block">Temperature</small><strong>' + payload.temperature + '°C</strong></div></div>';
+                html += '<div class="col-6 col-sm-4"><div class="p-2 border rounded bg-white text-center"><small class="text-muted d-block">Humidity</small><strong>' + payload.humidity + '%</strong></div></div>';
+                html += '<div class="col-6 col-sm-4"><div class="p-2 border rounded bg-white text-center"><small class="text-muted d-block">Soil pH</small><strong>' + payload.ph_level + '</strong></div></div>';
+                html += '<div class="col-6 col-sm-4"><div class="p-2 border rounded bg-white text-center"><small class="text-muted d-block">Rainfall</small><strong>' + payload.rainfall_mm + ' mm</strong></div></div>';
                 html += '</div></div></div></div></div>';
 
-                html += '<div class="mt-4 text-center">';
-                html += '<p class="text-muted small mb-0"><i class="fas fa-info-circle me-1"></i> Note: This is an AI simulation. Please consult local agronomists and verified soil test results before finalizing crop choices.</p>';
-                html += '</div>';
-                
                 return html;
             }
         })();
