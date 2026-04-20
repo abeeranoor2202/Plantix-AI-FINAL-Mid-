@@ -47,12 +47,22 @@
                     <h5 style="margin: 0; font-weight: 800; color: var(--agri-text-heading); font-size: 14px; text-transform: uppercase;">Input Parameters</h5>
                 </div>
                 <div>
-                    @php $params = $recommendation->input_params ?? []; @endphp
+                    @php
+                        $params = [
+                            'nitrogen' => $recommendation->nitrogen,
+                            'phosphorus' => $recommendation->phosphorus,
+                            'potassium' => $recommendation->potassium,
+                            'temperature' => $recommendation->temperature,
+                            'humidity' => $recommendation->humidity,
+                            'ph_level' => $recommendation->ph_level,
+                            'rainfall_mm' => $recommendation->rainfall_mm,
+                        ];
+                    @endphp
                     <div style="display: flex; flex-direction: column; gap: 12px;">
                         @foreach($params as $key => $value)
                         <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 8px; border-bottom: 1px dashed var(--agri-border);">
                             <span style="font-size: 11px; font-weight: 800; color: var(--agri-text-muted); text-transform: uppercase;">{{ str_replace('_', ' ', $key) }}</span>
-                            <span style="font-size: 13px; font-weight: 700; color: var(--agri-text-heading);">{{ $value }}</span>
+                            <span style="font-size: 13px; font-weight: 700; color: var(--agri-text-heading);">{{ $value ?? 'N/A' }}</span>
                         </div>
                         @endforeach
                     </div>
@@ -100,9 +110,9 @@
                         <td style="padding: 16px 24px; font-weight: 800; color: var(--agri-text-muted);">#{{ $i + 1 }}</td>
                         <td style="padding: 16px 24px;">
                             @if($i === 0)
-                                <span class="badge bg-success" style="padding: 6px 12px; border-radius: 8px; font-weight: 800;">{{ $crop['crop'] ?? '—' }}</span>
+                                <span class="badge bg-success" style="padding: 6px 12px; border-radius: 8px; font-weight: 800;">{{ $crop['crop'] ?? ($crop['name'] ?? '—') }}</span>
                             @else
-                                <span style="font-weight: 700; color: var(--agri-text-heading);">{{ $crop['crop'] ?? '—' }}</span>
+                                <span style="font-weight: 700; color: var(--agri-text-heading);">{{ $crop['crop'] ?? ($crop['name'] ?? '—') }}</span>
                             @endif
                         </td>
                         <td style="padding: 16px 24px;">
