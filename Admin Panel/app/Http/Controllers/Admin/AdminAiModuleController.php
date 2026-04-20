@@ -8,8 +8,10 @@ use App\Models\CropPlan;
 use App\Models\CropRecommendation;
 use App\Models\FertilizerRecommendation;
 use App\Models\SeasonalData;
+use App\Services\CropPredictionService;
 use App\Services\Customer\DiseaseDetectionService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 /**
  * AdminAiModuleController
@@ -19,7 +21,10 @@ use Illuminate\Http\Request;
  */
 class AdminAiModuleController extends Controller
 {
-    public function __construct(private DiseaseDetectionService $diseaseService) {}
+    public function __construct(
+        private DiseaseDetectionService $diseaseService,
+        private CropPredictionService $cropPredictionApi,
+    ) {}
 
     // ── Dashboard overview ─────────────────────────────────────────────────
 
@@ -39,7 +44,27 @@ class AdminAiModuleController extends Controller
             ->take(10)
             ->get();
 
-        return view('admin.ai-modules.dashboard', compact('stats', 'recentDiseaseReports'));
+        $apiMonitoring = [
+            'available' => false,
+            'health' => null,
+            'stats' => null,
+            'logs' => [],
+            'error' => null,
+        ];
+
+        try {
+            $apiMonitoring['health'] = $this->cropPredictionApi->health();
+            $apiMonitoring['stats'] = $this->cropPredictionApi->stats();
+            $apiMonitoring['logs'] = $this->cropPredictionApi->predictionLogs(8)['items'] ?? [];
+            $apiMonitoring['available'] = true;
+        } catch (\Throwable $e) {
+            Log::warning('Admin AI dashboard could not fetch crop prediction API monitoring data.', [
+                'message' => $e->getMessage(),
+            ]);
+            $apiMonitoring['error'] = 'Crop prediction API monitoring is currently unavailable.';
+        }
+
+        return view('admin.ai-modules.dashboard', compact('stats', 'recentDiseaseReports', 'apiMonitoring'));
     }
 
     // ── Crop Recommendations ───────────────────────────────────────────────
