@@ -33,9 +33,7 @@ Copy `.env.example` to `.env` and set:
 - `SECRET_KEY` to a strong secret
 - `ALLOWED_ORIGINS` to your website origin(s)
 
-Default model path points to `./model/RandomForest.pkl` so the bundled crop model works out of the box.
-
-If you moved model artifacts into `crop_prediction_api/model/`, keep `MODEL_PATH` aligned to the crop recommendation artifact used by `/predict`.
+Default model path points to `./model/RandomForest.pkl` so the bundled model works out of the box.
 
 ## Local Run
 
@@ -49,8 +47,6 @@ python run.py
 ```
 
 The API listens on `http://localhost:5000`.
-
-Important compatibility note: the bundled crop model artifacts were serialized with an older scikit-learn tree format, so this service pins `scikit-learn==1.2.2` in `requirements.txt` to keep model loading stable.
 
 ## Endpoints
 
@@ -82,7 +78,6 @@ curl -X POST http://localhost:5000/predict ^
 ```json
 {
   "success": true,
-  "crop": "wheat",
   "prediction": "wheat",
   "confidence": 0.87,
   "request_id": "1e6c1b1a-6d3c-4d40-a2a5-2af58a8c8f1c",
