@@ -99,6 +99,79 @@
         </div>
     </div>
 
+    <div class="card-agri mb-4" style="background: white; border: none; box-shadow: 0 10px 30px rgba(0,0,0,0.04); padding: 24px;">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h4 class="mb-0" style="font-weight: 700; color: var(--agri-primary-dark);">Crop Prediction API Monitoring</h4>
+            @if(($apiMonitoring['available'] ?? false) === true)
+                <span class="badge bg-success">Connected</span>
+            @else
+                <span class="badge bg-danger">Unavailable</span>
+            @endif
+        </div>
+
+        @if(!empty($apiMonitoring['error']))
+            <div class="alert alert-warning mb-0">{{ $apiMonitoring['error'] }}</div>
+        @else
+            @php
+                $health = $apiMonitoring['health'] ?? [];
+                $apiStats = $apiMonitoring['stats']['stats'] ?? [];
+                $apiLogs = $apiMonitoring['logs'] ?? [];
+            @endphp
+
+            <div class="row g-3 mb-3">
+                <div class="col-md-3">
+                    <div class="border rounded-3 p-3 h-100 bg-light">
+                        <div class="small text-muted text-uppercase fw-bold">Model Loaded</div>
+                        <div class="fw-bold mt-1">{{ ($health['model_loaded'] ?? false) ? 'Yes' : 'No' }}</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="border rounded-3 p-3 h-100 bg-light">
+                        <div class="small text-muted text-uppercase fw-bold">Database Ready</div>
+                        <div class="fw-bold mt-1">{{ ($health['database_ready'] ?? false) ? 'Yes' : 'No' }}</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="border rounded-3 p-3 h-100 bg-light">
+                        <div class="small text-muted text-uppercase fw-bold">Total Predictions</div>
+                        <div class="fw-bold mt-1">{{ $apiStats['total_predictions'] ?? 0 }}</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="border rounded-3 p-3 h-100 bg-light">
+                        <div class="small text-muted text-uppercase fw-bold">Avg Confidence</div>
+                        <div class="fw-bold mt-1">{{ isset($apiStats['avg_confidence']) ? number_format((float) $apiStats['avg_confidence'] * 100, 2).'%' : 'N/A' }}</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-sm align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th>Timestamp</th>
+                            <th>Prediction</th>
+                            <th>Confidence</th>
+                            <th>Request ID</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse($apiLogs as $log)
+                            <tr>
+                                <td>{{ $log['created_at'] ?? 'N/A' }}</td>
+                                <td>{{ $log['prediction'] ?? 'N/A' }}</td>
+                                <td>{{ isset($log['confidence']) ? number_format((float) $log['confidence'] * 100, 2).'%' : 'N/A' }}</td>
+                                <td><small>{{ $log['request_id'] ?? 'N/A' }}</small></td>
+                            </tr>
+                        @empty
+                            <tr><td colspan="4" class="text-center text-muted py-3">No API prediction logs available yet.</td></tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+        @endif
+    </div>
+
     {{-- Quick Nav --}}
     <div class="row g-4 mt-2">
         <div class="col-md-4 col-lg-3">
