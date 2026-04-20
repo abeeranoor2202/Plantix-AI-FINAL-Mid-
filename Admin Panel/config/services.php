@@ -38,4 +38,10 @@ return [
         'webhook_secret' => env('STRIPE_WEBHOOK_SECRET'),
     ],
 
+    'crop_prediction_api' => [
+        'base_url' => env('CROP_PREDICTION_API_URL', 'http://127.0.0.1:5000'),
+        'api_key' => env('CROP_PREDICTION_API_KEY'),
+        'timeout' => env('CROP_PREDICTION_API_TIMEOUT', 8),
+    ],
+
 ];
