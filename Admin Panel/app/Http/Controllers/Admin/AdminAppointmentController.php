@@ -289,14 +289,22 @@ class AdminAppointmentController extends Controller
             return;
         }
 
+        $durationMinutes = 60;
+        if ($ignoreAppointmentId) {
+            $durationMinutes = (int) (Appointment::query()->whereKey($ignoreAppointmentId)->value('duration_minutes') ?? 60);
+        }
+
+        $start = $scheduledAt->copy();
+        $end = $scheduledAt->copy()->addMinutes(max(1, $durationMinutes));
+
         $query = Appointment::query()
             ->where('expert_id', $expertId)
-            ->where('scheduled_at', $scheduledAt)
             ->whereNotIn('status', [
                 Appointment::STATUS_CANCELLED,
                 Appointment::STATUS_REJECTED,
                 Appointment::STATUS_PAYMENT_FAILED,
-            ]);
+            ])
+            ->whereRaw('scheduled_at < ? AND DATE_ADD(scheduled_at, INTERVAL duration_minutes MINUTE) > ?', [$end, $start]);
 
         if ($ignoreAppointmentId) {
             $query->where('id', '!=', $ignoreAppointmentId);
