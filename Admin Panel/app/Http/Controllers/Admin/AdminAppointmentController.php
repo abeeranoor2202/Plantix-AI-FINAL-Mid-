@@ -194,6 +194,12 @@ class AdminAppointmentController extends Controller
         $type = $request->string('type')->toString() === 'offline' ? 'physical' : 'online';
         $scheduledAt = $request->date('scheduled_at');
 
+        if (($appointment->scheduled_at && ! $appointment->scheduled_at->equalTo($scheduledAt)) && $appointment->slot()->exists()) {
+            throw ValidationException::withMessages([
+                'scheduled_at' => 'This appointment is linked to a managed slot. Use slot-based reschedule flow instead of manual time edits.',
+            ]);
+        }
+
         $this->assertNoScheduleConflict(
             $request->integer('expert_id'),
             $scheduledAt,
