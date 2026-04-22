@@ -11,8 +11,10 @@ use App\Models\AppointmentReschedule;
 use App\Models\Expert;
 use App\Notifications\AppointmentRescheduledNotification;
 use App\Services\Expert\RatingService;
+use App\Services\Shared\AvailabilityService;
 use App\Services\Shared\AppointmentStatusService;
 use App\Services\Shared\AppointmentService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -22,9 +24,31 @@ class CustomerAppointmentController extends Controller
 {
     public function __construct(
         private readonly AppointmentService $service,
+        private readonly AvailabilityService $availability,
         private readonly RatingService $ratingService,
         private readonly AppointmentStatusService $appointmentStatus,
     ) {}
+
+    public function slots(Request $request): JsonResponse
+    {
+        $data = $request->validate([
+            'expert_id' => ['required', 'integer', 'exists:experts,id'],
+            'date' => ['required', 'date', 'after_or_equal:today'],
+        ]);
+
+        $expert = Expert::query()->available()->findOrFail((int) $data['expert_id']);
+        $slots = $this->availability->getAvailableSlots($expert, (string) $data['date']);
+
+        return response()->json([
+            'success' => true,
+            'date' => (string) $data['date'],
+            'slots' => $slots->map(fn ($slot) => [
+                'id' => $slot->id,
+                'start_time' => $slot->start_time,
+                'end_time' => $slot->end_time,
+            ])->values(),
+        ]);
+    }
 
     public function index(Request $request): View
     {
