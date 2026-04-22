@@ -4,6 +4,8 @@ namespace App\Services\Shared;
 
 use App\Events\Expert\AppointmentStatusChanged as ExpertAppointmentStatusChanged;
 use App\Models\Appointment;
+use App\Models\AppointmentSlot;
+use Carbon\Carbon;
 use App\Models\AppointmentLog;
 use App\Models\AppointmentReschedule;
 use App\Models\AppointmentStatusHistory;
@@ -77,6 +79,90 @@ class AppointmentStatusService
 
             if (! $reschedule) {
                 throw new \DomainException('No pending reschedule request found for this appointment.');
+            }
+
+            $proposedAt = Carbon::parse((string) $reschedule->proposed_scheduled_at);
+            if ($proposedAt->isPast()) {
+                throw new \DomainException('The proposed reschedule time is in the past.');
+            }
+
+            $currentSlot = AppointmentSlot::query()
+                ->where('appointment_id', $appointment->id)
+                ->lockForUpdate()
+                ->first();
+
+            if ($currentSlot) {
+                $targetSlot = AppointmentSlot::query()
+                    ->where('expert_id', $appointment->expert_id)
+                    ->whereDate('date', $proposedAt->toDateString())
+                    ->where('start_time', $proposedAt->format('H:i:s'))
+                    ->lockForUpdate()
+                    ->first();
+
+                if (! $targetSlot) {
+                    throw new \DomainException('The proposed reschedule time is not a valid slot.');
+                }
+
+                if ($targetSlot->is_booked && (int) $targetSlot->appointment_id !== (int) $appointment->id) {
+                    throw new \DomainException('The proposed reschedule time conflicts with another booking.');
+                }
+
+                if ((int) $currentSlot->id !== (int) $targetSlot->id) {
+                    $currentSlot->update([
+                        'is_booked' => false,
+                        'appointment_id' => null,
+                    ]);
+                }
+
+                $targetSlot->update([
+                    'is_booked' => true,
+                    'appointment_id' => $appointment->id,
+                ]);
+
+                $appointment->update([
+                    'scheduled_at' => $proposedAt,
+                    'scheduled_date' => $targetSlot->date,
+                    'start_time' => $targetSlot->start_time,
+                    'end_time' => $targetSlot->end_time,
+                    'status' => Appointment::STATUS_RESCHEDULED,
+                ]);
+
+                $reschedule->update([
+                    'status'       => 'accepted',
+                    'responded_at' => now(),
+                ]);
+
+                $this->recordStatusHistory($appointment, $byUserId, $fromStatus, Appointment::STATUS_RESCHEDULED, $reschedule->reason);
+                AppointmentLog::record(
+                    $appointment,
+                    'reschedule_accepted',
+                    $byUserId,
+                    $fromStatus,
+                    Appointment::STATUS_RESCHEDULED,
+                    $reschedule->reason
+                );
+
+                $this->dispatchExpertStatusEvent($appointment, $byUserId, Appointment::STATUS_RESCHEDULED);
+
+                return $appointment->fresh();
+            }
+
+            $duration = (int) ($appointment->duration_minutes ?? 60);
+            $end = $proposedAt->copy()->addMinutes(max(1, $duration));
+
+            $hasConflict = Appointment::query()
+                ->where('expert_id', $appointment->expert_id)
+                ->where('id', '!=', $appointment->id)
+                ->whereNotIn('status', [
+                    Appointment::STATUS_CANCELLED,
+                    Appointment::STATUS_REJECTED,
+                    Appointment::STATUS_PAYMENT_FAILED,
+                ])
+                ->whereRaw('scheduled_at < ? AND DATE_ADD(scheduled_at, INTERVAL duration_minutes MINUTE) > ?', [$end, $proposedAt])
+                ->exists();
+
+            if ($hasConflict) {
+                throw new \DomainException('The proposed reschedule time conflicts with another appointment.');
             }
 
             $fromStatus = $appointment->status;
