@@ -46,12 +46,17 @@ class AvailabilityService
         $cacheKey = $this->cacheKey($expert->id, $date);
 
         return Cache::remember($cacheKey, self::CACHE_TTL, function () use ($expert, $date) {
-            return AppointmentSlot::where('expert_id', $expert->id)
+            $query = AppointmentSlot::where('expert_id', $expert->id)
                 ->where('date', $date)
                 ->where('is_booked', false)
-                ->where('start_time', '>', now()->toTimeString()) // no past slots today
-                ->orderBy('start_time')
-                ->get();
+                ->orderBy('start_time');
+
+            // Only filter by current time for today's date.
+            if ($date === now()->toDateString()) {
+                $query->where('start_time', '>', now()->toTimeString());
+            }
+
+            return $query->get();
         });
     }
 
