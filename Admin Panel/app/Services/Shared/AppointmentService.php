@@ -92,6 +92,23 @@ class AppointmentService
             ? Carbon::parse($data['scheduled_at'])
             : now();
 
+        // Enforce slot-backed booking even when frontend sends only datetime.
+        if (empty($data['slot_id']) && ! empty($data['scheduled_at'])) {
+            $resolvedSlot = AppointmentSlot::query()
+                ->where('expert_id', $expert->id)
+                ->whereDate('date', $scheduledAt->toDateString())
+                ->where('start_time', $scheduledAt->format('H:i:s'))
+                ->first();
+
+            if (! $resolvedSlot) {
+                throw ValidationException::withMessages([
+                    'scheduled_at' => 'Selected datetime is not a valid slot. Please choose an available slot.',
+                ]);
+            }
+
+            $data['slot_id'] = $resolvedSlot->id;
+        }
+
         if (! empty($data['slot_id'])) {
             $slot = AppointmentSlot::query()->findOrFail((int) $data['slot_id']);
             if ((int) $slot->expert_id !== (int) $expert->id) {
