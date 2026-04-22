@@ -35,7 +35,7 @@ class ProductFactory extends Factory
             'is_returnable' => true,
             'is_refundable' => true,
             'return_window_days' => 7,
-            'rating_avg' => null,
+            'rating_avg' => 0.00,
             'rating_count' => 0,
         ];
     }

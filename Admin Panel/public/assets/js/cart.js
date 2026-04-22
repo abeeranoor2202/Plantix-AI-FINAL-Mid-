@@ -19,7 +19,12 @@ const CartManager = {
         if (body) headers['Content-Type'] = 'application/json';
         const resp = await fetch(url, { method, headers, body: body ? JSON.stringify(body) : undefined });
         const json = await resp.json().catch(() => ({}));
-        if (!resp.ok) throw new Error(json.error ?? json.message ?? `HTTP ${resp.status}`);
+        if (!resp.ok) {
+            const firstValidationError = json?.errors
+                ? Object.values(json.errors).flat()[0]
+                : null;
+            throw new Error(firstValidationError ?? json.error ?? json.message ?? `HTTP ${resp.status}`);
+        }
         return json;
     },
 

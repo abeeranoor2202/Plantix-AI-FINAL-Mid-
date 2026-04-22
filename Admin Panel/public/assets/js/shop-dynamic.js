@@ -4,14 +4,12 @@
 
 const SHOP       = window.SHOP_DATA || {};
 const products   = Array.isArray(SHOP.products) ? SHOP.products : [];
-const allBrands  = Array.isArray(SHOP.brands)   ? SHOP.brands   : [];
 const allVendors = Array.isArray(SHOP.vendors)  ? SHOP.vendors  : [];
 const PRICE_RANGE = SHOP.priceRange || { min: 0, max: 50000 };
 const productById = new Map(products.map(p => [String(p.id), p]));
 
 // State
 let selectedCategories = [];
-let selectedBrands     = [];
 let selectedVendors    = [];
 let sortBy         = 'newest';
 let perPage        = 8;
@@ -48,10 +46,10 @@ if (sidebarToggle) sidebarToggle.onclick = () => sidebarFilters.classList.toggle
 if (sidebarClose)  sidebarClose.onclick  = () => sidebarFilters.classList.add('collapsed');
 
 if (clearFilters) clearFilters.onclick = () => {
-    selectedCategories = []; selectedBrands = []; selectedVendors = [];
+    selectedCategories = []; selectedVendors = [];
     filterMinPrice = null; filterMaxPrice = null;
     filterMinRating = 0; filterOnSale = false;
-    document.querySelectorAll('#categoryFilters input, #brandFilters input, #vendorFilters input')
+    document.querySelectorAll('#categoryFilters input, #vendorFilters input')
         .forEach(cb => (cb.checked = false));
     const pMin = document.getElementById('priceMin'); if (pMin) pMin.value = '';
     const pMax = document.getElementById('priceMax'); if (pMax) pMax.value = '';
@@ -73,7 +71,6 @@ function wireCheckboxGroup(containerId, cb) {
     });
 }
 wireCheckboxGroup('categoryFilters', v => (selectedCategories = v));
-wireCheckboxGroup('brandFilters',    v => (selectedBrands     = v));
 wireCheckboxGroup('vendorFilters',   v => (selectedVendors    = v));
 
 const applyPriceBtn = document.getElementById('applyPrice');
@@ -105,16 +102,6 @@ function renderFilters() {
         catEl.innerHTML = cats.length
             ? cats.map(c => `<label><input type="checkbox" value="${escapeHtml(c)}"> ${escapeHtml(c)}</label>`).join('')
             : '<span class="text-muted small">No categories</span>';
-    }
-
-    const brandEl = document.getElementById('brandFilters');
-    if (brandEl) {
-        const list = allBrands.length
-            ? allBrands
-            : [...new Set(products.map(p => p.brand).filter(Boolean))].sort().map(n => ({ name: n }));
-        brandEl.innerHTML = list.length
-            ? list.map(b => `<label><input type="checkbox" value="${escapeHtml(b.name)}"> ${escapeHtml(b.name)}</label>`).join('')
-            : '<span class="text-muted small">No brands</span>';
     }
 
     const vendorEl = document.getElementById('vendorFilters');
@@ -150,7 +137,7 @@ function renderFilters() {
 }
 
 function updateFilterBadge() {
-    let n = selectedCategories.length + selectedBrands.length + selectedVendors.length;
+    let n = selectedCategories.length + selectedVendors.length;
     if (filterMinPrice !== null || filterMaxPrice !== null) n++;
     if (filterMinRating > 0) n++;
     if (filterOnSale) n++;
@@ -166,11 +153,9 @@ function updateProducts() {
             if (!(p.name.toLowerCase().includes(q) ||
                   (p.subtitle    && p.subtitle.toLowerCase().includes(q))    ||
                   (p.description && p.description.toLowerCase().includes(q)) ||
-                  (p.vendor      && p.vendor.toLowerCase().includes(q))      ||
-                  (p.brand       && p.brand.toLowerCase().includes(q)))) return false;
+                  (p.vendor      && p.vendor.toLowerCase().includes(q)))) return false;
         }
         if (selectedCategories.length && !selectedCategories.includes(p.category)) return false;
-        if (selectedBrands.length     && !selectedBrands.includes(p.brand))        return false;
         if (selectedVendors.length    && !selectedVendors.includes(p.vendor))      return false;
         if (filterMinPrice !== null   && p.effective_price < filterMinPrice)       return false;
         if (filterMaxPrice !== null   && p.effective_price > filterMaxPrice)       return false;

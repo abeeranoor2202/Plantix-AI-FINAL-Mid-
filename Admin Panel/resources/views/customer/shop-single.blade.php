@@ -322,13 +322,9 @@ window.CART_ROUTES = {
                             <div class="col-lg-5">
                                 <h4 class="fw-bold text-dark mb-4">Write a Review</h4>
                                 @auth('web')
+                                @if($canReviewProduct ?? false)
                                 <form method="POST" action="{{ route('reviews.store', $product->id) }}" enctype="multipart/form-data">
                                     @csrf
-                                    @if($eligibleOrders->isEmpty())
-                                    <div class="alert alert-warning small">
-                                        You can only review this product after a delivered or completed order is available.
-                                    </div>
-                                    @else
                                     <div class="mb-3">
                                         <label class="form-label fw-bold text-dark" style="font-size: 13px;">Order *</label>
                                         <select name="order_id" class="form-agri" required>
@@ -340,7 +336,6 @@ window.CART_ROUTES = {
                                             @endforeach
                                         </select>
                                     </div>
-                                    @endif
                                     <div class="mb-3">
                                         <label class="form-label fw-bold text-dark" style="font-size: 13px;">Your Rating *</label>
                                         <div class="d-flex gap-1 fs-4" id="starPicker">
@@ -384,6 +379,11 @@ window.CART_ROUTES = {
                                         });
                                     });
                                 </script>
+                                @else
+                                <div class="alert alert-warning small">
+                                    You can only review products you have purchased
+                                </div>
+                                @endif
                                 @else
                                 <div class="text-center py-4">
                                     <p class="text-muted mb-3">Please sign in to leave a review.</p>

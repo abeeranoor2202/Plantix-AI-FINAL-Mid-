@@ -1,4 +1,4 @@
-﻿<header>
+<header>
     <nav class="navbar mobile-sidenav inc-shape navbar-sticky navbar-default validnavs dark">
         <div class="container" style="display:flex; align-items:center; flex-wrap:nowrap; gap:0;">
 
@@ -27,7 +27,6 @@
                     <li><a href="{{ route('ai.chat') }}">Plantix-AI</a></li>
                     <li><a href="{{ route('forum') }}">Forum</a></li>
                     <li><a href="{{ route('experts.index') }}">Experts</a></li>
-                    <li><a href="{{ route('stores') }}">Stores</a></li>
                     <li><a href="{{ route('shop') }}">Shop</a></li>
                     <li><a href="{{ route('appointments') }}">Appointments</a></li>
                 </ul>

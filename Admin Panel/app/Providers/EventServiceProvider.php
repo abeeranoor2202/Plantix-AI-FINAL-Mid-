@@ -63,6 +63,13 @@ class EventServiceProvider extends ServiceProvider
             \App\Listeners\Forum\SendForumEmailListener::class,
             \App\Listeners\Platform\ApplyPlatformImpactAndLog::class,
         ],
+        \App\Events\Forum\ForumQuestionCreated::class => [
+            \App\Listeners\Forum\MapQuestionExpertsListener::class,
+            \App\Listeners\Forum\NotifyExpertsOfQuestionListener::class,
+            \App\Listeners\Forum\NotifyAdminsOfQuestionListener::class,
+            \App\Listeners\Forum\UpdateForumFeedListener::class,
+            \App\Listeners\Platform\ApplyPlatformImpactAndLog::class,
+        ],
         \App\Events\Forum\OfficialAnswerMarked::class => [
             \App\Listeners\Forum\SendForumEmailListener::class,
             \App\Listeners\Expert\SendForumOfficialMarkedNotification::class,

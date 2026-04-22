@@ -215,106 +215,77 @@
                     <div class="team-style-one-carousel swiper">
                         <!-- Additional required wrapper -->
                         <div class="swiper-wrapper">
-
-                            <!-- Single Item -->
-                            <div class="swiper-slide">
-                                <div class="farmer-style-one-item">
-                                    <div class="thumb">
-                                        <img src="{{ asset('assets/img/farmer4.jpg') }}" alt="Image Not Found">
-                                        <div class="social">
-                                            <i class="fas fa-share-alt"></i>
-                                            <ul>
-                                                <li class="facebook">
-                                                    <a href="#">
-                                                        <i class="fab fa-facebook-f"></i>
-                                                    </a>
-                                                </li>
-                                                <li class="twitter">
-                                                    <a href="#">
-                                                        <i class="fab fa-twitter"></i>
-                                                    </a>
-                                                </li>
-                                                <li class="linkedin">
-                                                    <a href="#">
-                                                        <i class="fab fa-linkedin-in"></i>
-                                                    </a>
-                                                </li>
-                                            </ul>
+                            @php
+                                $fallbackImages = [
+                                    asset('assets/img/farmer4.jpg'),
+                                    asset('assets/img/farmer2.jpg'),
+                                    asset('assets/img/farmer3.jpg'),
+                                ];
+                            @endphp
+                            @forelse($experts ?? collect() as $expert)
+                                @php
+                                    $profile = $expert->profile;
+                                    $role = $expert->specialty ?: ($profile?->specialization ?: 'Agricultural Expert');
+                                    $image = $expert->profile_image
+                                        ? Storage::url($expert->profile_image)
+                                        : $fallbackImages[$loop->index % count($fallbackImages)];
+                                @endphp
+                                <div class="swiper-slide">
+                                    <div class="farmer-style-one-item">
+                                        <div class="thumb">
+                                            <a href="{{ route('experts.show', $expert->id) }}" title="Open {{ $expert->display_name }} profile">
+                                                <img src="{{ $image }}" alt="{{ $expert->display_name }}">
+                                            </a>
+                                            <div class="social">
+                                                <i class="fas fa-share-alt"></i>
+                                                <ul>
+                                                    <li class="facebook">
+                                                        <a href="{{ route('experts.show', $expert->id) }}" title="View profile">
+                                                            <i class="fas fa-user"></i>
+                                                        </a>
+                                                    </li>
+                                                    @if(!empty($profile?->contact_phone))
+                                                        <li class="twitter">
+                                                            <a href="tel:{{ preg_replace('/\s+/', '', $profile->contact_phone) }}" title="Call expert">
+                                                                <i class="fas fa-phone"></i>
+                                                            </a>
+                                                        </li>
+                                                    @endif
+                                                    @if(!empty($profile?->linkedin))
+                                                        <li class="linkedin">
+                                                            <a href="{{ $profile->linkedin }}" target="_blank" rel="noopener" title="LinkedIn">
+                                                                <i class="fab fa-linkedin-in"></i>
+                                                            </a>
+                                                        </li>
+                                                    @elseif(!empty($profile?->website))
+                                                        <li class="linkedin">
+                                                            <a href="{{ $profile->website }}" target="_blank" rel="noopener" title="Website">
+                                                                <i class="fas fa-globe"></i>
+                                                            </a>
+                                                        </li>
+                                                    @endif
+                                                </ul>
+                                            </div>
+                                        </div>
+                                        <div class="info">
+                                            <span>{{ \Illuminate\Support\Str::limit($role, 40) }}</span>
+                                            <h4><a href="{{ route('experts.show', $expert->id) }}" title="Open {{ $expert->display_name }} profile">{{ $expert->display_name }}</a></h4>
                                         </div>
                                     </div>
-                                    <div class="info">
-                                        <span>Senior Agronomist</span>
-                                        <h4><a href="#">Dr. Ahmad Khan</a></h4>
-                                    </div>
                                 </div>
-                            </div>
-                            <!-- End Single Item -->
-                            <!-- Single Item -->
-                            <div class="swiper-slide">
-                                <div class="farmer-style-one-item">
-                                    <div class="thumb">
-                                        <img src="{{ asset('assets/img/farmer2.jpg') }}" alt="Image Not Found">
-                                        <div class="social">
-                                            <i class="fas fa-share-alt"></i>
-                                            <ul>
-                                                <li class="facebook">
-                                                    <a href="#">
-                                                        <i class="fab fa-facebook-f"></i>
-                                                    </a>
-                                                </li>
-                                                <li class="twitter">
-                                                    <a href="#">
-                                                        <i class="fab fa-twitter"></i>
-                                                    </a>
-                                                </li>
-                                                <li class="linkedin">
-                                                    <a href="#">
-                                                        <i class="fab fa-linkedin-in"></i>
-                                                    </a>
-                                                </li>
-                                            </ul>
+                            @empty
+                                <div class="swiper-slide">
+                                    <div class="farmer-style-one-item">
+                                        <div class="thumb">
+                                            <img src="{{ asset('assets/img/farmer4.jpg') }}" alt="Expert">
+                                        </div>
+                                        <div class="info">
+                                            <span>Agricultural Expert</span>
+                                            <h4><a href="{{ route('experts.index') }}">Experts will appear here soon</a></h4>
                                         </div>
                                     </div>
-                                    <div class="info">
-                                        <span>AI & Data Scientist</span>
-                                        <h4><a href="#">Sarah Ali</a></h4>
-                                    </div>
                                 </div>
-                            </div>
-                            <!-- End Single Item -->
-                            <!-- Single Item -->
-                            <div class="swiper-slide">
-                                <div class="farmer-style-one-item">
-                                    <div class="thumb">
-                                        <img src="{{ asset('assets/img/farmer3.jpg') }}" alt="Image Not Found">
-                                        <div class="social">
-                                            <i class="fas fa-share-alt"></i>
-                                            <ul>
-                                                <li class="facebook">
-                                                    <a href="#">
-                                                        <i class="fab fa-facebook-f"></i>
-                                                    </a>
-                                                </li>
-                                                <li class="twitter">
-                                                    <a href="#">
-                                                        <i class="fab fa-twitter"></i>
-                                                    </a>
-                                                </li>
-                                                <li class="linkedin">
-                                                    <a href="#">
-                                                        <i class="fab fa-linkedin-in"></i>
-                                                    </a>
-                                                </li>
-                                            </ul>
-                                        </div>
-                                    </div>
-                                    <div class="info">
-                                        <span>Soil & Nutrient Specialist</span>
-                                        <h4><a href="#">Muhammad Usman</a></h4>
-                                    </div>
-                                </div>
-                            </div>
-                            <!-- End Single Item -->
+                            @endforelse
                         </div>
                     </div>
                 </div>

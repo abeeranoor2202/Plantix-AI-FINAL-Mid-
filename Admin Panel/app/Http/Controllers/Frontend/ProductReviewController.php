@@ -3,15 +3,19 @@
 namespace App\Http\Controllers\Frontend;
 
 use App\Http\Controllers\Controller;
-use App\Models\Order;
 use App\Models\Product;
 use App\Models\Review;
+use App\Services\Shared\ProductReviewService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
+use Illuminate\Auth\Access\AuthorizationException;
 
 class ProductReviewController extends Controller
 {
+    public function __construct(
+        private readonly ProductReviewService $reviewService,
+    ) {}
+
     /**
      * Submit a review for a product tied to a specific delivered order.
      *
@@ -37,84 +41,25 @@ class ProductReviewController extends Controller
 
         /** @var \App\Models\User $user */
         $user    = auth('web')->user();
-
-        // ── 1. Verify the order belongs to this user and contains the product ─
-        $order = Order::where('id', $request->order_id)
-                      ->where('user_id', $user->id)
-                      ->whereIn('status', [Order::STATUS_DELIVERED, Order::STATUS_COMPLETED])
-                      ->first();
-
-        if (! $order) {
-            return back()->withErrors([
-                'order_id' => 'You can only review products from delivered or completed orders.',
+        try {
+            $review = $this->reviewService->save($user, $product, [
+                'order_id' => (int) $request->input('order_id'),
+                'title' => $request->input('title'),
+                'rating' => (int) $request->input('rating'),
+                'comment' => $textReviewEnabled ? $request->input('comment') : null,
+                'review_images' => $imageReviewEnabled ? (array) $request->file('review_images', []) : null,
             ]);
+        } catch (AuthorizationException $e) {
+            abort(403, 'You can only review products you have purchased');
+        } catch (\DomainException $e) {
+            return back()->withErrors(['review' => $e->getMessage()]);
         }
 
-        $orderHasProduct = $order->items()->where('product_id', $product->id)->exists();
-        if (! $orderHasProduct) {
-            return back()->withErrors([
-                'product_id' => 'This product is not part of the selected order.',
-            ]);
-        }
+        $message = $review->wasRecentlyCreated
+            ? 'Review submitted. It will appear after admin approval.'
+            : 'Review updated. It will appear after admin approval.';
 
-        // ── 2. Check for existing review (one per order+product) ──────────────
-        $existingReview = Review::where('user_id', $user->id)
-                                ->where('order_id', $order->id)
-                                ->where('product_id', $product->id)
-                                ->first();
-
-        if ($existingReview) {
-            // ── 3. Enforce edit lock ─────────────────────────────────────────
-            if (! $existingReview->isEditable()) {
-                return back()->withErrors([
-                    'review' => 'This review can no longer be edited (edit window has closed).',
-                ]);
-            }
-
-            $reviewImages = $existingReview->review_images ?? [];
-            if ($imageReviewEnabled && $request->hasFile('review_images')) {
-                foreach ((array) $reviewImages as $imagePath) {
-                    Storage::disk('public')->delete($imagePath);
-                }
-
-                $reviewImages = [];
-                foreach ((array) $request->file('review_images') as $uploadedImage) {
-                    $reviewImages[] = $uploadedImage->store('reviews', 'public');
-                }
-            }
-
-            $existingReview->update([
-                'title'         => $request->input('title'),
-                'rating'        => $request->rating,
-                'comment'       => $textReviewEnabled ? $request->input('comment') : null,
-                'review_images' => $imageReviewEnabled ? $reviewImages : null,
-                'status'        => Review::STATUS_PENDING, // re-moderate on edit
-            ]);
-
-            return back()->with('success', 'Review updated. It will appear after admin approval.');
-        }
-
-        $reviewImages = null;
-        if ($imageReviewEnabled && $request->hasFile('review_images')) {
-            $reviewImages = [];
-            foreach ((array) $request->file('review_images') as $uploadedImage) {
-                $reviewImages[] = $uploadedImage->store('reviews', 'public');
-            }
-        }
-
-        Review::create([
-            'product_id' => $product->id,
-            'order_id'   => $order->id,
-            'user_id'    => $user->id,
-            'vendor_id'  => $product->vendor_id,
-            'title'      => $request->input('title'),
-            'rating'     => $request->rating,
-            'comment'    => $textReviewEnabled ? $request->input('comment') : null,
-            'review_images' => $reviewImages,
-            'status'     => Review::STATUS_PENDING,
-        ]);
-
-        return back()->with('success', 'Review submitted. It will appear after admin approval.');
+        return back()->with('success', $message);
     }
 
     /**

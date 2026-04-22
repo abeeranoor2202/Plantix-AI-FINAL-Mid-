@@ -1,4 +1,4 @@
-﻿<!-- Start Preloader 
+<!-- Start Preloader 
     ============================================= -->
     <div id="preloader">
         <div id="agrica-preloader" class="agrica-preloader">
@@ -116,9 +116,6 @@
                         </li>
                         <li>
                             <a href="{{ route('forum') }}">Forum</a>
-                        </li>
-                        <li>
-                            <a href="{{ route('stores') }}">Stores</a>
                         </li>
                         <li>
                             <a href="{{ route('shop') }}">Shop</a>

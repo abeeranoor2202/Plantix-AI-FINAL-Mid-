@@ -28,7 +28,7 @@ use Illuminate\Support\Facades\Route;
 // ══════════════════════════════════════════════════════════════════════════════
 
 Route::get('/',          [\App\Http\Controllers\Frontend\HomeController::class, 'index'])->name('home');
-Route::get('/about-us',  fn () => view('customer.about-us'))->name('about');
+Route::get('/about-us',  [\App\Http\Controllers\Frontend\AboutController::class, 'index'])->name('about');
 Route::get('/contact',   fn () => view('customer.contact'))->name('contact');
 
 // ══════════════════════════════════════════════════════════════════════════════
@@ -63,10 +63,6 @@ Route::middleware('auth:web')->group(function () {
 
 Route::get('/shop',      [\App\Http\Controllers\Frontend\ShopController::class, 'index'])->name('shop');
 Route::get('/shop/{id}', [\App\Http\Controllers\Frontend\ShopController::class, 'show'])->name('shop.single');
-
-// ── Stores (Vendors) ──────────────────────────────────────────────────────────
-Route::get('/stores',      [\App\Http\Controllers\Frontend\StoreController::class, 'index'])->name('stores');
-Route::get('/stores/{id}', [\App\Http\Controllers\Frontend\StoreController::class, 'show'])->name('stores.single');
 
 Route::get('/forum',                  [\App\Http\Controllers\Frontend\ForumController::class, 'index'])->name('forum');
 // Literal route MUST be registered before the {slug} wildcard to avoid being swallowed by it
@@ -141,6 +137,7 @@ Route::middleware(['customer', 'verified'])->group(function () {
     // ── Appointments with Experts ─────────────────────────────────────────────
     Route::get('/appointments',              [\App\Http\Controllers\Frontend\CustomerAppointmentController::class, 'index'])->name('appointments');
     Route::get('/appointment/book',          [\App\Http\Controllers\Frontend\CustomerAppointmentController::class, 'create'])->name('appointment.book');
+    Route::get('/appointment/slots',         [\App\Http\Controllers\Frontend\CustomerAppointmentController::class, 'slots'])->name('appointment.slots');
     Route::post('/appointment/book',         [\App\Http\Controllers\Frontend\CustomerAppointmentController::class, 'store'])->name('appointment.store');
     Route::get('/appointment/{id}',          [\App\Http\Controllers\Frontend\CustomerAppointmentController::class, 'show'])->name('appointment.details');
     Route::post('/appointment/{id}/cancel',  [\App\Http\Controllers\Frontend\CustomerAppointmentController::class, 'cancel'])->name('appointment.cancel');

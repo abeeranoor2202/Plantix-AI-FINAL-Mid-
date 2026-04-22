@@ -99,7 +99,7 @@ class ExpertBrowseController extends Controller
     public function quickBook(Request $request, int $id): RedirectResponse
     {
         $request->validate([
-            'scheduled_at' => 'required|date|after:now',
+            'slot_id'      => 'required|exists:appointment_slots,id',
             'topic'        => 'required|string|max:200',
             'notes'        => 'nullable|string|max:500',
         ]);
@@ -111,7 +111,8 @@ class ExpertBrowseController extends Controller
 
         $this->appointmentService->initiateBooking($user, [
             'expert_id'    => $expert->id,
-            'scheduled_at' => $request->scheduled_at,
+            'slot_id'      => (int) $request->input('slot_id'),
+            'type'         => 'online',
             'topic'        => $request->topic,
             'notes'        => $request->notes,
         ]);

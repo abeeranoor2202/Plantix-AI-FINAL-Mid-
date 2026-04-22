@@ -10,6 +10,7 @@ use App\Services\Shared\CartCheckoutService;
 use App\Services\Shared\CouponService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 
 class CustomerCartApiController extends Controller
 {
@@ -41,7 +42,7 @@ class CustomerCartApiController extends Controller
 
         $user    = $request->user();
         $product = Product::active()->inStock()->findOrFail($request->product_id);
-        $cart    = $this->getOrCreateCart($user);
+        $cart    = $this->getOrCreateCart($user, (int) $product->vendor_id);
 
         $existing = CartItem::where('cart_id', $cart->id)
                             ->where('product_id', $product->id)
@@ -162,9 +163,30 @@ class CustomerCartApiController extends Controller
 
     // ── Helpers ───────────────────────────────────────────────────────────────
 
-    private function getOrCreateCart($user): Cart
+    private function getOrCreateCart($user, ?int $vendorId = null): Cart
     {
-        return Cart::firstOrCreate(['user_id' => $user->id]);
+        $cart = Cart::query()->where('user_id', $user->id)->latest('id')->first();
+
+        if (! $cart) {
+            if (! $vendorId) {
+                throw ValidationException::withMessages([
+                    'cart' => 'A vendor is required before creating a cart.',
+                ]);
+            }
+
+            return Cart::create([
+                'user_id' => $user->id,
+                'vendor_id' => $vendorId,
+            ]);
+        }
+
+        if ($vendorId && (int) $cart->vendor_id !== $vendorId) {
+            throw ValidationException::withMessages([
+                'cart' => 'Your cart contains items from another vendor. Clear the cart before adding this item.',
+            ]);
+        }
+
+        return $cart;
     }
 
     private function cartPayload(Cart $cart): array

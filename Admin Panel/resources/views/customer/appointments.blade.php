@@ -1,4 +1,4 @@
-@extends('layouts.frontend')
+@extends('layouts.dashboard')
 
 @section('title', 'My Appointments | Plantix-AI')
 
@@ -12,39 +12,8 @@
 <div class="py-5" style="background: var(--agri-bg); min-height: calc(100vh - 80px);">
     <div class="container-agri pb-5 mb-5">
         <div class="row pt-4">
-            <!-- Sidebar Menu -->
-            <div class="col-lg-3 mb-4">
-                <div class="card-agri p-0 overflow-hidden" style="border: none;">
-                    <div class="bg-white p-4 text-center border-bottom">
-                        <div style="width: 80px; height: 80px; background: var(--agri-primary-light); color: var(--agri-primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 15px; font-size: 32px;">
-                            <i class="fas fa-user"></i>
-                        </div>
-                        <h5 class="fw-bold mb-0 text-dark">{{ auth('web')->user()->name ?? 'Customer' }}</h5>
-                        <p class="text-muted small mb-0">{{ auth('web')->user()->email ?? '' }}</p>
-                    </div>
-                    <div class="list-group border-0" style="border-radius: 0;">
-                        <a class="list-group-item border-0 text-muted py-3 px-4 d-flex align-items-center gap-3" href="{{ route('account.profile') }}">
-                            <i class="fas fa-user-circle fs-5"></i> Profile Settings
-                        </a>
-                        <a class="list-group-item border-0 text-muted py-3 px-4 d-flex align-items-center gap-3" href="{{ route('orders') }}">
-                            <i class="fas fa-shopping-bag fs-5"></i> My Orders
-                        </a>
-                        <a class="list-group-item border-0 py-3 px-4 d-flex align-items-center gap-3 active" href="{{ route('appointments') }}" style="background: var(--agri-primary-light); color: var(--agri-primary); border-left: 4px solid var(--agri-primary) !important;">
-                            <i class="fas fa-calendar-check fs-5"></i> Appointments
-                        </a>
-                        <a class="list-group-item border-0 text-danger py-3 px-4 d-flex align-items-center gap-3 mt-3 border-top" href="#" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
-                            <i class="fas fa-sign-out-alt fs-5"></i> Logout
-                        </a>
-                    </div>
-                </div>
-            </div>
-            
-            <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">
-                @csrf
-            </form>
-
             <!-- Main Content -->
-            <div class="col-lg-9">
+            <div class="col-12">
                 <div class="card-agri p-4" style="border: none;">
                     <div class="d-flex justify-content-between align-items-center mb-4">
                         <h3 class="fw-bold mb-0 text-dark" style="font-size: 20px;">Appointments</h3>

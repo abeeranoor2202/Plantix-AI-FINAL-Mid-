@@ -141,7 +141,7 @@
                                         </span>
                                     </td>
                                     <td style="padding: 18px 24px; text-align: center; font-size: 14px; font-weight: 800; color: var(--agri-primary-dark);">
-                                        {{ $thread->replies->count() }}
+                                        {{ $thread->replies_count_live ?? $thread->replies_count ?? 0 }}
                                     </td>
                                     <td style="padding: 18px 24px; text-align: center;">
                                         <x-platform.status-badge domain="forum" :status="$thread->status" />

@@ -47,12 +47,14 @@ class Expert extends Model
     protected $fillable = [
         'user_id',
         'status',
+        'approval_status',
         'specialty',
         'bio',
         'profile_image',
         'is_available',
         'hourly_rate',
         'consultation_price',
+        'consultation_fee',
         'consultation_duration_minutes',
         'rating_avg',
         'reputation_score',
@@ -71,6 +73,7 @@ class Expert extends Model
         'is_available'                  => 'boolean',
         'hourly_rate'                   => 'decimal:2',
         'consultation_price'            => 'decimal:2',
+        'consultation_fee'              => 'decimal:2',
         'rating_avg'                    => 'decimal:2',
         'reputation_score'              => 'integer',
         'total_appointments'            => 'integer',
@@ -78,12 +81,27 @@ class Expert extends Model
         'total_cancelled'               => 'integer',
         'consultation_duration_minutes' => 'integer',
         'stripe_account_status'         => 'string',
+        'approval_status'               => 'string',
         'verified_at'                   => 'datetime',
         'suspended_at'                  => 'datetime',
     ];
 
     protected static function booted(): void
     {
+        static::saving(function (Expert $expert) {
+            if (! empty($expert->status)) {
+                $expert->approval_status = $expert->status;
+            } elseif (! empty($expert->approval_status)) {
+                $expert->status = $expert->approval_status;
+            }
+
+            if ($expert->isDirty('consultation_price') && ! $expert->isDirty('consultation_fee')) {
+                $expert->consultation_fee = $expert->consultation_price;
+            } elseif ($expert->isDirty('consultation_fee') && ! $expert->isDirty('consultation_price')) {
+                $expert->consultation_price = $expert->consultation_fee;
+            }
+        });
+
         static::updated(function (Expert $expert) {
             if ($expert->wasChanged('status')) {
                 ExpertStatusChanged::dispatch(

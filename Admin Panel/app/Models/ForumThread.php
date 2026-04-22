@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Str;
 
@@ -40,6 +41,7 @@ class ForumThread extends Model
         'title',
         'slug',
         'body',
+        'tags',
         'status',
         'is_pinned',
         'is_approved',
@@ -54,6 +56,7 @@ class ForumThread extends Model
         'views'             => 'integer',
         'replies_count'     => 'integer',
         'resolved_reply_id' => 'integer',
+        'tags'              => 'array',
     ];
 
     // ── Slug generation ───────────────────────────────────────────────────────
@@ -108,6 +111,13 @@ class ForumThread extends Model
     public function resolvedReply(): BelongsTo
     {
         return $this->belongsTo(ForumReply::class, 'resolved_reply_id');
+    }
+
+    public function targetedExperts(): BelongsToMany
+    {
+        return $this->belongsToMany(Expert::class, 'forum_thread_expert_map', 'forum_thread_id', 'expert_id')
+            ->withPivot('match_reason')
+            ->withTimestamps();
     }
 
     // ── Scopes ────────────────────────────────────────────────────────────────

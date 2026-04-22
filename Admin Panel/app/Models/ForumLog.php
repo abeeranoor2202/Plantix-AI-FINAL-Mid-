@@ -25,6 +25,7 @@ class ForumLog extends Model
     public const ACTION_THREAD_UNARCHIVE = 'thread.unarchive';
     public const ACTION_THREAD_APPROVE  = 'thread.approve';
     public const ACTION_THREAD_FLAG     = 'thread.flag';
+    public const ACTION_THREAD_DISTRIBUTE = 'thread.distribute';
     public const ACTION_REPLY_CREATE    = 'reply.create';
     public const ACTION_REPLY_EDIT      = 'reply.edit';
     public const ACTION_REPLY_DELETE    = 'reply.delete';

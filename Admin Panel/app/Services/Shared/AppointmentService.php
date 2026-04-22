@@ -82,97 +82,52 @@ class AppointmentService
 
         $type        = $data['type'] ?? 'online';
         $duration    = (int) ($data['duration_minutes'] ?? $expert->consultation_duration_minutes ?? 60);
-        if (empty($data['slot_id']) && empty($data['scheduled_at'])) {
+        if (empty($data['slot_id']) && ! empty($data['scheduled_at'])) {
+            $scheduledAtFallback = Carbon::parse((string) $data['scheduled_at']);
+            $data['slot_id'] = AppointmentSlot::query()
+                ->where('expert_id', $expert->id)
+                ->whereDate('date', $scheduledAtFallback->toDateString())
+                ->where('start_time', $scheduledAtFallback->format('H:i:s'))
+                ->value('id');
+        }
+
+        if (empty($data['slot_id'])) {
             throw ValidationException::withMessages([
-                'slot_id' => 'A valid slot or scheduled time is required.',
+                'slot_id' => 'A valid slot is required.',
             ]);
         }
 
-        $scheduledAt = ! empty($data['scheduled_at'])
-            ? Carbon::parse($data['scheduled_at'])
-            : now();
+        $scheduledAt = now();
 
-        // Enforce slot-backed booking even when frontend sends only datetime.
-        if (empty($data['slot_id']) && ! empty($data['scheduled_at'])) {
-            $resolvedSlot = AppointmentSlot::query()
-                ->where('expert_id', $expert->id)
-                ->whereDate('date', $scheduledAt->toDateString())
-                ->where('start_time', $scheduledAt->format('H:i:s'))
-                ->first();
-
-            if (! $resolvedSlot) {
-                throw ValidationException::withMessages([
-                    'scheduled_at' => 'Selected datetime is not a valid slot. Please choose an available slot.',
-                ]);
-            }
-
-            $data['slot_id'] = $resolvedSlot->id;
+        $slot = AppointmentSlot::query()->findOrFail((int) $data['slot_id']);
+        if ((int) $slot->expert_id !== (int) $expert->id) {
+            throw ValidationException::withMessages([
+                'slot_id' => 'Selected slot does not belong to the selected expert.',
+            ]);
         }
-
-        if (! empty($data['slot_id'])) {
-            $slot = AppointmentSlot::query()->findOrFail((int) $data['slot_id']);
-            if ((int) $slot->expert_id !== (int) $expert->id) {
-                throw ValidationException::withMessages([
-                    'slot_id' => 'Selected slot does not belong to the selected expert.',
-                ]);
-            }
-            $scheduledAt = Carbon::parse($slot->date . ' ' . $slot->start_time);
-            $duration = (int) max(1, Carbon::parse($slot->date . ' ' . $slot->start_time)
-                ->diffInMinutes(Carbon::parse($slot->date . ' ' . $slot->end_time)));
-        }
+        $scheduledAt = Carbon::parse($slot->date . ' ' . $slot->start_time);
+        $duration = (int) max(1, Carbon::parse($slot->date . ' ' . $slot->start_time)
+            ->diffInMinutes(Carbon::parse($slot->date . ' ' . $slot->end_time)));
 
         $this->schedule->assertBookingAllowed($expert, $scheduledAt, $type, $duration);
         $location = $type === 'physical' ? $this->schedule->resolveLocation($expert) : null;
 
-        return DB::transaction(function () use ($user, $expert, $data, $scheduledAt, $type, $location) {
-            // Lock the slot — throws DomainException on conflict
-            $slot = null;
-            if (! empty($data['slot_id'])) {
-                // Temporarily create in draft so we can link the slot
-                $appointment = Appointment::create([
-                    'user_id'          => $user->id,
-                    'expert_id'        => $expert->id,
-                    'type'             => $type,
-                    'status'           => Appointment::STATUS_DRAFT,
-                    'fee'              => $expert->consultation_fee ?? $expert->hourly_rate ?? 0,
-                    'duration_minutes' => $data['duration_minutes'] ?? 60,
-                    'notes'            => $data['notes'] ?? null,
-                    'topic'            => $data['topic'] ?? null,
-                    'location'         => $location,
-                ]);
+        return DB::transaction(function () use ($user, $expert, $data, $scheduledAt, $type, $location, $duration) {
+            $appointment = Appointment::create([
+                'user_id'          => $user->id,
+                'expert_id'        => $expert->id,
+                'type'             => $type,
+                'scheduled_at'     => $scheduledAt,
+                'status'           => Appointment::STATUS_DRAFT,
+                'fee'              => $expert->consultation_fee ?? $expert->hourly_rate ?? 0,
+                'duration_minutes' => $duration,
+                'notes'            => $data['notes'] ?? null,
+                'topic'            => $data['topic'] ?? null,
+                'location'         => $location,
+            ]);
 
-                $slot = $this->availability->lockSlot((int) $data['slot_id'], $appointment);
-            } else {
-                // Fallback: no slot system — use scheduled_at + overlap check
-                $expertId    = $expert->id;
-                $start = $scheduledAt->copy();
-                $end = $scheduledAt->copy()->addMinutes(max(1, $duration));
-
-                $conflict = Appointment::where('expert_id', $expertId)
-                    ->whereNotIn('status', [Appointment::STATUS_CANCELLED, Appointment::STATUS_REJECTED, Appointment::STATUS_PAYMENT_FAILED])
-                    ->whereRaw('scheduled_at < ? AND DATE_ADD(scheduled_at, INTERVAL duration_minutes MINUTE) > ?', [$end, $start])
-                    ->lockForUpdate()
-                    ->first();
-
-                if ($conflict) {
-                    throw ValidationException::withMessages([
-                        'scheduled_at' => 'This time slot is already booked. Please choose another time.',
-                    ]);
-                }
-
-                $appointment = Appointment::create([
-                    'user_id'          => $user->id,
-                    'expert_id'        => $expert->id,
-                    'type'             => $type,
-                    'scheduled_at'     => $scheduledAt,
-                    'status'           => Appointment::STATUS_DRAFT,
-                    'fee'              => $expert->consultation_fee ?? $expert->hourly_rate ?? 0,
-                    'duration_minutes' => $data['duration_minutes'] ?? 60,
-                    'notes'            => $data['notes'] ?? null,
-                    'topic'            => $data['topic'] ?? null,
-                    'location'         => $location,
-                ]);
-            }
+            // Lock the slot — throws DomainException on race/conflict
+            $this->availability->lockSlot((int) $data['slot_id'], $appointment);
 
             // Create Stripe Checkout Session (and keep the underlying PaymentIntent for compatibility)
             $checkout = $this->stripe->createAppointmentCheckoutSession($appointment, [

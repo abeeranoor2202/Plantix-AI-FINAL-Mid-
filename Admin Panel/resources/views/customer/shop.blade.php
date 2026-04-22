@@ -165,7 +165,6 @@
 // Backend-supplied shop data — consumed by shop-dynamic.js
 window.SHOP_DATA = {
     products  : @json($shopData),
-    brands    : @json($brandList),
     vendors   : @json($vendorList),
     priceRange: { min: {{ $priceMin }}, max: {{ $priceMax }} },
 };
@@ -268,12 +267,6 @@ window.CART_ROUTES = {
                     <div class="sidebar-section mt-4 pt-3 border-top">
                         <h4><i class="fas fa-layer-group me-2 text-success" style="font-size:14px;"></i>Categories</h4>
                         <div id="categoryFilters" class="d-flex flex-column filter-scroll mt-2"></div>
-                    </div>
-
-                    {{-- Brands --}}
-                    <div class="sidebar-section mt-4 pt-3 border-top">
-                        <h4><i class="fas fa-certificate me-2 text-success" style="font-size:14px;"></i>Brand</h4>
-                        <div id="brandFilters" class="d-flex flex-column filter-scroll mt-2"></div>
                     </div>
 
                     {{-- Stores / Vendors --}}

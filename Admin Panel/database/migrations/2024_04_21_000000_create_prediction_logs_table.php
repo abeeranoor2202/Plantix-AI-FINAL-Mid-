@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('prediction_logs', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->nullable()->constrained()->cascadeOnDelete();
-            $table->foreignId('crop_recommendation_id')->nullable()->constrained()->cascadeOnDelete();
+            $table->unsignedBigInteger('crop_recommendation_id')->nullable();
             
             // Input parameters
             $table->decimal('nitrogen', 8, 2);
@@ -44,10 +44,21 @@ return new class extends Migration
             
             // Indexes for common queries
             $table->index('user_id');
+            $table->index('crop_recommendation_id');
             $table->index('predicted_crop');
             $table->index('status');
             $table->index('predicted_at');
         });
+
+        // Attach FK only when the referenced table exists in this migration order.
+        if (Schema::hasTable('crop_recommendations')) {
+            Schema::table('prediction_logs', function (Blueprint $table) {
+                $table->foreign('crop_recommendation_id')
+                    ->references('id')
+                    ->on('crop_recommendations')
+                    ->cascadeOnDelete();
+            });
+        }
     }
 
     /**

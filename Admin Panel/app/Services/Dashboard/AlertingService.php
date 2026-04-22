@@ -9,7 +9,8 @@ class AlertingService
 {
     public function forAdmin(): array
     {
-        $pendingReturns = (int) DB::table('return_requests')->where('status', 'requested')->count();
+        // Canonical return lifecycle table is `returns`; `return_requests` is legacy.
+        $pendingReturns = (int) DB::table('returns')->where('status', 'requested')->count();
         $pendingDisputes = (int) DB::table('order_disputes')->where('status', 'open')->count();
         $pendingAppointments = (int) DB::table('appointments')
             ->whereIn('status', [

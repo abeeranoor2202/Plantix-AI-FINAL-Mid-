@@ -1,4 +1,4 @@
-@extends('layouts.frontend')
+@extends('layouts.dashboard')
 
 @section('title', 'Invoice #{{ $order->order_number }}')
 

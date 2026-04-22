@@ -14,6 +14,7 @@ use App\Services\Shared\StockService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
 class CartController extends Controller
@@ -73,7 +74,7 @@ class CartController extends Controller
 
     public function index(): View
     {
-        $cart = $this->getOrCreateCart();
+        $cart = $this->getUserCart() ?? new Cart(['user_id' => auth('web')->id()]);
         $globalCoupons = Coupon::where('is_active', true)
             ->where('is_visible_to_all', true)
             ->where(function ($query) {
@@ -100,7 +101,7 @@ class CartController extends Controller
         ]);
 
         $product = Product::with('stock')->where('is_active', true)->active()->findOrFail($request->product_id);
-        $cart    = $this->getOrCreateCart();
+        $cart    = $this->getOrCreateCart((int) $product->vendor_id);
 
         $existing = CartItem::where('cart_id', $cart->id)
                             ->where('product_id', $product->id)
@@ -135,7 +136,12 @@ class CartController extends Controller
     {
         $request->validate(['quantity' => 'required|integer|min:0|max:99']);
 
-        $item = CartItem::with('product')->findOrFail($itemId);
+        $cart = $this->getUserCart();
+        abort_if(! $cart, 404);
+
+        $item = CartItem::with('product')
+            ->where('cart_id', $cart->id)
+            ->findOrFail($itemId);
         $oldQty = (int) $item->quantity;
         $newQty = (int) $request->quantity;
         $ref = 'cart:' . $item->cart_id;
@@ -162,7 +168,12 @@ class CartController extends Controller
 
     public function remove(string $itemId): JsonResponse|RedirectResponse
     {
-        $item = CartItem::with('product')->findOrFail($itemId);
+        $cart = $this->getUserCart();
+        abort_if(! $cart, 404);
+
+        $item = CartItem::with('product')
+            ->where('cart_id', $cart->id)
+            ->findOrFail($itemId);
         if ($item->product) {
             $this->stockService->releaseReservedStock(
                 product: $item->product,
@@ -181,7 +192,7 @@ class CartController extends Controller
     public function clear(): RedirectResponse
     {
         $user = auth('web')->user();
-        Cart::where('user_id', $user->id)->with('items')->get()
+        Cart::where('user_id', $user->id)->with('items.product')->get()
             ->each(function ($cart) {
                 foreach ($cart->items as $item) {
                     if ($item->product) {
@@ -254,7 +265,14 @@ class CartController extends Controller
     public function checkout(): View
     {
         $user = auth('web')->user();
-        $cart = Cart::with('items.product.primaryImage')->where('user_id', $user->id)->firstOrFail();
+        $cart = Cart::with('items.product.primaryImage')
+            ->where('user_id', $user->id)
+            ->latest('id')
+            ->first();
+
+        if (! $cart || $cart->items->isEmpty()) {
+            return redirect()->route('cart')->withErrors(['cart' => 'Your cart is empty.']);
+        }
         $globalCoupons = Coupon::where('is_active', true)
             ->where('is_visible_to_all', true)
             ->where(function ($query) {
@@ -322,11 +340,32 @@ class CartController extends Controller
 
     // ── Helper ────────────────────────────────────────────────────────────────
 
-    private function getOrCreateCart(): Cart
+    private function getOrCreateCart(int $vendorId): Cart
     {
         $user = auth('web')->user();
+        $cart = $this->getUserCart();
+        if (! $cart) {
+            return Cart::create([
+                'user_id' => $user->id,
+                'vendor_id' => $vendorId,
+            ]);
+        }
 
-        return Cart::firstOrCreate(['user_id' => $user->id]);
+        if ((int) $cart->vendor_id !== $vendorId) {
+            throw ValidationException::withMessages([
+                'cart' => 'Your cart contains items from another vendor. Clear the cart before adding this item.',
+            ]);
+        }
+
+        return $cart;
+    }
+
+    private function getUserCart(): ?Cart
+    {
+        return Cart::query()
+            ->where('user_id', auth('web')->id())
+            ->latest('id')
+            ->first();
     }
 }
 

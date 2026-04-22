@@ -42,6 +42,7 @@ class CustomerAppointmentController extends Controller
         return response()->json([
             'success' => true,
             'date' => (string) $data['date'],
+            'has_availability_template' => $expert->availability()->active()->exists(),
             'slots' => $slots->map(fn ($slot) => [
                 'id' => $slot->id,
                 'start_time' => $slot->start_time,

@@ -53,7 +53,7 @@
                             $selectedType = old('type', 'online');
                         @endphp
 
-                        <form method="POST" action="{{ route('appointment.store') }}">
+                        <form method="POST" action="{{ route('appointment.store') }}" id="appointmentBookingForm" novalidate>
                             @csrf
                             <div class="row g-4">
                                 <!-- Expert Selection -->
@@ -89,11 +89,28 @@
 
                                 <!-- Date & Time -->
                                 <div class="col-md-6">
-                                    <label class="form-label fw-bold text-dark" style="font-size: 14px;">Date &amp; Time <span class="text-danger">*</span></label>
-                                    <input type="datetime-local" name="scheduled_at" class="form-agri"
-                                           value="{{ old('scheduled_at') }}"
-                                           min="{{ now()->addHour()->format('Y-m-d\TH:i') }}" required style="cursor: pointer; background-color: white;">
-                                    @error('scheduled_at')<div class="text-danger mt-1 small">{{ $message }}</div>@enderror
+                                    <label class="form-label fw-bold text-dark" style="font-size: 14px;">Select Date <span class="text-danger">*</span></label>
+                                    <input type="date" id="slotDate" class="form-agri"
+                                           min="{{ now()->toDateString() }}"
+                                           value="{{ old('slot_date', now()->toDateString()) }}"
+                                           required style="cursor: pointer; background-color: white;">
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold text-dark" style="font-size: 14px;">Available Time Slot <span class="text-danger">*</span></label>
+                                    <select name="slot_id" id="slotSelect" class="form-agri" required style="cursor: pointer; background-color: white;">
+                                        <option value="">Select a date first</option>
+                                    </select>
+                                    <div id="slotUnavailableState" class="text-muted mt-1 small" style="display: none;">This expert has not set availability yet</div>
+                                    <div id="slotFeedback" class="text-muted mt-1 small" style="display: none;"></div>
+                                    <div id="slotInlineError" class="text-danger mt-1 small" style="display: none;"></div>
+                                    @error('slot_id')<div class="text-danger mt-1 small">{{ $message }}</div>@enderror
+                                </div>
+
+                                <div class="col-12" id="bookingSummaryBlock" style="display: none;">
+                                    <div class="alert alert-light border mb-0" style="border-radius: var(--agri-radius-sm);">
+                                        <span id="bookingSummaryText" class="text-dark small fw-semibold"></span>
+                                    </div>
                                 </div>
 
                                 <!-- Physical Location -->
@@ -123,7 +140,7 @@
                             
                             <div class="d-flex align-items-center justify-content-end gap-3">
                                 <a href="{{ route('appointments') }}" class="btn-agri text-dark bg-light border-0" style="padding: 10px 24px; text-decoration: none;">Cancel</a>
-                                <button type="submit" class="btn-agri btn-agri-primary" style="padding: 10px 24px;">Confirm Booking</button>
+                                <button type="submit" id="confirmBookingBtn" class="btn-agri btn-agri-primary" style="padding: 10px 24px;" disabled>Confirm Booking</button>
                             </div>
                         </form>
                     </div>
@@ -136,12 +153,26 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {
+    const bookingForm = document.getElementById('appointmentBookingForm');
     const expertSelect = document.getElementById('expertSelect');
     const typeSelect = document.getElementById('appointmentType');
+    const slotDate = document.getElementById('slotDate');
+    const slotSelect = document.getElementById('slotSelect');
+    const slotFeedback = document.getElementById('slotFeedback');
+    const slotInlineError = document.getElementById('slotInlineError');
+    const slotUnavailableState = document.getElementById('slotUnavailableState');
+    const summaryBlock = document.getElementById('bookingSummaryBlock');
+    const summaryText = document.getElementById('bookingSummaryText');
+    const confirmBookingBtn = document.getElementById('confirmBookingBtn');
     const physicalBlock = document.getElementById('physicalBlock');
     const onlineBlock = document.getElementById('onlineBlock');
     const locationPreview = document.getElementById('locationPreview');
     const locationInput = document.getElementById('locationInput');
+    const oldSlotId = "{{ old('slot_id') }}";
+    let activeSlotsRequest = null;
+    let activeDate = '';
+    let hasAvailableSlots = false;
+    let currentSlotsRequestId = 0;
 
     function updateLocation() {
         const selected = expertSelect?.selectedOptions?.[0];
@@ -158,10 +189,332 @@ document.addEventListener('DOMContentLoaded', function () {
         if (isPhysical) updateLocation();
     }
 
-    expertSelect?.addEventListener('change', updateLocation);
+    function formatDisplayDate(dateString) {
+        if (!dateString) return '';
+        const dateObj = new Date(dateString + 'T00:00:00');
+        if (Number.isNaN(dateObj.getTime())) return dateString;
+        return dateObj.toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' });
+    }
+
+    function to12hTime(time24) {
+        if (!time24) return '';
+        const parts = time24.split(':');
+        const hours = Number(parts[0]);
+        const minutes = parts[1] || '00';
+        const suffix = hours >= 12 ? 'PM' : 'AM';
+        const normalized = hours % 12 || 12;
+        return `${normalized}:${minutes} ${suffix}`;
+    }
+
+    function setSlotFeedback(message, tone) {
+        if (!slotFeedback) return;
+        slotFeedback.textContent = message || '';
+        slotFeedback.style.display = message ? 'block' : 'none';
+        slotFeedback.classList.remove('text-muted', 'text-danger', 'text-success');
+        if (tone === 'error') {
+            slotFeedback.classList.add('text-danger');
+        } else if (tone === 'success') {
+            slotFeedback.classList.add('text-success');
+        } else {
+            slotFeedback.classList.add('text-muted');
+        }
+    }
+
+    function clearInlineError() {
+        if (!slotInlineError) return;
+        slotInlineError.textContent = '';
+        slotInlineError.style.display = 'none';
+    }
+
+    function showInlineError(message) {
+        if (!slotInlineError) return;
+        slotInlineError.textContent = message;
+        slotInlineError.style.display = 'block';
+    }
+
+    function updateSummary() {
+        if (!summaryBlock || !summaryText || !slotSelect || !slotDate) return;
+        const selectedOption = slotSelect.selectedOptions?.[0];
+        if (!selectedOption || !selectedOption.value) {
+            summaryBlock.style.display = 'none';
+            summaryText.textContent = '';
+            return;
+        }
+
+        const label = selectedOption.textContent || '';
+        const start = label.split(' - ')[0] || '';
+        const readableDate = formatDisplayDate(slotDate.value);
+        summaryText.textContent = `You are booking: ${readableDate}, ${to12hTime(start)}`;
+        summaryBlock.style.display = 'block';
+    }
+
+    function updateSubmitState() {
+        if (!confirmBookingBtn || !slotDate || !slotSelect) return;
+        const isValid = Boolean(slotDate.value) && Boolean(slotSelect.value) && hasAvailableSlots;
+        confirmBookingBtn.disabled = !isValid;
+    }
+
+    function showSlotDropdown() {
+        if (!slotSelect) return;
+        slotSelect.style.display = '';
+        if (slotUnavailableState) slotUnavailableState.style.display = 'none';
+    }
+
+    function showSlotUnavailableState() {
+        if (!slotSelect) return;
+        slotSelect.style.display = 'none';
+        if (slotUnavailableState) slotUnavailableState.style.display = 'block';
+    }
+
+    function animateSlotDropdownReveal() {
+        if (!slotSelect) return;
+        slotSelect.style.transition = 'opacity 180ms ease';
+        slotSelect.style.opacity = '0.6';
+        requestAnimationFrame(function () {
+            slotSelect.style.opacity = '1';
+        });
+    }
+
+    function applyNoSlotsState(date, nextDate, hasAvailabilityTemplate) {
+        hasAvailableSlots = false;
+
+        if (hasAvailabilityTemplate === false) {
+            showSlotUnavailableState();
+            setSlotFeedback('This expert has not set availability yet.', 'default');
+            updateSummary();
+            updateSubmitState();
+            return;
+        }
+
+        showSlotDropdown();
+        if (slotSelect) {
+            slotSelect.innerHTML = '<option value="">No slots available on this date</option>';
+            slotSelect.disabled = true;
+        }
+
+        let message = 'No slots available on this date. Try selecting another date.';
+        if (nextDate) {
+            message += ` Next available date: ${formatDisplayDate(nextDate)}.`;
+        }
+        setSlotFeedback(message, 'default');
+        updateSummary();
+        updateSubmitState();
+    }
+
+    async function findNextAvailableDate(expertId, date, requestId, signal) {
+        const baseDate = new Date(date + 'T00:00:00');
+        if (Number.isNaN(baseDate.getTime())) return null;
+
+        for (let i = 1; i <= 14; i++) {
+            if (signal?.aborted || requestId !== currentSlotsRequestId) {
+                return null;
+            }
+            const probe = new Date(baseDate);
+            probe.setDate(baseDate.getDate() + i);
+            const probeDate = probe.toISOString().slice(0, 10);
+            try {
+                const url = `{{ route('appointment.slots') }}?expert_id=${encodeURIComponent(expertId)}&date=${encodeURIComponent(probeDate)}`;
+                const response = await fetch(url, {
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                    signal,
+                });
+                if (!response.ok) continue;
+                const payload = await response.json();
+                const slots = Array.isArray(payload.slots) ? payload.slots : [];
+                if (slots.length > 0) {
+                    return probeDate;
+                }
+            } catch (e) {
+                if (e && e.name === 'AbortError') {
+                    return null;
+                }
+                return null;
+            }
+        }
+
+        return null;
+    }
+
+    function renderSlots(slots) {
+        if (!slotSelect) return;
+        showSlotDropdown();
+        slotSelect.innerHTML = '';
+
+        if (!Array.isArray(slots) || slots.length === 0) {
+            hasAvailableSlots = false;
+            slotSelect.innerHTML = '<option value="">No slots available on this date</option>';
+            slotSelect.disabled = true;
+            updateSummary();
+            updateSubmitState();
+            return;
+        }
+
+        hasAvailableSlots = true;
+        slotSelect.disabled = false;
+
+        const placeholder = document.createElement('option');
+        placeholder.value = '';
+        placeholder.textContent = 'Select an available slot';
+        slotSelect.appendChild(placeholder);
+
+        slots.forEach(function (slot) {
+            const option = document.createElement('option');
+            option.value = slot.id;
+            option.textContent = slot.start_time + ' - ' + slot.end_time;
+            if (String(oldSlotId) === String(slot.id)) {
+                option.selected = true;
+            }
+            slotSelect.appendChild(option);
+        });
+
+        if (!slotSelect.value && slots[0]?.id) {
+            slotSelect.value = String(slots[0].id);
+        }
+
+        animateSlotDropdownReveal();
+        setSlotFeedback(`Slots loaded for ${formatDisplayDate(activeDate)}.`, 'success');
+        updateSummary();
+        updateSubmitState();
+    }
+
+    async function loadSlots() {
+        if (!expertSelect || !slotDate || !slotSelect) return;
+        const requestId = ++currentSlotsRequestId;
+        const expertId = expertSelect.value;
+        const date = slotDate.value;
+        activeDate = date;
+        clearInlineError();
+
+        if (!expertId || !date) {
+            hasAvailableSlots = false;
+            showSlotDropdown();
+            slotSelect.innerHTML = '<option value="">Select expert and date</option>';
+            slotSelect.disabled = true;
+            setSlotFeedback('Select an expert and date to check availability.', 'default');
+            updateSummary();
+            updateSubmitState();
+            return;
+        }
+
+        if (activeSlotsRequest) {
+            activeSlotsRequest.abort();
+        }
+
+        activeSlotsRequest = new AbortController();
+        showSlotDropdown();
+        slotSelect.disabled = true;
+        hasAvailableSlots = false;
+        setSlotFeedback('Checking availability...', 'default');
+
+        slotSelect.innerHTML = '<option value="">Checking availability...</option>';
+
+        try {
+            const url = `{{ route('appointment.slots') }}?expert_id=${encodeURIComponent(expertId)}&date=${encodeURIComponent(date)}`;
+            const response = await fetch(url, {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                signal: activeSlotsRequest.signal,
+            });
+            const payload = await response.json();
+            if (requestId !== currentSlotsRequestId || slotDate.value !== date || expertSelect.value !== expertId) {
+                return;
+            }
+            const slots = payload.slots || [];
+
+            if (Array.isArray(slots) && slots.length > 0) {
+                renderSlots(slots);
+                return;
+            }
+
+            const nextAvailableDate = await findNextAvailableDate(expertId, date, requestId, activeSlotsRequest?.signal);
+            if (requestId !== currentSlotsRequestId || slotDate.value !== date || expertSelect.value !== expertId) {
+                return;
+            }
+            applyNoSlotsState(date, nextAvailableDate, payload.has_availability_template);
+
+            if (nextAvailableDate && slotDate.value === date) {
+                slotDate.value = nextAvailableDate;
+                await loadSlots();
+            }
+        } catch (error) {
+            if (error && error.name === 'AbortError') {
+                return;
+            }
+            hasAvailableSlots = false;
+            showSlotDropdown();
+            slotSelect.innerHTML = '<option value="">Unable to load slots</option>';
+            slotSelect.disabled = true;
+            setSlotFeedback('Unable to check availability right now. Please try another date.', 'error');
+            updateSummary();
+            updateSubmitState();
+        } finally {
+            activeSlotsRequest = null;
+        }
+    }
+
+    expertSelect?.addEventListener('change', function () {
+        updateLocation();
+        loadSlots();
+    });
+    slotDate?.addEventListener('change', loadSlots);
+    slotSelect?.addEventListener('change', function () {
+        clearInlineError();
+        updateSummary();
+        updateSubmitState();
+    });
+
+    bookingForm?.addEventListener('submit', async function (event) {
+        event.preventDefault();
+        clearInlineError();
+        if (!slotSelect.value) {
+            showInlineError('Please choose an available slot before booking.');
+            updateSubmitState();
+            return;
+        }
+
+        if (confirmBookingBtn) {
+            confirmBookingBtn.disabled = true;
+            confirmBookingBtn.textContent = 'Checking availability...';
+        }
+
+        try {
+            const formData = new FormData(bookingForm);
+            const response = await fetch(bookingForm.action, {
+                method: 'POST',
+                headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' },
+                body: formData,
+            });
+
+            if (response.redirected) {
+                window.location.href = response.url;
+                return;
+            }
+
+            if (response.ok) {
+                window.location.href = '{{ route('appointments') }}';
+                return;
+            }
+
+            const payload = await response.json().catch(() => ({}));
+            const firstError = payload?.errors
+                ? Object.values(payload.errors).flat()[0]
+                : (payload?.message || 'Selected slot is no longer available');
+            showInlineError(String(firstError || 'Selected slot is no longer available'));
+            await loadSlots();
+        } catch (error) {
+            showInlineError('Selected slot is no longer available');
+            await loadSlots();
+        } finally {
+            if (confirmBookingBtn) {
+                confirmBookingBtn.textContent = 'Confirm Booking';
+            }
+            updateSubmitState();
+        }
+    });
+
     typeSelect?.addEventListener('change', updateTypeVisibility);
     updateLocation();
     updateTypeVisibility();
+    loadSlots();
 });
 </script>
 @endsection

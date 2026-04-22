@@ -8,12 +8,17 @@ use App\Models\Order;
 use App\Models\Product;
 use App\Models\Category;
 use App\Models\Vendor;
+use App\Services\Shared\ProductReviewEligibilityService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 
 class ShopController extends Controller
 {
+    public function __construct(
+        private readonly ProductReviewEligibilityService $reviewEligibility,
+    ) {}
+
     public function index(Request $request): View
     {
         $query = Product::with(['vendor', 'category', 'primaryImage', 'approvedReviews'])
@@ -144,11 +149,10 @@ class ShopController extends Controller
         $priceMin   = (int) ($products->min('price') ?? 0);
         $priceMax   = (int) ($products->max('price') ?? 50000);
         $vendorList = $vendors->map(fn ($v) => ['id' => $v->id, 'name' => $v->title])->values()->all();
-        $brandList  = $vendorList; // brands map to vendors in this catalogue
 
         return view('customer.shop', compact(
             'products', 'categories', 'vendors',
-            'shopData', 'priceMin', 'priceMax', 'vendorList', 'brandList',
+            'shopData', 'priceMin', 'priceMax', 'vendorList',
             'filterAttributes', 'rawAttrFilters', 'rawAttrMin', 'rawAttrMax'
         ));
     }
@@ -161,13 +165,11 @@ class ShopController extends Controller
         ])->where('is_active', true)->active()->findOrFail($id);
 
         $eligibleOrders = collect();
+        $canReviewProduct = false;
         if (auth('web')->check()) {
-            $eligibleOrders = Order::query()
-                ->where('user_id', auth('web')->id())
-                ->whereIn('status', [Order::STATUS_DELIVERED, Order::STATUS_COMPLETED])
-                ->whereHas('items', fn ($query) => $query->where('product_id', $product->id))
-                ->latest()
-                ->get(['id', 'order_number', 'status', 'created_at']);
+            $viewer = auth('web')->user();
+            $eligibleOrders = $this->reviewEligibility->eligibleOrders($viewer, $product);
+            $canReviewProduct = $this->reviewEligibility->canReview($viewer, $product);
         }
 
         $related = Product::with('stock')->active()
@@ -178,6 +180,6 @@ class ShopController extends Controller
                           ->limit(4)
                           ->get();
 
-        return view('customer.shop-single', compact('product', 'related', 'eligibleOrders'));
+        return view('customer.shop-single', compact('product', 'related', 'eligibleOrders', 'canReviewProduct'));
     }
 }

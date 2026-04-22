@@ -7,6 +7,7 @@ use App\Models\Appointment;
 use App\Models\Expert;
 use App\Models\User;
 use App\Services\Shared\AppointmentService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -434,9 +435,15 @@ class AdminAppointmentController extends Controller
     /**
      * Issue a full or partial Stripe refund from the admin panel.
      */
-    public function refund(Request $request, int $id): RedirectResponse
+    public function refund(Request $request, int $id): RedirectResponse|JsonResponse
     {
         $appointment = Appointment::findOrFail($id);
+
+        $refundType = $request->input('refund_type');
+        if (empty($refundType)) {
+            $refundType = $request->filled('amount') ? 'partial' : 'full';
+            $request->merge(['refund_type' => $refundType]);
+        }
 
         $request->validate([
             'refund_type' => 'required|in:full,partial',
@@ -452,9 +459,19 @@ class AdminAppointmentController extends Controller
                 auth('admin')->id()
             );
         } catch (\DomainException $e) {
+            if ($request->expectsJson()) {
+                return response()->json(['message' => $e->getMessage()], 422);
+            }
             return back()->withErrors(['error' => $e->getMessage()]);
         } catch (\Stripe\Exception\ApiErrorException $e) {
+            if ($request->expectsJson()) {
+                return response()->json(['message' => 'Stripe refund failed: ' . $e->getMessage()], 422);
+            }
             return back()->withErrors(['error' => 'Stripe refund failed: ' . $e->getMessage()]);
+        }
+
+        if ($request->expectsJson()) {
+            return response()->json(['message' => 'Refund issued successfully.']);
         }
 
         return back()->with('success', 'Refund issued successfully.');
@@ -462,7 +479,7 @@ class AdminAppointmentController extends Controller
 
     // ── Reassign expert ───────────────────────────────────────────────────────
 
-    public function reassign(Request $request, int $id): RedirectResponse
+    public function reassign(Request $request, int $id): RedirectResponse|JsonResponse
     {
         $request->validate([
             'expert_id' => 'required|exists:experts,id',
@@ -479,7 +496,14 @@ class AdminAppointmentController extends Controller
                 $request->reason
             );
         } catch (\DomainException $e) {
+            if ($request->expectsJson()) {
+                return response()->json(['message' => $e->getMessage()], 422);
+            }
             return back()->withErrors(['error' => $e->getMessage()]);
+        }
+
+        if ($request->expectsJson()) {
+            return response()->json(['message' => 'Expert reassigned.']);
         }
 
         return back()->with('success', 'Expert reassigned.');

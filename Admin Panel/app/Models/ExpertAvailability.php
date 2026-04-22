@@ -35,6 +35,32 @@ class ExpertAvailability extends Model
         'is_active'   => 'boolean',
     ];
 
+    protected static function booted(): void
+    {
+        static::saving(function (ExpertAvailability $availability) {
+            $dayMap = [
+                'sunday' => 0,
+                'monday' => 1,
+                'tuesday' => 2,
+                'wednesday' => 3,
+                'thursday' => 4,
+                'friday' => 5,
+                'saturday' => 6,
+            ];
+
+            if (! empty($availability->day) && ! $availability->isDirty('day_of_week')) {
+                $normalizedDay = strtolower((string) $availability->day);
+                if (array_key_exists($normalizedDay, $dayMap)) {
+                    $availability->day = $normalizedDay;
+                    $availability->day_of_week = $dayMap[$normalizedDay];
+                }
+            } elseif (! is_null($availability->day_of_week) && ! $availability->isDirty('day')) {
+                $days = array_flip($dayMap);
+                $availability->day = $days[(int) $availability->day_of_week] ?? $availability->day;
+            }
+        });
+    }
+
     // ── Relationships ─────────────────────────────────────────────────────────
 
     public function expert(): BelongsTo

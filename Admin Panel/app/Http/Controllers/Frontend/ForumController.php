@@ -69,15 +69,23 @@ class ForumController extends Controller
     {
         $this->authorize('create', ForumThread::class);
 
-        $thread = $this->forum->createThread(auth('web')->user(), $request->validated());
+        try {
+            $thread = $this->forum->createThread(auth('web')->user(), $request->validated());
+        } catch (\DomainException $e) {
+            return back()->withInput()->withErrors(['title' => $e->getMessage()]);
+        }
 
         $message = $thread->is_approved
             ? 'Thread posted!'
             : 'Thread submitted — it will be visible after admin review.';
 
-        return redirect()
-            ->route('forum.thread', $thread->slug)
-            ->with('success', $message);
+        if (! $thread->is_approved) {
+            return redirect()
+                ->route('forum')
+                ->with('success', $message);
+        }
+
+        return redirect()->route('forum.thread', $thread->slug)->with('success', $message);
     }
 
     // ── Reply: Create ─────────────────────────────────────────────────────────

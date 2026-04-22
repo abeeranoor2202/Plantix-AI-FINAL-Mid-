@@ -80,10 +80,7 @@ class StockService
         }
 
         DB::transaction(function () use ($product, $qty, $reference, $initiatedBy) {
-            $stock = Stock::where('product_id', $product->id)
-                ->where('vendor_id', $product->vendor_id)
-                ->lockForUpdate()
-                ->firstOrFail();
+            $stock = $this->ensureStock($product, (int) $product->vendor_id, true);
 
             if (! $stock->is_available) {
                 throw ValidationException::withMessages([
@@ -127,10 +124,7 @@ class StockService
         }
 
         DB::transaction(function () use ($product, $qty, $reference, $initiatedBy) {
-            $stock = Stock::where('product_id', $product->id)
-                ->where('vendor_id', $product->vendor_id)
-                ->lockForUpdate()
-                ->firstOrFail();
+            $stock = $this->ensureStock($product, (int) $product->vendor_id, true);
 
             $released = min($qty, $stock->reserved_quantity);
             if ($released <= 0) {
@@ -175,10 +169,7 @@ class StockService
         }
 
         DB::transaction(function () use ($product, $qty, $orderId, $initiatedBy) {
-            $stock = Stock::where('product_id', $product->id)
-                ->where('vendor_id', $product->vendor_id)
-                ->lockForUpdate()
-                ->firstOrFail();
+            $stock = $this->ensureStock($product, (int) $product->vendor_id, true);
 
             if (! $stock->is_available) {
                 throw ValidationException::withMessages([

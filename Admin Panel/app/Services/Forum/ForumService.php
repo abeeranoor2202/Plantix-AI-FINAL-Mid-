@@ -2,10 +2,12 @@
 
 namespace App\Services\Forum;
 
+use App\Events\Forum\ForumQuestionCreated;
 use App\Models\ForumFlag;
 use App\Models\ForumLog;
 use App\Models\ForumReply;
 use App\Models\ForumThread;
+use App\Models\ForumCategory;
 use App\Models\User;
 use App\Notifications\Forum\ForumReplyPostedNotification;
 use App\Notifications\Forum\OfficialAnswerNotification;
@@ -26,6 +28,10 @@ use Illuminate\Support\Facades\Log;
  */
 class ForumService
 {
+    public function __construct(
+        private readonly ForumDistributionService $distributionService,
+    ) {}
+
     // ── Thread Operations ─────────────────────────────────────────────────────
 
     /**
@@ -35,9 +41,19 @@ class ForumService
      */
     public function createThread(User $author, array $data): ForumThread
     {
-        $autoApprove = (bool) config('plantix.forum_auto_approve', true);
+        $this->guardAgainstSpam($author, $data['title'], $data['body']);
 
-        $thread = DB::transaction(function () use ($author, $data, $autoApprove): ForumThread {
+        $autoApprove = (bool) config('plantix.forum_auto_approve', true);
+        $categoryName = null;
+        if (! empty($data['forum_category_id'])) {
+            $categoryName = ForumCategory::query()
+                ->whereKey((int) $data['forum_category_id'])
+                ->value('name');
+        }
+        $tags = $this->resolveTags($data, $categoryName);
+        $isShadowBanned = method_exists($author, 'isShadowBanned') && $author->isShadowBanned();
+
+        $thread = DB::transaction(function () use ($author, $data, $autoApprove, $isShadowBanned, $tags): ForumThread {
             $slug = ForumThread::generateSlug($data['title']);
 
             $thread = ForumThread::create([
@@ -47,10 +63,11 @@ class ForumService
                 'slug'              => $slug,
                 'body'              => $this->sanitize($data['body']),
                 'status'            => ForumThread::STATUS_OPEN,
-                'is_approved'       => $autoApprove,
+                'is_approved'       => $autoApprove && ! $isShadowBanned,
                 'is_pinned'         => false,
                 'views'             => 0,
                 'replies_count'     => 0,
+                'tags'              => $tags,
             ]);
 
             ForumLog::record($author->id, ForumLog::ACTION_THREAD_CREATE, $thread->id);
@@ -60,6 +77,7 @@ class ForumService
 
         Cache::forget('forum.pinned_threads');
         Cache::forget("forum.category_counts");
+        event(new ForumQuestionCreated($thread, $author));
 
         return $thread;
     }
@@ -85,7 +103,8 @@ class ForumService
             $query->where(function ($searchQuery) use ($term): void {
                 $searchQuery->where('title', 'like', $term . '%')
                     ->orWhere('title', 'like', '% ' . $term . '%')
-                    ->orWhere('body', 'like', '%' . $term . '%');
+                    ->orWhere('body', 'like', '%' . $term . '%')
+                    ->orWhereJsonContains('tags', mb_strtolower($term));
             });
         }
 
@@ -465,5 +484,46 @@ class ForumService
                 'resolved_reply_id' => null,
                 'status'            => ForumThread::STATUS_OPEN,
             ]);
+    }
+
+    private function resolveTags(array $data, ?string $categoryName): array
+    {
+        if (! empty($data['tags'])) {
+            if (is_array($data['tags'])) {
+                return collect($data['tags'])
+                    ->map(fn ($tag) => mb_strtolower(trim((string) $tag)))
+                    ->filter()
+                    ->unique()
+                    ->values()
+                    ->all();
+            }
+
+            return collect(explode(',', (string) $data['tags']))
+                ->map(fn ($tag) => mb_strtolower(trim($tag)))
+                ->filter()
+                ->unique()
+                ->values()
+                ->all();
+        }
+
+        return $this->distributionService->extractTags(
+            (string) ($data['title'] ?? ''),
+            (string) ($data['body'] ?? ''),
+            $categoryName
+        );
+    }
+
+    private function guardAgainstSpam(User $author, string $title, string $body): void
+    {
+        $fingerprint = md5(mb_strtolower(trim($title) . '|' . trim($body)));
+        $alreadyPosted = ForumThread::query()
+            ->where('user_id', $author->id)
+            ->where('created_at', '>=', now()->subMinutes(10))
+            ->whereRaw("MD5(LOWER(CONCAT(title, '|', body))) = ?", [$fingerprint])
+            ->exists();
+
+        if ($alreadyPosted) {
+            throw new \DomainException('Duplicate question detected. Please wait before posting the same question again.');
+        }
     }
 }

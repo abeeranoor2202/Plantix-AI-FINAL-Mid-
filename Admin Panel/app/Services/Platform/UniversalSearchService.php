@@ -99,6 +99,7 @@ class UniversalSearchService
             ->where(function ($q) use ($term) {
                 $q->where('forum_threads.title', 'like', "%{$term}%")
                     ->orWhere('forum_threads.body', 'like', "%{$term}%")
+                    ->orWhere('forum_threads.tags', 'like', "%{$term}%")
                     ->orWhere('users.name', 'like', "%{$term}%");
             })
             ->whereNull('forum_threads.deleted_at');
