@@ -8,6 +8,7 @@ use App\Models\Order;
 use App\Models\Product;
 use App\Models\User;
 use App\Models\Vendor;
+use Illuminate\Validation\ValidationException;
 
 class AdminDashboardController extends Controller
 {
@@ -96,7 +97,11 @@ class AdminDashboardController extends Controller
     public function userOrders(Request $request)
     {
         try {
-            $userId = $request->get('user_id');
+            $validated = $request->validate([
+                'user_id' => ['required', 'integer', 'exists:users,id'],
+            ]);
+
+            $userId = (int) $validated['user_id'];
             $count = Order::where('user_id', $userId)->count();
 
             return response()->json([
@@ -105,6 +110,11 @@ class AdminDashboardController extends Controller
                     'count' => $count,
                 ]
             ]);
+        } catch (ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'errors' => $e->errors(),
+            ], 422);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
