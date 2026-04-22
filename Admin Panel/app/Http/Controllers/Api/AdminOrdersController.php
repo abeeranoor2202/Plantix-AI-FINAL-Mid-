@@ -115,8 +115,12 @@ class AdminOrdersController extends Controller
     public function recent(Request $request)
     {
         try {
-            $limit = $request->get('limit', 10);
-            $orders = Order::where('status', '!=', 'Order Completed')
+            $validated = $request->validate([
+                'limit' => 'nullable|integer|min:1|max:100',
+            ]);
+
+            $limit = (int) ($validated['limit'] ?? 10);
+            $orders = Order::where('status', '!=', 'completed')
                 ->orderBy('created_at', 'desc')
                 ->limit($limit)
                 ->with(['vendor', 'items'])
