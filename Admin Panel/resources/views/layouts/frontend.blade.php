@@ -1,10 +1,7 @@
 ﻿<!DOCTYPE html>
 <html lang="en">
 @include('partials.head')
-@php
-    $isCustomerPanel = auth('web')->check();
-@endphp
-<body class="{{ $isCustomerPanel ? 'panel-unified-ui platform-page-wrap' : '' }}">
+<body>
 
 @hasSection('header')
     @yield('header')
@@ -12,33 +9,7 @@
     @include('partials.header-notopbar')
 @endif
 
-@if ($isCustomerPanel)
-    <div class="container-fluid">
-        <div class="platform-role-shell">
-            <aside class="platform-role-sidebar">
-                @include('layouts.customer-menu')
-            </aside>
-            <main class="platform-role-main">
-                @if (session('success'))
-                    <div class="alert alert-success alert-dismissible fade show" role="alert">
-                        {{ session('success') }}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                    </div>
-                @endif
-                @if (session('error'))
-                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                        {{ session('error') }}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                    </div>
-                @endif
-
-                @yield('content')
-            </main>
-        </div>
-    </div>
-@else
-    @yield('content')
-@endif
+@yield('content')
 
 <div class="toast-container position-fixed top-0 end-0 p-3" id="platform-toast-root" style="z-index: 1080;"></div>
 
