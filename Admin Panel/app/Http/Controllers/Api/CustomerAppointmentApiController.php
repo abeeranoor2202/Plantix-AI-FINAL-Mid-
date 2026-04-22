@@ -110,8 +110,8 @@ class CustomerAppointmentApiController extends Controller
 
         $data = $request->validate([
             'expert_id'        => 'required|exists:experts,id',
-            'slot_id'          => 'nullable|exists:appointment_slots,id',
-            'scheduled_at'     => 'required_without:slot_id|date|after:now',
+            'slot_id'          => 'required|exists:appointment_slots,id',
+            'type'             => 'nullable|in:online,physical',
             'duration_minutes' => 'nullable|integer|min:15|max:480',
             'notes'            => 'nullable|string|max:1000',
             'topic'            => 'nullable|string|max:255',
