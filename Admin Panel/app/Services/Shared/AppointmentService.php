@@ -5,6 +5,7 @@ namespace App\Services\Shared;
 use App\Models\Appointment;
 use App\Models\AppointmentLog;
 use App\Models\AppointmentReschedule;
+use App\Models\AppointmentSlot;
 use App\Models\AppointmentStatusHistory;
 use App\Models\Expert;
 use App\Models\Payment;
@@ -79,9 +80,30 @@ class AppointmentService
         $expert = Expert::findOrFail($data['expert_id']);
         $this->availability->assertExpertAvailable($expert);
 
-        $scheduledAt = Carbon::parse($data['scheduled_at']);
         $type        = $data['type'] ?? 'online';
         $duration    = (int) ($data['duration_minutes'] ?? $expert->consultation_duration_minutes ?? 60);
+        if (empty($data['slot_id']) && empty($data['scheduled_at'])) {
+            throw ValidationException::withMessages([
+                'slot_id' => 'A valid slot or scheduled time is required.',
+            ]);
+        }
+
+        $scheduledAt = ! empty($data['scheduled_at'])
+            ? Carbon::parse($data['scheduled_at'])
+            : now();
+
+        if (! empty($data['slot_id'])) {
+            $slot = AppointmentSlot::query()->findOrFail((int) $data['slot_id']);
+            if ((int) $slot->expert_id !== (int) $expert->id) {
+                throw ValidationException::withMessages([
+                    'slot_id' => 'Selected slot does not belong to the selected expert.',
+                ]);
+            }
+            $scheduledAt = Carbon::parse($slot->date . ' ' . $slot->start_time);
+            $duration = (int) max(1, Carbon::parse($slot->date . ' ' . $slot->start_time)
+                ->diffInMinutes(Carbon::parse($slot->date . ' ' . $slot->end_time)));
+        }
+
         $this->schedule->assertBookingAllowed($expert, $scheduledAt, $type, $duration);
         $location = $type === 'physical' ? $this->schedule->resolveLocation($expert) : null;
 
@@ -106,10 +128,12 @@ class AppointmentService
             } else {
                 // Fallback: no slot system — use scheduled_at + overlap check
                 $expertId    = $expert->id;
+                $start = $scheduledAt->copy();
+                $end = $scheduledAt->copy()->addMinutes(max(1, $duration));
 
                 $conflict = Appointment::where('expert_id', $expertId)
-                    ->where('scheduled_at', $scheduledAt)
                     ->whereNotIn('status', [Appointment::STATUS_CANCELLED, Appointment::STATUS_REJECTED, Appointment::STATUS_PAYMENT_FAILED])
+                    ->whereRaw('scheduled_at < ? AND DATE_ADD(scheduled_at, INTERVAL duration_minutes MINUTE) > ?', [$end, $start])
                     ->lockForUpdate()
                     ->first();
 
