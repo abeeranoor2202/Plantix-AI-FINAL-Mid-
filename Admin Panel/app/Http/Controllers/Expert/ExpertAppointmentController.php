@@ -7,6 +7,7 @@ use App\Http\Requests\Expert\AcceptAppointmentRequest;
 use App\Http\Requests\Expert\RejectAppointmentRequest;
 use App\Http\Requests\Expert\RescheduleAppointmentRequest;
 use App\Models\Appointment;
+use Carbon\Carbon;
 use Illuminate\Validation\Rule;
 use App\Services\Expert\ExpertAppointmentService;
 use Illuminate\Http\RedirectResponse;
@@ -106,8 +107,36 @@ class ExpertAppointmentController extends Controller
             'duration_minutes.integer' => 'Duration must be greater than 0.',
         ]);
 
+        $requestedScheduledAt = Carbon::parse((string) $data['scheduled_at']);
+        $isTimeChanged = ! $appointment->scheduled_at || ! $appointment->scheduled_at->equalTo($requestedScheduledAt);
+
+        if ($isTimeChanged && $appointment->slot()->exists()) {
+            return back()->withErrors(['scheduled_at' => 'This appointment is linked to a managed slot. Use reschedule flow instead of manual time edits.']);
+        }
+
+        if ($isTimeChanged) {
+            $start = $requestedScheduledAt->copy();
+            $duration = (int) ($data['duration_minutes'] ?? $appointment->duration_minutes ?? 60);
+            $end = $requestedScheduledAt->copy()->addMinutes(max(1, $duration));
+
+            $hasConflict = Appointment::query()
+                ->where('expert_id', $appointment->expert_id)
+                ->where('id', '!=', $appointment->id)
+                ->whereNotIn('status', [
+                    Appointment::STATUS_CANCELLED,
+                    Appointment::STATUS_REJECTED,
+                    Appointment::STATUS_PAYMENT_FAILED,
+                ])
+                ->whereRaw('scheduled_at < ? AND DATE_ADD(scheduled_at, INTERVAL duration_minutes MINUTE) > ?', [$end, $start])
+                ->exists();
+
+            if ($hasConflict) {
+                return back()->withErrors(['scheduled_at' => 'This expert already has an appointment in the selected time window.']);
+            }
+        }
+
         $appointment->update([
-            'scheduled_at'     => $data['scheduled_at'],
+            'scheduled_at'     => $requestedScheduledAt,
             'duration_minutes' => $data['duration_minutes'],
             'topic'            => $data['topic'] ?? $appointment->topic,
             'notes'            => $data['notes'] ?? $appointment->notes,
