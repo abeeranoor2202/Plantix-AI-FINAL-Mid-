@@ -11,7 +11,13 @@ class RoleController extends Controller
 
     public function __construct()
     {
-        // $this->middleware('auth'); // Removed to avoid guard conflicts
+        $this->middleware('admin');
+        $this->middleware('permission:roles,role.index')->only(['index']);
+        $this->middleware('permission:roles,role.save')->only(['save']);
+        $this->middleware('permission:roles,role.store')->only(['store']);
+        $this->middleware('permission:roles,role.edit')->only(['edit']);
+        $this->middleware('permission:roles,role.update')->only(['update']);
+        $this->middleware('permission:roles,role.delete')->only(['delete']);
     }
     public function index()
     {
