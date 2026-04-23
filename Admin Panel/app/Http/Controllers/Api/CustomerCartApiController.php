@@ -180,12 +180,6 @@ class CustomerCartApiController extends Controller
             ]);
         }
 
-        if ($vendorId && (int) $cart->vendor_id !== $vendorId) {
-            throw ValidationException::withMessages([
-                'cart' => 'Your cart contains items from another vendor. Clear the cart before adding this item.',
-            ]);
-        }
-
         return $cart;
     }
 

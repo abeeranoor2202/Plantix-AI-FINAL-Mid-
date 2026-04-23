@@ -114,10 +114,11 @@ class CartCheckoutService
             $deliveryFee = (float) ($data['delivery_fee'] ?? 0.00);
             $taxAmount   = round($subtotal * (float) config('plantix.tax_rate', 0.0), 2);
             $total       = max(0.0, $subtotal + $deliveryFee + $taxAmount - $discountAmount);
+            $vendorId    = $this->resolveOrderVendorId($cart);
 
             $order = Order::create([
                 'user_id'          => $user->id,
-                'vendor_id'        => $cart->vendor_id,
+                'vendor_id'        => $vendorId,
                 'coupon_id'        => $coupon?->id,
                 'status'           => Order::STATUS_PENDING_PAYMENT,
                 'subtotal'         => $subtotal,
@@ -519,10 +520,11 @@ class CartCheckoutService
             $deliveryFee = (float) ($data['delivery_fee'] ?? 0.00);
             $taxAmount   = round($subtotal * (float) config('plantix.tax_rate', 0.0), 2);
             $total       = max(0.0, $subtotal + $deliveryFee + $taxAmount - $discountAmount);
+            $vendorId    = $this->resolveOrderVendorId($cart);
 
             $order = Order::create([
                 'user_id'          => $user->id,
-                'vendor_id'        => $cart->vendor_id,
+                'vendor_id'        => $vendorId,
                 'coupon_id'        => $coupon?->id,
                 'status'           => Order::STATUS_PENDING,
                 'subtotal'         => $subtotal,
@@ -608,5 +610,15 @@ class CartCheckoutService
     private function calculateDiscount(Coupon $coupon, Cart $cart): float
     {
         return $this->couponService->calculateDiscountForCart($coupon, $cart);
+    }
+
+    private function resolveOrderVendorId(Cart $cart): int
+    {
+        $vendorId = $cart->items
+            ->first(fn ($item) => (int) ($item->product?->vendor_id ?? 0) > 0)
+            ?->product
+            ?->vendor_id;
+
+        return (int) ($vendorId ?: $cart->vendor_id);
     }
 }
