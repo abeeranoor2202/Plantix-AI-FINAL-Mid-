@@ -118,6 +118,9 @@
                             <a href="{{ route('forum') }}">Forum</a>
                         </li>
                         <li>
+                            <a href="{{ route('experts.index') }}">Experts</a>
+                        </li>
+                        <li>
                             <a href="{{ route('shop') }}">Shop</a>
                         </li>
                         <li>
@@ -145,7 +148,7 @@
                                 <ul class="dropdown-menu cart-list">
                                     @if($cartCount > 0)
                                     <li class="total">
-                                        <a href="{{ route('cart') }}" class="btn btn-default btn-cart">View Cart</a>
+                                        <a href="{{ route('cart') }}" class="btn btn-default btn-cart text-white" style="color: white !important;">View Cart</a>
                                         <a href="{{ route('checkout') }}" class="btn btn-default btn-cart">Checkout</a>
                                     </li>
                                     @else
