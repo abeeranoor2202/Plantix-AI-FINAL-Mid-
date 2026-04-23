@@ -1,6 +1,7 @@
 @php
     $navItems = [
         ['label' => 'Dashboard', 'icon' => 'mdi-view-dashboard-outline', 'active' => Request::is('vendor/dashboard*') || Request::is('vendor'), 'route' => route('vendor.dashboard')],
+        ['label' => 'Experts', 'icon' => 'mdi-account-tie-outline', 'active' => Request::is('experts*'), 'route' => route('experts.index')],
         ['label' => 'Products', 'icon' => 'mdi-cart-outline', 'active' => Request::is('vendor/products*'), 'route' => route('vendor.products.index')],
         ['label' => 'Orders', 'icon' => 'mdi-cart-outline', 'active' => Request::is('vendor/orders*'), 'route' => route('vendor.orders.index')],
         ['label' => 'Returns', 'icon' => 'mdi-keyboard-return', 'active' => Request::is('vendor/returns*'), 'route' => route('vendor.returns.index')],
