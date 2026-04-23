@@ -19,8 +19,8 @@
     <link href="{{ asset('assets/css/shop.css') }}" rel="stylesheet">
     <link href="{{ asset('assets/css/style.css') }}" rel="stylesheet">
     <link href="{{ asset('style.css') }}" rel="stylesheet">
-    <!-- AgriTech Core Design System -->
-    <link href="{{ asset('css/agritech-redesign.css') }}" rel="stylesheet">
+    <!-- PlantixAI Core Design System -->
+    <link href="{{ asset('css/plantixai-redesign.css') }}" rel="stylesheet">
     <link href="{{ asset('css/platform-design-system.css') }}" rel="stylesheet">
     <link href="{{ asset('css/panel-unified.css') }}" rel="stylesheet">
     <!--[if lte IE 9]>

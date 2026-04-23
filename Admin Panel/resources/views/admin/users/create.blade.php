@@ -51,7 +51,7 @@
 
                             <div class="col-md-6">
                                 <label class="agri-label">Official Communication Link <span class="text-danger">*</span></label>
-                                <input type="email" name="email" value="{{ old('email') }}" class="form-agri" placeholder="governance@agritech.com" required>
+                                <input type="email" name="email" value="{{ old('email') }}" class="form-agri" placeholder="governance@plantixai.com" required>
                                 <div style="font-size: 11px; color: var(--agri-text-muted); margin-top: 8px; font-weight: 600;">
                                     {{ trans("lang.user_email_help") }}
                                 </div>

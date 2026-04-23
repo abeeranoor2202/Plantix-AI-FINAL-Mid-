@@ -1,11 +1,11 @@
 @extends('layouts.frontend')
 
-@section('title', 'AgriTech Shop | Plantix-AI')
+@section('title', 'PlantixAI Shop | Plantix-AI')
 
 @section('page_styles')
     <link rel="stylesheet" href="{{ asset('assets/css/shop-dynamic.css') }}">
     <style>
-        /* Custom tweaks for the shop wrapper to blend with AgriTech */
+        /* Custom tweaks for the shop wrapper to blend with PlantixAI */
         .shop-controls-bar {
             background: white;
             border-radius: var(--agri-radius-md);

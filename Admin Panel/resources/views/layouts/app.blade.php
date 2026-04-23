@@ -65,8 +65,8 @@
     <link href="https://cdn.jsdelivr.net/npm/@mdi/font@6.9.96/css/materialdesignicons.min.css" rel="stylesheet">
     <link href="{{ asset('css/icons/themify-icons/themify-icons.css') }}" rel="stylesheet">
     
-    <!-- AgriTech Redesign: Core Design System -->
-    <link href="{{ asset('css/agritech-redesign.css') }}" rel="stylesheet">
+    <!-- PlantixAI Redesign: Core Design System -->
+    <link href="{{ asset('css/plantixai-redesign.css') }}" rel="stylesheet">
     <link href="{{ asset('css/admin-customer-unified.css') }}" rel="stylesheet">
     <link href="{{ asset('css/platform-design-system.css') }}" rel="stylesheet">
     <link href="{{ asset('css/panel-unified.css') }}" rel="stylesheet">
