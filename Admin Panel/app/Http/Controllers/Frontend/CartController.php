@@ -14,7 +14,6 @@ use App\Services\Shared\StockService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
 class CartController extends Controller
@@ -354,12 +353,6 @@ class CartController extends Controller
             return Cart::create([
                 'user_id' => $user->id,
                 'vendor_id' => $vendorId,
-            ]);
-        }
-
-        if ((int) $cart->vendor_id !== $vendorId) {
-            throw ValidationException::withMessages([
-                'cart' => 'Your cart contains items from another vendor. Clear the cart before adding this item.',
             ]);
         }
 
