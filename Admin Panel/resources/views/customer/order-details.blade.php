@@ -42,6 +42,11 @@
                         @if($canReturn && !$order->returnRequest)
                         <button class="btn-agri btn-agri-outline text-dark border-dark" style="padding: 8px 16px;" data-bs-toggle="modal" data-bs-target="#returnModal">Return Items</button>
                         @endif
+                        @if(in_array($order->status, ['confirmed', 'processing', 'shipped', 'delivered']))
+                        <a href="{{ route('order.invoice', $order->id) }}" class="btn-agri btn-agri-outline text-dark border-dark d-flex align-items-center gap-2" style="padding: 8px 16px;">
+                            <i class="fas fa-file-invoice"></i> Download Invoice
+                        </a>
+                        @endif
                         <a href="{{ route('shop') }}" class="btn-agri btn-agri-primary" style="padding: 8px 16px;">Buy Again</a>
                     </div>
                 </div>
