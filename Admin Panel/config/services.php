@@ -44,4 +44,10 @@ return [
         'timeout' => env('CROP_PREDICTION_API_TIMEOUT', 8),
     ],
 
+    'fertilizer_prediction_api' => [
+        'base_url' => env('FERTILIZER_PREDICTION_API_URL', env('CROP_PREDICTION_API_URL', 'http://127.0.0.1:5000')),
+        'api_key' => env('FERTILIZER_PREDICTION_API_KEY', env('CROP_PREDICTION_API_KEY')),
+        'timeout' => env('FERTILIZER_PREDICTION_API_TIMEOUT', env('CROP_PREDICTION_API_TIMEOUT', 8)),
+    ],
+
 ];

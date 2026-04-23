@@ -7,16 +7,22 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Carbon\Carbon;
 
+/**
+ * BrandSeeder — seeds the brands table.
+ *
+ * The brands table was initially dropped by migration 2026_02_28_200001,
+ * but was recreated by migration 2026_03_01_100001 because the Product model
+ * and ShopController still reference brand_id / Brand model.
+ */
 class BrandSeeder extends Seeder
 {
     public function run(): void
     {
-        // The `brands` table was removed in migration 2026_02_28_200001_drop_unused_tables_cleanup.
-        // Products no longer carry a brand_id foreign key.
-    }
+        // Guard — if table doesn't exist (shouldn't happen after migrations), skip
+        if (! DB::getSchemaBuilder()->hasTable('brands')) {
+            return;
+        }
 
-    private function _unused(): void
-    {
         $now = Carbon::now();
 
         $brands = [
@@ -29,7 +35,7 @@ class BrandSeeder extends Seeder
             'FieldMaster' => 'Heavy-duty equipment and sprayers for large-scale operations.',
             'CropSure'    => 'Integrated pest and disease management solutions.',
             'BioPak'      => 'Home of certified bio-fertilizers and beneficial microorganisms.',
-            'TerraSol'    => 'Soil science company specializing in micro-nutrients and humic acids.',
+            'TerraSol'    => 'Soil science company specialising in micro-nutrients and humic acids.',
         ];
 
         foreach ($brands as $name => $desc) {

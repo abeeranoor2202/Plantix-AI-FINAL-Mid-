@@ -106,11 +106,14 @@ class CustomerAiApiController extends Controller
             return response()->json([
                 'success'        => true,
                 'recommendation' => [
-                    'id'              => $recommendation->id,
-                    'fertilizers'     => $recommendation->fertilizers,
-                    'schedule'        => $recommendation->schedule,
-                    'notes'           => $recommendation->notes,
-                    'created_at'      => $recommendation->created_at->toISOString(),
+                    'id' => $recommendation->id,
+                    'crop_type' => $recommendation->crop_type,
+                    'growth_stage' => $recommendation->growth_stage,
+                    'fertilizer_plan' => $recommendation->fertilizer_plan,
+                    'application_instructions' => $recommendation->application_instructions,
+                    'estimated_cost_pkr' => (float) $recommendation->estimated_cost_pkr,
+                    'model_version' => $recommendation->model_version,
+                    'created_at' => $recommendation->created_at->toISOString(),
                 ],
             ]);
         } catch (\Throwable $e) {

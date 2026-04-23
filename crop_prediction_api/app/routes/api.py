@@ -38,6 +38,12 @@ def model_info():
     return jsonify({"success": True, **model_service.info()}), 200
 
 
+@api_bp.get("/fertilizer/model-info")
+def fertilizer_model_info():
+    model_service = current_app.extensions["fertilizer_model_service"]
+    return jsonify({"success": True, **model_service.info()}), 200
+
+
 @api_bp.post("/predict")
 @require_api_key
 @limiter.limit("60 per minute")
@@ -48,4 +54,17 @@ def predict():
 
     prediction_service = current_app.extensions["prediction_service"]
     result = prediction_service.predict(payload, request)
+    return jsonify(result), 200
+
+
+@api_bp.post("/fertilizer/predict")
+@require_api_key
+@limiter.limit("60 per minute")
+def predict_fertilizer():
+    payload = request.get_json(silent=True)
+    if payload is None:
+        raise APIError("Request body must be valid JSON.", status_code=400, error_code="invalid_json")
+
+    fertilizer_prediction_service = current_app.extensions["fertilizer_prediction_service"]
+    result = fertilizer_prediction_service.predict(payload, request)
     return jsonify(result), 200

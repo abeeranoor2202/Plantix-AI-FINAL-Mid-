@@ -11,7 +11,7 @@ class ProductStockSeeder extends Seeder
     public function run(): void
     {
         $now      = Carbon::now();
-        $products = DB::table('products')->select('id', 'vendor_id', 'stock_quantity', 'name')->get();
+        $products = DB::table('products')->select('id', 'vendor_id', 'stock_quantity', 'name', 'image')->get();
 
         foreach ($products as $p) {
             $qty = $p->stock_quantity ?: rand(10, 500);
@@ -31,7 +31,7 @@ class ProductStockSeeder extends Seeder
         foreach ($products as $p) {
             DB::table('product_images')->insert([
                 'product_id' => $p->id,
-                'path'       => 'products/placeholder-' . $p->id . '.jpg',
+                'path'       => $p->image ?: ('products/placeholder-' . $p->id . '.jpg'),
                 'alt_text'   => $p->name,
                 'sort_order' => 1,
                 'is_primary' => 1,

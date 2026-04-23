@@ -170,12 +170,14 @@ class ExpertsSeeder extends Seeder
             $expertId = DB::table('experts')->insertGetId([
                 'user_id'                      => $user->id,
                 'status'                       => $def['status'],
+                'approval_status'              => $def['status'],           // added by 2026_04_22_000002
                 'specialty'                    => $def['specialty'],
                 'bio'                          => $def['bio'],
                 'profile_image'                => null,
                 'is_available'                 => $def['is_available'],
                 'hourly_rate'                  => $def['hourly_rate'],
                 'consultation_price'           => $def['consultation_price'],
+                'consultation_fee'             => $def['consultation_price'], // alias added by 2026_04_22_000003
                 'consultation_duration_minutes'=> 60,
                 'rating_avg'                   => $def['rating_avg'],
                 'total_appointments'           => $def['total_appointments'],

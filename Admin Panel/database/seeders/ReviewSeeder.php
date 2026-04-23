@@ -7,7 +7,13 @@ use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 
 /**
- * ReviewSeeder — one review per delivered order (respects UNIQUE user_id+order_id).
+ * ReviewSeeder — one review per delivered order.
+ *
+ * Fixes applied:
+ *  - Added 'status' column (added by migration 2026_03_01_999999 with default 'approved').
+ *    Without this, the DB default handles it, but explicit insert avoids any edge cases.
+ *  - Unique constraint is now (user_id, order_id, product_id) per migration
+ *    2026_03_01_999999. The seeder already groups by order+product so this is respected.
  */
 class ReviewSeeder extends Seeder
 {
@@ -50,7 +56,7 @@ class ReviewSeeder extends Seeder
             ],
         ];
 
-        // Only review delivered orders — enforces unique(user_id, order_id)
+        // Only review delivered orders — unique constraint: (user_id, order_id, product_id)
         $deliveredOrders = DB::table('orders as o')
             ->join('order_items as oi', 'oi.order_id', '=', 'o.id')
             ->where('o.status', 'delivered')
@@ -59,16 +65,15 @@ class ReviewSeeder extends Seeder
             ->limit(55)
             ->get();
 
-        $reviewed = []; // track user_id+order_id to avoid duplicates
+        $reviewed = []; // track user_id+order_id+product_id to avoid duplicates
 
         foreach ($deliveredOrders as $o) {
-            $key = $o->user_id . '_' . $o->order_id;
+            $key = $o->user_id . '_' . $o->order_id . '_' . $o->product_id;
             if (isset($reviewed[$key])) {
                 continue;
             }
             $reviewed[$key] = true;
 
-            // Weighted rating — most reviews are positive
             $rating = $this->weightedRating();
             $pool   = $comments[$rating];
 
@@ -80,6 +85,7 @@ class ReviewSeeder extends Seeder
                 'rating'     => $rating,
                 'comment'    => $pool[array_rand($pool)],
                 'is_active'  => 1,
+                'status'     => 'approved',  // column added by 2026_03_01_999999
                 'created_at' => Carbon::parse($o->created_at)->addDays(rand(3, 10)),
                 'updated_at' => $now,
             ]);

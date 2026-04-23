@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Role extends Model
 {
-    protected $table = 'role';
+    protected $table = 'roles'; // renamed by migration 2026_03_01_500006 (was 'role')
 
     protected $fillable = ['name', 'role_name', 'slug', 'description', 'guard', 'is_active'];
 

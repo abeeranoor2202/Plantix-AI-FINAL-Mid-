@@ -51,8 +51,10 @@ The API listens on `http://localhost:5000`.
 ## Endpoints
 
 - `POST /predict`
+- `POST /fertilizer/predict`
 - `GET /health`
 - `GET /model-info`
+- `GET /fertilizer/model-info`
 - `GET /admin/predictions`
 - `GET /admin/stats`
 

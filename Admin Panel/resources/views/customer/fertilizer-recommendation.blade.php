@@ -73,26 +73,30 @@
                                 </p>
                             </div>
 
-                            <form id="fertilizerForm" class="contact-form">
+                            <form id="fertilizerForm" class="contact-form" method="POST" action="{{ route('fertilizer.recommendation.recommend') }}">
+                                @csrf
                                 <div class="row g-4">
                                     <div class="col-md-6">
                                         <label for="cropType" class="form-label fw-bold text-dark small">Target Crop Intention</label>
                                         <select id="cropType" class="form-agri">
-                                            <option value="rice">Rice</option>
-                                            <option value="wheat">Wheat</option>
-                                            <option value="maize">Maize</option>
-                                            <option value="soybean">Soybean</option>
-                                            <option value="cotton">Cotton</option>
-                                            <option value="potato">Potato</option>
+                                            <option value="Wheat">Wheat</option>
+                                            <option value="Rice">Rice</option>
+                                            <option value="Maize">Maize</option>
+                                            <option value="Cotton">Cotton</option>
+                                            <option value="Potato">Potato</option>
+                                            <option value="Tomato">Tomato</option>
+                                            <option value="Sugarcane">Sugarcane</option>
                                         </select>
                                     </div>
                                     <div class="col-md-6">
-                                        <label for="soilType" class="form-label fw-bold text-dark small">Soil Texture</label>
-                                        <select id="soilType" class="form-agri">
-                                            <option value="loamy">Loamy</option>
-                                            <option value="sandy">Sandy</option>
-                                            <option value="clay">Clay</option>
-                                            <option value="silty">Silty</option>
+                                        <label for="growthStage" class="form-label fw-bold text-dark small">Growth Stage</label>
+                                        <select id="growthStage" class="form-agri">
+                                            <option value="pre-sowing">Pre-Sowing</option>
+                                            <option value="seedling">Seedling</option>
+                                            <option value="vegetative">Vegetative</option>
+                                            <option value="flowering">Flowering</option>
+                                            <option value="fruiting">Fruiting</option>
+                                            <option value="maturity">Maturity</option>
                                         </select>
                                     </div>
                                     
@@ -111,27 +115,27 @@
                                         </div>
                                     </div>
                                     <div class="col-md-4">
-                                        <label for="moisture" class="form-label fw-bold text-dark small">Soil Moisture (%)</label>
+                                        <label for="phLevel" class="form-label fw-bold text-dark small">Soil pH</label>
                                         <div class="input-group">
-                                            <span class="input-group-text bg-white text-muted border-end-0"><i class="fas fa-water"></i></span>
-                                            <input type="number" step="0.1" id="moisture" class="form-agri border-start-0" placeholder="e.g. 30" required>
+                                            <span class="input-group-text bg-white text-muted border-end-0"><i class="fas fa-vial"></i></span>
+                                            <input type="number" step="0.1" id="phLevel" class="form-agri border-start-0" placeholder="e.g. 6.5" min="0" max="14" required>
                                         </div>
                                     </div>
 
                                     <div class="col-12 mt-2 border-top pt-4">
-                                        <h5 class="fw-bold text-dark fs-6 mb-3">Soil Nutrients Deficit Analysis (ppm)</h5>
+                                        <h5 class="fw-bold text-dark fs-6 mb-3">Soil Nutrients Analysis (Model-aligned dataset range)</h5>
                                     </div>
                                     <div class="col-md-4">
-                                        <label for="nitrogen" class="form-label fw-bold text-muted small">Nitrogen (N)</label>
-                                        <input type="number" step="1" id="nitrogen" class="form-agri" placeholder="e.g. 20" required>
+                                        <label for="nitrogen" class="form-label fw-bold text-muted small">Nitrogen (N) [typical 4-42]</label>
+                                        <input type="number" step="1" id="nitrogen" class="form-agri" placeholder="e.g. 24" min="0" max="500" required>
                                     </div>
                                     <div class="col-md-4">
-                                        <label for="phosphorus" class="form-label fw-bold text-muted small">Phosphorus (P)</label>
-                                        <input type="number" step="1" id="phosphorus" class="form-agri" placeholder="e.g. 15" required>
+                                        <label for="phosphorus" class="form-label fw-bold text-muted small">Phosphorus (P) [typical 0-42]</label>
+                                        <input type="number" step="1" id="phosphorus" class="form-agri" placeholder="e.g. 21" min="0" max="500" required>
                                     </div>
                                     <div class="col-md-4">
-                                        <label for="potassium" class="form-label fw-bold text-muted small">Potassium (K)</label>
-                                        <input type="number" step="1" id="potassium" class="form-agri" placeholder="e.g. 40" required>
+                                        <label for="potassium" class="form-label fw-bold text-muted small">Potassium (K) [typical 0-19]</label>
+                                        <input type="number" step="1" id="potassium" class="form-agri" placeholder="e.g. 10" min="0" max="500" required>
                                     </div>
                                 </div>
 
@@ -210,116 +214,106 @@
 
     <script>
         (function () {
-            function suggestFertilizer(n, p, k, crop) {
-                // Simple deficit-based suggestion (demo)
-                var rec = [];
-                var target = { "rice": { N: 40, P: 20, K: 40 }, "wheat": { N: 50, P: 25, K: 30 }, "maize": { N: 60, P: 30, K: 40 }, "soybean": { N: 20, P: 20, K: 30 }, "cotton": { N: 50, P: 25, K: 40 }, "potato": { N: 80, P: 50, K: 150 } }[crop] || { N: 40, P: 20, K: 40 };
-                var dn = target.N - n; var dp = target.P - p; var dk = target.K - k;
-                
-                if (dn > 10) rec.push({ type: 'danger', icon: 'fas fa-arrow-up', msg: 'Heavy Nitrogen deficit!', detail: 'Apply nitrogen-rich fertilizer (e.g., Urea) approx ' + Math.max(0, Math.round(dn)) + ' kg/ha equivalent to meet target.'});
-                else if (dn > 0) rec.push({ type: 'warning', icon: 'fas fa-arrow-up', msg: 'Slight Nitrogen deficit.', detail: 'Light nitrogen dressing (~' + Math.round(dn) + ' kg/ha equivalent) required.'});
-                else rec.push({ type: 'success', icon: 'fas fa-check-circle', msg: 'Nitrogen levels adequate.', detail: 'Avoid extra N application.'});
-
-                if (dp > 5) rec.push({ type: 'danger', icon: 'fas fa-arrow-up', msg: 'Phosphorus deficit!', detail: 'Apply phosphorus fertilizer (e.g., SSP or DAP) approx ' + Math.max(0, Math.round(dp)) + ' kg/ha equivalent.'});
-                else if (dp > 0) rec.push({ type: 'warning', icon: 'fas fa-arrow-up', msg: 'Slight Phosphorus deficit.', detail: 'Small phosphorus top-up (~' + Math.round(dp) + ' kg/ha equivalent) is recommended.'});
-                else rec.push({ type: 'success', icon: 'fas fa-check-circle', msg: 'Phosphorus levels adequate.', detail: 'Phosphorus is sufficient.'});
-
-                if (dk > 10) rec.push({ type: 'danger', icon: 'fas fa-arrow-up', msg: 'Potassium deficit!', detail: 'Apply potassium fertilizer (e.g., MOP or SOP) approx ' + Math.max(0, Math.round(dk)) + ' kg/ha equivalent.'});
-                else if (dk > 0) rec.push({ type: 'warning', icon: 'fas fa-arrow-up', msg: 'Slight Potassium deficit.', detail: 'Light potassium top-up (~' + Math.round(dk) + ' kg/ha equivalent) would boost yields.'});
-                else rec.push({ type: 'success', icon: 'fas fa-check-circle', msg: 'Potassium levels adequate.', detail: 'Potassium is sufficient.'});
-
-                return rec;
-            }
-
-            function chooseCrop(params) {
-                var crops = {
-                    rice: { t: [20, 35], m: [40, 100], score: 0 },
-                    wheat: { t: [5, 25], m: [20, 60], score: 0 },
-                    maize: { t: [18, 30], m: [25, 70], score: 0 },
-                    soybean: { t: [15, 30], m: [20, 60], score: 0 },
-                    cotton: { t: [20, 35], m: [15, 50], score: 0 },
-                    potato: { t: [10, 25], m: [25, 80], score: 0 }
-                };
-                Object.keys(crops).forEach(function (c) {
-                    var cfg = crops[c];
-                    var t = params.temperature; var m = params.moisture; var h = params.humidity;
-                    if (t >= cfg.t[0] && t <= cfg.t[1]) cfg.score += 2;
-                    else cfg.score -= 1;
-                    if (m >= cfg.m[0] && m <= cfg.m[1]) cfg.score += 2;
-                    else cfg.score -= 1;
-                    if (params.soilType === 'loamy') cfg.score += 0.5;
-                    if (params.cropType && params.cropType === c) cfg.score += 3; // user preference boost
-                });
-                var list = Object.keys(crops).map(function (k) { return { crop: k, score: crops[k].score }; });
-                list.sort(function (a, b) { return b.score - a.score; });
-                return list;
-            }
-
             var form = document.getElementById('fertilizerForm');
             var result = document.getElementById('fertResult');
-            
-            form.addEventListener('submit', function (e) {
+            var csrfToken = '{{ csrf_token() }}';
+
+            form.addEventListener('submit', async function (e) {
                 e.preventDefault();
-                var params = {
-                    cropType: document.getElementById('cropType').value,
-                    soilType: document.getElementById('soilType').value,
-                    temperature: parseFloat(document.getElementById('temperature').value) || 25,
-                    humidity: parseFloat(document.getElementById('humidity').value) || 50,
-                    moisture: parseFloat(document.getElementById('moisture').value) || 30,
-                    nitrogen: parseFloat(document.getElementById('nitrogen').value) || 20,
-                    phosphorus: parseFloat(document.getElementById('phosphorus').value) || 15,
-                    potassium: parseFloat(document.getElementById('potassium').value) || 40
+
+                var payload = {
+                    crop_type: document.getElementById('cropType').value,
+                    growth_stage: document.getElementById('growthStage').value,
+                    temperature: parseFloat(document.getElementById('temperature').value),
+                    humidity: parseFloat(document.getElementById('humidity').value),
+                    ph_level: parseFloat(document.getElementById('phLevel').value),
+                    nitrogen: parseFloat(document.getElementById('nitrogen').value),
+                    phosphorus: parseFloat(document.getElementById('phosphorus').value),
+                    potassium: parseFloat(document.getElementById('potassium').value)
                 };
 
-                // Show loading state
+                if (Object.values(payload).some(function (v) { return Number.isNaN(v); })) {
+                    alert('Please provide valid values for all fields.');
+                    return;
+                }
+
                 var btn = form.querySelector('button[type="submit"]');
                 var originalBtnHtml = btn.innerHTML;
                 btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> Generating Plan...';
                 btn.disabled = true;
 
-                setTimeout(function() {
-                    var ranked = chooseCrop(params);
-                    var primary = ranked[0].crop;
-                    var alternatives = ranked.slice(1, 4).map(function (r) { return r.crop; });
-
-                    var fert = suggestFertilizer(params.nitrogen, params.phosphorus, params.potassium, primary);
-
-                    var html = '';
-                    
-                    html += '<div class="card-agri p-4 border-0" style="background: linear-gradient(to right bottom, #ffffff, #f8fcf9); border: 1px solid var(--agri-border) !important;">';
-                    html += '<div class="d-flex align-items-center gap-2 mb-4 pb-3 border-bottom">';
-                    html += '<div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center shadow-sm" style="width: 40px; height: 40px;"><i class="fas fa-clipboard-list"></i></div>';
-                    html += '<h4 class="fw-bold text-dark mb-0 m-0">Recommendations</h4>';
-                    html += '</div>';
-                    
-                    html += '<div class="d-flex align-items-center justify-content-between mb-4 bg-light p-3 rounded-3 border">';
-                    html += '<div><span class="text-muted small d-block mb-1">Target AI Match:</span><h5 class="fw-bold text-dark m-0">' + primary.charAt(0).toUpperCase() + primary.slice(1) + '</h5></div>';
-                    html += '<div class="text-end"><span class="text-muted small d-block mb-1">Alternatives:</span><span class="fw-medium text-dark">' + alternatives.map(function (a) { return a.charAt(0).toUpperCase() + a.slice(1) }).join(', ') + '</span></div>';
-                    html += '</div>';
-
-                    html += '<h5 class="fw-bold text-dark mb-3"><i class="fas fa-prescription-bottle-alt text-muted me-2"></i> Fertility Action Plan</h5>';
-                    html += '<div class="d-flex flex-column gap-3 mb-4">';
-                    
-                    fert.forEach(function(f) {
-                        html += '<div class="border rounded-3 p-3 bg-white border-' + (f.type === 'danger' ? 'danger border-opacity-50' : (f.type === 'success' ? 'success border-opacity-50' : 'warning border-opacity-50')) + '">';
-                        html += '<div class="d-flex gap-3">';
-                        html += '<div class="text-' + f.type + ' mt-1"><i class="' + f.icon + ' fs-5"></i></div>';
-                        html += '<div><h6 class="fw-bold text-dark mb-1">' + f.msg + '</h6><p class="text-muted mb-0 small" style="line-height: 1.5;">' + f.detail + '</p></div>';
-                        html += '</div></div>';
+                try {
+                    var response = await fetch("{{ route('fertilizer.recommendation.recommend') }}", {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json',
+                            'X-CSRF-TOKEN': csrfToken,
+                        },
+                        body: JSON.stringify(payload),
                     });
 
-                    html += '</div>';
-                    html += '<p class="text-center text-muted small m-0"><i class="fas fa-exclamation-triangle me-1"></i> For planning purposes only.</p>';
-                    html += '</div>';
+                    var body = await response.json();
+                    if (!response.ok || !body.success) {
+                        var validationMessages = body.errors
+                            ? Object.values(body.errors).flat().join(' ')
+                            : (body.message || 'Fertilizer recommendation request failed.');
+                        throw new Error(validationMessages);
+                    }
 
-                    result.innerHTML = html;
+                    result.innerHTML = renderRecommendation(body.data, payload);
                     result.style.display = 'block';
                     result.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-
+                } catch (error) {
+                    alert(error.message || 'Unable to generate recommendation right now.');
+                } finally {
                     btn.innerHTML = originalBtnHtml;
                     btn.disabled = false;
-                }, 1200);
+                }
             });
+
+            function renderRecommendation(data, payload) {
+                var plan = data.fertilizer_plan || [];
+                var html = '';
+
+                html += '<div class="card-agri p-4 border-0" style="background: linear-gradient(to right bottom, #ffffff, #f8fcf9); border: 1px solid var(--agri-border) !important;">';
+                html += '<div class="d-flex align-items-center gap-2 mb-4 pb-3 border-bottom">';
+                html += '<div class="bg-success text-white rounded-circle d-flex align-items-center justify-content-center shadow-sm" style="width: 40px; height: 40px;"><i class="fas fa-flask"></i></div>';
+                html += '<h4 class="fw-bold text-dark mb-0 m-0">AI Fertilizer Plan</h4>';
+                html += '</div>';
+
+                html += '<div class="d-flex align-items-center justify-content-between mb-4 bg-light p-3 rounded-3 border">';
+                html += '<div><span class="text-muted small d-block mb-1">Crop</span><h5 class="fw-bold text-dark m-0">' + data.crop_type + '</h5></div>';
+                html += '<div class="text-end"><span class="text-muted small d-block mb-1">Estimated Cost</span><span class="fw-medium text-dark">PKR ' + Number(data.estimated_cost_pkr || 0).toLocaleString() + '</span></div>';
+                html += '</div>';
+
+                if (plan.length > 0) {
+                    html += '<h5 class="fw-bold text-dark mb-3"><i class="fas fa-prescription-bottle-alt text-muted me-2"></i> Application Plan</h5>';
+                    html += '<div class="d-flex flex-column gap-3 mb-4">';
+                    plan.forEach(function (item) {
+                        html += '<div class="border rounded-3 p-3 bg-white border-success border-opacity-50">';
+                        html += '<div class="d-flex justify-content-between align-items-start mb-2">';
+                        html += '<h6 class="fw-bold text-dark mb-0">' + (item.name || 'Fertilizer') + '</h6>';
+                        html += '<span class="badge bg-success bg-opacity-10 text-success">' + (item.type || 'Nutrient') + '</span>';
+                        html += '</div>';
+                        html += '<p class="text-muted mb-1 small"><strong>Dose:</strong> ' + (item.dose_kg_per_acre || 0) + ' kg/acre</p>';
+                        html += '<p class="text-muted mb-1 small"><strong>Timing:</strong> ' + (item.timing || 'As advised') + '</p>';
+                        html += '<p class="text-muted mb-0 small"><strong>Notes:</strong> ' + (item.notes || '-') + '</p>';
+                        html += '</div>';
+                    });
+                    html += '</div>';
+                }
+
+                html += '<div class="border rounded-3 bg-light p-3 mb-3">';
+                html += '<h6 class="fw-bold text-dark mb-2">Application Instructions</h6>';
+                html += '<p class="text-muted mb-0 small" style="white-space: pre-line;">' + (data.application_instructions || 'Follow agronomist guidance for split application.') + '</p>';
+                html += '</div>';
+
+                html += '<p class="text-muted small mb-0">Input snapshot: N=' + payload.nitrogen + ', P=' + payload.phosphorus + ', K=' + payload.potassium + ', pH=' + payload.ph_level + '.</p>';
+                html += '</div>';
+
+                return html;
+            }
 
             document.getElementById('resetBtn').addEventListener('click', function () {
                 form.reset();

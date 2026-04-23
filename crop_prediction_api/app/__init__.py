@@ -7,6 +7,7 @@ from .errors import register_error_handlers
 from .extensions import cors, limiter
 from .routes.admin import admin_bp
 from .routes.api import api_bp
+from .services.fertilizer_prediction_service import FertilizerPredictionService
 from .services.model_service import ModelService
 from .services.prediction_service import PredictionService
 from .utils.db import PredictionRepository
@@ -33,9 +34,19 @@ def create_app(config_name: str | None = None) -> Flask:
     )
     prediction_service = PredictionService(model_service, prediction_repository, app.config)
 
+    fertilizer_model_service = ModelService(
+        model_path=app.config["FERTILIZER_MODEL_PATH"],
+        feature_order=app.config["FERTILIZER_FEATURE_ORDER"],
+        model_name=app.config["FERTILIZER_MODEL_NAME"],
+        model_version=app.config["FERTILIZER_MODEL_VERSION"],
+    )
+    fertilizer_prediction_service = FertilizerPredictionService(fertilizer_model_service, app.config)
+
     app.extensions["prediction_repository"] = prediction_repository
     app.extensions["model_service"] = model_service
     app.extensions["prediction_service"] = prediction_service
+    app.extensions["fertilizer_model_service"] = fertilizer_model_service
+    app.extensions["fertilizer_prediction_service"] = fertilizer_prediction_service
 
     register_error_handlers(app)
 

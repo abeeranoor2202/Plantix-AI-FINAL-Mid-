@@ -9,6 +9,7 @@ load_dotenv()
 
 BASE_DIR = Path(__file__).resolve().parents[1]
 DEFAULT_MODEL_PATH = (BASE_DIR / "model" / "RandomForest.pkl").resolve()
+DEFAULT_FERTILIZER_MODEL_PATH = (BASE_DIR / "model" / "fertilizer.pkl").resolve()
 DEFAULT_DATABASE_PATH = (BASE_DIR / "instance" / "predictions.sqlite3").resolve()
 
 CROP_FEATURES = [
@@ -21,6 +22,12 @@ CROP_FEATURES = [
     "rainfall",
 ]
 
+FERTILIZER_FEATURES = [
+    "nitrogen",
+    "potassium",
+    "phosphorous",
+]
+
 FEATURE_RANGES = {
     "nitrogen": (0.0, 500.0),
     "phosphorus": (0.0, 500.0),
@@ -29,6 +36,12 @@ FEATURE_RANGES = {
     "humidity": (0.0, 100.0),
     "ph": (0.0, 14.0),
     "rainfall": (0.0, 5000.0),
+}
+
+FERTILIZER_FEATURE_RANGES = {
+    "nitrogen": (0.0, 500.0),
+    "potassium": (0.0, 500.0),
+    "phosphorous": (0.0, 500.0),
 }
 
 CROP_MODEL_LABELS = [
@@ -64,9 +77,16 @@ class BaseConfig:
     MODEL_NAME = os.getenv("MODEL_NAME", "crop_recommendation_model")
     MODEL_VERSION = os.getenv("MODEL_VERSION", "1.0.0")
     MODEL_PATH = Path(os.getenv("MODEL_PATH", str(DEFAULT_MODEL_PATH))).resolve()
+    FERTILIZER_MODEL_PATH = Path(
+        os.getenv("FERTILIZER_MODEL_PATH", str(DEFAULT_FERTILIZER_MODEL_PATH))
+    ).resolve()
     DATABASE_PATH = Path(os.getenv("DATABASE_PATH", str(DEFAULT_DATABASE_PATH))).resolve()
     FEATURE_ORDER = CROP_FEATURES
+    FERTILIZER_FEATURE_ORDER = FERTILIZER_FEATURES
     FEATURE_RANGES = FEATURE_RANGES
+    FERTILIZER_FEATURE_RANGES = FERTILIZER_FEATURE_RANGES
+    FERTILIZER_MODEL_NAME = os.getenv("FERTILIZER_MODEL_NAME", "fertilizer_recommendation_model")
+    FERTILIZER_MODEL_VERSION = os.getenv("FERTILIZER_MODEL_VERSION", "1.0.0")
     ALLOWED_ORIGINS = [origin.strip() for origin in os.getenv("ALLOWED_ORIGINS", "*").split(",") if origin.strip()]
     MAX_CONTENT_LENGTH = int(os.getenv("MAX_CONTENT_LENGTH", str(1 * 1024 * 1024)))
     JSON_SORT_KEYS = False
