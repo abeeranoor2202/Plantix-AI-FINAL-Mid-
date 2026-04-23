@@ -119,6 +119,39 @@ class StripePaymentController extends Controller
                     ->with('error', 'Payment failed or cancelled');
             }
 
+            // Reconcile stale pending orders before creating a new Checkout Session.
+            if (! empty($order->payment_intent_id)) {
+                try {
+                    $intent = $this->stripe->retrievePaymentIntent($order->payment_intent_id);
+
+                    if ((string) ($intent->status ?? '') === 'succeeded') {
+                        Payment::updateOrCreate(
+                            ['order_id' => $order->id, 'gateway' => 'stripe'],
+                            [
+                                'user_id'                  => $order->user_id,
+                                'gateway_transaction_id'   => $intent->id,
+                                'stripe_payment_intent_id' => $intent->id,
+                                'payment_type'             => 'product',
+                                'amount'                   => $order->total,
+                                'currency'                 => strtolower(config('plantix.currency_code', 'usd')),
+                                'status'                   => 'pending',
+                            ]
+                        );
+
+                        $this->checkout->confirmPayment($intent->id);
+
+                        return redirect()->route('payment.success', ['order_id' => $order->id])
+                            ->with('success', 'Payment completed successfully');
+                    }
+                } catch (\Throwable $e) {
+                    Log::warning('Unable to reconcile existing payment intent before checkout session creation', [
+                        'order_id' => $order->id,
+                        'payment_intent_id' => $order->payment_intent_id,
+                        'message' => $e->getMessage(),
+                    ]);
+                }
+            }
+
             $checkout = $this->stripe->createOrderCheckoutSession($order, [
                 'order_number' => $order->order_number,
             ]);
