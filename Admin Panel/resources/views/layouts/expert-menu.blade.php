@@ -7,6 +7,7 @@
 
     $navItems = [
         ['label' => 'Dashboard', 'icon' => 'mdi-view-dashboard-outline', 'active' => request()->routeIs('expert.dashboard'), 'route' => route('expert.dashboard')],
+        ['label' => 'Experts', 'icon' => 'mdi-account-tie-outline', 'active' => request()->routeIs('experts.*'), 'route' => route('experts.index')],
         ['label' => 'Appointments', 'icon' => 'mdi-calendar-clock', 'active' => request()->routeIs('expert.appointments.*'), 'route' => route('expert.appointments.index'), 'section' => 'Consultations'],
         ['label' => 'Forum', 'icon' => 'mdi-forum-outline', 'active' => request()->routeIs('expert.forum.*'), 'route' => route('expert.forum.index'), 'section' => 'Community'],
         ['label' => 'Notifications', 'icon' => 'mdi-bell-outline', 'active' => request()->routeIs('expert.notifications.*'), 'route' => route('expert.notifications.index'), 'section' => 'Account', 'badge' => $unread],
