@@ -425,54 +425,56 @@ document.addEventListener('DOMContentLoaded', function () {
                         <div style="position:absolute;right:-40px;top:-40px;width:200px;height:200px;background:rgba(255,255,255,0.07);border-radius:50%;"></div>
                     </div>
 
-                    <div class="px-4 pb-4" style="margin-top:-70px;position:relative;z-index:1;">
-                        <div class="d-flex flex-wrap align-items-end gap-3">
+                    <div class="px-4 pb-4" style="position:relative;z-index:1;">
+                        <div class="d-flex flex-column flex-sm-row gap-4">
                             {{-- Avatar --}}
-                            <div style="width:110px;height:110px;border-radius:50%;border:4px solid white;overflow:hidden;flex-shrink:0;box-shadow:0 4px 16px rgba(0,0,0,0.15);">
+                            <div style="width:140px;height:140px;margin-top:-70px;border-radius:50%;border:4px solid white;overflow:hidden;flex-shrink:0;box-shadow:0 4px 16px rgba(0,0,0,0.15);background:white;">
                                 @if($expert->profile_image)
                                     <img src="{{ Storage::url($expert->profile_image) }}" alt="{{ $expert->display_name }}"
                                          style="width:100%;height:100%;object-fit:cover;">
                                 @else
                                     <div style="width:100%;height:100%;background:var(--agri-primary-light);display:flex;align-items:center;justify-content:center;">
-                                        <i class="fas fa-user-circle" style="font-size:60px;color:var(--agri-primary);opacity:0.5;"></i>
+                                        <i class="fas fa-user-circle" style="font-size:80px;color:var(--agri-primary);opacity:0.5;"></i>
                                     </div>
                                 @endif
                             </div>
 
-                            <div class="flex-grow-1 mt-2">
-                                <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
-                                    <h2 class="fw-bold mb-0" style="font-size:clamp(20px,3vw,28px);color:#1a1a1a;">{{ $expert->display_name }}</h2>
-                                    @if($expert->verified_at)
-                                    <span style="background:#dbeafe;color:#1d4ed8;font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;letter-spacing:0.5px;">
-                                        <i class="fas fa-shield-alt me-1"></i>Verified
-                                    </span>
-                                    @endif
-                                    <span style="background:{{ $expert->is_available ? 'rgba(39,174,96,0.12)' : 'rgba(100,116,139,0.12)' }};color:{{ $expert->is_available ? '#15803d' : '#475569' }};font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;">
-                                        <span style="width:7px;height:7px;border-radius:50%;background:{{ $expert->is_available ? '#22c55e' : '#94a3b8' }};display:inline-block;margin-right:5px;"></span>
-                                        {{ $expert->is_available ? 'Available' : 'Unavailable' }}
-                                    </span>
+                            <div class="flex-grow-1 pt-sm-2 d-flex flex-column flex-md-row justify-content-between gap-3">
+                                <div>
+                                    <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
+                                        <h2 class="fw-bold mb-0" style="font-size:clamp(20px,3vw,28px);color:#1a1a1a;">{{ $expert->display_name }}</h2>
+                                        @if($expert->verified_at)
+                                        <span style="background:#dbeafe;color:#1d4ed8;font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;letter-spacing:0.5px;">
+                                            <i class="fas fa-shield-alt me-1"></i>Verified
+                                        </span>
+                                        @endif
+                                        <span style="background:{{ $expert->is_available ? 'rgba(39,174,96,0.12)' : 'rgba(100,116,139,0.12)' }};color:{{ $expert->is_available ? '#15803d' : '#475569' }};font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;">
+                                            <span style="width:7px;height:7px;border-radius:50%;background:{{ $expert->is_available ? '#22c55e' : '#94a3b8' }};display:inline-block;margin-right:5px;"></span>
+                                            {{ $expert->is_available ? 'Available' : 'Unavailable' }}
+                                        </span>
+                                    </div>
+                                    <p style="font-size:16px;color:var(--agri-primary);font-weight:600;margin-bottom:6px;">{{ $expert->specialty }}</p>
+                                    <div class="d-flex flex-wrap gap-3 text-muted" style="font-size:13px;">
+                                        @if($expert->profile?->city)
+                                        <span><i class="fas fa-map-marker-alt me-1"></i>{{ $expert->profile->city }}{{ $expert->profile->country ? ', '.$expert->profile->country : '' }}</span>
+                                        @endif
+                                        @if($expert->profile?->experience_years)
+                                        <span><i class="fas fa-briefcase me-1"></i>{{ $expert->profile->experience_years }} yrs experience</span>
+                                        @endif
+                                        @if($expert->total_completed > 0)
+                                        <span><i class="fas fa-calendar-check me-1"></i>{{ $expert->total_completed }} sessions completed</span>
+                                        @endif
+                                    </div>
                                 </div>
-                                <p style="font-size:16px;color:var(--agri-primary);font-weight:600;margin-bottom:6px;">{{ $expert->specialty }}</p>
-                                <div class="d-flex flex-wrap gap-3 text-muted" style="font-size:13px;">
-                                    @if($expert->profile?->city)
-                                    <span><i class="fas fa-map-marker-alt me-1"></i>{{ $expert->profile->city }}{{ $expert->profile->country ? ', '.$expert->profile->country : '' }}</span>
-                                    @endif
-                                    @if($expert->profile?->experience_years)
-                                    <span><i class="fas fa-briefcase me-1"></i>{{ $expert->profile->experience_years }} yrs experience</span>
-                                    @endif
-                                    @if($expert->total_completed > 0)
-                                    <span><i class="fas fa-calendar-check me-1"></i>{{ $expert->total_completed }} sessions completed</span>
-                                    @endif
-                                </div>
-                            </div>
 
-                            {{-- Rating + scroll CTA --}}
-                            <div class="text-center ms-auto">
-                                @if($expert->rating_avg > 0)
-                                <div class="star-rating mb-1 fs-5" data-rating="{{ $expert->rating_avg }}"></div>
-                                <div class="fw-bold" style="font-size:22px;color:#1a1a1a;line-height:1;">{{ number_format($expert->rating_avg, 1) }}</div>
-                                <div class="text-muted" style="font-size:11px;">Rating</div>
-                                @endif
+                                {{-- Rating --}}
+                                <div class="text-md-end text-start mt-2 mt-md-0">
+                                    @if($expert->rating_avg > 0)
+                                    <div class="star-rating mb-1 fs-5" data-rating="{{ $expert->rating_avg }}"></div>
+                                    <div class="fw-bold" style="font-size:22px;color:#1a1a1a;line-height:1;">{{ number_format($expert->rating_avg, 1) }}</div>
+                                    <div class="text-muted" style="font-size:11px;">Rating</div>
+                                    @endif
+                                </div>
                             </div>
                         </div>
 
