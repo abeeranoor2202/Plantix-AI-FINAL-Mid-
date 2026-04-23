@@ -120,7 +120,7 @@ const CartManager = {
                         <strong>PKR ${Number(data.subtotal).toLocaleString()}</strong>
                     </div>
                     <div class="d-flex gap-2">
-                        <a href="/cart"     class="btn btn-sm flex-grow-1 border text-dark bg-white"                        style="font-size:12px;">View Cart</a>
+                        <a href="/cart"     class="btn btn-sm flex-grow-1 border text-white"                        style="font-size:12px;">View Cart</a>
                         <a href="/checkout" class="btn btn-sm flex-grow-1 text-white"                        style="font-size:12px;background:var(--agri-primary,#1e7e34);">Checkout</a>
                     </div>`;
                 dropdown.appendChild(totalLi);
