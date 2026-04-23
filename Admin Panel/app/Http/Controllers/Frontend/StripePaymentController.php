@@ -14,6 +14,8 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+use Stripe\Checkout\Session as StripeCheckoutSession;
+use Stripe\Stripe;
 
 /**
  * StripePaymentController
@@ -342,6 +344,8 @@ class StripePaymentController extends Controller
             session()->flash('success', 'Payment completed successfully');
         }
 
+        $sessionId = (string) $request->query('session_id', '');
+
         $appointmentId = $request->query('appointment_id');
         if ($appointmentId) {
             return redirect()->route('appointment.details', (int) $appointmentId)
@@ -350,6 +354,47 @@ class StripePaymentController extends Controller
 
         $orderId = $request->query('order_id') ?? session('pending_order_id');
         $order   = $orderId ? Order::find($orderId) : null;
+
+        // Fallback reconciliation for cases where Stripe webhook is delayed/missed:
+        // verify Checkout Session on return and finalize payment server-side.
+        if ($order
+            && (int) $order->user_id === (int) Auth::id()
+            && $order->payment_method === 'stripe'
+            && $order->payment_status !== 'paid'
+            && $sessionId !== '') {
+            try {
+                Stripe::setApiKey(config('services.stripe.secret'));
+                $session = StripeCheckoutSession::retrieve($sessionId);
+
+                $paymentIntentId = (string) ($session->payment_intent ?? '');
+                $isSessionPaid = in_array((string) ($session->payment_status ?? ''), ['paid', 'no_payment_required'], true);
+
+                if ($isSessionPaid && $paymentIntentId !== '') {
+                    Payment::updateOrCreate(
+                        ['order_id' => $order->id, 'gateway' => 'stripe'],
+                        [
+                            'user_id'                  => $order->user_id,
+                            'gateway_transaction_id'   => $paymentIntentId,
+                            'stripe_session_id'        => $sessionId,
+                            'stripe_payment_intent_id' => $paymentIntentId,
+                            'payment_type'             => 'product',
+                            'amount'                   => $order->total,
+                            'currency'                 => strtolower(config('plantix.currency_code', 'usd')),
+                            'status'                   => 'pending',
+                        ]
+                    );
+
+                    $this->checkout->confirmPayment($paymentIntentId);
+                    $order = $order->fresh();
+                }
+            } catch (\Throwable $e) {
+                Log::warning('Stripe success fallback reconciliation failed', [
+                    'order_id' => $order->id,
+                    'session_id' => $sessionId,
+                    'message' => $e->getMessage(),
+                ]);
+            }
+        }
 
         if ($order && (int) $order->user_id === (int) Auth::id() && $order->payment_status === 'paid') {
             return view('customer.payment-success', compact('order'));
