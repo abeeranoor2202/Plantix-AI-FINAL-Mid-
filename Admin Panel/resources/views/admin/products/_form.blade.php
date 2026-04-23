@@ -1,4 +1,4 @@
-{{-- Redesigned Premium AgriTech Product Form Partial --}}
+{{-- Redesigned Premium PlantixAI Product Form Partial --}}
 
 <div class="row g-4">
 
