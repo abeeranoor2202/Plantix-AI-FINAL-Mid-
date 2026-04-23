@@ -112,6 +112,7 @@
                         <li class="nav-item"><a class="nav-link nav-link-agri text-dark" href="{{ route('contact') }}">Contact</a></li>
                         <li class="nav-item"><a class="nav-link nav-link-agri text-primary" href="{{ route('ai.chat') }}">Plantix-AI</a></li>
                         <li class="nav-item"><a class="nav-link nav-link-agri text-dark" href="{{ route('forum') }}">Forum</a></li>
+                        <li class="nav-item"><a class="nav-link nav-link-agri text-dark" href="{{ route('experts.index') }}">Experts</a></li>
                         <li class="nav-item"><a class="nav-link nav-link-agri text-dark" href="{{ route('shop') }}">Shop</a></li>
                         <li class="nav-item"><a class="nav-link nav-link-agri text-dark" href="{{ route('appointments') }}">Appointments</a></li>
                     </ul>
@@ -252,7 +253,7 @@
                 <div class="col-md-6 col-lg-3">
                     <div class="card-agri text-center h-100 d-flex flex-column align-items-center justify-content-center p-4">
                         <div style="width: 70px; height: 70px; background: var(--agri-primary-light); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 24px;">
-                            <img src="{{ asset('assets/img/icon/17.png') }}" style="width: 35px;" alt="Crop Prediction">
+                            <i class="fas fa-leaf" style="font-size: 32px; color: var(--agri-primary);"></i>
                         </div>
                         <h4 class="fw-bold mb-3" style="font-size: 1.25rem;">Crop Recommendation</h4>
                         <p class="text-muted mb-4 flex-grow-1" style="font-size: 14px;">Data-driven suggestions for the best crops to plant based on your specific soil and weather.</p>
@@ -265,7 +266,7 @@
                     <div class="card-agri text-center h-100 d-flex flex-column align-items-center justify-content-center p-4" style="border-color: rgba(16, 185, 129, 0.3); box-shadow: 0 10px 25px rgba(16, 185, 129, 0.1);">
                         <div class="position-absolute top-0 end-0 mt-3 me-3 text-success"><i class="fas fa-sparkles"></i> Popular</div>
                         <div style="width: 70px; height: 70px; background: rgba(59, 130, 246, 0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 24px;">
-                            <img src="{{ asset('assets/img/icon/18.png') }}" style="width: 35px;" alt="Crop Planning">
+                            <i class="fas fa-microscope" style="font-size: 32px; color: #3b82f6;"></i>
                         </div>
                         <h4 class="fw-bold mb-3" style="font-size: 1.25rem;">Disease Identification</h4>
                         <p class="text-muted mb-4 flex-grow-1" style="font-size: 14px;">Upload a leaf photo and instantly detect diseases or pests with 96% AI accuracy.</p>
@@ -277,7 +278,7 @@
                 <div class="col-md-6 col-lg-3">
                     <div class="card-agri text-center h-100 d-flex flex-column align-items-center justify-content-center p-4">
                         <div style="width: 70px; height: 70px; background: rgba(245, 158, 11, 0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 24px;">
-                            <img src="{{ asset('assets/img/icon/19.png') }}" style="width: 35px;" alt="Crop Disease">
+                            <i class="fas fa-flask" style="font-size: 32px; color: #f59e0b;"></i>
                         </div>
                         <h4 class="fw-bold mb-3" style="font-size: 1.25rem;">Fertilizer Guide</h4>
                         <p class="text-muted mb-4 flex-grow-1" style="font-size: 14px;">Calculate exact NPK requirements to prevent soil degradation and maximize output.</p>
@@ -289,7 +290,7 @@
                 <div class="col-md-6 col-lg-3">
                     <div class="card-agri text-center h-100 d-flex flex-column align-items-center justify-content-center p-4">
                         <div style="width: 70px; height: 70px; background: rgba(139, 92, 246, 0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 24px;">
-                            <img src="{{ asset('assets/img/icon/20.png') }}" style="width: 35px;" alt="Fertilizer Guide">
+                            <i class="fas fa-calendar-check" style="font-size: 32px; color: #8b5cf6;"></i>
                         </div>
                         <h4 class="fw-bold mb-3" style="font-size: 1.25rem;">Smart Planning</h4>
                         <p class="text-muted mb-4 flex-grow-1" style="font-size: 14px;">Establish a comprehensive crop calendar and irrigation schedule for your fields.</p>
