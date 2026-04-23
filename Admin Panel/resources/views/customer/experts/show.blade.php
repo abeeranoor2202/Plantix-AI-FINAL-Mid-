@@ -329,7 +329,12 @@ document.addEventListener('DOMContentLoaded', function () {
             }
 
             if (response.ok) {
-                window.location.reload();
+                const payload = await response.json();
+                if (payload.redirect_url) {
+                    window.location.href = payload.redirect_url;
+                } else {
+                    window.location.reload();
+                }
                 return;
             }
 
