@@ -96,7 +96,7 @@ class ExpertBrowseController extends Controller
 
     // ── Quick booking from profile page ───────────────────────────────────────
 
-    public function quickBook(Request $request, int $id): RedirectResponse
+    public function quickBook(Request $request, int $id): JsonResponse|RedirectResponse
     {
         $request->validate([
             'slot_id'      => 'required|exists:appointment_slots,id',
@@ -109,7 +109,7 @@ class ExpertBrowseController extends Controller
             ->where('is_available', true)
             ->findOrFail($id);
 
-        $this->appointmentService->initiateBooking($user, [
+        $booking = $this->appointmentService->initiateBooking($user, [
             'expert_id'    => $expert->id,
             'slot_id'      => (int) $request->input('slot_id'),
             'type'         => 'online',
@@ -117,7 +117,15 @@ class ExpertBrowseController extends Controller
             'notes'        => $request->notes,
         ]);
 
-        return redirect()->route('appointments')
-            ->with('success', "Appointment booked with {$expert->display_name}! You will receive a confirmation email.");
+        $checkoutUrl = $booking['checkout_url'] ?? route('appointments');
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'success'      => true,
+                'redirect_url' => $checkoutUrl,
+            ]);
+        }
+
+        return redirect()->away($checkoutUrl);
     }
 }
