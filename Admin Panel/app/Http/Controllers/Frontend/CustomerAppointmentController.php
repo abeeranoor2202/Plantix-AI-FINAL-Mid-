@@ -108,13 +108,21 @@ class CustomerAppointmentController extends Controller
         return view('customer.appointment-book', compact('experts'));
     }
 
-    public function store(StoreAppointmentRequest $request): RedirectResponse
+    public function store(StoreAppointmentRequest $request): JsonResponse|RedirectResponse
     {
         $user = auth('web')->user();
-        $this->service->book($user, $request->validated());
+        $booking = $this->service->book($user, $request->validated());
 
-        return redirect()->route('appointments')
-                         ->with('success', 'Appointment booked! You will receive a confirmation email.');
+        $checkoutUrl = $booking['checkout_url'] ?? route('appointments');
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'success'      => true,
+                'redirect_url' => $checkoutUrl,
+            ]);
+        }
+
+        return redirect()->away($checkoutUrl);
     }
 
     public function show(int $id): View

@@ -490,7 +490,12 @@ document.addEventListener('DOMContentLoaded', function () {
             }
 
             if (response.ok) {
-                window.location.href = '{{ route('appointments') }}';
+                const payload = await response.json();
+                if (payload.redirect_url) {
+                    window.location.href = payload.redirect_url;
+                } else {
+                    window.location.href = '{{ route('appointments') }}';
+                }
                 return;
             }
 
