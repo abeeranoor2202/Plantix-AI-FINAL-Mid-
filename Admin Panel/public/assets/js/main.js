@@ -487,12 +487,46 @@
 							comments: $('#comments').val()
 						},
 						function(data) {
-							document.getElementById('message').innerHTML = data;
-							$('#message').slideDown('slow');
 							$('.contact-form img.loader').fadeOut('slow', function() {
-								$(this).remove()
+								$(this).remove();
 							});
 							$('#submit').removeAttr('disabled');
+
+                            // Determine if success or error based on the returned HTML from contact.php
+                            var isSuccess = data.indexOf('alert-success') !== -1;
+                            var messageText = isSuccess ? 'Your message has been submitted successfully.' : 'There was an error submitting your message.';
+                            
+                            // Try to extract the h3 or p text if it exists
+                            var tmpDiv = document.createElement('div');
+                            tmpDiv.innerHTML = data;
+                            var h3 = tmpDiv.querySelector('h3');
+                            if (h3 && isSuccess) messageText = h3.innerText;
+
+							const toastRoot = document.getElementById('platform-toast-root');
+							if (toastRoot && window.bootstrap && bootstrap.Toast) {
+								const toastEl = document.createElement('div');
+								const type = isSuccess ? 'success' : 'danger';
+								toastEl.className = 'toast align-items-center text-bg-' + type + ' border-0 mb-2';
+								toastEl.setAttribute('role', 'alert');
+								toastEl.setAttribute('aria-live', 'assertive');
+								toastEl.setAttribute('aria-atomic', 'true');
+								toastEl.innerHTML =
+									'<div class="d-flex">' +
+									'<div class="toast-body">' + messageText + '</div>' +
+									'<button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>' +
+									'</div>';
+
+								toastRoot.appendChild(toastEl);
+								new bootstrap.Toast(toastEl, { delay: 4000 }).show();
+                                
+                                if (isSuccess) {
+                                    formInstance[0].reset(); // Clear the form
+                                }
+							} else {
+                                // Fallback to original inline message
+							    document.getElementById('message').innerHTML = data;
+							    $('#message').slideDown('slow');
+                            }
 						}
 					);
 				});
