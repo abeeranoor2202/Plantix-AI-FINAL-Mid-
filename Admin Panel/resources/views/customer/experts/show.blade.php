@@ -362,7 +362,7 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     // Star rating display
-    document.querySelectorAll('.star-rating').forEach(container => {
+    document.querySelectorAll('.expert-star-rating').forEach(container => {
         const val = parseFloat(container.dataset.rating || 0);
         let html = '';
         for (let i = 1; i <= 5; i++) {
@@ -470,7 +470,7 @@ document.addEventListener('DOMContentLoaded', function () {
                                 {{-- Rating --}}
                                 <div class="text-md-end text-start mt-2 mt-md-0">
                                     @if($expert->rating_avg > 0)
-                                    <div class="star-rating mb-1 fs-5" data-rating="{{ $expert->rating_avg }}"></div>
+                                    <div class="expert-star-rating text-nowrap mb-1 fs-5" data-rating="{{ $expert->rating_avg }}"></div>
                                     <div class="fw-bold" style="font-size:22px;color:#1a1a1a;line-height:1;">{{ number_format($expert->rating_avg, 1) }}</div>
                                     <div class="text-muted" style="font-size:11px;">Rating</div>
                                     @endif
