@@ -82,7 +82,7 @@
                 <div class="col-lg-3 col-md-6 service-one-single">
                     <div class="service-style-one-item">
                         <div class="thumb">
-                            <img src="{{ asset('assets/img/illustration/2.png') }}" alt="Crop Recommendation">
+                            <img src="{{ asset('assets/img/illustration/crop_rec_icon.png') }}" alt="Crop Recommendation">
                         </div>
                         <div class="info">
                             <div class="top">
@@ -100,7 +100,7 @@
                 <div class="col-lg-3 col-md-6 service-one-single">
                     <div class="service-style-one-item">
                         <div class="thumb">
-                            <img src="{{ asset('assets/img/illustration/3.png') }}" alt="Crop Planning">
+                            <img src="{{ asset('assets/img/illustration/crop_plan_icon.png') }}" alt="Crop Planning">
                         </div>
                         <div class="info">
                             <div class="top">
@@ -118,7 +118,7 @@
                 <div class="col-lg-3 col-md-6 service-one-single">
                     <div class="service-style-one-item">
                         <div class="thumb">
-                            <img src="{{ asset('assets/img/illustration/4.png') }}" alt="Plant Disease Identification">
+                            <img src="{{ asset('assets/img/illustration/disease_id_icon.png') }}" alt="Plant Disease Identification">
                         </div>
                         <div class="info">
                             <div class="top">
@@ -137,7 +137,7 @@
                 <div class="col-lg-3 col-md-6 service-one-single">
                     <div class="service-style-one-item">
                         <div class="thumb">
-                            <img src="{{ asset('assets/img/illustration/5.png') }}" alt="Fertilizer Recommendation">
+                            <img src="{{ asset('assets/img/illustration/fertilizer_rec_icon.png') }}" alt="Fertilizer Recommendation">
                         </div>
                         <div class="info">
                             <div class="top">
