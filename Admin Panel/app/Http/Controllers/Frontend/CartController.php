@@ -221,7 +221,13 @@ class CartController extends Controller
     {
         $request->validate(['code' => 'required|string|max:100']);
 
-        $cart = $this->getOrCreateCart();
+        $cart = $this->getUserCart();
+        if (! $cart) {
+            $message = 'Your cart is empty. Add items before applying a coupon.';
+            return $request->expectsJson()
+                ? response()->json(['error' => $message], 422)
+                : back()->withErrors(['coupon' => $message]);
+        }
         $user = auth('web')->user();
 
         try {
