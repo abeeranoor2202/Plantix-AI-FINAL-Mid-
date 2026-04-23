@@ -105,9 +105,10 @@ class AppointmentService
                 'slot_id' => 'Selected slot does not belong to the selected expert.',
             ]);
         }
-        $scheduledAt = Carbon::parse($slot->date . ' ' . $slot->start_time);
-        $duration = (int) max(1, Carbon::parse($slot->date . ' ' . $slot->start_time)
-            ->diffInMinutes(Carbon::parse($slot->date . ' ' . $slot->end_time)));
+        $dateStr = $slot->date instanceof \Carbon\Carbon ? $slot->date->toDateString() : substr((string) $slot->date, 0, 10);
+        $scheduledAt = Carbon::parse($dateStr . ' ' . $slot->start_time);
+        $duration = (int) max(1, Carbon::parse($dateStr . ' ' . $slot->start_time)
+            ->diffInMinutes(Carbon::parse($dateStr . ' ' . $slot->end_time)));
 
         $this->schedule->assertBookingAllowed($expert, $scheduledAt, $type, $duration);
         $location = $type === 'physical' ? $this->schedule->resolveLocation($expert) : null;
