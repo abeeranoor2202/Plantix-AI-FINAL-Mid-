@@ -104,8 +104,17 @@ class CustomerAppointmentController extends Controller
 
     public function create(): View
     {
-        $experts = Expert::with(['user', 'profile'])->available()->get();
-        return view('customer.appointment-book', compact('experts'));
+        $experts = Expert::with(['user', 'profile'])
+            ->available()
+            ->get()
+            ->sortBy(fn ($e) => $e->user?->name ?? '')
+            ->values();
+
+        // Default to Dr. Ahmed Raza; fall back to first available expert
+        $defaultExpert = $experts->firstWhere(fn ($e) => str_contains(strtolower($e->user?->name ?? ''), 'ahmed raza'))
+            ?? $experts->first();
+
+        return view('customer.appointment-book', compact('experts', 'defaultExpert'));
     }
 
     public function store(StoreAppointmentRequest $request): JsonResponse|RedirectResponse
