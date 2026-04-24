@@ -6,7 +6,7 @@
 @hasSection('header')
     @yield('header')
 @else
-    @include('partials.header-notopbar')
+    @include('partials.header-agri')
 @endif
 
 <div class="container-fluid">
