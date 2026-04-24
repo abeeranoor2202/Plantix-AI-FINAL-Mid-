@@ -96,7 +96,8 @@ class AvailabilityService
             throw new \DomainException('Slot does not belong to this expert.');
         }
 
-        $slotDate = Carbon::parse($slot->date . ' ' . $slot->start_time);
+        $dateStr = $slot->date instanceof \Carbon\Carbon ? $slot->date->toDateString() : substr((string) $slot->date, 0, 10);
+        $slotDate = Carbon::parse($dateStr . ' ' . $slot->start_time);
         if ($slotDate->isPast()) {
             throw new \DomainException('You cannot book a slot in the past.');
         }
@@ -108,13 +109,14 @@ class AvailabilityService
 
         // Sync scheduled_at, scheduled_date, start_time, end_time on appointment
         $appointment->updateQuietly([
-            'scheduled_at'   => Carbon::parse($slot->date . ' ' . $slot->start_time),
+            'scheduled_at'   => $slotDate,
             'scheduled_date' => $slot->date,
             'start_time'     => $slot->start_time,
             'end_time'       => $slot->end_time,
         ]);
 
-        Cache::forget($this->cacheKey($slot->expert_id, $slot->date));
+        // Always use toDateString() so the cache key matches getAvailableSlots()
+        Cache::forget($this->cacheKey($slot->expert_id, $dateStr));
 
         return $slot;
     }
@@ -130,8 +132,12 @@ class AvailabilityService
             return; // slot may have been manually assigned — nothing to release
         }
 
+        $dateStr = $slot->date instanceof \Carbon\Carbon ? $slot->date->toDateString() : substr((string) $slot->date, 0, 10);
+
         $slot->update(['is_booked' => false, 'appointment_id' => null]);
-        Cache::forget($this->cacheKey($slot->expert_id, $slot->date));
+
+        // Always use toDateString() so the cache key matches getAvailableSlots()
+        Cache::forget($this->cacheKey($slot->expert_id, $dateStr));
     }
 
     /**
