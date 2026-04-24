@@ -47,7 +47,9 @@ class ExpertForumController extends Controller
 
         ['thread' => $thread, 'replies' => $replies] = $this->forum->showThread($thread);
 
-        return view('expert.forum.show', compact('thread', 'replies'));
+        $status = $thread->status;
+
+        return view('expert.forum.show', compact('thread', 'replies', 'status'));
     }
 
     // ── Reply ─────────────────────────────────────────────────────────────────
