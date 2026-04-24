@@ -166,7 +166,10 @@ class ExpertAppointmentController extends Controller
             abort(404);
         }
 
-        if (! $appointment->canBeAccepted()) {
+        if (! in_array($appointment->status, [
+            Appointment::STATUS_PENDING_EXPERT_APPROVAL,
+            Appointment::STATUS_PENDING,
+        ], true)) {
             return back()->with('error', 'Only pending appointments can be deleted.');
         }
 
