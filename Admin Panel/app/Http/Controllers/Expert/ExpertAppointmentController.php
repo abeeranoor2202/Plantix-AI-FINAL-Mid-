@@ -43,10 +43,14 @@ class ExpertAppointmentController extends Controller
         return view('expert.appointments.index', compact('appointments', 'stats', 'filters'));
     }
 
-    public function show(Appointment $appointment): View
+    public function show(Appointment $appointment): View|RedirectResponse
     {
         $expert = $this->currentExpert();
-        abort_unless((int) $appointment->expert_id === (int) $expert->id, 403);
+
+        if ((int) $appointment->expert_id !== (int) $expert->id) {
+            return redirect()->route('expert.appointments.index')
+                ->with('error', 'This appointment does not belong to you.');
+        }
 
         $appointment->load(['user', 'expert.profile', 'statusHistory.changedBy', 'reschedules.requestedBy']);
 
@@ -56,7 +60,10 @@ class ExpertAppointmentController extends Controller
     public function edit(Appointment $appointment): View
     {
         $expert = $this->currentExpert();
-        abort_unless((int) $appointment->expert_id === (int) $expert->id, 403);
+
+        if ((int) $appointment->expert_id !== (int) $expert->id) {
+            abort(404);
+        }
 
         if (in_array($appointment->status, [
             Appointment::STATUS_COMPLETED,
@@ -72,7 +79,10 @@ class ExpertAppointmentController extends Controller
     public function update(Request $request, Appointment $appointment): RedirectResponse
     {
         $expert = $this->currentExpert();
-        abort_unless((int) $appointment->expert_id === (int) $expert->id, 403);
+
+        if ((int) $appointment->expert_id !== (int) $expert->id) {
+            abort(404);
+        }
 
         if (in_array($appointment->status, [
             Appointment::STATUS_COMPLETED,
@@ -151,7 +161,10 @@ class ExpertAppointmentController extends Controller
     public function destroy(Appointment $appointment): RedirectResponse
     {
         $expert = $this->currentExpert();
-        abort_unless((int) $appointment->expert_id === (int) $expert->id, 403);
+
+        if ((int) $appointment->expert_id !== (int) $expert->id) {
+            abort(404);
+        }
 
         if (! $appointment->canBeAccepted()) {
             return back()->with('error', 'Only pending appointments can be deleted.');

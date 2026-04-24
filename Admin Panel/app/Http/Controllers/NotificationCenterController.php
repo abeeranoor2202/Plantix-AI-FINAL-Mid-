@@ -135,11 +135,27 @@ class NotificationCenterController extends Controller
 
     public function expertOpen(ExpertNotificationLog $notification): RedirectResponse
     {
-        $this->service->markExpertRead($notification, $this->currentExpert());
+        $expert = $this->currentExpert();
+        $this->service->markExpertRead($notification, $expert);
 
         $target = $notification->action_url ?: data_get($notification->data, 'action_url');
 
         if (is_string($target) && $target !== '') {
+            // If the URL points to an appointment, verify the expert owns it
+            // before redirecting — prevents 403/404 from stale or mismatched notifications.
+            if (preg_match('#/expert/appointments/(\d+)#', $target, $m)) {
+                $appointmentId = (int) $m[1];
+                $ownsIt = \App\Models\Appointment::where('id', $appointmentId)
+                    ->where('expert_id', $expert->id)
+                    ->exists();
+
+                if (! $ownsIt) {
+                    // Appointment doesn't belong to this expert — go to list instead
+                    return redirect()->route('expert.appointments.index')
+                        ->with('info', 'This appointment is no longer available or was assigned to another expert.');
+                }
+            }
+
             return redirect()->to($target);
         }
 

@@ -20,11 +20,11 @@ Route::prefix('expert')->name('expert.')->group(function () {
     // ── Expert Auth (guest-only) ──────────────────────────────────────────────
     Route::middleware('guest:expert')->group(function () {
         Route::get('/login',  [\App\Http\Controllers\Expert\Auth\ExpertLoginController::class, 'showLoginForm'])->name('login');
-        Route::post('/login', [\App\Http\Controllers\Expert\Auth\ExpertLoginController::class, 'login'])->middleware('throttle:5,1');
+        Route::post('/login', [\App\Http\Controllers\Expert\Auth\ExpertLoginController::class, 'login']);
 
         // Registration
         Route::get('/register',  [\App\Http\Controllers\Expert\Auth\ExpertRegisterController::class, 'showRegistrationForm'])->name('register');
-        Route::post('/register', [\App\Http\Controllers\Expert\Auth\ExpertRegisterController::class, 'register'])->middleware('throttle:5,10');
+        Route::post('/register', [\App\Http\Controllers\Expert\Auth\ExpertRegisterController::class, 'register']);
 
         Route::get('/password/email',         [\App\Http\Controllers\Expert\Auth\ExpertForgotPasswordController::class, 'showLinkRequestForm'])->name('password.request');
         Route::post('/password/email',        [\App\Http\Controllers\Expert\Auth\ExpertForgotPasswordController::class, 'sendResetLinkEmail'])->name('password.email');
@@ -61,8 +61,7 @@ Route::prefix('expert')->name('expert.')->group(function () {
         Route::prefix('forum')->name('forum.')->group(function () {
             Route::get('/',                            [\App\Http\Controllers\Expert\ExpertForumController::class, 'index'])->name('index');
             Route::get('/{thread}',                    [\App\Http\Controllers\Expert\ExpertForumController::class, 'show'])->name('show');
-            Route::post('/{thread}/reply',             [\App\Http\Controllers\Expert\ExpertForumController::class, 'reply'])->name('reply')
-                ->middleware('throttle:10,1');
+            Route::post('/{thread}/reply',             [\App\Http\Controllers\Expert\ExpertForumController::class, 'reply'])->name('reply');
             Route::patch('/replies/{reply}/official',  [\App\Http\Controllers\Expert\ExpertForumController::class, 'markOfficial'])->name('replies.official');
         });
 

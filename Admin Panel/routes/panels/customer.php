@@ -37,7 +37,7 @@ Route::get('/contact',   fn () => view('customer.contact'))->name('contact');
 
 Route::middleware('guest:web')->group(function () {
     Route::get('/signin',  [\App\Http\Controllers\Frontend\Auth\CustomerLoginController::class, 'showLoginForm'])->name('signin');
-    Route::post('/signin', [\App\Http\Controllers\Frontend\Auth\CustomerLoginController::class, 'login'])->name('login')->middleware('throttle:5,1');
+    Route::post('/signin', [\App\Http\Controllers\Frontend\Auth\CustomerLoginController::class, 'login'])->name('login');
 
     Route::get('/signup',  [\App\Http\Controllers\Frontend\Auth\CustomerRegisterController::class, 'showRegistrationForm'])->name('signup');
     Route::post('/signup', [\App\Http\Controllers\Frontend\Auth\CustomerRegisterController::class, 'register'])->name('register');
@@ -54,7 +54,7 @@ Route::post('/signout', [\App\Http\Controllers\Frontend\Auth\CustomerLoginContro
 Route::middleware('auth:web')->group(function () {
     Route::get('/email/verify',                   fn () => view('customer.email-verification'))->name('verification.notice');
     Route::get('/email/verify/{id}/{hash}',        [\App\Http\Controllers\Frontend\Auth\CustomerVerificationController::class, 'verify'])->middleware('signed')->name('verification.verify');
-    Route::post('/email/verification-notification', [\App\Http\Controllers\Frontend\Auth\CustomerVerificationController::class, 'resend'])->middleware('throttle:6,1')->name('verification.send');
+    Route::post('/email/verification-notification', [\App\Http\Controllers\Frontend\Auth\CustomerVerificationController::class, 'resend'])->name('verification.send');
 });
 
 // ══════════════════════════════════════════════════════════════════════════════
@@ -86,18 +86,13 @@ Route::middleware(['customer', 'verified'])->group(function () {
 
     Route::get('/dashboard', [\App\Http\Controllers\Frontend\CustomerDashboardController::class, 'index'])->name('customer.dashboard');
 
-    // ── Forum (write operations) ──────────────────────────────────────────────
-    // Rate limits: thread creation (5/min), replies (10/min), flags (3/min)
-    Route::post('/forum',                        [\App\Http\Controllers\Frontend\ForumController::class, 'store'])->name('forum.store')
-        ->middleware('throttle:5,1');
-    Route::post('/forum/{thread}/reply',         [\App\Http\Controllers\Frontend\ForumController::class, 'reply'])->name('forum.reply')
-        ->middleware('throttle:10,1');
-    Route::post('/forum/{thread}/flag',          [\App\Http\Controllers\Frontend\ForumController::class, 'flagThread'])->name('forum.thread.flag')
-        ->middleware('throttle:3,1');
+    // Forum write operations
+    Route::post('/forum',                        [\App\Http\Controllers\Frontend\ForumController::class, 'store'])->name('forum.store');
+    Route::post('/forum/{thread}/reply',         [\App\Http\Controllers\Frontend\ForumController::class, 'reply'])->name('forum.reply');
+    Route::post('/forum/{thread}/flag',          [\App\Http\Controllers\Frontend\ForumController::class, 'flagThread'])->name('forum.thread.flag');
     Route::patch('/forum/replies/{reply}',       [\App\Http\Controllers\Frontend\ForumController::class, 'editReply'])->name('forum.reply.edit');
     Route::delete('/forum/replies/{reply}',      [\App\Http\Controllers\Frontend\ForumController::class, 'destroyReply'])->name('forum.reply.destroy');
-    Route::post('/forum/replies/{reply}/flag',   [\App\Http\Controllers\Frontend\ForumController::class, 'flagReply'])->name('forum.reply.flag')
-        ->middleware('throttle:3,1');
+    Route::post('/forum/replies/{reply}/flag',   [\App\Http\Controllers\Frontend\ForumController::class, 'flagReply'])->name('forum.reply.flag');
 
     // ── Cart ──────────────────────────────────────────────────────────────────
     Route::get('/cart',             [\App\Http\Controllers\Frontend\CartController::class, 'index'])->name('cart');
@@ -171,7 +166,7 @@ Route::middleware(['customer', 'verified'])->group(function () {
 
     // ── AI Agriculture: Disease Identification ────────────────────────────────
     Route::get('/disease-identification',   [\App\Http\Controllers\Frontend\DiseaseIdentificationController::class, 'index'])->name('disease.identification');
-    Route::post('/disease-identification',  [\App\Http\Controllers\Frontend\DiseaseIdentificationController::class, 'detect'])->name('disease.detect')->middleware('throttle:disease-detect');
+    Route::post('/disease-identification',  [\App\Http\Controllers\Frontend\DiseaseIdentificationController::class, 'detect'])->name('disease.detect');
     Route::get('/disease/{id}',             [\App\Http\Controllers\Frontend\DiseaseIdentificationController::class, 'show'])->name('disease.show');
     Route::get('/disease/{id}/status',      [\App\Http\Controllers\Frontend\DiseaseIdentificationController::class, 'pollStatus'])->name('disease.poll');
     Route::get('/disease-history',          [\App\Http\Controllers\Frontend\DiseaseIdentificationController::class, 'history'])->name('disease.history');
@@ -197,7 +192,7 @@ Route::middleware(['customer', 'verified'])->group(function () {
     Route::get('/notifications/{notification}/open', [\App\Http\Controllers\NotificationCenterController::class, 'open'])->name('notifications.open');
     // ── AI Chat (Plantix AI Assistant) ────────────────────────────────────────
     Route::get('/plantix-ai',            [\App\Http\Controllers\Frontend\AiChatController::class, 'index'])->name('ai.chat');
-    Route::post('/plantix-ai/message',   [\App\Http\Controllers\Frontend\AiChatController::class, 'message'])->name('ai.chat.message')->middleware('throttle:ai-chat');
+    Route::post('/plantix-ai/message',   [\App\Http\Controllers\Frontend\AiChatController::class, 'message'])->name('ai.chat.message');
     Route::get('/plantix-ai/history',    [\App\Http\Controllers\Frontend\AiChatController::class, 'history'])->name('ai.chat.history');
     Route::post('/plantix-ai/new',       [\App\Http\Controllers\Frontend\AiChatController::class, 'newSession'])->name('ai.chat.new');
     Route::get('/plantix-ai/sessions',   [\App\Http\Controllers\Frontend\AiChatController::class, 'sessions'])->name('ai.chat.sessions');

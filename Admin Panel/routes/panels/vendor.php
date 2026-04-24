@@ -21,7 +21,7 @@ Route::prefix('vendor')->name('vendor.')->group(function () {
     // ── Vendor Auth (guest-only) ──────────────────────────────────────────────
     Route::middleware('guest:vendor')->group(function () {
         Route::get('/login',  [\App\Http\Controllers\Vendor\Auth\VendorLoginController::class, 'showLoginForm'])->name('login');
-        Route::post('/login', [\App\Http\Controllers\Vendor\Auth\VendorLoginController::class, 'login'])->middleware('throttle:5,1');
+        Route::post('/login', [\App\Http\Controllers\Vendor\Auth\VendorLoginController::class, 'login']);
 
         // Registration
         Route::get('/register',  [\App\Http\Controllers\Vendor\Auth\VendorRegisterController::class, 'showRegistrationForm'])->name('register');

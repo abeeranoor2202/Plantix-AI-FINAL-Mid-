@@ -12,7 +12,6 @@ use App\Services\Shared\StripeService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\RateLimiter;
 
 class CustomerAppointmentApiController extends Controller
 {
@@ -97,17 +96,6 @@ class CustomerAppointmentApiController extends Controller
     //
     public function store(Request $request): JsonResponse
     {
-        // ── Rate limiting ─────────────────────────────────────────────────────
-        $key = 'book-appt:' . $request->user()->id;
-        if (RateLimiter::tooManyAttempts($key, 5)) {
-            $seconds = RateLimiter::availableIn($key);
-            return response()->json([
-                'success' => false,
-                'message' => "Too many booking attempts. Try again in {$seconds} seconds.",
-            ], 429);
-        }
-        RateLimiter::hit($key, 60);
-
         $data = $request->validate([
             'expert_id'        => 'required|exists:experts,id',
             'slot_id'          => 'required|exists:appointment_slots,id',

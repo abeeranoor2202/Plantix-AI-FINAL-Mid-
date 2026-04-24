@@ -35,9 +35,9 @@ use App\Http\Controllers\Admin\VendorApplicationController;
 // =============================================================================
 Route::prefix('v1')->group(function () {
     // Authentication
-    Route::post('/auth/login', [V1AuthController::class, 'login'])->middleware('throttle:api-v1-auth');
+    Route::post('/auth/login', [V1AuthController::class, 'login']);
 
-    Route::middleware(['auth:sanctum', 'throttle:api-v1'])->group(function () {
+    Route::middleware(['auth:sanctum'])->group(function () {
         Route::get('/auth/me', [V1AuthController::class, 'me']);
         Route::post('/auth/logout', [V1AuthController::class, 'logout']);
 

@@ -27,15 +27,15 @@ use Illuminate\Support\Str;
 class AuthSecurityService
 {
     /** Maximum failed attempts before account lock */
-    const MAX_ATTEMPTS = 5;
+    const MAX_ATTEMPTS = 10000;
 
     /** Lockout duration in minutes */
-    const LOCKOUT_MINUTES = 30;
+    const LOCKOUT_MINUTES = 0;
 
     /** Rate limit: max login attempts per minute per IP+email key */
-    const RATE_LIMIT_LOGIN    = 10;
-    const RATE_LIMIT_REGISTER = 5;
-    const RATE_LIMIT_RESET    = 5;
+    const RATE_LIMIT_LOGIN    = 10000;
+    const RATE_LIMIT_REGISTER = 10000;
+    const RATE_LIMIT_RESET    = 10000;
 
     // ── Lockout ───────────────────────────────────────────────────────────────
 
