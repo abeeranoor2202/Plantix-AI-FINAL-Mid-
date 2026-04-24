@@ -539,18 +539,20 @@
 		    GSAP animation
 		================================================== */
 
-		gsap.set(".animation-shape", {
-			yPercent: 10
-		});
+		if (document.querySelectorAll(".animation-shape").length > 0) {
+			gsap.set(".animation-shape", {
+				yPercent: 10
+			});
 
-		gsap.to(".animation-shape", {
-			yPercent: -100,
-			ease: "none",
-			scrollTrigger: {
-				trigger: ".animation-shape",
-				scrub: 1
-			},
-		});
+			gsap.to(".animation-shape", {
+				yPercent: -100,
+				ease: "none",
+				scrollTrigger: {
+					trigger: ".animation-shape",
+					scrub: 1
+				},
+			});
+		}
 
 
 	}); // end document ready function
