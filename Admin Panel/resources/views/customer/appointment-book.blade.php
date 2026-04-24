@@ -154,6 +154,11 @@
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     const bookingForm = document.getElementById('appointmentBookingForm');
+    if (!bookingForm || bookingForm.dataset.boundSubmitHandler === '1') {
+        return;
+    }
+    bookingForm.dataset.boundSubmitHandler = '1';
+
     const expertSelect = document.getElementById('expertSelect');
     const typeSelect = document.getElementById('appointmentType');
     const slotDate = document.getElementById('slotDate');
@@ -173,6 +178,7 @@ document.addEventListener('DOMContentLoaded', function () {
     let activeDate = '';
     let hasAvailableSlots = false;
     let currentSlotsRequestId = 0;
+    let isSubmitting = false;
 
     function updateLocation() {
         const selected = expertSelect?.selectedOptions?.[0];
@@ -318,7 +324,12 @@ document.addEventListener('DOMContentLoaded', function () {
                     headers: { 'X-Requested-With': 'XMLHttpRequest' },
                     signal,
                 });
-                if (!response.ok) continue;
+                if (!response.ok) {
+                    if (response.status === 401 || response.status === 403) {
+                        return null; // Stop polling if session expired
+                    }
+                    continue;
+                }
                 const payload = await response.json();
                 const slots = Array.isArray(payload.slots) ? payload.slots : [];
                 if (slots.length > 0) {
@@ -414,6 +425,12 @@ document.addEventListener('DOMContentLoaded', function () {
                 headers: { 'X-Requested-With': 'XMLHttpRequest' },
                 signal: activeSlotsRequest.signal,
             });
+            
+            if (response.status === 401) {
+                window.location.reload(); // Let Laravel handle redirecting to login
+                return;
+            }
+
             const payload = await response.json();
             if (requestId !== currentSlotsRequestId || slotDate.value !== date || expertSelect.value !== expertId) {
                 return;
@@ -464,6 +481,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
     bookingForm?.addEventListener('submit', async function (event) {
         event.preventDefault();
+        if (isSubmitting) {
+            return;
+        }
+
         clearInlineError();
         if (!slotSelect.value) {
             showInlineError('Please choose an available slot before booking.');
@@ -471,6 +492,7 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
         }
 
+        isSubmitting = true;
         if (confirmBookingBtn) {
             confirmBookingBtn.disabled = true;
             confirmBookingBtn.textContent = 'Checking availability...';
@@ -500,15 +522,20 @@ document.addEventListener('DOMContentLoaded', function () {
             }
 
             const payload = await response.json().catch(() => ({}));
+            if (response.status === 422 && payload?.errors) {
+                console.warn('Appointment validation failed', payload.errors);
+            }
             const firstError = payload?.errors
                 ? Object.values(payload.errors).flat()[0]
                 : (payload?.message || 'Selected slot is no longer available');
+                
+            await loadSlots();
             showInlineError(String(firstError || 'Selected slot is no longer available'));
-            await loadSlots();
         } catch (error) {
-            showInlineError('Selected slot is no longer available');
             await loadSlots();
+            showInlineError('Selected slot is no longer available');
         } finally {
+            isSubmitting = false;
             if (confirmBookingBtn) {
                 confirmBookingBtn.textContent = 'Confirm Booking';
             }
