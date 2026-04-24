@@ -12,9 +12,9 @@
 <div class="py-5" style="background: var(--agri-bg); min-height: calc(100vh - 80px);">
     <div class="container-agri pb-5 mb-5">
         <div class="row pt-4 justify-content-center">
-            <div class="col-lg-8">
+            <div class="col-xl-10 col-lg-11">
                 
-                <div class="mb-4 d-flex align-items-center justify-content-between flex-wrap gap-3">
+                <div class="mb-4 d-flex align-items-center justify-content-between gap-3 flex-column flex-md-row">
                     <div class="d-flex align-items-center gap-3">
                         <a href="{{ route('appointments') }}" class="btn-agri btn-agri-outline d-flex align-items-center p-2 rounded-circle border-0" style="width: 40px; height: 40px; justify-content: center; background: white; box-shadow: var(--agri-shadow-sm);">
                             <i class="fas fa-arrow-left"></i>
@@ -41,9 +41,9 @@
                     </div>
                 </div>
 
-                @if(session('success'))
-                    <x-alert variant="success" class="mb-4">{{ session('success') }}</x-alert>
-                @endif
+                @error('error')
+                    <x-alert variant="danger" class="mb-4">{{ $message }}</x-alert>
+                @enderror
 
                 <div class="card-agri p-0 overflow-hidden border-0 mb-4">
                     <div class="p-4" style="background: var(--agri-primary-dark); color: white;">
