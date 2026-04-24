@@ -68,7 +68,6 @@ class Appointment extends Model
         'reschedule_requested_at', 'accepted_at', 'rejected_at',
         'cancelled_at', 'completed_at', 'reject_reason',
         'reminder_sent_at', 'payment_idempotency_key',
-        'customer_rating', 'customer_review', 'rated_at',
     ];
 
     protected $casts = [
