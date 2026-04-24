@@ -119,6 +119,8 @@ class AppointmentStatusService
                     'appointment_id' => $appointment->id,
                 ]);
 
+                $fromStatus = $appointment->status;
+
                 $appointment->update([
                     'scheduled_at' => $proposedAt,
                     'scheduled_date' => $targetSlot->date,
@@ -241,6 +243,7 @@ class AppointmentStatusService
         $allowed = [
             Appointment::STATUS_CONFIRMED => [Appointment::STATUS_RESCHEDULE_REQUESTED],
             Appointment::STATUS_RESCHEDULE_REQUESTED => [Appointment::STATUS_RESCHEDULED, Appointment::STATUS_CONFIRMED],
+            Appointment::STATUS_RESCHEDULED => [Appointment::STATUS_RESCHEDULE_REQUESTED],
         ];
 
         $transitions = $allowed[$appointment->status] ?? [];
