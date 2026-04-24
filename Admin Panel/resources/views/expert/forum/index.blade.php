@@ -81,7 +81,14 @@
                 <tr>
                     <td class="px-4 py-3">
                         <div style="font-weight: 700; color: var(--agri-text-heading);">{{ Str::limit($thread->title, 70) }}</div>
-                        <small class="text-muted">{{ $thread->created_at->diffForHumans() }}</small>
+                        <div style="display: flex; align-items: center; gap: 8px; margin-top: 4px;">
+                            <small class="text-muted">{{ $thread->created_at->diffForHumans() }}</small>
+                            @if($thread->isOpen())
+                                <span style="background: #D1FAE5; color: #065F46; padding: 2px 8px; border-radius: 100px; font-size: 10px; font-weight: 700; border: 1px solid #A7F3D0;">
+                                    <i class="fas fa-reply" style="font-size: 9px;"></i> Open for Reply
+                                </span>
+                            @endif
+                        </div>
                     </td>
                     <td class="px-4 py-3">{{ $thread->user->name ?? 'Farmer' }}</td>
                     <td class="px-4 py-3">{{ optional($thread->category)->name ?? 'General' }}</td>
@@ -98,11 +105,12 @@
                         <x-badge :variant="$statusVariant">{{ ucfirst($thread->status ?? 'open') }}</x-badge>
                     </td>
                     <td class="px-4 py-3 text-end">
-                        <div style="display: inline-flex; gap: 8px;">
-                            <a href="{{ route('expert.forum.show', $thread) }}" class="btn-agri" style="padding: 8px; background: var(--agri-bg); color: #2563eb; border-radius: 999px;" title="View"><i class="fas fa-eye"></i></a>
-                            <button type="button" class="btn-agri" style="padding: 8px; background: var(--agri-bg); color: #9ca3af; border-radius: 999px; border: none;" title="Edit unavailable" disabled><i class="fas fa-pen"></i></button>
-                            <button type="button" class="btn-agri" style="padding: 8px; background: #fef2f2; color: #fca5a5; border-radius: 999px; border: none;" title="Delete unavailable" disabled><i class="fas fa-trash"></i></button>
-                        </div>
+                        <a href="{{ route('expert.forum.show', $thread) }}"
+                           class="btn btn-sm btn-light border rounded-circle d-inline-flex align-items-center justify-content-center"
+                           title="{{ $thread->isOpen() ? 'View & Reply' : 'View' }}"
+                           style="width: 34px; height: 34px;">
+                            <i class="fas fa-eye" style="color: #2563eb;"></i>
+                        </a>
                     </td>
                 </tr>
             @empty

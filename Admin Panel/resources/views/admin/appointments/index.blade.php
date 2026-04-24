@@ -60,26 +60,41 @@
                     @forelse($appointments as $appt)
                         @php
                             $displayStatus = match ($appt->status) {
-                                'confirmed', 'accepted' => 'Confirmed',
-                                'completed' => 'Completed',
-                                'cancelled', 'rejected' => 'Cancelled',
-                                default => 'Pending',
+                                'confirmed', 'accepted'    => 'Confirmed',
+                                'completed'                => 'Completed',
+                                'cancelled', 'rejected'    => 'Cancelled',
+                                'pending_admin_approval'   => 'Awaiting Approval',
+                                'pending_expert_approval'  => 'Pending Expert',
+                                'pending_payment'          => 'Pending Payment',
+                                'payment_failed'           => 'Payment Failed',
+                                default                    => 'Pending',
                             };
-                            $statusColor = match ($displayStatus) {
-                                'Confirmed' => '#059669',
-                                'Completed' => '#0D9488',
-                                'Cancelled' => '#DC2626',
-                                default => '#D97706',
+                            $statusColor = match ($appt->status) {
+                                'confirmed'               => '#059669',
+                                'completed'               => '#0D9488',
+                                'cancelled', 'rejected'   => '#DC2626',
+                                'pending_admin_approval'  => '#D97706',
+                                'pending_expert_approval' => '#7C3AED',
+                                'payment_failed'          => '#DC2626',
+                                default                   => '#6B7280',
                             };
-                            $statusBg = match ($displayStatus) {
-                                'Confirmed' => '#D1FAE5',
-                                'Completed' => '#CCFBF1',
-                                'Cancelled' => '#FEE2E2',
-                                default => '#FEF3C7',
+                            $statusBg = match ($appt->status) {
+                                'confirmed'               => '#D1FAE5',
+                                'completed'               => '#CCFBF1',
+                                'cancelled', 'rejected'   => '#FEE2E2',
+                                'pending_admin_approval'  => '#FEF3C7',
+                                'pending_expert_approval' => '#EDE9FE',
+                                'payment_failed'          => '#FEE2E2',
+                                default                   => '#F3F4F6',
                             };
                         @endphp
-                        <tr>
-                            <td class="px-4 py-3">{{ $appt->user->name ?? 'N/A' }}</td>
+                        <tr @if($appt->status === 'pending_admin_approval') style="background: #fffbeb;" @endif>
+                            <td class="px-4 py-3">
+                                {{ $appt->user->name ?? 'N/A' }}
+                                @if($appt->status === 'pending_admin_approval')
+                                    <div style="font-size: 10px; color: #d97706; font-weight: 700; margin-top: 2px;"><i class="fas fa-exclamation-circle me-1"></i>Action required</div>
+                                @endif
+                            </td>
                             <td class="px-4 py-3">{{ optional($appt->expert)->user->name ?? '—' }}</td>
                             <td class="px-4 py-3">
                                 <div style="display: inline-flex; align-items: center; gap: 8px; color: {{ $appt->type === 'physical' ? '#059669' : '#2563EB' }}; background: {{ $appt->type === 'physical' ? '#D1FAE5' : '#DBEAFE' }}; padding: 4px 10px; border-radius: 999px; font-size: 11px; font-weight: 700; border: 1px solid {{ $appt->type === 'physical' ? '#059669' : '#2563EB' }}30; text-transform: uppercase;">
@@ -99,10 +114,18 @@
                                 </div>
                             </td>
                             <td class="px-4 py-3">
-                                <div class="text-end" style="display: flex; justify-content: flex-end; gap: 8px;">
+                                <div class="text-end" style="display: flex; justify-content: flex-end; gap: 8px; align-items: center;">
+                                    @if($appt->status === 'pending_admin_approval')
+                                        <form method="POST" action="{{ route('admin.appointments.approve', $appt->id) }}" style="display:inline;">
+                                            @csrf
+                                            <button type="submit" class="btn-agri" style="padding: 6px 12px; background: #fef3c7; color: #92400e; border-radius: 10px; border: 1px solid #fcd34d; font-size: 11px; font-weight: 700; white-space: nowrap;" title="Approve & Forward to Expert">
+                                                <i class="fas fa-paper-plane me-1"></i> Approve
+                                            </button>
+                                        </form>
+                                    @endif
                                     <a href="{{ route('admin.appointments.show', $appt->id) }}" class="btn-agri" style="padding: 8px; background: var(--agri-bg); color: var(--agri-primary); border-radius: 10px;" title="View"><i class="fas fa-eye"></i></a>
                                     <a href="{{ route('admin.appointments.edit', $appt->id) }}" class="btn-agri" style="padding: 8px; background: var(--agri-bg); color: var(--agri-primary); border-radius: 10px;" title="Edit"><i class="fas fa-edit"></i></a>
-                                    <form action="{{ route('admin.appointments.destroy', $appt->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this appointment? This action cannot be undone.')">
+                                    <form action="{{ route('admin.appointments.destroy', $appt->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this appointment?')">
                                         @csrf
                                         @method('DELETE')
                                         <button type="submit" class="btn-agri" style="padding: 8px; background: #FEF2F2; color: var(--agri-error); border-radius: 10px; border: none;" title="Delete"><i class="fas fa-trash"></i></button>

@@ -192,6 +192,13 @@ Route::prefix('admin')->name('admin.')->group(function () {
             Route::post('/{id}/dispute/resolve', [\App\Http\Controllers\Admin\AdminOrderController::class, 'resolveDispute'])->middleware(['permission:orders,orders.status'])->name('dispute.resolve');
         });
 
+        // ── Expert Payout Requests ────────────────────────────────────────────
+        Route::prefix('/payout-requests')->name('payout-requests.')->group(function () {
+            Route::get('/',              [\App\Http\Controllers\Admin\AdminPayoutRequestController::class, 'index'])->name('index');
+            Route::post('/{id}/approve', [\App\Http\Controllers\Admin\AdminPayoutRequestController::class, 'approve'])->name('approve');
+            Route::post('/{id}/reject',  [\App\Http\Controllers\Admin\AdminPayoutRequestController::class, 'reject'])->name('reject');
+        });
+
         // ── Appointments ──────────────────────────────────────────────────────
         Route::prefix('/appointments')->name('appointments.')->group(function () {
             Route::get('/',                [\App\Http\Controllers\Admin\AdminAppointmentController::class, 'index'])->middleware(['permission:appointments,appointments.view'])->name('index');
@@ -202,6 +209,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
             Route::put('/{id}',            [\App\Http\Controllers\Admin\AdminAppointmentController::class, 'update'])->middleware(['permission:appointments,appointments.edit'])->name('update');
             Route::delete('/{id}',         [\App\Http\Controllers\Admin\AdminAppointmentController::class, 'destroy'])->middleware(['permission:appointments,appointments.edit'])->name('destroy');
             Route::post('/{id}/status',    [\App\Http\Controllers\Admin\AdminAppointmentController::class, 'updateStatus'])->middleware(['permission:appointments,appointments.edit'])->name('status');
+            Route::post('/{id}/approve',   [\App\Http\Controllers\Admin\AdminAppointmentController::class, 'approve'])->middleware(['permission:appointments,appointments.assign'])->name('approve');
             Route::post('/{id}/confirm',   [\App\Http\Controllers\Admin\AdminAppointmentController::class, 'confirm'])->middleware(['permission:appointments,appointments.assign'])->name('confirm');
             Route::post('/{id}/cancel',    [\App\Http\Controllers\Admin\AdminAppointmentController::class, 'cancel'])->middleware(['permission:appointments,appointments.cancel'])->name('cancel');
             Route::post('/{id}/complete',  [\App\Http\Controllers\Admin\AdminAppointmentController::class, 'complete'])->middleware(['permission:appointments,appointments.complete'])->name('complete');

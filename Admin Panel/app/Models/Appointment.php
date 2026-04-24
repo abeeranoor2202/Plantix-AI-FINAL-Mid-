@@ -26,6 +26,7 @@ class Appointment extends Model
     public const STATUS_DRAFT                   = 'draft';
     public const STATUS_PENDING_PAYMENT         = 'pending_payment';
     public const STATUS_PAYMENT_FAILED          = 'payment_failed';
+    public const STATUS_PENDING_ADMIN_APPROVAL  = 'pending_admin_approval';
     public const STATUS_PENDING_EXPERT_APPROVAL = 'pending_expert_approval';
     public const STATUS_CONFIRMED               = 'confirmed';
     public const STATUS_REJECTED                = 'rejected';
@@ -38,8 +39,9 @@ class Appointment extends Model
 
     public const TRANSITIONS = [
         self::STATUS_DRAFT                   => [self::STATUS_PENDING_PAYMENT],
-        self::STATUS_PENDING_PAYMENT         => [self::STATUS_PENDING_EXPERT_APPROVAL, self::STATUS_PAYMENT_FAILED],
+        self::STATUS_PENDING_PAYMENT         => [self::STATUS_PENDING_ADMIN_APPROVAL, self::STATUS_PAYMENT_FAILED],
         self::STATUS_PAYMENT_FAILED          => [self::STATUS_PENDING_PAYMENT],
+        self::STATUS_PENDING_ADMIN_APPROVAL  => [self::STATUS_PENDING_EXPERT_APPROVAL, self::STATUS_CANCELLED],
         self::STATUS_PENDING_EXPERT_APPROVAL => [self::STATUS_CONFIRMED, self::STATUS_REJECTED],
         self::STATUS_CONFIRMED               => [self::STATUS_COMPLETED, self::STATUS_CANCELLED, self::STATUS_RESCHEDULE_REQUESTED],
         self::STATUS_RESCHEDULE_REQUESTED    => [self::STATUS_RESCHEDULED, self::STATUS_CONFIRMED],
@@ -258,6 +260,7 @@ class Appointment extends Model
             self::STATUS_DRAFT                   => 'secondary',
             self::STATUS_PENDING_PAYMENT         => 'warning',
             self::STATUS_PAYMENT_FAILED          => 'danger',
+            self::STATUS_PENDING_ADMIN_APPROVAL  => 'info',
             self::STATUS_PENDING_EXPERT_APPROVAL => 'primary',
             self::STATUS_CONFIRMED               => 'info',
             self::STATUS_REJECTED                => 'danger',
@@ -273,7 +276,8 @@ class Appointment extends Model
     public function getDisplayStatusLabelAttribute(): string
     {
         return match ($this->status) {
-            self::STATUS_PENDING_EXPERT_APPROVAL => 'Pending',
+            self::STATUS_PENDING_ADMIN_APPROVAL  => 'Awaiting Admin Approval',
+            self::STATUS_PENDING_EXPERT_APPROVAL => 'Pending Expert',
             self::STATUS_CONFIRMED               => 'Accepted',
             self::STATUS_REJECTED                => 'Rejected',
             self::STATUS_COMPLETED               => 'Completed',

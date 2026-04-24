@@ -75,7 +75,7 @@ class ExpertBrowseController extends Controller
 
     // ── Expert profile ────────────────────────────────────────────────────────
 
-    public function show(int $id): View
+    public function show($id): View
     {
         $expert = Expert::with([
                 'user',
@@ -97,7 +97,7 @@ class ExpertBrowseController extends Controller
 
     // ── Quick booking from profile page ───────────────────────────────────────
 
-    public function quickBook(Request $request, int $id): JsonResponse|RedirectResponse
+    public function quickBook(Request $request, $id): JsonResponse|RedirectResponse
     {
         $request->validate([
             'slot_id'      => 'required|exists:appointment_slots,id',

@@ -31,10 +31,6 @@
     </div>
 
     <div class="d-inline-flex gap-2 align-items-center">
-        <a href="{{ route('expert.appointments.show', $appointment) }}" class="btn btn-sm btn-light border rounded-circle d-inline-flex align-items-center justify-content-center" title="View">
-            <i class="fas fa-eye text-primary"></i>
-        </a>
-
         @if($canEdit)
             <a href="{{ route('expert.appointments.edit', $appointment) }}" class="btn btn-sm btn-light border rounded-circle d-inline-flex align-items-center justify-content-center" title="Edit">
                 <i class="fas fa-pen text-success"></i>
@@ -237,21 +233,23 @@
     </div>
 </div>
 
+{{-- Modals — outside all cards/tables so Bootstrap 4 can find them --}}
+
 @if($canDelete)
-    <div class="modal fade" id="deleteAppointmentModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
+    <div class="modal fade" id="deleteAppointmentModal" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
             <form method="POST" action="{{ route('expert.appointments.delete', $appointment) }}" class="modal-content">
                 @csrf
                 @method('DELETE')
                 <div class="modal-header">
                     <h5 class="modal-title">Delete Appointment</h5>
-                    <button type="button" class="btn-close" data-dismiss="modal" aria-label="Close"></button>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
                 </div>
                 <div class="modal-body">
                     <p class="mb-0 text-muted">Are you sure you want to delete appointment #{{ $appointment->id }}? This action cannot be undone.</p>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn-agri btn-agri-outline" data-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
                     <button type="submit" class="btn btn-danger">Delete</button>
                 </div>
             </form>
@@ -259,90 +257,90 @@
     </div>
 @endif
 
-<div class="modal fade" id="acceptModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
+<div class="modal fade" id="acceptModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-dialog-centered" role="document">
         <form method="POST" action="{{ route('expert.appointments.accept', $appointment) }}" class="modal-content">
             @csrf
             <div class="modal-header">
                 <h5 class="modal-title">Accept Consultation</h5>
-                <button type="button" class="btn-close" data-dismiss="modal"></button>
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button>
             </div>
             <div class="modal-body">
                 <p class="small text-muted">You are about to accept this consultation request.</p>
                 <div>
                     <label class="form-label text-muted small">Meeting Link {{ $appointment->type === 'online' ? '(required)' : '(optional)' }}</label>
-                    <input type="url" name="meeting_link" class="form-agri" placeholder="https://meet.example.com" {{ $appointment->type === 'online' ? 'required' : '' }}>
+                    <input type="url" name="meeting_link" class="form-control" placeholder="https://meet.example.com" {{ $appointment->type === 'online' ? 'required' : '' }}>
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn-agri btn-agri-outline" data-dismiss="modal">Cancel</button>
-                <button type="submit" class="btn-agri btn-agri-primary">Accept Request</button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                <button type="submit" class="btn btn-success">Accept Request</button>
             </div>
         </form>
     </div>
 </div>
 
-<div class="modal fade" id="rejectModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
+<div class="modal fade" id="rejectModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-dialog-centered" role="document">
         <form method="POST" action="{{ route('expert.appointments.reject', $appointment) }}" class="modal-content">
             @csrf
             <div class="modal-header">
                 <h5 class="modal-title">Reject Consultation</h5>
-                <button type="button" class="btn-close" data-dismiss="modal"></button>
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button>
             </div>
             <div class="modal-body">
                 <label class="form-label text-muted small">Reason for Rejection</label>
-                <textarea name="reason" class="form-agri" rows="4" required minlength="10" placeholder="Provide a clear reason..."></textarea>
+                <textarea name="reason" class="form-control" rows="4" required minlength="10" placeholder="Provide a clear reason..."></textarea>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn-agri btn-agri-outline" data-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
                 <button type="submit" class="btn btn-danger">Decline Request</button>
             </div>
         </form>
     </div>
 </div>
 
-<div class="modal fade" id="completeModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
+<div class="modal fade" id="completeModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-dialog-centered" role="document">
         <form method="POST" action="{{ route('expert.appointments.complete', $appointment) }}" class="modal-content">
             @csrf
             <div class="modal-header">
                 <h5 class="modal-title">Complete Session</h5>
-                <button type="button" class="btn-close" data-dismiss="modal"></button>
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button>
             </div>
             <div class="modal-body">
                 <label class="form-label text-muted small">Consultation Notes (optional)</label>
-                <textarea name="notes" class="form-agri" rows="4" placeholder="Session summary..."></textarea>
+                <textarea name="notes" class="form-control" rows="4" placeholder="Session summary..."></textarea>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn-agri btn-agri-outline" data-dismiss="modal">Cancel</button>
-                <button type="submit" class="btn-agri btn-agri-primary">Mark as Done</button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                <button type="submit" class="btn btn-primary">Mark as Done</button>
             </div>
         </form>
     </div>
 </div>
 
-<div class="modal fade" id="rescheduleModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
+<div class="modal fade" id="rescheduleModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-dialog-centered" role="document">
         <form method="POST" action="{{ route('expert.appointments.reschedule', $appointment) }}" class="modal-content">
             @csrf
             <div class="modal-header">
                 <h5 class="modal-title">Propose Reschedule</h5>
-                <button type="button" class="btn-close" data-dismiss="modal"></button>
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button>
             </div>
             <div class="modal-body">
                 <div class="mb-3">
                     <label class="form-label text-muted small">Suggested New Date & Time</label>
-                    <input type="datetime-local" name="proposed_datetime" class="form-agri" required min="{{ now()->addHour()->format('Y-m-d\\TH:i') }}">
+                    <input type="datetime-local" name="proposed_datetime" class="form-control" required min="{{ now()->addHour()->format('Y-m-d\\TH:i') }}">
                 </div>
                 <div>
                     <label class="form-label text-muted small">Message to Farmer (optional)</label>
-                    <textarea name="reason" class="form-agri" rows="3" placeholder="Explain why you are proposing a new time."></textarea>
+                    <textarea name="reason" class="form-control" rows="3" placeholder="Explain why you are proposing a new time."></textarea>
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn-agri btn-agri-outline" data-dismiss="modal">Cancel</button>
-                <button type="submit" class="btn-agri btn-agri-primary">Send Proposal</button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                <button type="submit" class="btn btn-primary">Send Proposal</button>
             </div>
         </form>
     </div>

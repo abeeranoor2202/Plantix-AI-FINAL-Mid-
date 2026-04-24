@@ -136,7 +136,7 @@
                             @endif
 
                             @if($canDelete)
-                                <button type="button" class="btn btn-sm btn-light border rounded-circle d-inline-flex align-items-center justify-content-center" title="Delete" data-bs-toggle="modal" data-bs-target="#deleteAppointmentModal{{ $appt->id }}">
+                                <button type="button" class="btn btn-sm btn-light border rounded-circle d-inline-flex align-items-center justify-content-center" title="Delete" data-toggle="modal" data-target="#deleteAppointmentModal{{ $appt->id }}">
                                     <i class="fas fa-trash text-danger"></i>
                                 </button>
                             @else
@@ -147,28 +147,6 @@
                         </div>
                     </td>
                 </tr>
-
-                @if($canDelete)
-                    <div class="modal fade" id="deleteAppointmentModal{{ $appt->id }}" tabindex="-1" aria-hidden="true">
-                        <div class="modal-dialog modal-dialog-centered">
-                            <form method="POST" action="{{ route('expert.appointments.delete', $appt) }}" class="modal-content">
-                                @csrf
-                                @method('DELETE')
-                                <div class="modal-header">
-                                    <h5 class="modal-title">Delete Appointment</h5>
-                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                </div>
-                                <div class="modal-body">
-                                    <p class="mb-0 text-muted">Are you sure you want to delete appointment #{{ $appt->id }}? This action cannot be undone.</p>
-                                </div>
-                                <div class="modal-footer">
-                                    <button type="button" class="btn-agri btn-agri-outline" data-bs-dismiss="modal">Cancel</button>
-                                    <button type="submit" class="btn btn-danger">Delete</button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                @endif
             @empty
                 <tr>
                     <td colspan="8" class="text-center py-5 text-muted">
@@ -180,6 +158,31 @@
         </tbody>
     </x-table>
 </x-card>
+
+{{-- Delete confirmation modals — rendered outside the table to avoid invalid HTML --}}
+@foreach($appointments->items() as $appt)
+    @if(in_array($appt->status, ['pending_expert_approval', 'pending'], true))
+        <div class="modal fade" id="deleteAppointmentModal{{ $appt->id }}" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <form method="POST" action="{{ route('expert.appointments.delete', $appt) }}" class="modal-content">
+                    @csrf
+                    @method('DELETE')
+                    <div class="modal-header">
+                        <h5 class="modal-title">Delete Appointment</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    </div>
+                    <div class="modal-body">
+                        <p class="mb-0 text-muted">Are you sure you want to delete appointment #{{ $appt->id }}? This action cannot be undone.</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-danger">Delete</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    @endif
+@endforeach
 
 @if($appointments->hasPages())
     <div class="mt-4 d-flex justify-content-center">

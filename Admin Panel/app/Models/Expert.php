@@ -165,6 +165,11 @@ class Expert extends Model
         return $this->hasMany(ExpertUnavailableDate::class);
     }
 
+    public function payoutRequests(): HasMany
+    {
+        return $this->hasMany(\App\Models\PayoutRequest::class);
+    }
+
     // ── State machine ────────────────────────────────────────────────────────
 
     /**

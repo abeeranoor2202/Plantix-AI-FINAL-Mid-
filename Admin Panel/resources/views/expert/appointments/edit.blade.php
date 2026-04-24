@@ -117,16 +117,16 @@
                                         type="url"
                                         id="meeting_link"
                                         name="meeting_link"
-                                        class="form-agri @error('meeting_link') is-invalid @enderror"
+                                        class="form-control form-agri @error('meeting_link') is-invalid @enderror"
                                         value="{{ old('meeting_link', $appointment->meeting_link) }}"
                                         placeholder="https://..."
                                         required
                                     >
-                                    <button type="button" id="copy-link-btn" class="btn btn-agri btn-agri-outline" title="Copy Link">
-                                        <i class="fas fa-copy"></i> Copy Link
+                                    <button type="button" id="copy-link-btn" class="btn btn-outline-secondary" title="Copy Link">
+                                        <i class="fas fa-copy"></i> Copy
                                     </button>
-                                    <a href="#" id="open-link-btn" class="btn btn-agri btn-agri-outline d-none" target="_blank" rel="noopener noreferrer" title="Open Link">
-                                        <i class="fas fa-external-link-alt"></i> Open Link
+                                    <a href="#" id="open-link-btn" class="btn btn-outline-secondary d-none" target="_blank" rel="noopener noreferrer" title="Open Link">
+                                        <i class="fas fa-external-link-alt"></i> Open
                                     </a>
                                 </div>
                                 @error('meeting_link')
@@ -158,7 +158,7 @@
                 </div>
 
                 <div style="display: flex; gap: 16px; border-top: 1px solid var(--agri-border); padding-top: 32px;">
-                    <button type="submit" class="btn-agri btn-agri-primary" style="flex: 2; height: 50px; font-size: 16px;">
+                    <button type="submit" id="save-btn" class="btn-agri btn-agri-primary" style="flex: 2; height: 50px; font-size: 16px;" data-no-loading>
                         <i class="fas fa-save" style="margin-right: 8px;"></i> Save Changes
                     </button>
                     <a href="{{ route('expert.appointments.show', $appointment) }}" class="btn-agri btn-agri-outline" style="flex: 1; height: 50px; display: flex; align-items: center; justify-content: center; text-decoration: none; font-size: 16px;">
@@ -193,7 +193,8 @@
         margin-top: 6px;
     }
 
-    .input-group .form-agri {
+    .input-group .form-agri,
+    .input-group .form-control {
         border-top-left-radius: 0;
         border-bottom-left-radius: 0;
     }
@@ -326,13 +327,20 @@
             var copyBtn = document.getElementById('copy-link-btn');
             var openBtn = document.getElementById('open-link-btn');
 
+            // Store original date value to detect changes
+            var originalDateValue = dateInput ? dateInput.value : '';
+
             if (dateInput) {
                 dateInput.min = formatMinDate(new Date());
                 dateInput.addEventListener('blur', function () {
-                    validateDateField(dateInput);
+                    if (dateInput.value !== originalDateValue) {
+                        validateDateField(dateInput);
+                    }
                 });
                 dateInput.addEventListener('change', function () {
-                    validateDateField(dateInput);
+                    if (dateInput.value !== originalDateValue) {
+                        validateDateField(dateInput);
+                    }
                 });
             }
 
@@ -374,13 +382,28 @@
             }
 
             form.addEventListener('submit', function (event) {
-                var dateValid = validateDateField(dateInput);
+                var dateValid = (dateInput && dateInput.value !== originalDateValue)
+                    ? validateDateField(dateInput)
+                    : true;
                 var durationValid = validateDurationField(durationInput);
                 var meetingValid = validateMeetingField(meetingInput);
                 syncMeetingActions(meetingInput, openBtn);
 
                 if (!dateValid || !durationValid || !meetingValid) {
                     event.preventDefault();
+                    // Re-enable button so user can fix and resubmit
+                    var btn = document.getElementById('save-btn');
+                    if (btn) {
+                        btn.removeAttribute('disabled');
+                        btn.classList.remove('is-loading');
+                    }
+                } else {
+                    // Valid — show loading state manually
+                    var btn = document.getElementById('save-btn');
+                    if (btn) {
+                        btn.setAttribute('disabled', 'disabled');
+                        btn.innerHTML = '<i class="fas fa-spinner fa-spin" style="margin-right:8px;"></i> Saving...';
+                    }
                 }
             });
         });

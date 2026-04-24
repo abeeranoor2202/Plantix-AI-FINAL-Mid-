@@ -152,7 +152,7 @@ class AppointmentService
                 [
                     'user_id'                  => $user->id,
                     'gateway_transaction_id'   => $pi?->id,
-                    'stripe_session_id'        => $checkout['session']->id,
+                    'stripe_session_id'        => $checkout['session']?->id,
                     'stripe_payment_intent_id' => $pi?->id,
                     'payment_type'             => 'appointment',
                     'amount'                   => $appointment->fee,
@@ -224,6 +224,7 @@ class AppointmentService
             Appointment::STATUS_PENDING_PAYMENT,
             Appointment::STATUS_DRAFT,
             Appointment::STATUS_PAYMENT_FAILED,
+            Appointment::STATUS_PENDING_ADMIN_APPROVAL,
             Appointment::STATUS_PENDING_EXPERT_APPROVAL,
         ])) {
             Log::info("StripeWebhook: Appointment #{$appointment->id} already past pending_payment; ignoring.");
@@ -236,7 +237,7 @@ class AppointmentService
             $updatePayload = [
                 'stripe_payment_status' => $stripeStatus,
                 'payment_status'        => 'paid',
-                'status'                => Appointment::STATUS_PENDING_EXPERT_APPROVAL,
+                'status'                => Appointment::STATUS_PENDING_ADMIN_APPROVAL,
             ];
 
             // Backfill the PI ID if it was null at booking time (Checkout Session flow)
@@ -256,16 +257,58 @@ class AppointmentService
                     'gateway_transaction_id'   => $paymentIntentId,
                 ]);
 
-            $this->recordStatusHistory($appointment, null, $from, Appointment::STATUS_PENDING_EXPERT_APPROVAL, null, 'Stripe payment confirmed.');
-            AppointmentLog::record($appointment, 'payment_confirmed', null, $from, Appointment::STATUS_PENDING_EXPERT_APPROVAL, 'Webhook: payment_intent.succeeded');
+            $this->recordStatusHistory($appointment, null, $from, Appointment::STATUS_PENDING_ADMIN_APPROVAL, null, 'Stripe payment confirmed. Awaiting admin approval.');
+            AppointmentLog::record($appointment, 'payment_confirmed', null, $from, Appointment::STATUS_PENDING_ADMIN_APPROVAL, 'Webhook: payment_intent.succeeded — pending admin approval');
 
-            // Notify customer of payment success + expert of new booking request
+            // Notify customer that payment was received and is under review
             $this->notifyCustomer('payment_success', $appointment);
+
+            // Notify admin to review and approve — expert is NOT notified yet
+            $this->notifyAdmin('new_booking', $appointment);
+        });
+    }
+
+    // =========================================================================
+    // STEP 2b — Admin reviews payment and forwards appointment to expert
+    // =========================================================================
+
+    /**
+     * Admin approves a paid appointment and forwards it to the expert.
+     *
+     * Flow:
+     *   pending_admin_approval → pending_expert_approval
+     *   - Expert is notified for the first time here
+     *   - Customer is notified that their booking is confirmed with the expert
+     *
+     * @throws \DomainException if appointment is not in pending_admin_approval status
+     */
+    public function adminApproveAndForward(Appointment $appointment, int $adminUserId, ?string $adminNotes = null): Appointment
+    {
+        if ($appointment->status !== Appointment::STATUS_PENDING_ADMIN_APPROVAL) {
+            throw new \DomainException(
+                "Appointment #{$appointment->id} is not awaiting admin approval (current status: {$appointment->status})."
+            );
+        }
+
+        return DB::transaction(function () use ($appointment, $adminUserId, $adminNotes) {
+            $from = $appointment->status;
+
+            $appointment->update([
+                'status'      => Appointment::STATUS_PENDING_EXPERT_APPROVAL,
+                'admin_id'    => $adminUserId,
+                'admin_notes' => $adminNotes ?? $appointment->admin_notes,
+            ]);
+
+            $this->recordStatusHistory($appointment, null, $from, Appointment::STATUS_PENDING_EXPERT_APPROVAL, $adminUserId, $adminNotes ?? 'Admin approved and forwarded to expert.');
+            AppointmentLog::record($appointment, 'admin_approved_forwarded', $adminUserId, $from, Appointment::STATUS_PENDING_EXPERT_APPROVAL, $adminNotes ?? 'Forwarded to expert for acceptance.');
+
+            // NOW notify the expert — first time they hear about this booking
             $this->notifyExpert('new_booking', $appointment);
 
-            // NOTE: Payout settlement happens after appointment completion, not at payment time.
-            // The MarketplacePayoutService::settleAppointment() call was removed from here
-            // to prevent premature payouts before the appointment is actually delivered.
+            // Notify customer that their booking has been reviewed and forwarded
+            $this->notifyCustomer('booking_forwarded', $appointment);
+
+            return $appointment->fresh(['expert.user', 'user']);
         });
     }
 
@@ -617,12 +660,13 @@ class AppointmentService
 
         try {
             $notification = match ($event) {
-                'booking_created' => new AppointmentBookingCreatedNotification($appointment),
-                'payment_success' => new AppointmentPaymentSuccessNotification($appointment),
-                'confirmed'       => new AppointmentConfirmedMailNotification($appointment),
-                'rejected'        => new AppointmentRejectedNotification($appointment),
-                'cancelled'       => new AppointmentCancelledNotification($appointment),
-                default           => null,
+                'booking_created'    => new AppointmentBookingCreatedNotification($appointment),
+                'payment_success'    => new AppointmentPaymentSuccessNotification($appointment),
+                'booking_forwarded'  => new AppointmentPaymentSuccessNotification($appointment), // reuse — tells customer booking is under way
+                'confirmed'          => new AppointmentConfirmedMailNotification($appointment),
+                'rejected'           => new AppointmentRejectedNotification($appointment),
+                'cancelled'          => new AppointmentCancelledNotification($appointment),
+                default              => null,
             };
 
             if ($notification) {

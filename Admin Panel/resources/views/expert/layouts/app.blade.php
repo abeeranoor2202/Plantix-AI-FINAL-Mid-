@@ -83,31 +83,25 @@
 
         <main class="page-wrapper" style="min-height: 100vh;">
             <div class="container-fluid" style="padding-top: 24px; padding-bottom: 40px;">
-                <div class="toast-container position-fixed top-0 end-0 p-3">
+                <div class="position-fixed top-0 end-0 p-3" style="z-index: 9999; right: 0; top: 0;">
                     @if(session('success'))
-                        <div class="toast align-items-center text-bg-success border-0 js-session-toast" role="alert" aria-live="assertive" aria-atomic="true">
-                            <div class="d-flex">
-                                <div class="toast-body fw-semibold">{{ session('success') }}</div>
-                                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
-                            </div>
+                        <div class="alert alert-success alert-dismissible fade show shadow js-session-alert" role="alert" style="min-width:280px;">
+                            <i class="fas fa-check-circle mr-2"></i> {{ session('success') }}
+                            <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
                         </div>
                     @endif
 
                     @if(session('error'))
-                        <div class="toast align-items-center text-bg-danger border-0 js-session-toast" role="alert" aria-live="assertive" aria-atomic="true">
-                            <div class="d-flex">
-                                <div class="toast-body fw-semibold">{{ session('error') }}</div>
-                                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
-                            </div>
+                        <div class="alert alert-danger alert-dismissible fade show shadow js-session-alert" role="alert" style="min-width:280px;">
+                            <i class="fas fa-exclamation-circle mr-2"></i> {{ session('error') }}
+                            <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
                         </div>
                     @endif
 
                     @if($errors->any())
-                        <div class="toast align-items-center text-bg-danger border-0 js-session-toast" role="alert" aria-live="assertive" aria-atomic="true">
-                            <div class="d-flex">
-                                <div class="toast-body fw-semibold">{{ $errors->first() }}</div>
-                                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
-                            </div>
+                        <div class="alert alert-danger alert-dismissible fade show shadow js-session-alert" role="alert" style="min-width:280px;">
+                            <i class="fas fa-exclamation-circle mr-2"></i> {{ $errors->first() }}
+                            <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
                         </div>
                     @endif
                 </div>
@@ -159,14 +153,10 @@
 
 <script>
     (function () {
-        if (typeof bootstrap === 'undefined' || typeof bootstrap.Toast === 'undefined') {
-            return;
-        }
-
-        document.querySelectorAll('.js-session-toast').forEach(function (el) {
-            var toast = new bootstrap.Toast(el, { delay: 3500 });
-            toast.show();
-        });
+        // Auto-dismiss flash alerts after 3.5 seconds
+        setTimeout(function () {
+            $('.js-session-alert').alert('close');
+        }, 3500);
     })();
 </script>
 
@@ -182,6 +172,11 @@
 
                 const submitButton = form.querySelector('button[type="submit"], .platform-submit-btn');
                 if (!submitButton || submitButton.classList.contains('is-loading')) {
+                    return;
+                }
+
+                // Skip loading state for buttons that handle their own submission
+                if (submitButton.hasAttribute('data-no-loading')) {
                     return;
                 }
 
