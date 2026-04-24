@@ -110,7 +110,7 @@ class AppointmentService
         $duration = (int) max(1, Carbon::parse($dateStr . ' ' . $slot->start_time)
             ->diffInMinutes(Carbon::parse($dateStr . ' ' . $slot->end_time)));
 
-        $this->schedule->assertBookingAllowed($expert, $scheduledAt, $type, $duration);
+        $this->schedule->assertBookingAllowed($expert, $scheduledAt, $type, $duration, (int) $slot->id);
         $location = $type === 'physical' ? $this->schedule->resolveLocation($expert) : null;
 
         return DB::transaction(function () use ($user, $expert, $data, $scheduledAt, $type, $location, $duration) {
@@ -167,7 +167,7 @@ class AppointmentService
             );
 
             $this->recordStatusHistory($appointment, null, Appointment::STATUS_DRAFT, Appointment::STATUS_PENDING_PAYMENT, $user->id, 'Payment intent created.');
-            AppointmentLog::record($appointment, 'payment_intent_created', $user->id, Appointment::STATUS_DRAFT, Appointment::STATUS_PENDING_PAYMENT, "PI: {$pi->id}");
+            AppointmentLog::record($appointment, 'payment_intent_created', $user->id, Appointment::STATUS_DRAFT, Appointment::STATUS_PENDING_PAYMENT, 'PI: ' . ($pi?->id ?? $checkout['session']->id ?? 'n/a'));
 
             // Notify admin
             $this->notifyAdmin('new_booking', $appointment);
@@ -188,8 +188,13 @@ class AppointmentService
     /**
      * Called ONLY by the verified Stripe webhook handler.
      * Idempotent: safe to call multiple times with the same PaymentIntent.
+     *
+     * Lookup order:
+     *  1. appointments.stripe_payment_intent_id  (set if PI was known at booking time)
+     *  2. payments table via stripe_payment_intent_id or gateway_transaction_id
+     *  3. payments table via stripe_session_id   (Checkout Session flow — PI only known after payment)
      */
-    public function confirmPayment(string $paymentIntentId, string $stripeStatus): void
+    public function confirmPayment(string $paymentIntentId, string $stripeStatus, ?string $sessionId = null): void
     {
         $appointment = Appointment::where('stripe_payment_intent_id', $paymentIntentId)
             ->lockForUpdate()
@@ -200,12 +205,17 @@ class AppointmentService
             ->latest()
             ->first();
 
+        // Fallback: look up via session ID (Checkout Session flow where PI was null at booking)
+        if (! $payment && $sessionId) {
+            $payment = Payment::where('stripe_session_id', $sessionId)->latest()->first();
+        }
+
         if (! $appointment && $payment?->appointment_id) {
             $appointment = Appointment::where('id', $payment->appointment_id)->lockForUpdate()->first();
         }
 
         if (! $appointment) {
-            Log::warning("StripeWebhook: No appointment found for PI {$paymentIntentId}");
+            Log::warning("StripeWebhook: No appointment found for PI {$paymentIntentId}" . ($sessionId ? " / session {$sessionId}" : ''));
             return;
         }
 
@@ -214,6 +224,7 @@ class AppointmentService
             Appointment::STATUS_PENDING_PAYMENT,
             Appointment::STATUS_DRAFT,
             Appointment::STATUS_PAYMENT_FAILED,
+            Appointment::STATUS_PENDING_EXPERT_APPROVAL,
         ])) {
             Log::info("StripeWebhook: Appointment #{$appointment->id} already past pending_payment; ignoring.");
             return;
@@ -221,11 +232,19 @@ class AppointmentService
 
         DB::transaction(function () use ($appointment, $stripeStatus, $paymentIntentId) {
             $from = $appointment->status;
-            $appointment->update([
+
+            $updatePayload = [
                 'stripe_payment_status' => $stripeStatus,
                 'payment_status'        => 'paid',
-                'status'                => Appointment::STATUS_CONFIRMED,
-            ]);
+                'status'                => Appointment::STATUS_PENDING_EXPERT_APPROVAL,
+            ];
+
+            // Backfill the PI ID if it was null at booking time (Checkout Session flow)
+            if (empty($appointment->stripe_payment_intent_id)) {
+                $updatePayload['stripe_payment_intent_id'] = $paymentIntentId;
+            }
+
+            $appointment->update($updatePayload);
 
             Payment::where('appointment_id', $appointment->id)
                 ->where('gateway', 'stripe')
@@ -237,21 +256,16 @@ class AppointmentService
                     'gateway_transaction_id'   => $paymentIntentId,
                 ]);
 
-            $this->recordStatusHistory($appointment, null, $from, Appointment::STATUS_CONFIRMED, null, 'Stripe payment confirmed.');
-            AppointmentLog::record($appointment, 'payment_confirmed', null, $from, Appointment::STATUS_CONFIRMED, 'Webhook: payment_intent.succeeded');
+            $this->recordStatusHistory($appointment, null, $from, Appointment::STATUS_PENDING_EXPERT_APPROVAL, null, 'Stripe payment confirmed.');
+            AppointmentLog::record($appointment, 'payment_confirmed', null, $from, Appointment::STATUS_PENDING_EXPERT_APPROVAL, 'Webhook: payment_intent.succeeded');
 
-            // Notify customer + expert
+            // Notify customer of payment success + expert of new booking request
             $this->notifyCustomer('payment_success', $appointment);
             $this->notifyExpert('new_booking', $appointment);
 
-            try {
-                $this->payouts->settleAppointment($appointment->fresh(['expert.user']));
-            } catch (\Throwable $e) {
-                Log::error('Appointment payout settlement failed', [
-                    'appointment_id' => $appointment->id,
-                    'error' => $e->getMessage(),
-                ]);
-            }
+            // NOTE: Payout settlement happens after appointment completion, not at payment time.
+            // The MarketplacePayoutService::settleAppointment() call was removed from here
+            // to prevent premature payouts before the appointment is actually delivered.
         });
     }
 
@@ -428,6 +442,16 @@ class AppointmentService
 
             $this->recordStatusHistory($appointment, null, $from, Appointment::STATUS_COMPLETED, $byUserId);
             AppointmentLog::record($appointment, 'completed', $byUserId, $from, Appointment::STATUS_COMPLETED);
+
+            // Settle payout to expert now that the appointment has been delivered
+            try {
+                $this->payouts->settleAppointment($appointment->fresh(['expert.user']));
+            } catch (\Throwable $e) {
+                Log::error('Appointment payout settlement failed on completion', [
+                    'appointment_id' => $appointment->id,
+                    'error'          => $e->getMessage(),
+                ]);
+            }
 
             return $appointment->fresh();
         });
@@ -643,8 +667,8 @@ class AppointmentService
 
             $notification = match ($event) {
                 'new_booking'    => new AdminNewBookingNotification($appointment),
-                'payment_failure'=> new AdminPaymentFailureNotification($appointment),
-                'refund_issued'  => new AdminPaymentFailureNotification($appointment), // reuse or create specific
+                'payment_failure'=> new AdminPaymentFailureNotification($appointment, 'payment_failure'),
+                'refund_issued'  => new AdminPaymentFailureNotification($appointment, 'refund_issued'),
                 default          => null,
             };
 
