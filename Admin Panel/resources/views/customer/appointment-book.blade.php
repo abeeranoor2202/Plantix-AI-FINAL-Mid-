@@ -49,7 +49,7 @@
                         @endif
 
                         @php
-                            $selectedExpertId = (int) old('expert_id', $experts->first()?->id ?? 0);
+                            $selectedExpertId = (int) old('expert_id', $defaultExpert?->id ?? $experts->first()?->id ?? 0);
                             $selectedType = old('type', 'online');
                         @endphp
 
@@ -61,7 +61,6 @@
                                     <label class="form-label fw-bold text-dark" style="font-size: 14px;">Select Expert</label>
                                     <div class="position-relative">
                                         <select name="expert_id" id="expertSelect" class="form-agri pe-5" style="appearance: none; cursor: pointer; background-color: white;">
-                                            <option value="">Any available expert</option>
                                             @foreach($experts as $expert)
                                             <option value="{{ $expert->id }}"
                                                     data-location="{{ trim(($expert->profile?->address ? $expert->profile->address . ', ' : '') . ($expert->profile?->city ? $expert->profile->city . ', ' : '') . ($expert->profile?->country ?? '')) }}"
@@ -286,7 +285,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         if (hasAvailabilityTemplate === false) {
             showSlotUnavailableState();
-            setSlotFeedback('This expert has not set availability yet.', 'default');
+            setSlotFeedback('', 'default'); // Clear feedback to avoid duplicate
             updateSummary();
             updateSubmitState();
             return;
