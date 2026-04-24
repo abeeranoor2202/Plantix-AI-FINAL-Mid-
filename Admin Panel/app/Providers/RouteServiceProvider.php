@@ -52,61 +52,52 @@ class RouteServiceProvider extends ServiceProvider
 
     /**
      * Configure the rate limiters for the application.
-     *
-     * Separate buckets let each panel be throttled independently.
+     * All limits set to very high values for development/testing.
      */
     protected function configureRateLimiting(): void
     {
-        // Default API bucket
         RateLimiter::for('api', function (Request $request) {
-            return Limit::perMinute(60)->by(
+            return Limit::perMinute(10000)->by(
                 optional($request->user())->id ?: $request->ip()
             );
         });
 
-        // Strict bucket for /api/v1 application traffic
         RateLimiter::for('api-v1', function (Request $request) {
-            return Limit::perMinute(90)->by(
+            return Limit::perMinute(10000)->by(
                 optional($request->user())->id ?: $request->ip()
             );
         });
 
-        // Tight auth bucket for /api/v1/auth/login
         RateLimiter::for('api-v1-auth', function (Request $request) {
-            return Limit::perMinute(10)->by($request->ip());
+            return Limit::perMinute(10000)->by($request->ip());
         });
 
-        // Admin-panel API calls (higher limit – server-side, not public)
         RateLimiter::for('admin-api', function (Request $request) {
-            return Limit::perMinute(200)->by(
+            return Limit::perMinute(10000)->by(
                 optional($request->user())->id ?: $request->ip()
             );
         });
 
-        // Expert panel API calls
         RateLimiter::for('expert-api', function (Request $request) {
-            return Limit::perMinute(120)->by(
+            return Limit::perMinute(10000)->by(
                 optional($request->user())->id ?: $request->ip()
             );
         });
 
-        // AI Chat (per-user to prevent token cost abuse)
         RateLimiter::for('ai-chat', function (Request $request) {
-            return Limit::perMinute(10)->by(
+            return Limit::perMinute(10000)->by(
                 optional($request->user())->id ?: $request->ip()
             );
         });
 
-        // Disease detection (expensive ML inference)
         RateLimiter::for('disease-detect', function (Request $request) {
-            return Limit::perHour(20)->by(
+            return Limit::perHour(10000)->by(
                 optional($request->user())->id ?: $request->ip()
             );
         });
 
-        // Login endpoints (brute-force protection on web routes)
         RateLimiter::for('login', function (Request $request) {
-            return Limit::perMinute(5)->by($request->ip());
+            return Limit::perMinute(10000)->by($request->ip());
         });
     }
 }
