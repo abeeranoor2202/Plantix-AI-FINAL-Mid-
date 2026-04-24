@@ -3,6 +3,7 @@
 namespace App\Services\Shared;
 
 use App\Models\Appointment;
+use App\Models\AppointmentSlot;
 use App\Models\Expert;
 use App\Models\ExpertAvailability;
 use App\Models\ExpertProfile;
@@ -13,7 +14,13 @@ class ScheduleService
 {
     public function __construct(private readonly AvailabilityService $availability) {}
 
-    public function assertBookingAllowed(Expert $expert, Carbon $scheduledAt, string $type, int $durationMinutes = 60): void
+    public function assertBookingAllowed(
+        Expert $expert,
+        Carbon $scheduledAt,
+        string $type,
+        int $durationMinutes = 60,
+        ?int $slotId = null
+    ): void
     {
         $this->availability->assertExpertAvailable($expert);
 
@@ -39,8 +46,12 @@ class ScheduleService
             ->get();
 
         if ($blocks->isEmpty()) {
+            if ($slotId && $this->slotMatchesRequestedWindow($expert, $scheduledAt, $slotId)) {
+                return;
+            }
+
             throw ValidationException::withMessages([
-                'scheduled_at' => 'The selected expert has no availability configured.',
+                $slotId ? 'slot_id' : 'scheduled_at' => 'The selected expert has no availability configured.',
             ]);
         }
 
@@ -59,8 +70,12 @@ class ScheduleService
         });
 
         if (! $fitsBlock) {
+            if ($slotId && $this->slotMatchesRequestedWindow($expert, $scheduledAt, $slotId)) {
+                return;
+            }
+
             throw ValidationException::withMessages([
-                'scheduled_at' => 'The selected time is outside the expert availability window.',
+                $slotId ? 'slot_id' : 'scheduled_at' => 'The selected time is outside the expert availability window.',
             ]);
         }
 
@@ -75,9 +90,26 @@ class ScheduleService
 
         if ($conflict) {
             throw ValidationException::withMessages([
-                'scheduled_at' => 'This time slot is already booked. Please choose another time.',
+                $slotId ? 'slot_id' : 'scheduled_at' => 'This time slot is already booked. Please choose another time.',
             ]);
         }
+    }
+
+    private function slotMatchesRequestedWindow(Expert $expert, Carbon $scheduledAt, int $slotId): bool
+    {
+        $slot = AppointmentSlot::query()
+            ->where('id', $slotId)
+            ->where('expert_id', $expert->id)
+            ->first();
+
+        if (! $slot || (bool) $slot->is_booked) {
+            return false;
+        }
+
+        $slotDate = $slot->date instanceof Carbon ? $slot->date->toDateString() : substr((string) $slot->date, 0, 10);
+        $slotStart = Carbon::parse($slotDate . ' ' . $slot->start_time);
+
+        return $slotStart->equalTo($scheduledAt);
     }
 
     public function resolveLocation(Expert|ExpertProfile|null $subject): ?string
