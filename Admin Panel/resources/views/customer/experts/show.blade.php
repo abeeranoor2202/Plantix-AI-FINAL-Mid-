@@ -353,11 +353,12 @@ document.addEventListener('DOMContentLoaded', function () {
             const firstError = payload?.errors
                 ? Object.values(payload.errors).flat()[0]
                 : (payload?.message || 'Selected slot is no longer available');
+                
+            await loadSlots();
             showInlineError(String(firstError || 'Selected slot is no longer available'));
-            await loadSlots();
         } catch (error) {
-            showInlineError('Selected slot is no longer available');
             await loadSlots();
+            showInlineError('Selected slot is no longer available');
         } finally {
             if (submitBtn) {
                 submitBtn.textContent = 'Confirm Booking @if($expert->consultation_price) — ₨ {{ number_format($expert->consultation_price) }} @endif';
