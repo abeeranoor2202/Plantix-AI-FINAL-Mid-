@@ -46,7 +46,7 @@
         @endif
 
         @if($canDelete)
-            <button type="button" class="btn btn-sm btn-light border rounded-circle d-inline-flex align-items-center justify-content-center" data-bs-toggle="modal" data-bs-target="#deleteAppointmentModal" title="Delete">
+            <button type="button" class="btn btn-sm btn-light border rounded-circle d-inline-flex align-items-center justify-content-center" data-toggle="modal" data-target="#deleteAppointmentModal" title="Delete">
                 <i class="fas fa-trash text-danger"></i>
             </button>
         @else
@@ -203,25 +203,25 @@
             </div>
             <div class="p-3 d-grid gap-2">
                 @if($appointment->canBeAccepted())
-                    <button class="btn-agri btn-agri-primary" data-bs-toggle="modal" data-bs-target="#acceptModal">
+                    <button class="btn-agri btn-agri-primary" data-toggle="modal" data-target="#acceptModal">
                         <i class="fas fa-check-circle me-1"></i> Confirm & Accept
                     </button>
                 @endif
 
                 @if($appointment->canBeCompleted())
-                    <button class="btn-agri btn-agri-primary" data-bs-toggle="modal" data-bs-target="#completeModal">
+                    <button class="btn-agri btn-agri-primary" data-toggle="modal" data-target="#completeModal">
                         <i class="fas fa-clipboard-check me-1"></i> Mark as Completed
                     </button>
                 @endif
 
                 @if($appointment->canBeRescheduled())
-                    <button class="btn-agri btn-agri-outline" data-bs-toggle="modal" data-bs-target="#rescheduleModal">
+                    <button class="btn-agri btn-agri-outline" data-toggle="modal" data-target="#rescheduleModal">
                         <i class="far fa-calendar-plus me-1"></i> Propose Reschedule
                     </button>
                 @endif
 
                 @if($appointment->canBeRejected())
-                    <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#rejectModal">
+                    <button class="btn btn-danger" data-toggle="modal" data-target="#rejectModal">
                         <i class="fas fa-times-circle me-1"></i> Reject Request
                     </button>
                 @endif
@@ -245,13 +245,13 @@
                 @method('DELETE')
                 <div class="modal-header">
                     <h5 class="modal-title">Delete Appointment</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <button type="button" class="btn-close" data-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
                     <p class="mb-0 text-muted">Are you sure you want to delete appointment #{{ $appointment->id }}? This action cannot be undone.</p>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn-agri btn-agri-outline" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn-agri btn-agri-outline" data-dismiss="modal">Cancel</button>
                     <button type="submit" class="btn btn-danger">Delete</button>
                 </div>
             </form>
@@ -265,7 +265,7 @@
             @csrf
             <div class="modal-header">
                 <h5 class="modal-title">Accept Consultation</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                <button type="button" class="btn-close" data-dismiss="modal"></button>
             </div>
             <div class="modal-body">
                 <p class="small text-muted">You are about to accept this consultation request.</p>
@@ -275,7 +275,7 @@
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn-agri btn-agri-outline" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn-agri btn-agri-outline" data-dismiss="modal">Cancel</button>
                 <button type="submit" class="btn-agri btn-agri-primary">Accept Request</button>
             </div>
         </form>
@@ -288,14 +288,14 @@
             @csrf
             <div class="modal-header">
                 <h5 class="modal-title">Reject Consultation</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                <button type="button" class="btn-close" data-dismiss="modal"></button>
             </div>
             <div class="modal-body">
                 <label class="form-label text-muted small">Reason for Rejection</label>
                 <textarea name="reason" class="form-agri" rows="4" required minlength="10" placeholder="Provide a clear reason..."></textarea>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn-agri btn-agri-outline" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn-agri btn-agri-outline" data-dismiss="modal">Cancel</button>
                 <button type="submit" class="btn btn-danger">Decline Request</button>
             </div>
         </form>
@@ -308,14 +308,14 @@
             @csrf
             <div class="modal-header">
                 <h5 class="modal-title">Complete Session</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                <button type="button" class="btn-close" data-dismiss="modal"></button>
             </div>
             <div class="modal-body">
                 <label class="form-label text-muted small">Consultation Notes (optional)</label>
                 <textarea name="notes" class="form-agri" rows="4" placeholder="Session summary..."></textarea>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn-agri btn-agri-outline" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn-agri btn-agri-outline" data-dismiss="modal">Cancel</button>
                 <button type="submit" class="btn-agri btn-agri-primary">Mark as Done</button>
             </div>
         </form>
@@ -328,7 +328,7 @@
             @csrf
             <div class="modal-header">
                 <h5 class="modal-title">Propose Reschedule</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                <button type="button" class="btn-close" data-dismiss="modal"></button>
             </div>
             <div class="modal-body">
                 <div class="mb-3">
@@ -341,7 +341,7 @@
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn-agri btn-agri-outline" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn-agri btn-agri-outline" data-dismiss="modal">Cancel</button>
                 <button type="submit" class="btn-agri btn-agri-primary">Send Proposal</button>
             </div>
         </form>
