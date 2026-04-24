@@ -135,7 +135,12 @@ document.addEventListener('DOMContentLoaded', function () {
                     headers: { 'X-Requested-With': 'XMLHttpRequest' },
                     signal,
                 });
-                if (!response.ok) continue;
+                if (!response.ok) {
+                    if (response.status === 401 || response.status === 403) {
+                        return null; // Stop polling if session expired
+                    }
+                    continue;
+                }
                 const payload = await response.json();
                 const slots = Array.isArray(payload.slots) ? payload.slots : [];
                 if (slots.length > 0) {
@@ -256,6 +261,12 @@ document.addEventListener('DOMContentLoaded', function () {
                 headers: { 'X-Requested-With': 'XMLHttpRequest' },
                 signal: activeSlotsRequest.signal,
             });
+            
+            if (response.status === 401) {
+                window.location.reload(); // Let Laravel handle redirecting to login
+                return;
+            }
+
             const payload = await response.json();
             if (requestId !== currentSlotsRequestId || slotDateInput.value !== date || expertIdInput.value !== expertId) {
                 return;
