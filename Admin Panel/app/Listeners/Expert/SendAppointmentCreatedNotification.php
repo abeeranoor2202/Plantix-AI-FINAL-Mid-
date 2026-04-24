@@ -16,7 +16,16 @@ class SendAppointmentCreatedNotification implements ShouldQueue
 
     public function handle(AppointmentCreated $event): void
     {
-        $appointment = $event->appointment->loadMissing(['expert', 'user']);
+        // Re-fetch fresh from DB to guarantee expert_id is the latest persisted value.
+        // The serialized model in the event may be stale if the appointment was
+        // updated between dispatch and queue processing.
+        $appointment = \App\Models\Appointment::with(['expert', 'user'])
+            ->find($event->appointment->id);
+
+        if (! $appointment) {
+            return;
+        }
+
         $expert = $appointment->expert;
 
         if (! $expert) {
