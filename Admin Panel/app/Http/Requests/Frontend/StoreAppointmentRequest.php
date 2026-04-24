@@ -88,7 +88,8 @@ class StoreAppointmentRequest extends FormRequest
                 return;
             }
 
-            $slotStart = Carbon::parse($slot->date->toDateString() . ' ' . $slot->start_time);
+            $slotDateStr = $slot->date instanceof Carbon ? $slot->date->toDateString() : substr((string) $slot->date, 0, 10);
+            $slotStart = Carbon::parse($slotDateStr . ' ' . $slot->start_time);
             if ($slotStart->isPast()) {
                 $validator->errors()->add('slot_id', 'Selected slot is no longer available.');
                 return;
