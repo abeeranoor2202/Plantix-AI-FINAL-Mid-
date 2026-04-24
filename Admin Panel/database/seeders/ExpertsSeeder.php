@@ -166,44 +166,81 @@ class ExpertsSeeder extends Seeder
                 continue;
             }
 
-            // Insert expert
-            $expertId = DB::table('experts')->insertGetId([
-                'user_id'                      => $user->id,
-                'status'                       => $def['status'],
-                'approval_status'              => $def['status'],           // added by 2026_04_22_000002
-                'specialty'                    => $def['specialty'],
-                'bio'                          => $def['bio'],
-                'profile_image'                => null,
-                'is_available'                 => $def['is_available'],
-                'hourly_rate'                  => $def['hourly_rate'],
-                'consultation_price'           => $def['consultation_price'],
-                'consultation_fee'             => $def['consultation_price'], // alias added by 2026_04_22_000003
-                'consultation_duration_minutes'=> 60,
-                'rating_avg'                   => $def['rating_avg'],
-                'total_appointments'           => $def['total_appointments'],
-                'total_completed'              => $def['total_completed'],
-                'total_cancelled'              => $def['total_cancelled'],
-                'verified_at'                  => $def['verified_at'],
-                'suspended_at'                 => null,
-                'rejection_reason'             => $def['status'] === 'rejected'
-                    ? 'Incomplete credential documentation provided.' : null,
-                'created_at'                   =>  $now->copy()->subMonths(rand(3, 12)),
-                'updated_at'                   =>  $now,
-            ]);
+            // Upsert expert — update if already exists so status is always correct
+            $existing = DB::table('experts')->where('user_id', $user->id)->first();
 
-            // Insert expert profile
-            DB::table('expert_profiles')->insert(array_merge($def['profile'], [
-                'expert_id'  => $expertId,
-                'website'    => null,
-                'linkedin'   => null,
-                'contact_phone' => $user->phone ?? null,
-                'country'    => 'Pakistan',
-                'admin_notes' => null,
-                'created_at' => $now,
-                'updated_at' => $now,
-            ]));
+            if ($existing) {
+                DB::table('experts')->where('user_id', $user->id)->update([
+                    'status'                       => $def['status'],
+                    'approval_status'              => $def['status'],
+                    'specialty'                    => $def['specialty'],
+                    'bio'                          => $def['bio'],
+                    'is_available'                 => $def['is_available'],
+                    'hourly_rate'                  => $def['hourly_rate'],
+                    'consultation_price'           => $def['consultation_price'],
+                    'consultation_fee'             => $def['consultation_price'],
+                    'consultation_duration_minutes'=> 60,
+                    'rating_avg'                   => $def['rating_avg'],
+                    'total_appointments'           => $def['total_appointments'],
+                    'total_completed'              => $def['total_completed'],
+                    'total_cancelled'              => $def['total_cancelled'],
+                    'verified_at'                  => $def['verified_at'],
+                    'suspended_at'                 => null,
+                    'rejection_reason'             => null,
+                    'updated_at'                   => $now,
+                ]);
+                $expertId = $existing->id;
+            } else {
+                $expertId = DB::table('experts')->insertGetId([
+                    'user_id'                      => $user->id,
+                    'status'                       => $def['status'],
+                    'approval_status'              => $def['status'],
+                    'specialty'                    => $def['specialty'],
+                    'bio'                          => $def['bio'],
+                    'profile_image'                => null,
+                    'is_available'                 => $def['is_available'],
+                    'hourly_rate'                  => $def['hourly_rate'],
+                    'consultation_price'           => $def['consultation_price'],
+                    'consultation_fee'             => $def['consultation_price'],
+                    'consultation_duration_minutes'=> 60,
+                    'rating_avg'                   => $def['rating_avg'],
+                    'total_appointments'           => $def['total_appointments'],
+                    'total_completed'              => $def['total_completed'],
+                    'total_cancelled'              => $def['total_cancelled'],
+                    'verified_at'                  => $def['verified_at'],
+                    'suspended_at'                 => null,
+                    'rejection_reason'             => null,
+                    'created_at'                   => $now->copy()->subMonths(rand(3, 12)),
+                    'updated_at'                   => $now,
+                ]);
+            }
 
-            // Insert specialisations
+            // Upsert expert profile
+            $profileExists = DB::table('expert_profiles')->where('expert_id', $expertId)->exists();
+            if ($profileExists) {
+                DB::table('expert_profiles')->where('expert_id', $expertId)->update(array_merge($def['profile'], [
+                    'website'       => null,
+                    'linkedin'      => null,
+                    'contact_phone' => $user->phone ?? null,
+                    'country'       => 'Pakistan',
+                    'admin_notes'   => null,
+                    'updated_at'    => $now,
+                ]));
+            } else {
+                DB::table('expert_profiles')->insert(array_merge($def['profile'], [
+                    'expert_id'     => $expertId,
+                    'website'       => null,
+                    'linkedin'      => null,
+                    'contact_phone' => $user->phone ?? null,
+                    'country'       => 'Pakistan',
+                    'admin_notes'   => null,
+                    'created_at'    => $now,
+                    'updated_at'    => $now,
+                ]));
+            }
+
+            // Upsert specialisations
+            DB::table('expert_specializations')->where('expert_id', $expertId)->delete();
             foreach ($def['specializations'] as $spec) {
                 DB::table('expert_specializations')->insert([
                     'expert_id'  => $expertId,
