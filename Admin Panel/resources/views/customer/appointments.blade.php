@@ -9,11 +9,10 @@
 @section('page_scripts')@endsection
 
 @section('content')
-<div class="py-5" style="background: var(--agri-bg); min-height: calc(100vh - 80px);">
-    <div class="container-agri pb-5 mb-5">
-        <div class="row pt-4">
-            <!-- Main Content -->
-            <div class="col-12">
+<div class="container-fluid py-4">
+    <div class="row">
+        <!-- Main Content -->
+        <div class="col-12">
                 <div class="card-agri p-4" style="border: none;">
                     <div class="d-flex justify-content-between align-items-center mb-4">
                         <h3 class="fw-bold mb-0 text-dark" style="font-size: 20px;">Appointments</h3>
@@ -99,7 +98,7 @@
                                     <td class="border-bottom-0 py-3 rounded-start">
                                         <a href="{{ route('appointment.details', $appt->id) }}" class="fw-bold text-decoration-none" style="color: var(--agri-primary);">#{{ $appt->id }}</a>
                                     </td>
-                                    <td class="border-bottom-0 py-3 text-dark fw-medium">{{ $appt->scheduled_at ? $appt->scheduled_at->format('d M Y, h:i A') : '-' }}</td>
+                                    <td class="border-bottom-0 py-3 text-dark fw-medium text-nowrap">{{ $appt->scheduled_at ? $appt->scheduled_at->format('d M Y, h:i A') : '-' }}</td>
                                     <td class="border-bottom-0 py-3 text-muted">
                                         <div class="d-flex align-items-center gap-2">
                                             <div style="width: 32px; height: 32px; background: var(--agri-bg); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
@@ -146,6 +145,7 @@
                         {{ $appointments->links('pagination::bootstrap-5') }}
                     </div>
                     @endif
+                </div>
                 </div>
             </div>
         </div>
