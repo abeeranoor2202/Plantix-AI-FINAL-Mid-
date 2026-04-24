@@ -373,23 +373,68 @@ class StripePaymentController extends Controller
 
     public function success(Request $request)
     {
-        if (! session()->has('success')) {
-            session()->flash('success', 'Payment completed successfully');
-        }
-
-        $sessionId = (string) $request->query('session_id', '');
-
+        $sessionId     = (string) $request->query('session_id', '');
         $appointmentId = $request->query('appointment_id');
+
+        // ── Appointment payment success ───────────────────────────────────────
         if ($appointmentId) {
+            $appointment = Appointment::where('user_id', Auth::id())
+                ->find((int) $appointmentId);
+
+            // Fallback reconciliation: if the webhook hasn't fired yet, confirm
+            // payment server-side by verifying the Checkout Session directly.
+            if (
+                $appointment
+                && $appointment->payment_status !== 'paid'
+                && $sessionId !== ''
+            ) {
+                try {
+                    Stripe::setApiKey(config('services.stripe.secret'));
+                    $session = StripeCheckoutSession::retrieve($sessionId);
+
+                    $paymentIntentId = (string) ($session->payment_intent ?? '');
+                    $isSessionPaid   = in_array(
+                        (string) ($session->payment_status ?? ''),
+                        ['paid', 'no_payment_required'],
+                        true
+                    );
+
+                    if ($isSessionPaid) {
+                        // Backfill PI on the payment record if it was null at booking time
+                        if ($paymentIntentId !== '') {
+                            Payment::where('appointment_id', $appointment->id)
+                                ->where('gateway', 'stripe')
+                                ->whereNull('stripe_payment_intent_id')
+                                ->update([
+                                    'stripe_payment_intent_id' => $paymentIntentId,
+                                    'gateway_transaction_id'   => $paymentIntentId,
+                                    'stripe_session_id'        => $sessionId,
+                                ]);
+                        }
+
+                        // Confirm via the service (idempotent — safe if webhook already ran)
+                        app(\App\Services\Shared\AppointmentService::class)
+                            ->confirmPayment($paymentIntentId ?: 'session-' . $sessionId, 'succeeded', $sessionId);
+
+                        $appointment = $appointment->fresh();
+                    }
+                } catch (\Throwable $e) {
+                    Log::warning('Appointment payment success fallback reconciliation failed', [
+                        'appointment_id' => $appointmentId,
+                        'session_id'     => $sessionId,
+                        'message'        => $e->getMessage(),
+                    ]);
+                }
+            }
+
             return redirect()->route('appointment.details', (int) $appointmentId)
                 ->with('success', 'Payment completed successfully');
         }
 
+        // ── Order payment success ─────────────────────────────────────────────
         $orderId = $request->query('order_id') ?? session('pending_order_id');
         $order   = $orderId ? Order::find($orderId) : null;
 
-        // Fallback reconciliation for cases where Stripe webhook is delayed/missed:
-        // verify Checkout Session on return and finalize payment server-side.
         if ($order
             && (int) $order->user_id === (int) Auth::id()
             && $order->payment_method === 'stripe'
@@ -400,7 +445,11 @@ class StripePaymentController extends Controller
                 $session = StripeCheckoutSession::retrieve($sessionId);
 
                 $paymentIntentId = (string) ($session->payment_intent ?? '');
-                $isSessionPaid = in_array((string) ($session->payment_status ?? ''), ['paid', 'no_payment_required'], true);
+                $isSessionPaid   = in_array(
+                    (string) ($session->payment_status ?? ''),
+                    ['paid', 'no_payment_required'],
+                    true
+                );
 
                 if ($isSessionPaid && $paymentIntentId !== '') {
                     Payment::updateOrCreate(
@@ -422,9 +471,9 @@ class StripePaymentController extends Controller
                 }
             } catch (\Throwable $e) {
                 Log::warning('Stripe success fallback reconciliation failed', [
-                    'order_id' => $order->id,
+                    'order_id'   => $order->id,
                     'session_id' => $sessionId,
-                    'message' => $e->getMessage(),
+                    'message'    => $e->getMessage(),
                 ]);
             }
         }

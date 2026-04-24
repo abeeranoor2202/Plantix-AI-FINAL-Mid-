@@ -97,6 +97,7 @@ class StripeWebhookController extends Controller
             match ($event->type) {
                 'payment_intent.succeeded'      => $this->onPaymentIntentSucceeded($event->data->object),
                 'payment_intent.payment_failed' => $this->onPaymentIntentFailed($event->data->object),
+                'checkout.session.completed'    => $this->onCheckoutSessionCompleted($event->data->object),
                 'charge.refunded'               => $this->onChargeRefunded($event->data->object),
                 default                         => Log::debug("Stripe webhook ignored: {$event->type}"),
             };
@@ -129,7 +130,6 @@ class StripeWebhookController extends Controller
 
         $this->service->confirmPayment($pi->id, 'succeeded');
     }
-
     private function onPaymentIntentFailed(object $pi): void
     {
         $paymentType = (string) ($pi->metadata->payment_type ?? 'appointment');
@@ -146,6 +146,7 @@ class StripeWebhookController extends Controller
     {
         $paymentIntentId = (string) ($session->payment_intent ?? '');
         $paymentType = (string) (($session->metadata->payment_type ?? null) ?? '');
+        $sessionId = (string) ($session->id ?? '');
 
         if ($paymentIntentId === '') {
             Log::warning('checkout.session.completed without payment_intent', [
@@ -159,7 +160,9 @@ class StripeWebhookController extends Controller
             return;
         }
 
-        $this->service->confirmPayment($paymentIntentId, 'succeeded');
+        // Pass session ID so confirmPayment can find the appointment even when
+        // stripe_payment_intent_id was null at booking time (Checkout Session flow).
+        $this->service->confirmPayment($paymentIntentId, 'succeeded', $sessionId);
     }
 
     /**
