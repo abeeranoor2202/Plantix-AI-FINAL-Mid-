@@ -36,10 +36,6 @@ class Appointment extends Model
     public const STATUS_PENDING     = 'pending';
     public const STATUS_RESCHEDULED = 'rescheduled';
 
-    /**
-     * Allowed status → [next statuses] map (strict state machine).
-     * Admin can always force-cancel; enforced by service, not this map.
-     */
     public const TRANSITIONS = [
         self::STATUS_DRAFT                   => [self::STATUS_PENDING_PAYMENT],
         self::STATUS_PENDING_PAYMENT         => [self::STATUS_PENDING_EXPERT_APPROVAL, self::STATUS_PAYMENT_FAILED],
@@ -199,6 +195,7 @@ class Appointment extends Model
     {
         return in_array($this->status, [
             self::STATUS_CONFIRMED,
+            self::STATUS_RESCHEDULED,
         ]);
     }
 
