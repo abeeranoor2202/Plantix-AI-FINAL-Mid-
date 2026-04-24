@@ -101,7 +101,7 @@ class FullAppointmentSeeder extends Seeder
 
         // ── Truncate ──────────────────────────────────────────────────────────
         DB::statement('SET FOREIGN_KEY_CHECKS=0');
-        foreach (['appointment_reschedules', 'appointment_status_histories', 'appointment_logs', 'appointment_slots'] as $t) {
+        foreach (['appointment_reschedules', 'appointment_status_histories', 'appointment_logs', 'appointment_slots', 'expert_notification_logs'] as $t) {
             DB::table($t)->truncate();
         }
         DB::table('payments')->whereNotNull('appointment_id')->delete();
