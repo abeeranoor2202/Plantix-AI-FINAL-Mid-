@@ -4,6 +4,7 @@ namespace App\Services\Expert;
 
 use App\Events\Expert\AppointmentStatusChanged;
 use App\Models\Appointment;
+use App\Models\AppointmentLog;
 use App\Models\AppointmentReschedule;
 use App\Models\AppointmentStatusHistory;
 use App\Models\Expert;
@@ -83,12 +84,24 @@ class ExpertAppointmentService
             throw new \DomainException('Meeting link is required to accept an online appointment.');
         }
 
-        return $this->transition(
+        $result = $this->transition(
             $appointment,
             Appointment::STATUS_CONFIRMED,
             $expert->user_id,
             ['accepted_at' => now(), 'meeting_link' => $meetingLink]
         );
+
+        // Notify the customer that their appointment has been confirmed
+        $customer = $result->user;
+        if ($customer) {
+            try {
+                $customer->notify(new \App\Notifications\Appointment\AppointmentConfirmedMailNotification($result));
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::warning("ExpertAppointmentService::accept — customer notification failed: " . $e->getMessage());
+            }
+        }
+
+        return $result;
     }
 
     public function reject(Appointment $appointment, Expert $expert, string $reason): Appointment
@@ -96,12 +109,37 @@ class ExpertAppointmentService
         $this->assertBelongsToExpert($appointment, $expert);
         $this->assertCanTransition($appointment, Appointment::STATUS_REJECTED);
 
-        return $this->transition(
+        $result = $this->transition(
             $appointment,
             Appointment::STATUS_REJECTED,
             $expert->user_id,
-            ['rejected_at' => now(), 'reject_reason' => $reason]
+            ['rejected_at' => now(), 'reject_reason' => $reason, 'expert_response_notes' => $reason]
         );
+
+        // Release the slot so it becomes available again
+        app(\App\Services\Shared\AvailabilityService::class)->releaseSlot($result);
+
+        // Auto-refund if the customer already paid
+        if ($result->isPaid() && ! $result->is_refunded) {
+            try {
+                app(\App\Services\Shared\StripeService::class)->refundFull($result, 'Auto-refund: expert rejected appointment.');
+                AppointmentLog::record($result, 'auto_refund_issued', $expert->user_id, null, null, 'Automatic refund on expert rejection.');
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::error("ExpertAppointmentService::reject — auto-refund failed for appointment #{$result->id}: " . $e->getMessage());
+            }
+        }
+
+        // Notify the customer of the rejection
+        $customer = $result->user;
+        if ($customer) {
+            try {
+                $customer->notify(new \App\Notifications\Appointment\AppointmentRejectedNotification($result));
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::warning("ExpertAppointmentService::reject — customer notification failed: " . $e->getMessage());
+            }
+        }
+
+        return $result;
     }
 
     public function complete(Appointment $appointment, Expert $expert, ?string $notes = null): Appointment
@@ -162,7 +200,10 @@ class ExpertAppointmentService
 
             $this->logStatusChange($appointment, $byUserId, $fromStatus, $toStatus);
 
-            event(new AppointmentStatusChanged($appointment, User::find($byUserId), $toStatus));
+            $user = User::find($byUserId);
+            if ($user) {
+                event(new AppointmentStatusChanged($appointment->fresh(), $user, $toStatus));
+            }
 
             return $appointment->fresh();
         });
@@ -202,7 +243,9 @@ class ExpertAppointmentService
         };
 
         if (! $allowed) {
-            throw new \DomainException("Cannot transition appointment #{$appointment->id} to '{$targetStatus}'.");
+            throw new \DomainException(
+                "Cannot transition appointment #{$appointment->id} from '{$appointment->status}' to '{$targetStatus}'."
+            );
         }
     }
 }
