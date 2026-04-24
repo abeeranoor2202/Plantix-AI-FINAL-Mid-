@@ -250,6 +250,7 @@ class AdminAppointmentController extends Controller
                 Appointment::STATUS_DRAFT,
                 Appointment::STATUS_PENDING_PAYMENT,
                 Appointment::STATUS_PAYMENT_FAILED,
+                Appointment::STATUS_PENDING_ADMIN_APPROVAL,
                 Appointment::STATUS_PENDING_EXPERT_APPROVAL,
                 Appointment::STATUS_RESCHEDULE_REQUESTED,
                 Appointment::STATUS_PENDING,
@@ -262,6 +263,7 @@ class AdminAppointmentController extends Controller
                 Appointment::STATUS_DRAFT,
                 Appointment::STATUS_PENDING_PAYMENT,
                 Appointment::STATUS_PAYMENT_FAILED,
+                Appointment::STATUS_PENDING_ADMIN_APPROVAL,
                 Appointment::STATUS_PENDING_EXPERT_APPROVAL,
                 Appointment::STATUS_CONFIRMED,
                 Appointment::STATUS_COMPLETED,
@@ -373,6 +375,35 @@ class AdminAppointmentController extends Controller
         }
 
         return back()->with('success', 'Appointment status updated successfully.');
+    }
+
+    /**
+     * Admin approves a paid appointment and forwards it to the expert.
+     * Transitions: pending_admin_approval → pending_expert_approval
+     */
+    public function approve(Request $request, int $id): RedirectResponse
+    {
+        $appointment = Appointment::findOrFail($id);
+
+        $request->validate([
+            'admin_notes' => 'nullable|string|max:1000',
+        ]);
+
+        if ($appointment->status !== Appointment::STATUS_PENDING_ADMIN_APPROVAL) {
+            return back()->withErrors(['error' => 'This appointment is not awaiting admin approval.']);
+        }
+
+        try {
+            $this->service->adminApproveAndForward(
+                $appointment,
+                (int) auth('admin')->id(),
+                $request->input('admin_notes')
+            );
+        } catch (\DomainException $e) {
+            return back()->withErrors(['error' => $e->getMessage()]);
+        }
+
+        return back()->with('success', 'Appointment approved and forwarded to the expert.');
     }
 
     /**
