@@ -53,7 +53,7 @@ class AdminReturnController extends Controller
                     throw new \DomainException('Only pending return requests can be approved.');
                 }
 
-                $this->service->forceApprove($return, $request->admin_notes, auth('admin')->user());
+                $this->service->forceApprove($return, $request->input('admin_notes'), auth('admin')->user());
             });
         } catch (\DomainException $e) {
             return back()->withErrors(['error' => $e->getMessage()]);
@@ -74,7 +74,7 @@ class AdminReturnController extends Controller
                     throw new \DomainException('Only pending return requests can be rejected.');
                 }
 
-                $this->service->forceReject($return, $request->admin_notes, auth('admin')->user());
+                $this->service->forceReject($return, $request->input('admin_notes'), auth('admin')->user());
             });
         } catch (\DomainException $e) {
             return back()->withErrors(['error' => $e->getMessage()]);
@@ -124,8 +124,11 @@ class AdminReturnController extends Controller
 
     public function storeReason(Request $request): RedirectResponse
     {
-        $request->validate(['reason' => 'required|string|max:255']);
-        ReturnReason::create($request->only('reason'));
+        $request->validate([
+            'reason'      => 'required|string|max:255',
+            'description' => 'nullable|string|max:1000',
+        ]);
+        ReturnReason::create($request->only('reason', 'description'));
         return back()->with('success', 'Reason added.');
     }
 
