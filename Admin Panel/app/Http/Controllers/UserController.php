@@ -527,6 +527,7 @@ class UserController extends Controller
                 'delivery_fee'    => $validated['delivery_fee'] ?? $vendor->delivery_fee,
                 'open_time'       => $validated['open_time'] ?? null,
                 'close_time'      => $validated['close_time'] ?? null,
+                'status'          => $validated['status'],
                 'is_active'       => $isActive,
                 'is_approved'     => $isApproved,
             ]);
