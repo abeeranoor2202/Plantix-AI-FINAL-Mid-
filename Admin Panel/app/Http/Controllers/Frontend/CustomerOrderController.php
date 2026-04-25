@@ -82,7 +82,7 @@ class CustomerOrderController extends Controller
     public function show(int $id): View
     {
         $user  = auth('web')->user();
-        $order = Order::with(['vendor', 'items.product', 'statusHistory', 'returnRequest', 'refund', 'dispute'])
+        $order = Order::with(['vendor', 'items.product', 'statusHistory', 'returnRequest.items.product', 'returnRequest.reason', 'returnRequest.refund', 'refund', 'dispute'])
                       ->forCustomer($user->id)
                       ->findOrFail($id);
         $canReturn = $this->returnService->orderIsReturnable($order);
