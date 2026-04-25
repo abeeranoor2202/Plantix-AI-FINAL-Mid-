@@ -147,7 +147,7 @@ class HomeController extends Controller
             : $currencySymbol . number_format((float)$val, $decimalDigits);
 
         $unifiedSummary = [
-            ['label' => 'Reputation', 'value' => auth('admin')->user()?->reputation_score ?? 0, 'icon' => 'fas fa-shield-alt'],
+
             ['label' => 'Customers', 'value' => $totalCustomers, 'icon' => 'fas fa-users'],
             ['label' => 'Experts', 'value' => Expert::count(), 'icon' => 'fas fa-user-md'],
             ['label' => 'Vendors', 'value' => $totalVendors, 'icon' => 'fas fa-store'],
