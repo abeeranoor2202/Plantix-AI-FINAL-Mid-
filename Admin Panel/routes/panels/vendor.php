@@ -85,9 +85,21 @@ Route::prefix('vendor')->name('vendor.')->group(function () {
         Route::put('/coupons/{id}',          [\App\Http\Controllers\Vendor\VendorCouponController::class, 'update'])->name('coupons.update');
         Route::delete('/coupons/{id}',       [\App\Http\Controllers\Vendor\VendorCouponController::class, 'destroy'])->name('coupons.destroy');
         Route::post('/coupons/{id}/toggle',  [\App\Http\Controllers\Vendor\VendorCouponController::class, 'toggle'])->name('coupons.toggle');
-        // ── Categories & Attributes (read-only, admin-created) ────────────────────
-        Route::get('/categories',  [\App\Http\Controllers\Vendor\VendorCategoryController::class, 'index'])->name('categories.index');
-        Route::get('/attributes',  [\App\Http\Controllers\Vendor\VendorCategoryController::class, 'attributes'])->name('attributes.index');
+        // ── Categories (vendor CRUD) ──────────────────────────────────────────────
+        Route::get('/categories',              [\App\Http\Controllers\Vendor\VendorCategoryController::class, 'index'])->name('categories.index');
+        Route::get('/categories/create',       [\App\Http\Controllers\Vendor\VendorCategoryController::class, 'create'])->name('categories.create');
+        Route::post('/categories',             [\App\Http\Controllers\Vendor\VendorCategoryController::class, 'store'])->name('categories.store');
+        Route::get('/categories/{id}/edit',    [\App\Http\Controllers\Vendor\VendorCategoryController::class, 'edit'])->name('categories.edit');
+        Route::put('/categories/{id}',         [\App\Http\Controllers\Vendor\VendorCategoryController::class, 'update'])->name('categories.update');
+        Route::post('/categories/{id}/toggle', [\App\Http\Controllers\Vendor\VendorCategoryController::class, 'toggle'])->name('categories.toggle');
+        Route::delete('/categories/{id}',      [\App\Http\Controllers\Vendor\VendorCategoryController::class, 'destroy'])->name('categories.destroy');
+        // ── Attributes (vendor CRUD) ─────────────────────────────────────────────
+        Route::get('/attributes',              [\App\Http\Controllers\Vendor\VendorAttributeController::class, 'index'])->name('attributes.index');
+        Route::get('/attributes/create',       [\App\Http\Controllers\Vendor\VendorAttributeController::class, 'create'])->name('attributes.create');
+        Route::post('/attributes',             [\App\Http\Controllers\Vendor\VendorAttributeController::class, 'store'])->name('attributes.store');
+        Route::get('/attributes/{id}/edit',    [\App\Http\Controllers\Vendor\VendorAttributeController::class, 'edit'])->name('attributes.edit');
+        Route::put('/attributes/{id}',         [\App\Http\Controllers\Vendor\VendorAttributeController::class, 'update'])->name('attributes.update');
+        Route::delete('/attributes/{id}',      [\App\Http\Controllers\Vendor\VendorAttributeController::class, 'destroy'])->name('attributes.destroy');
 
         // ── Returns & Refunds (vendor view) ─────────────────────────────────────
         Route::get('/returns',                  [\App\Http\Controllers\Vendor\VendorReturnController::class, 'index'])->name('returns.index');

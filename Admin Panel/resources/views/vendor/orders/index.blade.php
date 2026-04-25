@@ -17,31 +17,71 @@
     </div>
 
     <div class="card-agri" style="padding: 0; overflow: hidden;">
-        <div class="card-header bg-white border-bottom-0 pt-4 pb-3 px-4 d-flex justify-content-between align-items-center" style="gap: 10px; flex-wrap: wrap;">
-            <h4 class="mb-0 fw-bold text-dark" style="font-size: 18px;">Order List</h4>
-            <form method="GET" action="{{ route('vendor.orders.index') }}" style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
-                <select name="status" class="form-agri" style="height: 42px; min-width: 150px; margin-bottom: 0;">
-                    <option value="">All Statuses</option>
-                    @foreach($statuses ?? ['pending','confirmed','processing','shipped','delivered','cancelled'] as $s)
-                        <option value="{{ $s }}" @selected(request('status') === $s)>{{ strtoupper(str_replace('_', ' ', $s)) }}</option>
-                    @endforeach
-                </select>
-                <select name="dispute_status" class="form-agri" style="height: 42px; min-width: 170px; margin-bottom: 0;">
-                    <option value="">All Disputes</option>
-                    @foreach(['pending', 'vendor_responded', 'escalated', 'resolved', 'rejected', 'cancelled'] as $disputeStatus)
-                        <option value="{{ $disputeStatus }}" @selected(request('dispute_status') === $disputeStatus)>{{ strtoupper(str_replace('_', ' ', $disputeStatus)) }}</option>
-                    @endforeach
-                </select>
-                <div class="agri-search-wrap" style="width: 320px;">
-                    <i class="fas fa-search agri-search-icon"></i>
-                    <input type="text" name="search" class="form-agri agri-search-input" placeholder="Search orders..." value="{{ request('search') }}">
+        <div class="card-header bg-white border-bottom-0 pt-4 pb-0 px-4">
+            <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+                <h4 class="mb-0 fw-bold text-dark" style="font-size: 20px;">Order List</h4>
+                <form method="GET" action="{{ route('vendor.orders.index') }}" class="d-flex gap-2" style="flex: 1; max-width: 500px;">
+                    <div class="agri-search-wrap" style="flex: 1;">
+                        <i class="fas fa-search agri-search-icon"></i>
+                        <input type="text" name="search" class="form-agri agri-search-input" placeholder="Search by Order ID or Customer..." value="{{ request('search') }}">
+                    </div>
+                    <button type="submit" class="btn-agri btn-agri-primary" style="height: 42px; white-space: nowrap;">Search</button>
+                </form>
+            </div>
+
+            <form method="GET" action="{{ route('vendor.orders.index') }}" class="mb-4">
+                {{-- Keep search in hidden if we submit from here, though we have two forms now, better to consolidate or handle sync --}}
+                <input type="hidden" name="search" value="{{ request('search') }}">
+                
+                <div class="row g-3">
+                    <div class="col-lg-3 col-md-6">
+                        <label class="agri-label-small">Order Status</label>
+                        <select name="status" class="form-agri" style="margin-bottom: 0;">
+                            <option value="">All Statuses</option>
+                            @foreach($statuses ?? ['pending','confirmed','processing','shipped','delivered','cancelled'] as $s)
+                                <option value="{{ $s }}" @selected(request('status') === $s)>{{ strtoupper(str_replace('_', ' ', $s)) }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="col-lg-3 col-md-6">
+                        <label class="agri-label-small">Dispute Status</label>
+                        <select name="dispute_status" class="form-agri" style="margin-bottom: 0;">
+                            <option value="">All Disputes</option>
+                            @foreach(['pending', 'vendor_responded', 'escalated', 'resolved', 'rejected', 'cancelled'] as $disputeStatus)
+                                <option value="{{ $disputeStatus }}" @selected(request('dispute_status') === $disputeStatus)>{{ strtoupper(str_replace('_', ' ', $disputeStatus)) }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="col-lg-3 col-md-6">
+                        <label class="agri-label-small">Amount Range</label>
+                        <div class="d-flex gap-2">
+                            <div class="position-relative w-100">
+                                <span class="input-icon-left"><i class="fas fa-arrow-down" style="font-size: 10px;"></i></span>
+                                <input type="number" name="min_total" class="form-agri ps-4" placeholder="Min" value="{{ request('min_total') }}" style="margin-bottom: 0;">
+                            </div>
+                            <div class="position-relative w-100">
+                                <span class="input-icon-left"><i class="fas fa-arrow-up" style="font-size: 10px;"></i></span>
+                                <input type="number" name="max_total" class="form-agri ps-4" placeholder="Max" value="{{ request('max_total') }}" style="margin-bottom: 0;">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6">
+                        <label class="agri-label-small">Date Range</label>
+                        <div class="d-flex gap-2">
+                            <input type="date" name="date_from" class="form-agri" value="{{ request('date_from') }}" style="margin-bottom: 0;">
+                            <input type="date" name="date_to" class="form-agri" value="{{ request('date_to') }}" style="margin-bottom: 0;">
+                        </div>
+                    </div>
                 </div>
-                <input type="number" min="0" step="0.01" name="min_total" class="form-agri" placeholder="Min amount" value="{{ request('min_total') }}" style="height: 42px; width: 130px; margin-bottom: 0;">
-                <input type="number" min="0" step="0.01" name="max_total" class="form-agri" placeholder="Max amount" value="{{ request('max_total') }}" style="height: 42px; width: 130px; margin-bottom: 0;">
-                <input type="date" name="date_from" class="form-agri" value="{{ request('date_from') }}" style="height: 42px; min-width: 150px; margin-bottom: 0;">
-                <input type="date" name="date_to" class="form-agri" value="{{ request('date_to') }}" style="height: 42px; min-width: 150px; margin-bottom: 0;">
-                <button type="submit" class="btn-agri btn-agri-primary" style="height: 42px; padding: 0 16px;">Filter</button>
-                <a href="{{ route('vendor.orders.index') }}" class="btn-agri btn-agri-outline" style="height: 42px; padding: 0 16px; text-decoration: none; display: inline-flex; align-items: center;">Reset</a>
+
+                <div class="d-flex justify-content-end gap-2 mt-3 pb-2">
+                    <a href="{{ route('vendor.orders.index') }}" class="btn-agri btn-agri-outline" style="text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
+                        <i class="fas fa-undo"></i> Reset
+                    </a>
+                    <button type="submit" class="btn-agri btn-agri-primary" style="display: inline-flex; align-items: center; gap: 8px;">
+                        <i class="fas fa-filter"></i> Apply Filters
+                    </button>
+                </div>
             </form>
         </div>
 
@@ -81,21 +121,13 @@
                                 </div>
                             </td>
                             <td class="px-4 py-3">
-                                <div class="text-end" style="display: flex; justify-content: flex-end; gap: 8px;">
-                                    <a href="{{ route('vendor.orders.show', $order->id) }}" class="btn-agri" style="padding: 8px; background: var(--agri-bg); color: #2563eb; border-radius: 999px;" title="View"><i class="fas fa-eye"></i></a>
-                                    <a href="{{ route('vendor.orders.show', $order->id) }}" class="btn-agri" style="padding: 8px; background: var(--agri-bg); color: var(--agri-primary); border-radius: 999px;" title="Edit"><i class="fas fa-pen"></i></a>
-                                    <button
-                                        type="button"
-                                        class="btn-agri js-order-delete-trigger"
-                                        style="padding: 8px; background: #fef2f2; color: #ef4444; border-radius: 999px; border: none;"
-                                        data-order-id="{{ $order->id }}"
-                                        data-order-number="{{ $order->order_number ?? ('#'.$order->id) }}"
-                                        data-bs-toggle="modal"
-                                        data-bs-target="#deleteOrderModal"
-                                        title="Delete"
-                                    >
-                                        <i class="fas fa-trash"></i>
-                                    </button>
+                                <div class="text-end">
+                                    <a href="{{ route('vendor.orders.show', $order->id) }}" class="btn-action btn-action-view" title="View">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <a href="{{ route('vendor.orders.show', $order->id) }}" class="btn-action btn-action-edit" title="Edit">
+                                        <i class="fas fa-pen"></i>
+                                    </a>
                                 </div>
                             </td>
                         </tr>
@@ -111,29 +143,6 @@
                 {{ $orders->withQueryString()->links('pagination::bootstrap-5') }}
             </div>
         @endif
-    </div>
-</div>
-
-<div class="modal fade" id="deleteOrderModal" tabindex="-1" aria-labelledby="deleteOrderModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content" style="border-radius: 14px; border: 1px solid var(--agri-border);">
-            <div class="modal-header">
-                <h5 class="modal-title" id="deleteOrderModalLabel">Delete Order</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <p class="mb-2">Are you sure you want to delete this order?</p>
-                <p class="mb-0 text-muted" id="deleteOrderHelpText" style="font-size: 13px;"></p>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
-                <form id="deleteOrderForm" method="POST" action="">
-                    @csrf
-                    @method('DELETE')
-                    <button type="submit" class="btn btn-danger">Delete Order</button>
-                </form>
-            </div>
-        </div>
     </div>
 </div>
 @endsection
@@ -159,23 +168,25 @@
         height: 42px;
         padding-left: 36px;
     }
+
+    .agri-label-small {
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        color: var(--agri-text-muted);
+        margin-bottom: 6px;
+        display: block;
+        letter-spacing: 0.5px;
+    }
+
+    .input-icon-left {
+        position: absolute;
+        left: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--agri-text-muted);
+        z-index: 5;
+        pointer-events: none;
+    }
 </style>
-@endpush
-
-@push('scripts')
-<script>
-document.addEventListener('DOMContentLoaded', function () {
-    const deleteForm = document.getElementById('deleteOrderForm');
-    const helpText = document.getElementById('deleteOrderHelpText');
-
-    document.querySelectorAll('.js-order-delete-trigger').forEach(function (button) {
-        button.addEventListener('click', function () {
-            const orderId = this.getAttribute('data-order-id');
-            const orderNumber = this.getAttribute('data-order-number');
-            deleteForm.action = '{{ route('vendor.orders.destroy', '__ORDER__') }}'.replace('__ORDER__', orderId);
-            helpText.textContent = 'Order ' + orderNumber + ' will be removed from your vendor order list.';
-        });
-    });
-});
-</script>
 @endpush

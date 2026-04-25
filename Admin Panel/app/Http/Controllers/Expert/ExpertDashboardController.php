@@ -38,7 +38,7 @@ class ExpertDashboardController extends Controller
         $recentReplies = $this->forumService->getExpertReplies($expert);
 
         $unifiedSummary = [
-            ['label' => 'Reputation', 'value' => $expert->reputation_score ?? 0, 'icon' => 'fas fa-shield-alt'],
+
             ['label' => 'Total appointments', 'value' => $stats['total'] ?? 0, 'icon' => 'fas fa-calendar-check'],
             ['label' => 'Pending requests', 'value' => $stats['pending'] ?? 0, 'icon' => 'fas fa-hourglass-half'],
             ['label' => 'Completed', 'value' => $stats['completed'] ?? 0, 'icon' => 'fas fa-check-circle'],

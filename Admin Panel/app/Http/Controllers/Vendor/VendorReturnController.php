@@ -166,11 +166,19 @@ class VendorReturnController extends Controller
 
                 $lockedReturn->update($payload);
 
-                if ($resolution !== ReturnRequest::RESOLUTION_REFUND && $lockedReturn->user) {
-                    $message = $resolution === ReturnRequest::RESOLUTION_REPLACE
-                        ? 'Your return has been approved for replacement.'
-                        : 'Your return has been approved as store credit.';
-                    $lockedReturn->user->notify(new ReturnLifecycleNotification($lockedReturn->fresh(), 'completed', $message));
+                // Notify customer of vendor's decision
+                $message = match ($resolution) {
+                    ReturnRequest::RESOLUTION_REPLACE     => 'Your return has been approved for replacement.',
+                    ReturnRequest::RESOLUTION_STORE_CREDIT => 'Your return has been approved as store credit.',
+                    default                               => 'Your return request has been approved. A refund will be processed shortly.',
+                };
+
+                if ($lockedReturn->user) {
+                    $lockedReturn->user->notify(new ReturnLifecycleNotification(
+                        $lockedReturn->fresh(),
+                        $resolution !== ReturnRequest::RESOLUTION_REFUND ? 'completed' : 'approved',
+                        $message
+                    ));
                 }
             });
         } catch (\DomainException $e) {
@@ -225,6 +233,15 @@ class VendorReturnController extends Controller
                     'vendor_responded_at' => now(),
                     'resolution_type' => null,
                 ]);
+
+                // Notify customer of rejection
+                if ($lockedReturn->user) {
+                    $lockedReturn->user->notify(new ReturnLifecycleNotification(
+                        $lockedReturn->fresh(),
+                        'rejected',
+                        'Your return request was not approved. Reason: ' . $reason
+                    ));
+                }
             });
         } catch (\DomainException $e) {
             return back()->withErrors(['error' => $e->getMessage()]);

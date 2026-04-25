@@ -125,7 +125,7 @@
                             <h6 style="font-weight: 800; color: var(--agri-success); margin-bottom: 16px;">Approve Return</h6>
                             <form action="{{ route('admin.returns.approve', $return->id) }}" method="POST">
                                 @csrf
-                                <textarea name="admin_note" class="form-agri" rows="2" placeholder="Send a message to the customer (item received, etc.)..." style="background: white; margin-bottom: 16px;"></textarea>
+                                <textarea name="admin_notes" class="form-agri" rows="2" placeholder="Send a message to the customer (item received, etc.)..." style="background: white; margin-bottom: 16px;"></textarea>
                                 <button type="submit" class="btn-agri btn-agri-primary" style="width: 100%; height: 48px; font-weight: 700;">
                                     <i class="fas fa-check-circle"></i> Confirm Approval
                                 </button>
@@ -137,7 +137,7 @@
                             <h6 style="font-weight: 800; color: var(--agri-error); margin-bottom: 16px;">Decline Return</h6>
                             <form action="{{ route('admin.returns.reject', $return->id) }}" method="POST">
                                 @csrf
-                                <textarea name="admin_note" class="form-agri" rows="2" placeholder="Provide a reason for declining the request..." required style="background: white; margin-bottom: 16px;"></textarea>
+                                <textarea name="admin_notes" class="form-agri" rows="2" placeholder="Provide a reason for declining the request..." required style="background: white; margin-bottom: 16px;"></textarea>
                                 <button type="submit" class="btn-agri" style="width: 100%; height: 48px; background: var(--agri-error); color: white; border: none; font-weight: 700; border-radius: 12px;">
                                     <i class="fas fa-times-circle"></i> Decline Request
                                 </button>

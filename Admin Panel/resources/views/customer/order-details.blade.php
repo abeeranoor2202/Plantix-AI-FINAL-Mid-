@@ -41,6 +41,10 @@
                         @endif
                         @if($canReturn && !$order->returnRequest)
                         <button class="btn-agri btn-agri-outline text-dark border-dark" style="padding: 8px 16px;" data-bs-toggle="modal" data-bs-target="#returnModal">Return Items</button>
+                        @elseif($order->returnRequest)
+                        <a href="#return-status" class="btn-agri btn-agri-outline text-dark border-dark" style="padding: 8px 16px;">
+                            <i class="fas fa-undo-alt me-1"></i> View Return Status
+                        </a>
                         @endif
                         @if(in_array($order->status, ['confirmed', 'processing', 'shipped', 'delivered']))
                         <a href="{{ route('order.invoice', $order->id) }}" class="btn-agri btn-agri-outline text-dark border-dark d-flex align-items-center gap-2" style="padding: 8px 16px;">
@@ -204,14 +208,79 @@
                             </div>
                         </div>
                     </div>
-                </div>
+                    <!-- Return Status Card -->
+                    @if($order->returnRequest)
+                    <div class="col-12 mt-4" id="return-status">
+                        <div class="card-agri p-4 border-0">
+                            <h4 class="fw-bold mb-4 text-dark fs-5">
+                                <i class="fas fa-undo-alt text-warning me-2"></i> Return Request
+                            </h4>
+                            @php $ret = $order->returnRequest; @endphp
+                            <div class="d-flex align-items-center gap-3 mb-4 flex-wrap">
+                                <x-platform.status-badge domain="return" :status="$ret->status" size="md" />
+                                <span class="text-muted small">Submitted {{ $ret->created_at->format('M d, Y') }}</span>
+                            </div>
 
-            </div>
-        </div>
-    </div>
-</div>
+                            @if($ret->reason)
+                            <div class="mb-3">
+                                <div class="text-muted small fw-bold text-uppercase mb-1">Return Reason</div>
+                                <div class="fw-semibold text-dark">{{ $ret->reason->title ?? $ret->reason->reason }}</div>
+                            </div>
+                            @endif
 
-{{-- Return Modal --}}
+                            @if($ret->notes)
+                            <div class="mb-3">
+                                <div class="text-muted small fw-bold text-uppercase mb-1">Your Notes</div>
+                                <div class="text-dark">{{ $ret->notes }}</div>
+                            </div>
+                            @endif
+
+                            @if($ret->items->isNotEmpty())
+                            <div class="mb-3">
+                                <div class="text-muted small fw-bold text-uppercase mb-2">Items Requested</div>
+                                <div style="border: 1px solid var(--agri-border); border-radius: 12px; overflow: hidden;">
+                                    @foreach($ret->items as $item)
+                                    <div style="display:flex; justify-content:space-between; padding:10px 14px; border-bottom:1px solid var(--agri-border); background:white;">
+                                        <span class="fw-semibold text-dark">{{ $item->product->name ?? 'Product' }}</span>
+                                        <span class="text-muted">Qty: {{ $item->quantity }}</span>
+                                    </div>
+                                    @endforeach
+                                </div>
+                            </div>
+                            @endif
+
+                            @if($ret->vendor_response_notes || $ret->rejection_reason)
+                            <div class="mb-3">
+                                <div class="text-muted small fw-bold text-uppercase mb-1">Vendor Response</div>
+                                <div class="text-dark" style="background: var(--agri-bg); padding: 12px; border-radius: 10px;">
+                                    {{ $ret->rejection_reason ?? $ret->vendor_response_notes }}
+                                </div>
+                            </div>
+                            @endif
+
+                            @if($ret->admin_notes)
+                            <div class="mb-3">
+                                <div class="text-muted small fw-bold text-uppercase mb-1">Admin Notes</div>
+                                <div class="text-dark" style="background: #fffbeb; padding: 12px; border-radius: 10px; border-left: 3px solid #d97706;">
+                                    {{ $ret->admin_notes }}
+                                </div>
+                            </div>
+                            @endif
+
+                            @if($ret->refund)
+                            <div class="alert alert-success d-flex align-items-center gap-3 mt-3" style="border-radius: 12px;">
+                                <i class="fas fa-check-circle fs-4"></i>
+                                <div>
+                                    <div class="fw-bold">Refund Processed</div>
+                                    <div class="small">PKR {{ number_format($ret->refund->amount, 2) }} via {{ ucfirst($ret->refund->method) }}</div>
+                                </div>
+                            </div>
+                            @endif
+                        </div>
+                    </div>
+                    @endif
+
+
 @if($canReturn && !isset($order->returnRequest))
 <div class="modal fade" id="returnModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">

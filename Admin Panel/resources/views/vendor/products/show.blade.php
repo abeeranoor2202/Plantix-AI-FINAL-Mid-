@@ -30,24 +30,35 @@
     @endpush
     @endif
 
-    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 24px;">
-        <a href="{{ route('vendor.products.index') }}" style="text-decoration: none; color: var(--agri-text-muted); font-size: 14px; font-weight: 600;">Products</a>
-        <i class="fas fa-chevron-right" style="font-size: 10px; color: var(--agri-text-muted);"></i>
-        <span style="color: var(--agri-primary); font-size: 14px; font-weight: 600;">{{ $product->name }}</span>
-    </div>
-
-    <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 28px;">
-        <div>
-            <h1 style="font-size: 28px; font-weight: 700; color: var(--agri-primary-dark); margin: 0;">{{ $product->name }}</h1>
-            <p style="color: var(--agri-text-muted); margin: 4px 0 0 0;">View complete product information and current settings.</p>
+    <div style="margin-bottom: 32px;">
+        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
+            <a href="{{ route('vendor.dashboard') }}" style="text-decoration: none; color: var(--agri-text-muted); font-size: 14px; font-weight: 600;">Dashboard</a>
+            <i class="fas fa-chevron-right" style="font-size: 10px; color: var(--agri-text-muted);"></i>
+            <a href="{{ route('vendor.products.index') }}" style="text-decoration: none; color: var(--agri-text-muted); font-size: 14px; font-weight: 600;">Products</a>
+            <i class="fas fa-chevron-right" style="font-size: 10px; color: var(--agri-text-muted);"></i>
+            <span style="color: var(--agri-primary); font-size: 14px; font-weight: 600;">Product Details</span>
         </div>
-        <div style="display:flex; gap:8px;">
-            <x-button :href="route('vendor.products.edit', $product->id)" variant="primary" icon="fas fa-pen">Edit</x-button>
-            <form method="POST" action="{{ route('vendor.products.destroy', $product->id) }}" onsubmit="return confirm('Delete this product permanently?');" class="m-0">
-                @csrf
-                @method('DELETE')
-                <x-button type="submit" variant="danger" icon="fas fa-trash">Delete</x-button>
-            </form>
+
+        <div style="display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 12px;">
+            <div>
+                <h1 style="font-size: 28px; font-weight: 700; color: var(--agri-primary-dark); margin: 0;">{{ $product->name }}</h1>
+                <p style="color: var(--agri-text-muted); margin: 4px 0 0 0;">View complete product information and current settings.</p>
+            </div>
+            <div style="display: flex; gap: 12px; align-items: center;">
+                <a href="{{ route('vendor.products.edit', $product->id) }}" class="btn-agri btn-agri-primary" style="text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
+                    <i class="fas fa-edit"></i> Edit Product
+                </a>
+                <form method="POST" action="{{ route('vendor.products.destroy', $product->id) }}" onsubmit="return confirm('Delete this product permanently?');" class="m-0 d-inline">
+                    @csrf
+                    @method('DELETE')
+                    <button type="submit" class="btn-agri btn-agri-danger" style="display: inline-flex; align-items: center; gap: 8px; border: none;">
+                        <i class="fas fa-trash"></i> Delete
+                    </button>
+                </form>
+                <a href="{{ route('vendor.products.index') }}" class="btn-agri btn-agri-outline" style="text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
+                    <i class="fas fa-arrow-left"></i> Back to List
+                </a>
+            </div>
         </div>
     </div>
 

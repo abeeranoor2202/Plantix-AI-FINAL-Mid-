@@ -130,14 +130,25 @@
                         @error('usage_limit')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
                     </div>
 
-                    <div class="mb-4 p-3 bg-light rounded-3 border d-flex align-items-center justify-content-between">
+                    <div class="mb-4 p-4 rounded-4 d-flex align-items-center justify-content-between" style="background: var(--agri-bg); border: 1px solid var(--agri-border);">
                         <div>
-                            <span class="d-block fw-bold text-dark mb-1">Coupon Status</span>
-                            <span class="d-block small text-muted">Allow customers to use this coupon</span>
+                            <span class="d-block fw-bold text-dark mb-1" style="font-size: 15px;">Coupon Status</span>
+                            <span class="d-block small text-muted">Toggle to enable or disable this coupon for customers</span>
+                            <span id="statusLabel" class="badge rounded-pill mt-2"
+                                  style="font-size: 11px; font-weight: 700; text-transform: uppercase; padding: 4px 10px;
+                                         background: {{ old('is_active', $coupon?->is_active ?? true) ? '#ecfdf5' : '#f1f5f9' }};
+                                         color: {{ old('is_active', $coupon?->is_active ?? true) ? '#059669' : '#64748b' }};">
+                                {{ old('is_active', $coupon?->is_active ?? true) ? 'Active' : 'Inactive' }}
+                            </span>
                         </div>
-                        <div class="form-check form-switch fs-4 mb-0">
-                            <input class="form-check-input" type="checkbox" name="is_active" value="1" id="isActive"
-                                   {{ old('is_active', $coupon?->is_active ?? true) ? 'checked' : '' }}>
+                        <div class="d-flex align-items-center gap-3">
+                            {{-- Hidden input ensures 0 is submitted when checkbox is unchecked --}}
+                            <input type="hidden" name="is_active" value="0">
+                            <label class="coupon-toggle-switch mb-0" for="isActive">
+                                <input type="checkbox" name="is_active" value="1" id="isActive"
+                                       @checked(old('is_active', $coupon?->is_active ?? true))>
+                                <span class="coupon-toggle-slider"></span>
+                            </label>
                         </div>
                     </div>
 
@@ -155,6 +166,54 @@
 </div>
 @endsection
 
+@push('styles')
+<style>
+    /* Coupon status toggle */
+    .coupon-toggle-switch {
+        position: relative;
+        display: inline-block;
+        width: 52px;
+        height: 28px;
+        cursor: pointer;
+    }
+    .coupon-toggle-switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+        position: absolute;
+    }
+    .coupon-toggle-slider {
+        position: absolute;
+        inset: 0;
+        background-color: #e2e8f0;
+        border-radius: 28px;
+        transition: background-color .3s;
+    }
+    .coupon-toggle-slider::before {
+        content: "";
+        position: absolute;
+        width: 20px;
+        height: 20px;
+        left: 4px;
+        top: 4px;
+        background: white;
+        border-radius: 50%;
+        box-shadow: 0 2px 6px rgba(0,0,0,.15);
+        transition: transform .3s;
+    }
+    .coupon-toggle-switch input:checked + .coupon-toggle-slider {
+        background-color: var(--agri-primary, #16a34a);
+    }
+    .coupon-toggle-switch input:checked + .coupon-toggle-slider::before {
+        transform: translateX(24px);
+    }
+    .coupon-toggle-switch input:focus-visible + .coupon-toggle-slider {
+        outline: 2px solid var(--agri-primary, #16a34a);
+        outline-offset: 2px;
+    }
+</style>
+@endpush
+
 @push('scripts')
 <script>
 const typeSelect = document.getElementById('discountType');
@@ -167,5 +226,22 @@ function updateSymbol() {
 }
 typeSelect.addEventListener('change', updateSymbol);
 updateSymbol();
+
+// Update status badge when toggle changes
+const toggleInput  = document.getElementById('isActive');
+const statusLabel  = document.getElementById('statusLabel');
+
+function syncStatusLabel() {
+    if (toggleInput.checked) {
+        statusLabel.textContent = 'Active';
+        statusLabel.style.background = '#ecfdf5';
+        statusLabel.style.color      = '#059669';
+    } else {
+        statusLabel.textContent = 'Inactive';
+        statusLabel.style.background = '#f1f5f9';
+        statusLabel.style.color      = '#64748b';
+    }
+}
+toggleInput.addEventListener('change', syncStatusLabel);
 </script>
 @endpush

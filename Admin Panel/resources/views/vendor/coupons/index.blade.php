@@ -82,19 +82,27 @@
                             <td class="px-4 py-3">{{ $coupon->usage_limit ?? 'Unlimited' }}</td>
                             <td class="px-4 py-3">{{ $usedCount }}</td>
                             <td class="px-4 py-3">
-                                <x-badge :variant="$coupon->is_active ? 'success' : 'secondary'">{{ $coupon->is_active ? 'Active' : 'Inactive' }}</x-badge>
+                                <form method="POST" action="{{ route('vendor.coupons.toggle', $coupon->id) }}" class="d-flex align-items-center gap-2">
+                                    @csrf
+                                    <div class="form-check form-switch p-0 m-0">
+                                        <input class="form-check-input ms-0" type="checkbox" role="switch" @checked($coupon->is_active) onchange="this.form.submit()" style="width: 36px; height: 18px; cursor: pointer;">
+                                    </div>
+                                    <span class="badge rounded-pill" style="background: {{ $coupon->is_active ? '#ecfdf5' : '#f1f5f9' }}; color: {{ $coupon->is_active ? '#059669' : '#64748b' }}; font-weight: 700; font-size: 10px; text-transform: uppercase; padding: 4px 10px;">
+                                        {{ $coupon->is_active ? 'Active' : 'Inactive' }}
+                                    </span>
+                                </form>
                             </td>
                             <td class="px-4 py-3">{{ $coupon->expires_at ? $coupon->expires_at->format('d M Y') : 'Never' }}</td>
                             <td class="px-4 py-3 text-end">
-                                <div class="d-inline-flex align-items-center gap-2">
-                                    <a href="{{ route('vendor.coupons.show', $coupon->id) }}" class="btn btn-sm btn-light border rounded-circle d-inline-flex align-items-center justify-content-center" title="View">
-                                        <i class="fas fa-eye text-muted"></i>
+                                <div class="d-flex justify-content-end gap-2">
+                                    <a href="{{ route('vendor.coupons.show', $coupon->id) }}" class="btn-action btn-action-view" title="View">
+                                        <i class="fas fa-eye"></i>
                                     </a>
-                                    <a href="{{ route('vendor.coupons.edit', $coupon->id) }}" class="btn btn-sm btn-light border rounded-circle d-inline-flex align-items-center justify-content-center" title="Edit">
-                                        <i class="fas fa-pen text-success"></i>
+                                    <a href="{{ route('vendor.coupons.edit', $coupon->id) }}" class="btn-action btn-action-edit" title="Edit">
+                                        <i class="fas fa-pen"></i>
                                     </a>
-                                    <button type="button" class="btn btn-sm btn-light border rounded-circle d-inline-flex align-items-center justify-content-center" title="Delete" data-bs-toggle="modal" data-bs-target="#deleteCouponModal{{ $coupon->id }}">
-                                        <i class="fas fa-trash text-danger"></i>
+                                    <button type="button" class="btn-action btn-action-delete" title="Delete" data-bs-toggle="modal" data-bs-target="#deleteCouponModal{{ $coupon->id }}">
+                                        <i class="fas fa-trash"></i>
                                     </button>
                                 </div>
                             </td>

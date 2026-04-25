@@ -39,7 +39,6 @@ use App\Services\Vendor\VendorInventoryService;
 use App\Services\Vendor\VendorOrderService;
 use App\Services\Vendor\VendorProductService;
 use App\Services\Platform\PlatformActivityService;
-use App\Services\Platform\ReputationService;
 use App\Services\Security\PermissionService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\ServiceProvider;
@@ -107,7 +106,6 @@ class AppServiceProvider extends ServiceProvider
             );
         });
         $this->app->singleton(VendorCouponService::class);
-        $this->app->singleton(ReputationService::class);
         $this->app->singleton(PlatformActivityService::class);
         $this->app->singleton(VendorInventoryService::class, function ($app) {
             return new VendorInventoryService(
@@ -128,37 +126,7 @@ class AppServiceProvider extends ServiceProvider
             $view->with('countries_data', $countriesData);
         });
 
-        view()->composer('*', function ($view) {
-            $guard = null;
-            foreach (['admin', 'vendor', 'expert', 'web'] as $candidate) {
-                if (Auth::guard($candidate)->check()) {
-                    $guard = $candidate;
-                    break;
-                }
-            }
 
-            $score = 0;
-            $level = 'neutral';
-
-            if ($guard !== null) {
-                $user = Auth::guard($guard)->user();
-                if ($guard === 'vendor' && $user?->vendor) {
-                    $score = (int) ($user->vendor->reputation_score ?? 0);
-                    $level = (string) ($user->vendor->reputation_level ?? 'neutral');
-                } elseif ($guard === 'expert' && $user?->expert) {
-                    $score = (int) ($user->expert->reputation_score ?? 0);
-                    $level = (string) ($user->expert->reputation_level ?? 'neutral');
-                } else {
-                    $score = (int) ($user->reputation_score ?? 0);
-                    $level = (string) ($user->reputation_level ?? 'neutral');
-                }
-            }
-
-            $view->with('platformReputation', [
-                'score' => $score,
-                'level' => $level,
-            ]);
-        });
     }
 
     public function boot(): void

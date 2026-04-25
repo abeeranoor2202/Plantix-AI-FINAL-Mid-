@@ -42,6 +42,14 @@
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
                     </div>
+                    <div class="mb-4">
+                        <label class="agri-label">DESCRIPTION (OPTIONAL)</label>
+                        <textarea name="description" class="form-agri @error('description') is-invalid @enderror"
+                                  rows="3" placeholder="Additional context shown to customers...">{{ old('description') }}</textarea>
+                        @error('description')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
                     <button type="submit" class="btn-agri btn-agri-primary" style="width: 100%; height: 48px; font-weight: 700;">
                         Add to Registry
                     </button>
@@ -72,7 +80,10 @@
                                 <td style="padding: 16px 24px; color: var(--agri-text-muted); font-size: 12px; font-weight: 700;">#{{ $reason->id }}</td>
                                 <td style="padding: 16px 24px;">
                                     <div style="font-weight: 700; color: var(--agri-text-heading); font-size: 14px;">{{ $reason->reason }}</div>
-                                    <div style="font-size: 11px; color: var(--agri-text-muted); font-weight: 500;">Created on {{ $reason->created_at->format('M d, Y') }}</div>
+                                    @if($reason->description)
+                                        <div style="font-size: 12px; color: var(--agri-text-muted); margin-top: 2px;">{{ \Illuminate\Support\Str::limit($reason->description, 80) }}</div>
+                                    @endif
+                                    <div style="font-size: 11px; color: var(--agri-text-muted); font-weight: 500; margin-top: 2px;">Created on {{ $reason->created_at->format('M d, Y') }}</div>
                                 </td>
                                 <td style="padding: 16px 24px;" class="text-center">
                                     @if($reason->is_active)

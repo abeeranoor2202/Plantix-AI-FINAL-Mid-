@@ -20,7 +20,6 @@ class DashboardApiService
 
         if ($role === 'admin') {
             return [
-                'reputation_score' => (int) ($actor->reputation_score ?? 0),
                 'orders_total' => Order::count(),
                 'appointments_total' => Appointment::count(),
                 'users_total' => User::where('role', 'user')->count(),

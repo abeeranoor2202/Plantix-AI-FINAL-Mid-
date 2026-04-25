@@ -48,7 +48,7 @@ class VendorDashboardController extends Controller
                              ->get();
 
         $unifiedSummary = [
-            ['label' => 'Reputation', 'value' => $vendor->reputation_score ?? 0, 'icon' => 'fas fa-shield-alt'],
+
             ['label' => 'Total Orders', 'value' => $stats['total_orders'] ?? 0, 'icon' => 'fas fa-receipt'],
             ['label' => 'Total Products', 'value' => $stats['total_products'] ?? 0, 'icon' => 'fas fa-boxes'],
             ['label' => 'Month Revenue', 'value' => number_format((float) ($stats['month_revenue'] ?? 0), 2), 'icon' => 'fas fa-wallet'],
@@ -73,7 +73,7 @@ class VendorDashboardController extends Controller
         $unifiedPendingActions = [
             ['label' => 'Pending orders', 'count' => (int) ($stats['pending_orders'] ?? 0), 'href' => route('vendor.orders.index')],
             ['label' => 'Low stock items', 'count' => (int) ($stats['low_stock'] ?? 0), 'href' => route('vendor.inventory.index')],
-            ['label' => 'Open returns', 'count' => ReturnRequest::where('vendor_id', $vendor->id)->whereIn('status', ['requested', 'approved'])->count(), 'href' => route('vendor.returns.index')],
+            ['label' => 'Open returns', 'count' => ReturnRequest::whereHas('order', fn ($q) => $q->where('vendor_id', $vendor->id))->whereIn('status', ['pending', 'approved'])->count(), 'href' => route('vendor.returns.index')],
             ['label' => 'Published products', 'count' => Product::where('vendor_id', $vendor->id)->where('is_active', true)->count(), 'href' => route('vendor.products.index')],
         ];
 

@@ -124,14 +124,7 @@
             </div>
         </li>
 
-        @if($is_logged_in)
-            <li class="nav-item m-r-20 hidden-sm-down">
-                <div class="admin-status-pill" style="gap: 10px;">
-                    <i class="mdi mdi-shield-check" style="font-size: 16px; color: var(--agri-primary);"></i>
-                    <span>Reputation {{ $platformReputation['score'] ?? 0 }} ({{ strtoupper($platformReputation['level'] ?? 'neutral') }})</span>
-                </div>
-            </li>
-        @endif
+
 
         @if($is_logged_in)
             <li class="nav-item dropdown me-3" id="sharedNotificationBellRoot">

@@ -214,7 +214,10 @@
 
 .panel-unified-ui .platform-submit-btn {
     min-width: 120px;
+    display: inline-flex;
+    align-items: center;
     justify-content: center;
+    gap: 8px;
 }
 
 .panel-unified-ui .platform-submit-btn.is-loading {
@@ -368,15 +371,19 @@
 }
 
 .panel-unified-ui .table .text-end .btn-agri,
-.panel-unified-ui .table .text-end .btn {
-    width: 34px;
-    height: 34px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 999px;
-    padding: 0;
+.panel-unified-ui .table .text-end .btn,
+.panel-unified-ui .btn-action {
+    width: 36px !important;
+    height: 36px !important;
+    min-width: 0 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border-radius: 999px !important;
+    padding: 0 !important;
     box-shadow: none;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 1px solid transparent;
 }
 
 .panel-unified-ui .table .text-end {
@@ -386,10 +393,44 @@
     gap: 8px;
 }
 
+/* Action Specific Styles */
+.panel-unified-ui .btn-action-view {
+    background: #eff6ff !important;
+    color: #1d4ed8 !important;
+    border-color: #dbeafe !important;
+}
+.panel-unified-ui .btn-action-view:hover {
+    background: #dbeafe !important;
+    color: #1e40af !important;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(29, 78, 216, 0.12) !important;
+}
+
+.panel-unified-ui .btn-action-edit {
+    background: #ecfdf5 !important;
+    color: #059669 !important;
+    border-color: #d1fae5 !important;
+}
+.panel-unified-ui .btn-action-edit:hover {
+    background: #d1fae5 !important;
+    color: #047857 !important;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(5, 150, 105, 0.12) !important;
+}
+
+.panel-unified-ui .btn-action-delete,
 .panel-unified-ui .table .text-end .btn-danger,
 .panel-unified-ui .table .text-end [style*='color: #ef4444'] {
-    background: var(--panel-danger-soft) !important;
-    color: var(--panel-danger) !important;
+    background: #fef2f2 !important;
+    color: #dc2626 !important;
+    border-color: #fee2e2 !important;
+}
+.panel-unified-ui .btn-action-delete:hover,
+.panel-unified-ui .table .text-end .btn-danger:hover {
+    background: #fee2e2 !important;
+    color: #b91c1c !important;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(220, 38, 38, 0.12) !important;
 }
 
 .panel-unified-ui .platform-form-actions {

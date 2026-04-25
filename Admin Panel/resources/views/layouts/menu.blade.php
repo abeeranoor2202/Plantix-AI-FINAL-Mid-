@@ -21,6 +21,7 @@
         ['label' => 'Returns', 'icon' => 'mdi-keyboard-return', 'active' => Request::is('admin/returns*'), 'route' => route('admin.returns.index'), 'ability' => 'admin.returns'],
         ['label' => 'Stock', 'icon' => 'mdi-package-variant-closed', 'active' => Request::is('admin/stock*'), 'route' => route('admin.stock.index'), 'ability' => 'admin.stock'],
         ['label' => 'Appointments', 'icon' => 'mdi-calendar-clock', 'active' => Request::is('admin/appointments*'), 'route' => route('admin.appointments.index'), 'ability' => 'admin.appointments'],
+        ['label' => 'Payout Requests', 'icon' => 'mdi-cash-fast', 'active' => Request::is('admin/payout-requests*'), 'route' => route('admin.payout-requests.index'), 'ability' => 'admin.appointments'],
         ['label' => 'Forum', 'icon' => 'mdi-forum-outline', 'active' => Request::is('admin/forum') || Request::is('admin/forum/*'), 'route' => route('admin.forum.index'), 'ability' => 'admin.forum'],
         ['label' => 'Forum Flags', 'icon' => 'mdi-flag-outline', 'active' => Request::is('admin/forum/flags*'), 'route' => route('admin.forum.flags.index'), 'ability' => 'admin.forum'],
         ['label' => 'Forum Categories', 'icon' => 'mdi-view-grid-outline', 'active' => Request::is('admin/forum/categories*'), 'route' => route('admin.forum.categories.index'), 'ability' => 'admin.forum'],

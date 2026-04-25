@@ -82,13 +82,17 @@
                                 </form>
                             </td>
                             <td class="px-4 py-3">
-                                <div class="text-end" style="display: flex; justify-content: flex-end; gap: 8px;">
-                                    <a href="{{ route('admin.products.show', $product->id) }}" class="btn-agri" style="padding: 8px; background: var(--agri-bg); color: #2563eb; border-radius: 999px;" title="View"><i class="fas fa-eye"></i></a>
-                                    <a href="{{ route('admin.products.edit', $product->id) }}" class="btn-agri" style="padding: 8px; background: var(--agri-bg); color: var(--agri-primary); border-radius: 999px;" title="Edit"><i class="fas fa-pen"></i></a>
+                                <div class="text-end">
+                                    <a href="{{ route('admin.products.show', $product->id) }}" class="btn-action btn-action-view" title="View">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <a href="{{ route('admin.products.edit', $product->id) }}" class="btn-action btn-action-edit" title="Edit">
+                                        <i class="fas fa-pen"></i>
+                                    </a>
                                     <form method="POST" action="{{ route('admin.products.destroy', $product->id) }}" class="d-inline" onsubmit="return confirm('Delete this product?');">
                                         @csrf
                                         @method('DELETE')
-                                        <button type="submit" class="btn-agri" style="padding: 8px; background: #fef2f2; color: #ef4444; border-radius: 999px; border: none;" title="Delete">
+                                        <button type="submit" class="btn-action btn-action-delete" title="Delete">
                                             <i class="fas fa-trash"></i>
                                         </button>
                                     </form>

@@ -37,6 +37,7 @@ class NotificationCenterService
         'payments' => [
             'payout.processed',
             'payout.pending',
+            'payout.rejected',
         ],
         'system' => [
             'system.profile_approved',

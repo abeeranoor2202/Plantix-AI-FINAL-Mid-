@@ -77,35 +77,40 @@ class MarketplacePayoutService
         $commission = round($amount * $commissionRate, 2);
         $netAmount = round(max(0, $amount - $commission), 2);
 
+        // Create/update the Payout record without firing model events here.
+        // Notifications are the responsibility of the caller (e.g. AdminPayoutRequestController)
+        // which already sends a scoped notification to the specific expert/vendor.
+        // The ExpertPayoutStatusChanged event is only dispatched explicitly below
+        // when the Stripe transfer succeeds, so we avoid duplicate notifications.
         if ($payment) {
-            $payout = Payout::updateOrCreate(
+            $payout = Payout::withoutEvents(fn () => Payout::updateOrCreate(
                 [
-                    'payment_id' => $payment->id,
+                    'payment_id'   => $payment->id,
                     'payment_type' => $paymentType,
                 ],
                 [
                     $recipientType === 'vendor' ? 'vendor_id' : 'expert_id' => $recipientModelId,
-                    'user_id' => $recipient->id,
-                    'amount' => $amount,
+                    'user_id'    => $recipient->id,
+                    'amount'     => $amount,
                     'commission' => $commission,
                     'net_amount' => $netAmount,
-                    'status' => 'pending',
-                    'method' => 'stripe_connect',
-                    'metadata' => $metadata,
+                    'status'     => 'pending',
+                    'method'     => 'stripe_connect',
+                    'metadata'   => $metadata,
                 ]
-            );
+            ));
         } else {
-            $payout = Payout::create([
+            $payout = Payout::withoutEvents(fn () => Payout::create([
                 $recipientType === 'vendor' ? 'vendor_id' : 'expert_id' => $recipientModelId,
-                'user_id' => $recipient->id,
+                'user_id'      => $recipient->id,
                 'payment_type' => $paymentType,
-                'amount' => $amount,
-                'commission' => $commission,
-                'net_amount' => $netAmount,
-                'status' => 'pending',
-                'method' => 'stripe_connect',
-                'metadata' => $metadata,
-            ]);
+                'amount'       => $amount,
+                'commission'   => $commission,
+                'net_amount'   => $netAmount,
+                'status'       => 'pending',
+                'method'       => 'stripe_connect',
+                'metadata'     => $metadata,
+            ]));
         }
 
         $stripeAccount = StripeAccount::where('user_id', $recipient->id)->first();
@@ -127,11 +132,11 @@ class MarketplacePayoutService
                 ])
             );
 
-            $payout->update([
-                'status' => 'paid',
+            $payout->withoutEvents(fn () => $payout->update([
+                'status'             => 'paid',
                 'stripe_transfer_id' => $transfer->id,
-                'paid_at' => now(),
-            ]);
+                'paid_at'            => now(),
+            ]));
 
             if ($payment) {
                 $payment->update([
@@ -152,11 +157,11 @@ class MarketplacePayoutService
 
             return $payout;
         } catch (\Throwable $e) {
-            $payout->update([
-                'status' => 'failed',
+            $payout->withoutEvents(fn () => $payout->update([
+                'status'   => 'failed',
                 'failed_at' => now(),
                 'metadata' => array_merge($metadata, ['error' => $e->getMessage()]),
-            ]);
+            ]));
 
             if ($payment) {
                 $payment->update([

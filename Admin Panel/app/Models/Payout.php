@@ -13,8 +13,15 @@ class Payout extends Model
 
     protected static function booted(): void
     {
+        // These hooks fire for direct Payout manipulations that bypass the
+        // admin controller flow (e.g. auto-settlements, CLI commands, Stripe webhooks).
+        // The AdminPayoutRequestController suppresses these events via withoutEvents()
+        // and sends its own scoped notification to the specific expert.
+
         static::created(function (Payout $payout): void {
-            if ($payout->expert_id) {
+            // Only notify on creation if already in a terminal state (not pending).
+            // A pending payout created by the service is not yet actionable.
+            if ($payout->expert_id && $payout->status !== 'pending') {
                 ExpertPayoutStatusChanged::dispatch($payout, null, $payout->status);
             }
         });

@@ -113,17 +113,23 @@
                             <x-badge :variant="$product->is_returnable ? 'success' : 'secondary'">{{ $product->is_returnable ? 'Yes' : 'No' }}</x-badge>
                         </td>
                         <td class="px-4 py-3">
-                            <div class="text-end" style="display: flex; justify-content: flex-end; gap: 8px;">
+                            <div class="text-end">
                                 <form method="POST" action="{{ route('vendor.products.toggle-active', $product->id) }}">
                                     @csrf
                                     <x-toggle :checked="$product->is_active" onchange="this.form.submit()" />
                                 </form>
-                                <x-button :href="route('vendor.products.show', $product->id)" variant="icon" title="View" style="color: #2563eb; background: var(--agri-bg); width:34px; height:34px;"><i class="fas fa-eye"></i></x-button>
-                                <x-button :href="route('vendor.products.edit', $product->id)" variant="icon" title="Edit" style="color: var(--agri-primary); background: var(--agri-bg); width:34px; height:34px;"><i class="fas fa-pen"></i></x-button>
+                                <a href="{{ route('vendor.products.show', $product->id) }}" class="btn-action btn-action-view" title="View">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <a href="{{ route('vendor.products.edit', $product->id) }}" class="btn-action btn-action-edit" title="Edit">
+                                    <i class="fas fa-pen"></i>
+                                </a>
                                 <form method="POST" action="{{ route('vendor.products.destroy', $product->id) }}" class="d-inline" onsubmit="return confirm('Delete this product?');">
                                     @csrf
                                     @method('DELETE')
-                                    <x-button type="submit" variant="icon" title="Delete" style="color:#ef4444; background:#fef2f2; width:34px; height:34px;"><i class="fas fa-trash"></i></x-button>
+                                    <button type="submit" class="btn-action btn-action-delete" title="Delete">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
                                 </form>
                             </div>
                         </td>

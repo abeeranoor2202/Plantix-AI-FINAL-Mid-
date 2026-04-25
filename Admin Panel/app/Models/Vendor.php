@@ -26,7 +26,6 @@ class Vendor extends Model
         'bank_name', 'bank_account_name', 'bank_account_number', 'iban',
         'cnic_document', 'business_license_document', 'tax_certificate_document',
         'image', 'cover_photo', 'rating', 'review_count', 'is_active', 'is_approved',
-        'reputation_score', 'reputation_level',
         'status', 'reviewed_by', 'submitted_at', 'reviewed_at', 'approved_at',
         'rejected_at', 'suspended_at',
         'open_time', 'close_time', 'delivery_fee', 'min_order_amount',
@@ -43,7 +42,6 @@ class Vendor extends Model
         'rejected_at'  => 'datetime',
         'suspended_at' => 'datetime',
         'rating'       => 'decimal:2',
-        'reputation_score' => 'integer',
         'delivery_fee' => 'decimal:2',
         'commission_rate' => 'decimal:2',
     ];
