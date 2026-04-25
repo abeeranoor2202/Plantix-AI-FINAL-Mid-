@@ -30,7 +30,14 @@ class NotificationCenterController extends Controller
 
     private function currentExpert(): Expert
     {
-        $expert = $this->currentUser()->expert;
+        // Prefer the expert guard directly — avoids guard iteration order issues
+        $user = auth('expert')->user();
+
+        if (! $user instanceof User) {
+            abort(403, 'Expert authentication required.');
+        }
+
+        $expert = $user->expert;
 
         if (! $expert instanceof Expert) {
             abort(403, 'Expert profile is required for notifications.');
