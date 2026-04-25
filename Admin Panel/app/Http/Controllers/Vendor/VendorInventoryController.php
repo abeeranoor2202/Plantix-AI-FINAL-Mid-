@@ -54,7 +54,7 @@ class VendorInventoryController extends Controller
         $stocks = $query->latest()->paginate(25)->withQueryString();
 
         $summary = $this->inventory->analytics($vendorId);
-        $summary['total_stock_value'] = Stock::where('vendor_id', $vendorId)
+        $summary['total_stock_value'] = Stock::where('stocks.vendor_id', $vendorId)
             ->join('products', 'stocks.product_id', '=', 'products.id')
             ->selectRaw('SUM(stocks.quantity * products.price) as total')
             ->value('total') ?? 0;
@@ -79,8 +79,14 @@ class VendorInventoryController extends Controller
             ->with('product')
             ->firstOrFail();
 
+        $product = $stock->product ?? \App\Models\Product::withTrashed()->find($productId);
+
+        if (! $product) {
+            return back()->withErrors(['error' => 'Product not found for this stock record.']);
+        }
+
         $this->stockService->setStock(
-            product: $stock->product,
+            product: $product,
             qty: (int) $request->quantity,
             vendorId: (int) $stock->vendor_id,
             initiatedBy: auth('vendor')->id(),
@@ -91,7 +97,7 @@ class VendorInventoryController extends Controller
     }
 
     /**
-     * Delete an empty stock record for the vendor's product.
+     * Delete a zero-quantity stock record for the vendor's product.
      * Route: DELETE /vendor/inventory/{id}
      */
     public function destroy(int $productId): RedirectResponse
@@ -102,16 +108,12 @@ class VendorInventoryController extends Controller
 
         if ((int) $stock->quantity > 0 || (int) $stock->reserved_quantity > 0) {
             return back()->withErrors([
-                'stock' => 'Only empty stock records can be deleted.',
+                'stock' => 'Cannot delete a stock record that still has units. Set quantity to 0 first.',
             ]);
         }
 
-        if ($stock->movements()->exists()) {
-            return back()->withErrors([
-                'stock' => 'Stock history exists for this product. Set quantity to 0 instead of deleting.',
-            ]);
-        }
-
+        // Remove movement history for this product/vendor, then delete the record
+        $stock->movements()->delete();
         $stock->delete();
 
         return back()->with('success', 'Stock record deleted successfully.');
