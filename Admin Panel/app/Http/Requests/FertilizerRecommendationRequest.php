@@ -15,13 +15,9 @@ class FertilizerRecommendationRequest extends FormRequest
     {
         return [
             'crop_type'    => ['required', 'string', 'max:100'],
-            'growth_stage' => ['nullable', 'string', 'in:pre-sowing,seedling,vegetative,flowering,fruiting,maturity'],
             'nitrogen'     => ['nullable', 'numeric', 'min:0', 'max:500'],
             'phosphorus'   => ['nullable', 'numeric', 'min:0', 'max:300'],
             'potassium'    => ['nullable', 'numeric', 'min:0', 'max:400'],
-            'ph_level'     => ['nullable', 'numeric', 'min:0', 'max:14'],
-            'temperature'  => ['nullable', 'numeric', 'min:-20', 'max:55'],
-            'humidity'     => ['nullable', 'numeric', 'min:0', 'max:100'],
             'soil_test_id' => ['nullable', 'integer', 'exists:soil_tests,id'],
         ];
     }

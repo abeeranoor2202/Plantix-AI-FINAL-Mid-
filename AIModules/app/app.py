@@ -1,17 +1,19 @@
 # Importing essential libraries and modules
 
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, jsonify
 from markupsafe import Markup
 from datetime import datetime, timezone
 import numpy as np
 import pandas as pd
 from utils.disease import disease_dic
 from utils.fertilizer import fertilizer_dic
+from utils.plant_filter import is_plant_image
 import requests
 import config
 import pickle
 import io
 import torch
+import torch.nn.functional as F
 from torchvision import transforms
 from PIL import Image
 from utils.model import ResNet9
@@ -104,25 +106,38 @@ def weather_fetch(city_name):
 
 def predict_image(img, model=disease_model):
     """
-    Transforms image to tensor and predicts disease label
-    :params: image
-    :return: prediction (string)
+    Transforms image to tensor and predicts disease label with confidence scores.
+    :params: image bytes
+    :return: (top_class_label, confidence_float, all_predictions_list)
     """
     transform = transforms.Compose([
         transforms.Resize(256),
         transforms.ToTensor(),
     ])
-    image = Image.open(io.BytesIO(img))
+    image = Image.open(io.BytesIO(img)).convert("RGB")
     img_t = transform(image)
     img_u = torch.unsqueeze(img_t, 0)
 
-    # Get predictions from model
-    yb = model(img_u)
-    # Pick index with highest probability
-    _, preds = torch.max(yb, dim=1)
-    prediction = disease_classes[preds[0].item()]
-    # Retrieve the class label
-    return prediction
+    with torch.no_grad():
+        yb    = model(img_u)
+        probs = F.softmax(yb, dim=1)[0]
+
+    top5_probs, top5_indices = torch.topk(probs, 5)
+
+    top_label      = disease_classes[top5_indices[0].item()]
+    top_confidence = top5_probs[0].item()
+
+    all_predictions = []
+    for idx, prob in zip(top5_indices.tolist(), top5_probs.tolist()):
+        raw_label    = disease_classes[idx]
+        display_name = raw_label.replace("___", " — ").replace("_", " ")
+        all_predictions.append({
+            "disease":      raw_label.lower(),
+            "display_name": display_name,
+            "confidence":   round(prob, 4),
+        })
+
+    return top_label, top_confidence, all_predictions
 
 # ===============================================================================================
 # ------------------------------------ FLASK APP -------------------------------------------------
@@ -251,13 +266,92 @@ def disease_prediction():
         try:
             img = file.read()
 
-            prediction = predict_image(img)
+            prediction, _, _ = predict_image(img)
 
             prediction = Markup(str(disease_dic[prediction]))
             return render_template('disease-result.html', prediction=prediction, title=title)
         except:
             pass
     return render_template('disease.html', title=title)
+
+
+# ── REST API endpoint for Laravel backend ──────────────────────────────────────
+# POST /disease/predict
+# Headers: X-API-Key: <DISEASE_API_KEY>
+# Body:    multipart/form-data  { image: <file> }
+#
+# Response (success):
+#   { status: "success", disease: "tomato___late_blight", display_name: "...",
+#     confidence: 0.94, predictions: [{disease, display_name, confidence}, ...] }
+#
+# Response (invalid image — not a plant):
+#   { status: "invalid", message: "...", confidence: 0.0, predictions: [] }
+#
+# Response (error):
+#   { status: "error", message: "..." }  HTTP 400/500
+# ──────────────────────────────────────────────────────────────────────────────
+@app.route('/disease/predict', methods=['POST'])
+def disease_predict_api():
+    # ── 1. Optional API key auth ──────────────────────────────────────────────
+    expected_key = getattr(config, 'disease_api_key', None)
+    if expected_key:
+        provided_key = request.headers.get('X-API-Key', '')
+        if provided_key != expected_key:
+            return jsonify({'status': 'error', 'message': 'Unauthorized'}), 401
+
+    # ── 2. Validate uploaded file ─────────────────────────────────────────────
+    if 'image' not in request.files:
+        return jsonify({'status': 'error', 'message': 'No image file provided. Send as multipart field "image".'}), 400
+
+    file = request.files['image']
+    if file.filename == '':
+        return jsonify({'status': 'error', 'message': 'Empty filename.'}), 400
+
+    try:
+        img_bytes = file.read()
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': f'Could not read uploaded file: {str(e)}'}), 400
+
+    # ── 3. MobileNetV2 plant pre-check ────────────────────────────────────────
+    # Reject non-plant images (chairs, people, cars, etc.) before running the
+    # disease model, which is only trained on plant leaves.
+    try:
+        plant_ok, top_label, top_conf = is_plant_image(img_bytes)
+    except Exception as e:
+        # If the filter itself crashes, log and skip it (fail open)
+        app.logger.warning(f'Plant filter error (skipping): {e}')
+        plant_ok = True
+        top_label = 'unknown'
+        top_conf  = 0.0
+
+    if not plant_ok:
+        return jsonify({
+            'status':      'invalid',
+            'message':     (
+                f'This image does not appear to be a plant leaf. '
+                f'MobileNet identified it as "{top_label}" ({round(top_conf * 100, 1)}%). '
+                f'Please upload a clear photo of a crop leaf or plant part.'
+            ),
+            'confidence':  round(top_conf, 4),
+            'predictions': [],
+        })
+
+    # ── 4. Run ResNet9 disease model ──────────────────────────────────────────
+    try:
+        top_label_disease, top_confidence, all_predictions = predict_image(img_bytes)
+    except Exception as e:
+        app.logger.error(f'Disease model inference failed: {e}')
+        return jsonify({'status': 'error', 'message': f'Inference failed: {str(e)}'}), 500
+
+    display_name = top_label_disease.replace("___", " — ").replace("_", " ")
+
+    return jsonify({
+        'status':       'success',
+        'disease':      top_label_disease.lower(),
+        'display_name': display_name,
+        'confidence':   round(top_confidence, 4),
+        'predictions':  all_predictions,
+    })
 
 
 # ===============================================================================================

@@ -128,24 +128,45 @@ def disease_predict():
         raise APIError("Empty image file.", status_code=400, error_code="empty_image")
 
     try:
-        predictions = disease_model_service.predict_from_bytes(image_bytes)
+        result = disease_model_service.predict_from_bytes(image_bytes)
     except Exception as exc:
         current_app.logger.error("Disease inference error: %s", exc)
         raise APIError("Inference failed. Please try again.", status_code=500, error_code="inference_error") from exc
 
-    top = predictions[0] if predictions else {"disease": "unknown", "display_name": "Unknown", "confidence": 0.0}
+    request_id = request.headers.get("X-Request-Id") or str(uuid4())
+    timestamp  = datetime.now(timezone.utc).isoformat()
 
+    # ── Invalid image (below confidence threshold) ────────────────────────────
+    # Return HTTP 200 with status="invalid" so the client can show the message.
+    # Never include disease name or treatment info in this branch.
+    if result.get("status") == "invalid":
+        return jsonify(
+            {
+                "success": True,
+                "status": "invalid",
+                "message": result["message"],
+                "confidence": result["confidence"],
+                "predictions": result.get("predictions", []),
+                "model": disease_model_service.MODEL_NAME,
+                "model_version": disease_model_service.MODEL_VERSION,
+                "request_id": request_id,
+                "timestamp": timestamp,
+            }
+        ), 200
+
+    # ── Valid plant leaf — return full prediction ─────────────────────────────
     return jsonify(
         {
             "success": True,
-            "disease": top["disease"],
-            "display_name": top["display_name"],
-            "confidence": top["confidence"],
-            "predictions": predictions,
+            "status": "success",
+            "disease": result["disease"],
+            "display_name": result["display_name"],
+            "confidence": result["confidence"],
+            "predictions": result["predictions"],
             "model": disease_model_service.MODEL_NAME,
             "model_version": disease_model_service.MODEL_VERSION,
-            "request_id": request.headers.get("X-Request-Id") or str(uuid4()),
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "request_id": request_id,
+            "timestamp": timestamp,
         }
     ), 200
 

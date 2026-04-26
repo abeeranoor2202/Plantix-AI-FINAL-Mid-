@@ -44,6 +44,11 @@ class CropDiseaseReport extends Model
     {
         return $query->where('status', 'processed');
     }
+
+    public function scopeInvalidImage($query)
+    {
+        return $query->where('status', 'invalid_image');
+    }
     // ── Accessors ──────────────────────────────────────────────────────────
     public function getImageUrlAttribute(): string
     {

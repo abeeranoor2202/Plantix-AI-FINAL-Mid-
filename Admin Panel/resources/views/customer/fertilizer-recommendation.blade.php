@@ -76,9 +76,9 @@
                             <form id="fertilizerForm" class="contact-form" method="POST" action="{{ route('fertilizer.recommendation.recommend') }}">
                                 @csrf
                                 <div class="row g-4">
-                                    <div class="col-md-6">
+                                    <div class="col-md-12">
                                         <label for="cropType" class="form-label fw-bold text-dark small">Target Crop Intention</label>
-                                        <select id="cropType" class="form-agri">
+                                        <select id="cropType" name="crop_type" class="form-agri">
                                             <option value="Wheat">Wheat</option>
                                             <option value="Rice">Rice</option>
                                             <option value="Maize">Maize</option>
@@ -88,54 +88,22 @@
                                             <option value="Sugarcane">Sugarcane</option>
                                         </select>
                                     </div>
-                                    <div class="col-md-6">
-                                        <label for="growthStage" class="form-label fw-bold text-dark small">Growth Stage</label>
-                                        <select id="growthStage" class="form-agri">
-                                            <option value="pre-sowing">Pre-Sowing</option>
-                                            <option value="seedling">Seedling</option>
-                                            <option value="vegetative">Vegetative</option>
-                                            <option value="flowering">Flowering</option>
-                                            <option value="fruiting">Fruiting</option>
-                                            <option value="maturity">Maturity</option>
-                                        </select>
-                                    </div>
-                                    
-                                    <div class="col-md-4">
-                                        <label for="temperature" class="form-label fw-bold text-dark small">Temperature (°C)</label>
-                                        <div class="input-group">
-                                            <span class="input-group-text bg-white text-muted border-end-0"><i class="fas fa-thermometer-half"></i></span>
-                                            <input type="number" step="0.1" id="temperature" class="form-agri border-start-0" placeholder="e.g. 25" required>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <label for="humidity" class="form-label fw-bold text-dark small">Air Humidity (%)</label>
-                                        <div class="input-group">
-                                            <span class="input-group-text bg-white text-muted border-end-0"><i class="fas fa-cloud-rain"></i></span>
-                                            <input type="number" step="0.1" id="humidity" class="form-agri border-start-0" placeholder="e.g. 60" required>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <label for="phLevel" class="form-label fw-bold text-dark small">Soil pH</label>
-                                        <div class="input-group">
-                                            <span class="input-group-text bg-white text-muted border-end-0"><i class="fas fa-vial"></i></span>
-                                            <input type="number" step="0.1" id="phLevel" class="form-agri border-start-0" placeholder="e.g. 6.5" min="0" max="14" required>
-                                        </div>
-                                    </div>
 
                                     <div class="col-12 mt-2 border-top pt-4">
-                                        <h5 class="fw-bold text-dark fs-6 mb-3">Soil Nutrients Analysis (Model-aligned dataset range)</h5>
+                                        <h5 class="fw-bold text-dark fs-6 mb-1">Soil Nutrients (kg/acre)</h5>
+                                        <p class="text-muted small mb-3">Enter your soil test values. The model uses N, P, K to recommend the right fertilizer.</p>
                                     </div>
                                     <div class="col-md-4">
-                                        <label for="nitrogen" class="form-label fw-bold text-muted small">Nitrogen (N) [typical 4-42]</label>
-                                        <input type="number" step="1" id="nitrogen" class="form-agri" placeholder="e.g. 24" min="0" max="500" required>
+                                        <label for="nitrogen" class="form-label fw-bold text-muted small">Nitrogen (N) <span class="text-muted fw-normal">[0–42]</span></label>
+                                        <input type="number" step="1" id="nitrogen" name="nitrogen" class="form-agri" placeholder="e.g. 24" min="0" max="500" required>
                                     </div>
                                     <div class="col-md-4">
-                                        <label for="phosphorus" class="form-label fw-bold text-muted small">Phosphorus (P) [typical 0-42]</label>
-                                        <input type="number" step="1" id="phosphorus" class="form-agri" placeholder="e.g. 21" min="0" max="500" required>
+                                        <label for="phosphorus" class="form-label fw-bold text-muted small">Phosphorus (P) <span class="text-muted fw-normal">[0–42]</span></label>
+                                        <input type="number" step="1" id="phosphorus" name="phosphorus" class="form-agri" placeholder="e.g. 21" min="0" max="500" required>
                                     </div>
                                     <div class="col-md-4">
-                                        <label for="potassium" class="form-label fw-bold text-muted small">Potassium (K) [typical 0-19]</label>
-                                        <input type="number" step="1" id="potassium" class="form-agri" placeholder="e.g. 10" min="0" max="500" required>
+                                        <label for="potassium" class="form-label fw-bold text-muted small">Potassium (K) <span class="text-muted fw-normal">[0–19]</span></label>
+                                        <input type="number" step="1" id="potassium" name="potassium" class="form-agri" placeholder="e.g. 10" min="0" max="500" required>
                                     </div>
                                 </div>
 
@@ -223,17 +191,13 @@
 
                 var payload = {
                     crop_type: document.getElementById('cropType').value,
-                    growth_stage: document.getElementById('growthStage').value,
-                    temperature: parseFloat(document.getElementById('temperature').value),
-                    humidity: parseFloat(document.getElementById('humidity').value),
-                    ph_level: parseFloat(document.getElementById('phLevel').value),
                     nitrogen: parseFloat(document.getElementById('nitrogen').value),
                     phosphorus: parseFloat(document.getElementById('phosphorus').value),
                     potassium: parseFloat(document.getElementById('potassium').value)
                 };
 
-                if (Object.values(payload).some(function (v) { return Number.isNaN(v); })) {
-                    alert('Please provide valid values for all fields.');
+                if (isNaN(payload.nitrogen) || isNaN(payload.phosphorus) || isNaN(payload.potassium)) {
+                    alert('Please provide valid values for N, P, and K.');
                     return;
                 }
 
@@ -309,7 +273,7 @@
                 html += '<p class="text-muted mb-0 small" style="white-space: pre-line;">' + (data.application_instructions || 'Follow agronomist guidance for split application.') + '</p>';
                 html += '</div>';
 
-                html += '<p class="text-muted small mb-0">Input snapshot: N=' + payload.nitrogen + ', P=' + payload.phosphorus + ', K=' + payload.potassium + ', pH=' + payload.ph_level + '.</p>';
+                html += '<p class="text-muted small mb-0">Soil snapshot: N=' + payload.nitrogen + ', P=' + payload.phosphorus + ', K=' + payload.potassium + '</p>';
                 html += '</div>';
 
                 return html;

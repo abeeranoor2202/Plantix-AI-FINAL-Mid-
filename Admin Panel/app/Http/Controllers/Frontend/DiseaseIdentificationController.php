@@ -78,7 +78,8 @@ class DiseaseIdentificationController extends Controller
     /**
      * Poll the status of a pending disease detection report (AJAX).
      * Called repeatedly by the frontend after submitting an image
-     * until status transitions from 'pending' to 'completed' or 'failed'.
+     * until status transitions from 'pending' to 'processed', 'invalid_image',
+     * 'manual_review', or 'failed'.
      */
     public function pollStatus(int $id)
     {
@@ -91,13 +92,18 @@ class DiseaseIdentificationController extends Controller
             'detected_disease' => $report->detected_disease,
             'confidence_score' => $report->confidence_score,
             'confidence_pct'   => $report->confidence_score !== null
-                                    ? round($report->confidence_score * 100, 1)
+                                    ? round((float) $report->confidence_score * 100, 1)
                                     : null,
             'all_predictions'  => null,
             'suggestion'       => null,
+            // Confidence gate fields
+            'is_valid_image'   => $report->status !== 'invalid_image',
+            'invalid_message'  => $report->status === 'invalid_image'
+                ? 'This image does not appear to be a plant leaf. Please upload a clear image of a plant for disease identification.'
+                : null,
         ];
 
-        if ($report->status === 'completed') {
+        if ($report->status === 'processed') {
             $report->load('suggestion');
             $data['all_predictions'] = $report->all_predictions;
             $data['suggestion']      = $report->suggestion;

@@ -26,37 +26,31 @@ class FertilizerRecommendationService
      */
     public function recommend(User $user, array $input, ?int $soilTestId = null): FertilizerRecommendation
     {
-        $crop         = (string) ($input['crop_type'] ?? 'General Crop');
-        $growthStage  = (string) ($input['growth_stage'] ?? 'pre-sowing');
-        $soilN        = (float)($input['nitrogen']   ?? 0);
-        $soilP        = (float)($input['phosphorus'] ?? 0);
-        $soilK        = (float)($input['potassium']  ?? 0);
-        $pH           = (float)($input['ph_level']   ?? 7.0);
+        $crop  = (string) ($input['crop_type'] ?? 'General Crop');
+        $soilN = (float)($input['nitrogen']   ?? 0);
+        $soilP = (float)($input['phosphorus'] ?? 0);
+        $soilK = (float)($input['potassium']  ?? 0);
 
         $apiResult = $this->predictionApi->predict([
-            'nitrogen' => $soilN,
-            'phosphorus' => $soilP,
-            'potassium' => $soilK,
+            'nitrogen'    => $soilN,
+            'phosphorus'  => $soilP,
+            'potassium'   => $soilK,
         ]);
 
         $recommendedFertilizer = (string) ($apiResult['fertilizer'] ?? 'Urea');
         $confidenceScore = isset($apiResult['confidence']) ? (float) $apiResult['confidence'] : null;
 
-        $plan = $this->buildPlan($recommendedFertilizer, $crop, $growthStage, $soilN, $soilP, $soilK, $pH, $confidenceScore);
-        $cost = $this->estimateCost($plan);
-        $instructions = $this->buildInstructions($crop, $growthStage, $recommendedFertilizer, $confidenceScore, $apiResult);
+        $plan         = $this->buildPlan($recommendedFertilizer, $crop, $soilN, $soilP, $soilK, $confidenceScore);
+        $cost         = $this->estimateCost($plan);
+        $instructions = $this->buildInstructions($crop, $recommendedFertilizer, $confidenceScore, $apiResult);
 
         return FertilizerRecommendation::create([
             'user_id'                   => $user->id,
             'soil_test_id'              => $soilTestId,
             'crop_type'                 => $crop,
-            'growth_stage'              => $growthStage,
             'nitrogen'                  => $soilN,
             'phosphorus'                => $soilP,
             'potassium'                 => $soilK,
-            'ph_level'                  => $pH,
-            'temperature'               => $input['temperature'] ?? null,
-            'humidity'                  => $input['humidity'] ?? null,
             'fertilizer_plan'           => $plan,
             'application_instructions'  => $instructions,
             'estimated_cost_pkr'        => $cost,
@@ -66,40 +60,18 @@ class FertilizerRecommendationService
 
     // ── Private ──────────────────────────────────────────────────────────────
 
-    private function buildPlan(string $fertilizerName, string $crop, string $stage, float $n, float $p, float $k, float $ph, ?float $confidence): array
+    private function buildPlan(string $fertilizerName, string $crop, float $n, float $p, float $k, ?float $confidence): array
     {
         $baseDose = $this->estimatePrimaryDose($n, $p, $k);
         $confidencePercent = $confidence === null ? null : round($confidence * 100, 2);
 
-        $plan = [[
-            'name' => $fertilizerName,
-            'type' => 'AI Recommended',
+        return [[
+            'name'             => $fertilizerName,
+            'type'             => 'AI Recommended',
             'dose_kg_per_acre' => $baseDose,
-            'timing' => $this->timingByStage($stage),
-            'notes' => 'Recommended by ML model for ' . $crop . ($confidencePercent !== null ? (' (confidence: ' . $confidencePercent . '%).') : '.'),
+            'timing'           => 'Basal application at land preparation',
+            'notes'            => 'Recommended by ML model for ' . $crop . ($confidencePercent !== null ? (' (confidence: ' . $confidencePercent . '%).') : '.'),
         ]];
-
-        if ($ph > 7.8) {
-            $plan[] = [
-                'name' => 'Ammonium Sulphate',
-                'type' => 'pH Management',
-                'dose_kg_per_acre' => 8.0,
-                'timing' => 'Basal application before irrigation',
-                'notes' => 'Helps in alkaline soils where pH exceeds 7.8.',
-            ];
-        }
-
-        if ($ph < 5.8) {
-            $plan[] = [
-                'name' => 'Agricultural Lime',
-                'type' => 'pH Correction',
-                'dose_kg_per_acre' => 60.0,
-                'timing' => '2 weeks before sowing',
-                'notes' => 'Raise soil pH gradually in acidic fields.',
-            ];
-        }
-
-        return $plan;
     }
 
     private function estimateCost(array $plan): float
@@ -133,23 +105,12 @@ class FertilizerRecommendationService
         return $dose;
     }
 
-    private function timingByStage(string $stage): string
-    {
-        return match ($stage) {
-            'seedling' => 'Light dose at seedling establishment (7-12 DAS)',
-            'vegetative' => 'Split in two applications during vegetative phase',
-            'flowering' => 'Apply before flowering and avoid foliar burn hours',
-            'fruiting' => 'Apply in split doses with irrigation support',
-            'maturity' => 'Maintenance dose only if visible deficiency persists',
-            default => 'Basal application at land preparation',
-        };
-    }
 
-    private function buildInstructions(string $crop, string $stage, string $fertilizer, ?float $confidence, array $apiResult): string
+    private function buildInstructions(string $crop, string $fertilizer, ?float $confidence, array $apiResult): string
     {
         $confidenceText = $confidence === null ? 'N/A' : round($confidence * 100, 2) . '%';
         $lines = [
-            "AI Fertilizer Plan for {$crop} (Growth Stage: {$stage})",
+            "AI Fertilizer Plan for {$crop}",
             "",
             "Primary fertilizer: {$fertilizer}",
             "Model confidence: {$confidenceText}",
@@ -159,7 +120,6 @@ class FertilizerRecommendationService
             "• Apply on moist soil and irrigate lightly within 24 hours.",
             "• Prefer split doses to reduce nutrient loss.",
             "• Avoid application before heavy rainfall events.",
-            "• Moisture: Ensure adequate soil moisture at application or irrigate within 24 hours.",
             "",
             "Record all applications with date, product, and quantity in your farm diary.",
         ];

@@ -78,7 +78,8 @@
                                 </p>
                             </div>
 
-                            <form id="diseaseForm" class="contact-form" enctype="multipart/form-data">
+                            <form id="diseaseForm" enctype="multipart/form-data">
+                                @csrf
                                 <div class="row align-items-center g-4">
                                     <div class="col-md-7">
                                         <div class="bg-white p-3 rounded-3 border">
@@ -86,12 +87,12 @@
                                                 type="file"
                                                 class="form-control border-0"
                                                 id="cropImage"
-                                                name="cropImage"
-                                                accept="image/*"
+                                                name="image"
+                                                accept="image/jpeg,image/png,image/webp"
                                                 required
                                             />
                                         </div>
-                                        <div class="mt-2 text-muted small"><i class="fas fa-info-circle me-1"></i> Tip: Use a sharp, well-lit image focusing on the affected area.</div>
+                                        <div class="mt-2 text-muted small"><i class="fas fa-info-circle me-1"></i> Tip: Use a sharp, well-lit image focusing on the affected leaf area. JPEG / PNG / WebP, max 10 MB.</div>
                                     </div>
                                     <div class="col-md-5 text-center">
                                         <div id="imagePreview" class="bg-white border rounded-3 d-flex align-items-center justify-content-center overflow-hidden shadow-sm" style="height: 140px;">
@@ -101,7 +102,7 @@
                                 </div>
 
                                 <div class="text-center mt-4">
-                                    <button type="submit" class="btn-agri btn-agri-primary px-5 py-3 fs-5 shadow-sm">
+                                    <button type="submit" id="analyzeBtn" class="btn-agri btn-agri-primary px-5 py-3 fs-5 shadow-sm">
                                         <i class="fas fa-search me-2"></i> Analyze &amp; Identify Disease
                                     </button>
                                 </div>
@@ -112,10 +113,10 @@
                         <div id="diseaseResult" class="mt-4" style="display: none;">
                             <div class="card-agri p-4 border-0" style="background: linear-gradient(to right bottom, #ffffff, #f8fcf9); border: 1px solid var(--agri-border) !important;">
                                 <div class="d-flex align-items-center gap-2 mb-4 pb-3 border-bottom">
-                                    <div class="bg-success text-white rounded-circle d-flex align-items-center justify-content-center shadow-sm" style="width: 40px; height: 40px;">
+                                    <div id="resultIcon" class="rounded-circle d-flex align-items-center justify-content-center shadow-sm" style="width: 40px; height: 40px; background: #16a34a; color: #fff;">
                                         <i class="fas fa-check"></i>
                                     </div>
-                                    <h4 class="fw-bold text-dark mb-0 m-0">Diagnosis Complete</h4>
+                                    <h4 class="fw-bold text-dark mb-0 m-0" id="resultTitle">Analysis Complete</h4>
                                 </div>
                                 <div id="diseaseResultContent"></div>
                             </div>
@@ -181,160 +182,248 @@
     <!-- End Content -->
 
     <script>
-        (function () {
-            var input = document.getElementById("cropImage");
-            var preview = document.getElementById("imagePreview");
-            var form = document.getElementById("diseaseForm");
-            var resultWrap = document.getElementById("diseaseResult");
-            var resultContent = document.getElementById("diseaseResultContent");
+    (function () {
+        var input      = document.getElementById("cropImage");
+        var preview    = document.getElementById("imagePreview");
+        var form       = document.getElementById("diseaseForm");
+        var resultWrap = document.getElementById("diseaseResult");
+        var resultContent = document.getElementById("diseaseResultContent");
+        var resultIcon    = document.getElementById("resultIcon");
+        var resultTitle   = document.getElementById("resultTitle");
+        var analyzeBtn    = document.getElementById("analyzeBtn");
 
-            if (!input || !preview || !form) return;
+        if (!input || !form) return;
 
-            // Preview image
-            input.addEventListener("change", function () {
-                var file = this.files && this.files[0];
-                if (!file) {
-                    preview.innerHTML = '<span class="text-muted small"><i class="far fa-image fs-4 mb-2 d-block"></i> Image Preview</span>';
-                    return;
-                }
-                var reader = new FileReader();
-                reader.onload = function (e) {
-                    preview.innerHTML = '<img src="' + e.target.result + '" alt="Preview" class="h-100 w-100 object-fit-cover shadow-sm" />';
-                };
-                reader.readAsDataURL(file);
-            });
+        // ── Image preview ─────────────────────────────────────────────────────
+        input.addEventListener("change", function () {
+            var file = this.files && this.files[0];
+            if (!file) {
+                preview.innerHTML = '<span class="text-muted small"><i class="far fa-image fs-4 mb-2 d-block"></i> Image Preview</span>';
+                return;
+            }
+            var reader = new FileReader();
+            reader.onload = function (e) {
+                preview.innerHTML = '<img src="' + e.target.result + '" alt="Preview" class="h-100 w-100 object-fit-cover shadow-sm" />';
+            };
+            reader.readAsDataURL(file);
+        });
 
-            // Dummy disease profiles
-            var diseases = [
-                {
-                    name: "Early Blight (Tomato/Potato)",
-                    symptoms: "Brown concentric rings on older leaves; yellowing around lesions.",
-                    treatment: "Remove affected leaves; apply fungicide (chlorothalonil/maneb); rotate crops.",
-                },
-                {
-                    name: "Late Blight (Tomato/Potato)",
-                    symptoms: "Water-soaked lesions turning brown/black; white mold on undersides in humid weather.",
-                    treatment: "Destroy infected plants; copper-based sprays; avoid overhead irrigation.",
-                },
-                {
-                    name: "Powdery Mildew",
-                    symptoms: "White powdery growth on both sides of leaves; distorted growth.",
-                    treatment: "Improve air flow; sulfur or potassium bicarbonate sprays.",
-                },
-                {
-                    name: "Downy Mildew",
-                    symptoms: "Yellow angular spots on upper leaf; grayish downy growth underside.",
-                    treatment: "Remove debris; use phosphonate/copper; ensure good drainage.",
-                },
-                {
-                    name: "Leaf Rust (Wheat)",
-                    symptoms: "Orange-brown pustules on leaves; reduced vigor and yield.",
-                    treatment: "Resistant varieties; triazole fungicides; remove volunteer hosts.",
-                },
-                {
-                    name: "Rice Blast",
-                    symptoms: "Diamond/elliptical lesions with gray centers on leaves/nodes.",
-                    treatment: "Balanced nitrogen; seed treatment; tricyclazole where permitted.",
-                },
-                {
-                    name: "Bacterial Leaf Spot",
-                    symptoms: "Small dark water-soaked spots; yellow halos; leaf tattering.",
-                    treatment: "Copper sprays; avoid handling when wet; sanitize tools.",
-                },
-                {
-                    name: "Citrus Canker",
-                    symptoms: "Raised corky lesions with yellow halos on leaves/fruit.",
-                    treatment: "Prune and burn infected twigs; copper sprays; windbreaks.",
-                },
-                {
-                    name: "Anthracnose",
-                    symptoms: "Dark sunken lesions on fruit/stems; leaf blight.",
-                    treatment: "Sanitation; resistant cultivars; appropriate fungicides.",
-                },
-                {
-                    name: "Fusarium Wilt",
-                    symptoms: "Unilateral yellowing/wilting; brown vascular discoloration.",
-                    treatment: "Resistant varieties; crop rotation; soil solarization.",
-                },
-                {
-                    name: "Black Sigatoka (Banana)",
-                    symptoms: "Dark streaks turning into necrotic patches; reduced leaf area.",
-                    treatment: "Prune infected leaves; systemic fungicides; improved airflow.",
-                },
-            ];
+        // ── Helpers ───────────────────────────────────────────────────────────
+        function setBtn(loading) {
+            if (!analyzeBtn) return;
+            analyzeBtn.disabled = loading;
+            analyzeBtn.innerHTML = loading
+                ? '<i class="fas fa-spinner fa-spin me-2"></i> Analyzing...'
+                : '<i class="fas fa-search me-2"></i> Analyze &amp; Identify Disease';
+        }
 
-            function hashFilename(name) {
-                var h = 0;
-                for (var i = 0; i < name.length; i++) {
-                    h = (h << 5) - h + name.charCodeAt(i);
-                    h |= 0;
-                }
-                return Math.abs(h);
+        function showResult(html, isInvalid) {
+            resultContent.innerHTML = html;
+            resultWrap.style.display = "block";
+
+            if (isInvalid) {
+                resultIcon.style.background = "#dc2626";
+                resultIcon.innerHTML = '<i class="fas fa-times"></i>';
+                resultTitle.textContent = "Image Not Recognised";
+            } else {
+                resultIcon.style.background = "#16a34a";
+                resultIcon.innerHTML = '<i class="fas fa-check"></i>';
+                resultTitle.textContent = "Diagnosis Complete";
             }
 
-            form.addEventListener("submit", function (e) {
-                e.preventDefault();
-                var file = input.files && input.files[0];
-                if (!file) {
-                    alert("Please upload an image.");
+            resultWrap.scrollIntoView({ behavior: "smooth", block: "nearest" });
+        }
+
+        // ── Render: invalid image ─────────────────────────────────────────────
+        function renderInvalid(message, confidence) {
+            var pct = confidence !== null ? Math.round(confidence * 100) : 0;
+            var html = '';
+            html += '<div class="alert alert-danger mb-4" style="border-radius:12px;">';
+            html += '<div class="d-flex align-items-start gap-3">';
+            html += '<i class="fas fa-exclamation-circle fs-4 text-danger mt-1"></i>';
+            html += '<div>';
+            html += '<div class="fw-bold mb-1">Invalid Image</div>';
+            html += '<div>' + message + '</div>';
+            if (pct > 0) {
+                html += '<div class="mt-2 text-muted small">Model confidence: ' + pct + '% (minimum required: 70%)</div>';
+            }
+            html += '</div></div></div>';
+            html += '<div class="text-center mt-3">';
+            html += '<p class="text-muted mb-3">Tips for a good image:</p>';
+            html += '<ul class="list-unstyled text-muted small text-start d-inline-block">';
+            html += '<li><i class="fas fa-check-circle text-success me-2"></i> Focus on a single leaf or plant part</li>';
+            html += '<li><i class="fas fa-check-circle text-success me-2"></i> Use good lighting — avoid shadows</li>';
+            html += '<li><i class="fas fa-check-circle text-success me-2"></i> Keep the camera steady and close</li>';
+            html += '<li><i class="fas fa-times-circle text-danger me-2"></i> Do not upload people, objects, or backgrounds</li>';
+            html += '</ul></div>';
+            showResult(html, true);
+        }
+
+        // ── Render: successful diagnosis ──────────────────────────────────────
+        function renderSuccess(data) {
+            var disease    = data.detected_disease || "Unknown";
+            var pct        = data.confidence_pct !== null ? data.confidence_pct : 0;
+            var suggestion = data.suggestion || null;
+            var preds      = data.all_predictions || [];
+
+            var html = '';
+
+            // Disease badge
+            html += '<div class="alert alert-warning mb-4 bg-warning bg-opacity-10 border-warning border-opacity-25" style="border-radius:12px;">';
+            html += '<div class="d-flex align-items-center gap-3">';
+            html += '<div class="bg-warning text-dark rounded-circle d-flex align-items-center justify-content-center" style="width:48px;height:48px;"><i class="fas fa-virus fs-4"></i></div>';
+            html += '<div>';
+            html += '<h6 class="text-warning text-uppercase fw-bold mb-1" style="font-size:12px;letter-spacing:1px;">Disease Detected</h6>';
+            html += '<h4 class="fw-bold text-dark mb-0">' + disease + '</h4>';
+            html += '<div class="mt-1">';
+            html += '<div class="progress" style="height:6px;width:160px;">';
+            html += '<div class="progress-bar bg-warning" style="width:' + pct + '%"></div>';
+            html += '</div>';
+            html += '<small class="text-muted">Confidence: ' + pct + '%</small>';
+            html += '</div></div></div></div>';
+
+            // Treatment suggestion
+            if (suggestion) {
+                if (suggestion.description) {
+                    html += '<div class="mb-3 px-3">';
+                    html += '<h6 class="fw-bold text-dark mb-2"><i class="fas fa-search-plus text-muted me-2"></i> Description:</h6>';
+                    html += '<p class="text-muted">' + suggestion.description + '</p>';
+                    html += '</div>';
+                }
+                if (suggestion.organic_treatment) {
+                    html += '<div class="mb-3 px-3">';
+                    html += '<h6 class="fw-bold text-success mb-2"><i class="fas fa-leaf text-success me-2"></i> Organic Treatment:</h6>';
+                    html += '<p class="text-dark">' + suggestion.organic_treatment + '</p>';
+                    html += '</div>';
+                }
+                if (suggestion.chemical_treatment) {
+                    html += '<div class="mb-3 px-3">';
+                    html += '<h6 class="fw-bold text-primary mb-2"><i class="fas fa-flask text-primary me-2"></i> Chemical Treatment:</h6>';
+                    html += '<p class="text-dark">' + suggestion.chemical_treatment + '</p>';
+                    html += '</div>';
+                }
+                if (suggestion.preventive_measures) {
+                    html += '<div class="mb-4 px-3 pb-3 border-bottom">';
+                    html += '<h6 class="fw-bold text-info mb-2"><i class="fas fa-shield-alt text-info me-2"></i> Prevention:</h6>';
+                    html += '<p class="text-dark">' + suggestion.preventive_measures + '</p>';
+                    html += '</div>';
+                }
+            }
+
+            // Other top predictions
+            if (preds.length > 1) {
+                html += '<div class="px-3 mt-3">';
+                html += '<h6 class="fw-bold text-dark mb-3">Other Possibilities:</h6>';
+                html += '<div class="d-flex flex-wrap gap-2">';
+                for (var i = 1; i < Math.min(preds.length, 4); i++) {
+                    var p = preds[i];
+                    if (p.confidence > 0.001) {
+                        html += '<span class="badge bg-light text-muted border px-3 py-2">';
+                        html += (p.display_name || p.disease) + ' (' + Math.round(p.confidence * 100) + '%)';
+                        html += '</span>';
+                    }
+                }
+                html += '</div></div>';
+            }
+
+            html += '<div class="mt-4 pt-3 text-center">';
+            html += '<div class="alert alert-secondary py-2 px-3 d-inline-block m-0" style="font-size:13px;">';
+            html += '<i class="fas fa-exclamation-triangle text-muted me-1"></i> For accurate diagnosis, combine AI results with field scouting or expert advice.';
+            html += '</div></div>';
+
+            showResult(html, false);
+        }
+
+        // ── Render: manual review / error ─────────────────────────────────────
+        function renderManualReview() {
+            var html = '<div class="alert alert-info text-center" style="border-radius:12px;">';
+            html += '<i class="fas fa-user-md fs-3 mb-2 d-block text-info"></i>';
+            html += '<div class="fw-bold mb-1">Sent for Expert Review</div>';
+            html += '<div class="text-muted small">Our team will review your image and provide a diagnosis shortly.</div>';
+            html += '</div>';
+            showResult(html, false);
+        }
+
+        // ── Poll for result ───────────────────────────────────────────────────
+        function pollStatus(reportId, attempts) {
+            attempts = attempts || 0;
+            if (attempts > 30) { // max ~60 seconds
+                setBtn(false);
+                renderManualReview();
+                return;
+            }
+
+            fetch("{{ route('disease.poll', ['id' => '__ID__']) }}".replace('__ID__', reportId), {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            })
+            .then(function(r) { return r.json(); })
+            .then(function(res) {
+                if (!res.success) { setBtn(false); renderManualReview(); return; }
+
+                var d = res.data;
+
+                if (d.status === 'pending') {
+                    setTimeout(function() { pollStatus(reportId, attempts + 1); }, 2000);
                     return;
                 }
 
-                // Show loading state
-                var btn = form.querySelector('button[type="submit"]');
-                var originalBtnHtml = btn.innerHTML;
-                btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> Analyzing...';
-                btn.disabled = true;
+                setBtn(false);
 
-                setTimeout(function() {
-                    // Deterministic pseudo-identification based on filename hash (demo)
-                    var idx = hashFilename(file.name) % diseases.length;
-                    var diag = diseases[idx];
-
-                    var html = "";
-                    html += '<div class="alert alert-warning mb-4 bg-warning bg-opacity-10 border-warning border-opacity-25">';
-                    html += '<div class="d-flex align-items-center gap-3">';
-                    html += '<div class="bg-warning text-dark rounded-circle d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;"><i class="fas fa-virus fs-4"></i></div>';
-                    html += '<div>';
-                    html += '<h6 class="text-warning text-uppercase fw-bold mb-1" style="font-size: 12px; letter-spacing: 1px;">Likely Disease Found</h6>';
-                    html += '<h4 class="fw-bold text-dark mb-0">' + diag.name + '</h4>';
-                    html += '</div></div></div>';
-                    
-                    html += '<div class="mb-3 px-3">';
-                    html += '<h6 class="fw-bold text-dark mb-2"><i class="fas fa-search-plus text-muted me-2"></i> Common Symptoms:</h6>';
-                    html += '<p class="text-muted">' + diag.symptoms + '</p>';
-                    html += '</div>';
-
-                    html += '<div class="mb-4 px-3 pb-3 border-bottom">';
-                    html += '<h6 class="fw-bold text-success mb-2"><i class="fas fa-tools text-success me-2"></i> Suggested Action:</h6>';
-                    html += '<p class="text-dark fw-medium">' + diag.treatment + '</p>';
-                    html += '</div>';
-
-                    // Suggest 2 alternative possibilities
-                    var alt1 = diseases[(idx + 1) % diseases.length];
-                    var alt2 = diseases[(idx + 2) % diseases.length];
-                    html += '<div class="px-3">';
-                    html += '<h6 class="fw-bold text-dark mb-3">Other Possibilities:</h6>';
-                    html += '<div class="d-flex flex-wrap gap-2">';
-                    html += '<span class="badge bg-light text-muted border px-3 py-2">' + alt1.name + '</span>';
-                    html += '<span class="badge bg-light text-muted border px-3 py-2">' + alt2.name + '</span>';
-                    html += '</div>';
-                    html += '</div>';
-
-                    html += '<div class="mt-4 pt-3 text-center">';
-                    html += '<div class="alert alert-secondary py-2 px-3 d-inline-block m-0" style="font-size: 13px;">';
-                    html += '<i class="fas fa-exclamation-triangle text-muted me-1"></i> Disclaimer: This is a demo. For accurate diagnosis, combine field scouting with lab tests or expert advice.';
-                    html += '</div></div>';
-
-                    resultContent.innerHTML = html;
-                    resultWrap.style.display = "block";
-                    resultWrap.scrollIntoView({ behavior: "smooth", block: "nearest" });
-
-                    // Reset button
-                    btn.innerHTML = originalBtnHtml;
-                    btn.disabled = false;
-                }, 1500); // Simulated delay
+                if (d.status === 'invalid_image') {
+                    renderInvalid(
+                        d.invalid_message || 'This image does not appear to be a plant leaf. Please upload a clear image of a plant for disease identification.',
+                        d.confidence_score
+                    );
+                } else if (d.status === 'processed') {
+                    renderSuccess(d);
+                } else {
+                    renderManualReview();
+                }
+            })
+            .catch(function() {
+                setBtn(false);
+                renderManualReview();
             });
-        })();
+        }
+
+        // ── Form submit ───────────────────────────────────────────────────────
+        form.addEventListener("submit", function (e) {
+            e.preventDefault();
+
+            var file = input.files && input.files[0];
+            if (!file) { alert("Please select an image."); return; }
+
+            // Client-side size guard (10 MB)
+            if (file.size > 10 * 1024 * 1024) {
+                alert("Image is too large. Please upload an image under 10 MB.");
+                return;
+            }
+
+            setBtn(true);
+            resultWrap.style.display = "none";
+
+            var formData = new FormData(form);
+
+            fetch("{{ route('disease.detect') }}", {
+                method: 'POST',
+                headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                body: formData
+            })
+            .then(function(r) { return r.json(); })
+            .then(function(res) {
+                if (!res.success) {
+                    setBtn(false);
+                    alert(res.message || "Submission failed. Please try again.");
+                    return;
+                }
+                // Start polling with the report ID
+                pollStatus(res.data.id);
+            })
+            .catch(function() {
+                setBtn(false);
+                alert("Network error. Please check your connection and try again.");
+            });
+        });
+    })();
     </script>
 @endsection

@@ -59,7 +59,6 @@ class FertilizerRecommendationController extends Controller
                     'nitrogen'   => $soilTest->nitrogen,
                     'phosphorus' => $soilTest->phosphorus,
                     'potassium'  => $soilTest->potassium,
-                    'ph_level'   => $soilTest->ph_level,
                 ], $data);
             }
         }
