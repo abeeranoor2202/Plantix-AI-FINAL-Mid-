@@ -20,7 +20,7 @@ class FertilizerRecommendationService
      * Generate a fertilizer plan for the given crop and soil conditions.
      *
      * @param  User     $user
-     * @param  array    $input  {crop_type, growth_stage, nitrogen, phosphorus, potassium, ph_level, temperature, humidity}
+     * @param  array    $input  {crop_type, nitrogen, phosphorus, potassium}
      * @param  int|null $soilTestId
      * @return FertilizerRecommendation
      */

@@ -15,9 +15,9 @@ class FertilizerRecommendationRequest extends FormRequest
     {
         return [
             'crop_type'    => ['required', 'string', 'max:100'],
-            'nitrogen'     => ['nullable', 'numeric', 'min:0', 'max:500'],
-            'phosphorus'   => ['nullable', 'numeric', 'min:0', 'max:300'],
-            'potassium'    => ['nullable', 'numeric', 'min:0', 'max:400'],
+            'nitrogen'     => ['required', 'numeric', 'min:0', 'max:500'],
+            'phosphorus'   => ['required', 'numeric', 'min:0', 'max:300'],
+            'potassium'    => ['required', 'numeric', 'min:0', 'max:400'],
             'soil_test_id' => ['nullable', 'integer', 'exists:soil_tests,id'],
         ];
     }

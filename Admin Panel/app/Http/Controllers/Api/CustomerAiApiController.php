@@ -88,10 +88,6 @@ class CustomerAiApiController extends Controller
             'nitrogen'     => 'required|numeric|min:0|max:500',
             'phosphorus'   => 'required|numeric|min:0|max:500',
             'potassium'    => 'required|numeric|min:0|max:500',
-            'ph_level'     => 'required|numeric|min:0|max:14',
-            'humidity'     => 'nullable|numeric|min:0|max:100',
-            'rainfall_mm'  => 'nullable|numeric|min:0',
-            'temperature'  => 'nullable|numeric|min:-10|max:60',
             'crop_type'    => 'nullable|string|max:100',
             'soil_test_id' => 'nullable|integer|exists:soil_tests,id',
         ]);
@@ -108,7 +104,6 @@ class CustomerAiApiController extends Controller
                 'recommendation' => [
                     'id' => $recommendation->id,
                     'crop_type' => $recommendation->crop_type,
-                    'growth_stage' => $recommendation->growth_stage,
                     'fertilizer_plan' => $recommendation->fertilizer_plan,
                     'application_instructions' => $recommendation->application_instructions,
                     'estimated_cost_pkr' => (float) $recommendation->estimated_cost_pkr,
