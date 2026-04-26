@@ -16,7 +16,11 @@ class CategoryController extends Controller
 
     public function index()
     {
-        $categories = Category::withCount('products')->orderBy('name')->get();
+        $categories = Category::with('createdByVendor')
+            ->withCount('products')
+            ->orderByRaw('vendor_id IS NULL DESC')
+            ->orderBy('name')
+            ->get();
         return view('admin.categories.index', compact('categories'));
     }
 
@@ -64,7 +68,7 @@ class CategoryController extends Controller
 
     public function edit($id)
     {
-        $category = Category::with('attributes')->findOrFail($id);
+        $category = Category::with(['attributes', 'createdByVendor'])->findOrFail($id);
         $attributes = Attribute::with('values')
             ->orderBy('name')
             ->orderBy('title')
@@ -76,6 +80,11 @@ class CategoryController extends Controller
     public function update(Request $request, $id)
     {
         $category = Category::findOrFail($id);
+
+        // Vendor-created categories can only be edited by that vendor, not admin
+        if (! $category->isGlobal()) {
+            return response()->json(['success' => false, 'message' => 'This category was created by a vendor and cannot be edited here.'], 403);
+        }
 
         $data = $request->validate([
             'name'                 => 'required|string|max:255',
@@ -119,6 +128,12 @@ class CategoryController extends Controller
     public function destroy($id)
     {
         $category = Category::findOrFail($id);
+
+        // Vendor-created categories can only be deleted by that vendor
+        if (! $category->isGlobal()) {
+            return response()->json(['success' => false, 'message' => 'This category was created by a vendor and cannot be deleted here.'], 403);
+        }
+
         if ($category->image) Storage::disk('public')->delete($category->image);
         $category->delete();
         return response()->json(['success' => true]);
