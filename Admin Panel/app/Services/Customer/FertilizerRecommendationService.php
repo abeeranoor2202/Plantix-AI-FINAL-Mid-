@@ -26,9 +26,11 @@ class FertilizerRecommendationService
      */
     public function recommend(User $user, array $input, ?int $soilTestId = null): FertilizerRecommendation
     {
-        $soilN = (float)($input['nitrogen']   ?? 0);
-        $soilP = (float)($input['phosphorus'] ?? 0);
-        $soilK = (float)($input['potassium']  ?? 0);
+        // Cast to int — validation in FertilizerRecommendationRequest already
+        // guarantees these are whole numbers within the allowed ranges.
+        $soilN = (int)($input['nitrogen']   ?? 0);
+        $soilP = (int)($input['phosphorus'] ?? 0);
+        $soilK = (int)($input['potassium']  ?? 0);
 
         $apiResult = $this->predictionApi->predict([
             'nitrogen'    => $soilN,

@@ -310,45 +310,86 @@ except Exception:
 
 @app.route('/fertilizer/predict', methods=['POST'])
 def fertilizer_predict_api():
-    # ── 1. Optional API key auth ──────────────────────────────────────────────
+    # ── 1. API key auth ───────────────────────────────────────────────────────
     expected_key = getattr(config, 'fertilizer_api_key', None)
     if expected_key:
-        provided_key = request.headers.get('X-API-Key', '')
-        if provided_key != expected_key:
+        if request.headers.get('X-API-Key', '') != expected_key:
             return jsonify({'success': False, 'error': 'unauthorized', 'message': 'Invalid or missing API key.'}), 401
 
     # ── 2. Parse JSON body ────────────────────────────────────────────────────
-    data = request.get_json(silent=True)
-    if not data:
-        return jsonify({'success': False, 'error': 'bad_request', 'message': 'Request body must be JSON.'}), 400
-
-    # Accept both "phosphorous" and "phosphorus" spellings
-    try:
-        nitrogen    = float(data['nitrogen'])
-        phosphorous = float(data.get('phosphorous', data.get('phosphorus', 0)))
-        potassium   = float(data.get('potassium', data.get('pottasium', 0)))
-        crop_name   = str(data.get('crop', '')).strip().lower()
-    except (KeyError, TypeError, ValueError) as e:
+    body = request.get_json(silent=True)
+    if not body:
         return jsonify({
-            'success': False,
-            'error':   'validation_error',
-            'message': f'Missing or invalid field: {e}. Required: nitrogen, phosphorous, potassium.',
-        }), 422
+            'status':  'invalid',
+            'message': 'Invalid input. Please enter whole numbers within the allowed range.',
+        }), 400
 
-    # ── 3. Look up ideal NPK for the crop ─────────────────────────────────────
+    # ── 3. STRICT VALIDATION — must happen before any processing ─────────────
+    #
+    # Rules:
+    #   • All three fields are required (no missing values)
+    #   • Values must be integers (whole numbers — no decimals, no strings)
+    #   • N: 0–42 inclusive
+    #   • P: 0–42 inclusive
+    #   • K: 0–19 inclusive
+    #
+    _INVALID = {'status': 'invalid', 'message': 'Invalid input. Please enter whole numbers within the allowed range.'}
+
+    FIELD_RULES = {
+        'nitrogen':   (0, 42),
+        'phosphorus': (0, 42),   # also accepted as 'phosphorous'
+        'potassium':  (0, 19),
+    }
+
+    # Resolve phosphorus field (accept both spellings)
+    raw_body = dict(body)
+    if 'phosphorous' in raw_body and 'phosphorus' not in raw_body:
+        raw_body['phosphorus'] = raw_body.pop('phosphorous')
+
+    validated = {}
+    for field, (lo, hi) in FIELD_RULES.items():
+        # Missing field
+        if field not in raw_body:
+            return jsonify(_INVALID), 422
+
+        raw = raw_body[field]
+
+        # Reject non-numeric types (strings, booleans, None, lists, …)
+        if isinstance(raw, bool) or not isinstance(raw, (int, float)):
+            return jsonify(_INVALID), 422
+
+        # Reject decimals — JSON floats like 12.5 or 12.0 are both rejected
+        # because the spec says integers only.  We allow a float only when it
+        # has no fractional part AND was originally sent as an integer literal.
+        if isinstance(raw, float):
+            # e.g. 12.5 → reject; 12.0 → reject (must be sent as 12)
+            return jsonify(_INVALID), 422
+
+        value = int(raw)  # raw is already a plain int at this point
+
+        # Range check
+        if value < lo or value > hi:
+            return jsonify(_INVALID), 422
+
+        validated[field] = value
+
+    # ── 4. All inputs valid — proceed with recommendation ────────────────────
+    nitrogen    = validated['nitrogen']
+    phosphorous = validated['phosphorus']
+    potassium   = validated['potassium']
+    crop_name   = str(raw_body.get('crop', '')).strip().lower()
+
     if _fert_df is None:
         return jsonify({'success': False, 'error': 'model_unavailable', 'message': 'Fertilizer data not loaded.'}), 503
 
     crop_row = _fert_df[_fert_df['Crop'].str.lower() == crop_name]
     if crop_row.empty:
-        # Fall back to generic thresholds if crop not in CSV
         nr, pr, kr = 80.0, 40.0, 40.0
     else:
         nr = float(crop_row['N'].iloc[0])
         pr = float(crop_row['P'].iloc[0])
         kr = float(crop_row['K'].iloc[0])
 
-    # ── 4. Determine the most limiting nutrient ───────────────────────────────
     n_diff = nr - nitrogen
     p_diff = pr - phosphorous
     k_diff = kr - potassium
@@ -366,6 +407,14 @@ def fertilizer_predict_api():
     fertilizer_name = _FERTILIZER_NAME_MAP.get(key, key)
 
     return jsonify({
+        'status': 'success',
+        'data': {
+            'nitrogen':       nitrogen,
+            'phosphorus':     phosphorous,
+            'potassium':      potassium,
+            'recommendation': fertilizer_name,
+        },
+        # Extra fields consumed by the Laravel FertilizerPredictionService
         'success':       True,
         'fertilizer':    fertilizer_name,
         'key':           key,

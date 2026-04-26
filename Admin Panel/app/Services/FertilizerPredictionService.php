@@ -12,9 +12,9 @@ class FertilizerPredictionService
     public function predict(array $input): array
     {
         $payload = [
-            'nitrogen' => (float) $input['nitrogen'],
-            'potassium' => (float) $input['potassium'],
-            'phosphorous' => (float) ($input['phosphorus'] ?? $input['phosphorous']),
+            'nitrogen'    => (int) $input['nitrogen'],
+            'potassium'   => (int) $input['potassium'],
+            'phosphorus'  => (int) ($input['phosphorus'] ?? $input['phosphorous']),
         ];
 
         $response = $this->request('post', '/fertilizer/predict', ['json' => $payload]);
