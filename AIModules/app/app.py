@@ -275,6 +275,108 @@ def disease_prediction():
     return render_template('disease.html', title=title)
 
 
+# ── REST API endpoint for Laravel backend: Fertilizer Recommendation ──────────
+# POST /fertilizer/predict
+# Headers: X-API-Key: <FERTILIZER_API_KEY>
+# Body (JSON): { "nitrogen": 80, "phosphorous": 40, "potassium": 40, "crop": "rice" }
+#
+# Response (success):
+#   { "success": true, "fertilizer": "Urea", "key": "Nlow",
+#     "deficiencies": {"N": 0, "P": -10, "K": 5},
+#     "model_name": "rule_based", "model_version": "1.0" }
+#
+# Response (error):
+#   { "success": false, "error": "...", "message": "..." }  HTTP 400/422/500
+# ──────────────────────────────────────────────────────────────────────────────
+
+# Fertilizer name mapping from key to a human-readable recommendation
+_FERTILIZER_NAME_MAP = {
+    'NHigh': 'Reduce Nitrogen — apply Potassium Chloride or Superphosphate',
+    'Nlow':  'Urea',
+    'PHigh': 'Reduce Phosphorous — apply Nitrogen-rich fertilizer',
+    'Plow':  'Superphosphate (DAP)',
+    'KHigh': 'Reduce Potassium — apply Nitrogen or Phosphorous fertilizer',
+    'Klow':  'Potassium Chloride (MOP)',
+}
+
+# Load fertilizer CSV once at startup
+import os as _os
+_FERT_CSV_PATH = _os.path.join(_os.path.dirname(__file__), 'Data', 'fertilizer.csv')
+try:
+    _fert_df = pd.read_csv(_FERT_CSV_PATH)
+except Exception:
+    _fert_df = None
+
+
+@app.route('/fertilizer/predict', methods=['POST'])
+def fertilizer_predict_api():
+    # ── 1. Optional API key auth ──────────────────────────────────────────────
+    expected_key = getattr(config, 'fertilizer_api_key', None)
+    if expected_key:
+        provided_key = request.headers.get('X-API-Key', '')
+        if provided_key != expected_key:
+            return jsonify({'success': False, 'error': 'unauthorized', 'message': 'Invalid or missing API key.'}), 401
+
+    # ── 2. Parse JSON body ────────────────────────────────────────────────────
+    data = request.get_json(silent=True)
+    if not data:
+        return jsonify({'success': False, 'error': 'bad_request', 'message': 'Request body must be JSON.'}), 400
+
+    # Accept both "phosphorous" and "phosphorus" spellings
+    try:
+        nitrogen    = float(data['nitrogen'])
+        phosphorous = float(data.get('phosphorous', data.get('phosphorus', 0)))
+        potassium   = float(data.get('potassium', data.get('pottasium', 0)))
+        crop_name   = str(data.get('crop', '')).strip().lower()
+    except (KeyError, TypeError, ValueError) as e:
+        return jsonify({
+            'success': False,
+            'error':   'validation_error',
+            'message': f'Missing or invalid field: {e}. Required: nitrogen, phosphorous, potassium.',
+        }), 422
+
+    # ── 3. Look up ideal NPK for the crop ─────────────────────────────────────
+    if _fert_df is None:
+        return jsonify({'success': False, 'error': 'model_unavailable', 'message': 'Fertilizer data not loaded.'}), 503
+
+    crop_row = _fert_df[_fert_df['Crop'].str.lower() == crop_name]
+    if crop_row.empty:
+        # Fall back to generic thresholds if crop not in CSV
+        nr, pr, kr = 80.0, 40.0, 40.0
+    else:
+        nr = float(crop_row['N'].iloc[0])
+        pr = float(crop_row['P'].iloc[0])
+        kr = float(crop_row['K'].iloc[0])
+
+    # ── 4. Determine the most limiting nutrient ───────────────────────────────
+    n_diff = nr - nitrogen
+    p_diff = pr - phosphorous
+    k_diff = kr - potassium
+
+    deficiencies = {'N': round(n_diff, 2), 'P': round(p_diff, 2), 'K': round(k_diff, 2)}
+
+    max_abs = max(abs(n_diff), abs(p_diff), abs(k_diff))
+    if max_abs == abs(n_diff):
+        key = 'NHigh' if n_diff < 0 else 'Nlow'
+    elif max_abs == abs(p_diff):
+        key = 'PHigh' if p_diff < 0 else 'Plow'
+    else:
+        key = 'KHigh' if k_diff < 0 else 'Klow'
+
+    fertilizer_name = _FERTILIZER_NAME_MAP.get(key, key)
+
+    return jsonify({
+        'success':       True,
+        'fertilizer':    fertilizer_name,
+        'key':           key,
+        'deficiencies':  deficiencies,
+        'crop':          crop_name or None,
+        'model_name':    'rule_based',
+        'model_version': '1.0',
+        'timestamp':     datetime.now(timezone.utc).isoformat(),
+    })
+
+
 # ── REST API endpoint for Laravel backend ──────────────────────────────────────
 # POST /disease/predict
 # Headers: X-API-Key: <DISEASE_API_KEY>
