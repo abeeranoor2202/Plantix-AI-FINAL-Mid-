@@ -17,16 +17,15 @@ class FertilizerRecommendationService
     public function __construct(private readonly FertilizerPredictionService $predictionApi) {}
 
     /**
-     * Generate a fertilizer plan for the given crop and soil conditions.
+     * Generate a fertilizer plan based on soil N, P, K values.
      *
      * @param  User     $user
-     * @param  array    $input  {crop_type, nitrogen, phosphorus, potassium}
+     * @param  array    $input  {nitrogen, phosphorus, potassium}
      * @param  int|null $soilTestId
      * @return FertilizerRecommendation
      */
     public function recommend(User $user, array $input, ?int $soilTestId = null): FertilizerRecommendation
     {
-        $crop  = (string) ($input['crop_type'] ?? 'General Crop');
         $soilN = (float)($input['nitrogen']   ?? 0);
         $soilP = (float)($input['phosphorus'] ?? 0);
         $soilK = (float)($input['potassium']  ?? 0);
@@ -40,14 +39,13 @@ class FertilizerRecommendationService
         $recommendedFertilizer = (string) ($apiResult['fertilizer'] ?? 'Urea');
         $confidenceScore = isset($apiResult['confidence']) ? (float) $apiResult['confidence'] : null;
 
-        $plan         = $this->buildPlan($recommendedFertilizer, $crop, $soilN, $soilP, $soilK, $confidenceScore);
+        $plan         = $this->buildPlan($recommendedFertilizer, $soilN, $soilP, $soilK, $confidenceScore);
         $cost         = $this->estimateCost($plan);
-        $instructions = $this->buildInstructions($crop, $recommendedFertilizer, $confidenceScore, $apiResult);
+        $instructions = $this->buildInstructions($recommendedFertilizer, $confidenceScore, $apiResult);
 
         return FertilizerRecommendation::create([
             'user_id'                   => $user->id,
             'soil_test_id'              => $soilTestId,
-            'crop_type'                 => $crop,
             'nitrogen'                  => $soilN,
             'phosphorus'                => $soilP,
             'potassium'                 => $soilK,

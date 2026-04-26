@@ -76,20 +76,7 @@
                             <form id="fertilizerForm" class="contact-form" method="POST" action="{{ route('fertilizer.recommendation.recommend') }}">
                                 @csrf
                                 <div class="row g-4">
-                                    <div class="col-md-12">
-                                        <label for="cropType" class="form-label fw-bold text-dark small">Target Crop Intention</label>
-                                        <select id="cropType" name="crop_type" class="form-agri">
-                                            <option value="Wheat">Wheat</option>
-                                            <option value="Rice">Rice</option>
-                                            <option value="Maize">Maize</option>
-                                            <option value="Cotton">Cotton</option>
-                                            <option value="Potato">Potato</option>
-                                            <option value="Tomato">Tomato</option>
-                                            <option value="Sugarcane">Sugarcane</option>
-                                        </select>
-                                    </div>
-
-                                    <div class="col-12 mt-2 border-top pt-4">
+                                    <div class="col-12">
                                         <h5 class="fw-bold text-dark fs-6 mb-1">Soil Nutrients (kg/acre)</h5>
                                         <p class="text-muted small mb-3">Enter your soil test values. The model uses N, P, K to recommend the right fertilizer.</p>
                                     </div>
@@ -190,7 +177,6 @@
                 e.preventDefault();
 
                 var payload = {
-                    crop_type: document.getElementById('cropType').value,
                     nitrogen: parseFloat(document.getElementById('nitrogen').value),
                     phosphorus: parseFloat(document.getElementById('phosphorus').value),
                     potassium: parseFloat(document.getElementById('potassium').value)

@@ -14,7 +14,6 @@ class FertilizerRecommendationRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'crop_type'    => ['required', 'string', 'max:100'],
             'nitrogen'     => ['required', 'numeric', 'min:0', 'max:500'],
             'phosphorus'   => ['required', 'numeric', 'min:0', 'max:300'],
             'potassium'    => ['required', 'numeric', 'min:0', 'max:400'],
@@ -24,8 +23,6 @@ class FertilizerRecommendationRequest extends FormRequest
 
     public function messages(): array
     {
-        return [
-            'crop_type.required' => 'Please select or enter a crop type.',
-        ];
+        return [];
     }
 }
