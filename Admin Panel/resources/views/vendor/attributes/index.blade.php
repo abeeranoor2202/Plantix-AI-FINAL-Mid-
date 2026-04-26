@@ -128,7 +128,8 @@
                                             <i class="fas fa-pen"></i>
                                         </a>
                                         <button type="button" class="btn-action btn-action-delete" title="Delete"
-                                                data-bs-toggle="modal" data-bs-target="#deleteAttrModal{{ $attr->id }}">
+                                                data-bs-toggle="modal" data-bs-target="#deleteAttrModal{{ $attr->id }}"
+                                                data-toggle="modal" data-target="#deleteAttrModal{{ $attr->id }}">
                                             <i class="fas fa-trash"></i>
                                         </button>
                                     @else
@@ -139,35 +140,37 @@
                                 </div>
                             </td>
                         </tr>
-
-                        {{-- Delete modal (only for owned) --}}
-                        @if($isOwned)
-                        <div class="modal fade" id="deleteAttrModal{{ $attr->id }}" tabindex="-1" aria-hidden="true">
-                            <div class="modal-dialog modal-dialog-centered">
-                                <form action="{{ route('vendor.attributes.destroy', $attr->id) }}" method="POST" class="modal-content">
-                                    @csrf @method('DELETE')
-                                    <div class="modal-header">
-                                        <h5 class="modal-title">Delete Attribute</h5>
-                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                    </div>
-                                    <div class="modal-body">
-                                        <p class="text-muted mb-0">Are you sure you want to delete <strong>{{ $attr->name ?: $attr->title }}</strong>?
-                                            @if($attr->categories_count > 0)
-                                                <br><span class="text-danger small">This attribute is assigned to {{ $attr->categories_count }} {{ Str::plural('category', $attr->categories_count) }} — deletion will be blocked.</span>
-                                            @endif
-                                        </p>
-                                    </div>
-                                    <div class="modal-footer">
-                                        <button type="button" class="btn-agri btn-agri-outline" data-bs-dismiss="modal">Cancel</button>
-                                        <button type="submit" class="btn btn-danger">Delete</button>
-                                    </div>
-                                </form>
-                            </div>
-                        </div>
-                        @endif
                     @endforeach
                 </tbody>
             </x-table>
+
+            @foreach($attributes as $attr)
+                @if($attr->isOwnedByVendor(auth('vendor')->user()->vendor->id))
+                    {{-- Delete modal (outside table for stability) --}}
+                    <div class="modal fade" id="deleteAttrModal{{ $attr->id }}" tabindex="-1" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered">
+                            <form action="{{ route('vendor.attributes.destroy', $attr->id) }}" method="POST" class="modal-content">
+                                @csrf @method('DELETE')
+                                <div class="modal-header">
+                                    <h5 class="modal-title">Delete Attribute</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body text-start">
+                                    <p class="text-muted mb-0">Are you sure you want to delete <strong>{{ $attr->name ?: $attr->title }}</strong>?
+                                        @if($attr->categories_count > 0)
+                                            <br><span class="text-danger small">This attribute is assigned to {{ $attr->categories_count }} {{ Str::plural('category', $attr->categories_count) }} — deletion will be blocked.</span>
+                                        @endif
+                                    </p>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn-agri btn-agri-outline" data-bs-dismiss="modal">Cancel</button>
+                                    <button type="submit" class="btn btn-danger">Delete</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                @endif
+            @endforeach
 
             @if($attributes->hasPages())
                 <div style="padding:24px;border-top:1px solid var(--agri-border);display:flex;justify-content:center;">

@@ -101,35 +101,39 @@
                                     <a href="{{ route('vendor.coupons.edit', $coupon->id) }}" class="btn-action btn-action-edit" title="Edit">
                                         <i class="fas fa-pen"></i>
                                     </a>
-                                    <button type="button" class="btn-action btn-action-delete" title="Delete" data-bs-toggle="modal" data-bs-target="#deleteCouponModal{{ $coupon->id }}">
+                                    <button type="button" class="btn-action btn-action-delete" title="Delete" 
+                                            data-bs-toggle="modal" data-bs-target="#deleteCouponModal{{ $coupon->id }}"
+                                            data-toggle="modal" data-target="#deleteCouponModal{{ $coupon->id }}">
                                         <i class="fas fa-trash"></i>
                                     </button>
                                 </div>
                             </td>
                         </tr>
-
-                        <div class="modal fade" id="deleteCouponModal{{ $coupon->id }}" tabindex="-1" aria-hidden="true">
-                            <div class="modal-dialog modal-dialog-centered">
-                                <form action="{{ route('vendor.coupons.destroy', $coupon->id) }}" method="POST" class="modal-content">
-                                    @csrf
-                                    @method('DELETE')
-                                    <div class="modal-header">
-                                        <h5 class="modal-title">Delete Coupon</h5>
-                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                    </div>
-                                    <div class="modal-body">
-                                        <p class="text-muted mb-0">Are you sure you want to delete coupon <strong>{{ $coupon->code }}</strong>? This action cannot be undone.</p>
-                                    </div>
-                                    <div class="modal-footer">
-                                        <button type="button" class="btn-agri btn-agri-outline" data-bs-dismiss="modal">Cancel</button>
-                                        <button type="submit" class="btn btn-danger">Delete</button>
-                                    </div>
-                                </form>
-                            </div>
-                        </div>
                     @endforeach
                 </tbody>
             </x-table>
+
+            @foreach ($coupons as $coupon)
+                <div class="modal fade" id="deleteCouponModal{{ $coupon->id }}" tabindex="-1" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <form action="{{ route('vendor.coupons.destroy', $coupon->id) }}" method="POST" class="modal-content">
+                            @csrf
+                            @method('DELETE')
+                            <div class="modal-header">
+                                <h5 class="modal-title">Delete Coupon</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body text-start">
+                                <p class="text-muted mb-0">Are you sure you want to delete coupon <strong>{{ $coupon->code }}</strong>? This action cannot be undone.</p>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn-agri btn-agri-outline" data-bs-dismiss="modal">Cancel</button>
+                                <button type="submit" class="btn btn-danger">Delete</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            @endforeach
 
             @if($coupons->hasPages())
                 <div style="padding: 24px; background: white; border-top: 1px solid var(--agri-border); display: flex; justify-content: center;">

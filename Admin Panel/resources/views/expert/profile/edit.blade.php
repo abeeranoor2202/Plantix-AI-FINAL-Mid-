@@ -189,17 +189,14 @@
                 </div>
                 <div class="p-4 text-center">
                     <div class="mb-4 position-relative d-inline-block">
-                        @if($expert->profile_image)
-                            <img src="{{ Storage::url($expert->profile_image) }}" id="avatarPreview"
-                                 class="rounded-circle shadow-sm border border-3 border-light" style="width:140px;height:140px;object-fit:cover;">
-                        @else
-                            <div class="rounded-circle d-flex align-items-center justify-content-center bg-primary text-white shadow-sm border border-3 border-light mx-auto"
-                                 id="avatarPlaceholder" style="width:140px;height:140px;font-size:3.5rem;font-weight:700; font-family: var(--font-heading);">
-                                {{ strtoupper(substr($expert->user->name, 0, 1)) }}
-                            </div>
-                            <img id="avatarPreview" class="rounded-circle shadow-sm border border-3 border-light mx-auto d-none"
-                                 style="width:140px;height:140px;object-fit:cover" src="">
-                        @endif
+                        <div id="avatarPlaceholder" class="rounded-circle d-flex align-items-center justify-content-center bg-primary text-white shadow-sm border border-3 border-light mx-auto {{ $expert->profile_image ? 'd-none' : '' }}"
+                             style="width:140px;height:140px;font-size:3.5rem;font-weight:700; font-family: var(--font-heading);">
+                            {{ strtoupper(substr($expert->user->name, 0, 1)) }}
+                        </div>
+                        <img src="{{ $expert->profile_image ? Storage::url($expert->profile_image) : '' }}" id="avatarPreview"
+                             class="rounded-circle shadow-sm border border-3 border-light mx-auto {{ $expert->profile_image ? '' : 'd-none' }}" 
+                             style="width:140px;height:140px;object-fit:cover;">
+                        
                         <label for="avatarInput" class="position-absolute bottom-0 end-0 bg-white text-primary rounded-circle d-flex align-items-center justify-content-center shadow border" style="width:40px; height:40px; cursor:pointer; transform: translate(10%, 10%); transition: all 0.2s;">
                             <i class="fas fa-camera"></i>
                         </label>

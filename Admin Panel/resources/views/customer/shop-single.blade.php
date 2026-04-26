@@ -264,7 +264,21 @@ window.CART_ROUTES = {
                                     @if($product->vendor)
                                     <tr>
                                         <th class="bg-light fw-medium text-muted w-25 px-4 py-3">Vendor</th>
-                                        <td class="px-4 py-3 fw-medium text-dark">{{ $product->vendor->store_name ?? $product->vendor->name }}</td>
+                                        <td class="px-4 py-3 fw-medium text-dark">
+                                            <div class="d-flex align-items-center gap-2">
+                                                @php
+                                                    $vendorPhoto = $product->vendor->author?->profile_photo;
+                                                @endphp
+                                                @if($vendorPhoto)
+                                                    <img src="{{ Storage::url($vendorPhoto) }}" alt="{{ $product->vendor->title }}" class="rounded-circle shadow-sm border" style="width: 32px; height: 32px; object-fit: cover;">
+                                                @else
+                                                    <div class="rounded-circle bg-primary bg-opacity-10 text-primary d-flex align-items-center justify-content-center border" style="width: 32px; height: 32px; font-size: 14px; font-weight: 700;">
+                                                        {{ strtoupper(substr($product->vendor->title ?? $product->vendor->author->name, 0, 1)) }}
+                                                    </div>
+                                                @endif
+                                                <span>{{ $product->vendor->title ?? $product->vendor->author->name }}</span>
+                                            </div>
+                                        </td>
                                     </tr>
                                     @endif
                                     @foreach($product->attributes as $attr)

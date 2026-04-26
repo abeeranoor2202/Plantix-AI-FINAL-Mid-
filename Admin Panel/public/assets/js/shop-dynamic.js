@@ -217,7 +217,17 @@ function renderProductGrid(prods) {
                 <div class="d-flex justify-content-between align-items-start mb-2 flex-wrap gap-1">
                     <span class="badge bg-light text-success fw-medium px-2 py-1"
                         style="font-size:11px;text-transform:uppercase;">${escapeHtml(p.category ?? '')}</span>
-                    ${p.vendor ? `<span class="text-muted" style="font-size:11px;white-space:nowrap;"><i class="fas fa-store me-1"></i>${escapeHtml(p.vendor)}</span>` : ''}
+                    ${p.vendor ? `
+                        <div class="d-flex align-items-center gap-2" style="white-space:nowrap;">
+                            <div class="vendor-avatar-mini" style="width:24px;height:24px;border-radius:50%;overflow:hidden;background:var(--agri-bg);border:1px solid var(--agri-border);display:flex;align-items:center;justify-content:center;">
+                                ${p.vendor_photo 
+                                    ? `<img src="${p.vendor_photo}" style="width:100%;height:100%;object-fit:cover;">` 
+                                    : `<span style="font-size:10px;font-weight:700;color:var(--agri-primary);">${p.vendor.substring(0,1).toUpperCase()}</span>`
+                                }
+                            </div>
+                            <span class="text-muted" style="font-size:11px;"><i class="fas fa-store me-1 d-none"></i>${escapeHtml(p.vendor)}</span>
+                        </div>
+                    ` : ''}
                 </div>
                 <div class="mb-2">
                     <span class="badge rounded-pill ${statusBadgeClass(p)}">${escapeHtml(String(statusLabel(p)).toUpperCase())}</span>

@@ -19,7 +19,6 @@
                 @php $connected = ($stripeAccount?->onboarding_status ?? 'pending') === 'completed'; @endphp
                 <div class="d-flex align-items-center justify-content-between">
                     <x-badge :variant="$connected ? 'success' : 'warning'">{{ $connected ? 'Connected' : 'Action Required' }}</x-badge>
-                    <x-button :href="route('vendor.payouts.connect')" variant="primary">{{ $connected ? 'Update Stripe' : 'Connect Stripe' }}</x-button>
                 </div>
                 <p class="text-muted small mt-3 mb-0">Payouts can only be sent after Stripe onboarding is completed.</p>
             </div>

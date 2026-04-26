@@ -48,14 +48,11 @@
                         <div class="row g-4">
                             <div class="col-md-3 text-center">
                                 <div class="position-relative d-inline-block mb-3">
-                                    @if ($user->profile_photo)
-                                        <img src="{{ Storage::url($user->profile_photo) }}" id="profilePhotoPreview" class="rounded-circle shadow-sm border" width="120" height="120" style="object-fit: cover;" alt="Profile Photo">
-                                    @else
-                                        <div id="profilePhotoPlaceholder" class="rounded-circle bg-primary bg-opacity-10 text-primary d-inline-flex align-items-center justify-content-center shadow-sm border" style="width:120px;height:120px;font-size:3rem;font-weight:700;">
-                                            {{ strtoupper(substr($user->name, 0, 1)) }}
-                                        </div>
-                                        <img id="profilePhotoPreview" class="rounded-circle shadow-sm border d-none" width="120" height="120" style="object-fit: cover;" alt="Profile Photo" src="">
-                                    @endif
+                                    <div id="profilePhotoPlaceholder" class="rounded-circle bg-primary bg-opacity-10 text-primary d-inline-flex align-items-center justify-content-center shadow-sm border {{ $user->profile_photo ? 'd-none' : '' }}" style="width:120px;height:120px;font-size:3rem;font-weight:700;">
+                                        {{ strtoupper(substr($user->name, 0, 1)) }}
+                                    </div>
+                                    <img src="{{ $user->profile_photo ? Storage::url($user->profile_photo) : '' }}" id="profilePhotoPreview" class="rounded-circle shadow-sm border {{ $user->profile_photo ? '' : 'd-none' }}" width="120" height="120" style="object-fit: cover;" alt="Profile Photo">
+                                    
                                     <label for="profilePhotoInput" class="position-absolute bottom-0 end-0 bg-white text-primary rounded-circle d-flex align-items-center justify-content-center shadow border" style="width:32px;height:32px;cursor:pointer;" title="Change photo">
                                         <i class="fa-solid fa-camera" style="font-size:13px;"></i>
                                     </label>

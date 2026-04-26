@@ -50,7 +50,9 @@ return [
     // OpenAI GPT (https://platform.openai.com)
     'openai_api_key' => env('OPENAI_API_KEY', ''),
 
-    // Plant Disease Detection API (Roboflow / custom endpoint)
+    // Plant Disease Detection API — points to the Flask crop_prediction_api
+    // which serves POST /disease/predict using vgg16Mymodel.h5
+    // Set DISEASE_API_URL=http://127.0.0.1:5000 (same Flask service)
     'disease_api_url' => env('DISEASE_API_URL', ''),
     'disease_api_key' => env('DISEASE_API_KEY', ''),
 

@@ -77,9 +77,13 @@
                         </div>
                         <div style="padding: 28px;">
                             <div style="display: flex; gap: 16px; margin-bottom: 20px;">
-                                <div style="width: 48px; height: 48px; border-radius: 14px; background: var(--panel-primary-soft); color: var(--panel-primary-dark); display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 800; flex-shrink: 0; border: 1px solid #cce1c9;">
-                                    {{ strtoupper(substr($thread->user->name ?? 'F', 0, 1)) }}
-                                </div>
+                                @if($thread->user->profile_photo)
+                                    <img src="{{ Storage::url($thread->user->profile_photo) }}" alt="{{ $thread->user->name }}" style="width: 48px; height: 48px; border-radius: 14px; object-fit: cover; flex-shrink: 0; border: 1px solid #cce1c9;">
+                                @else
+                                    <div style="width: 48px; height: 48px; border-radius: 14px; background: var(--panel-primary-soft); color: var(--panel-primary-dark); display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 800; flex-shrink: 0; border: 1px solid #cce1c9;">
+                                        {{ strtoupper(substr($thread->user->name ?? 'F', 0, 1)) }}
+                                    </div>
+                                @endif
                                 <div>
                                     <div style="font-weight: 800; color: var(--agri-text-heading); font-size: 15px;">{{ $thread->user->name ?? 'Farmer' }}</div>
                                     <div style="color: var(--agri-text-muted); font-size: 12px; margin-top: 2px;">Author</div>
@@ -101,9 +105,13 @@
                             <div style="padding: 24px; border-bottom: 1px solid var(--agri-border); {{ $reply->is_official ? 'background: #f4faf2; border-left: 3px solid var(--panel-primary);' : '' }}">
                                 <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px;">
                                     <div style="display: flex; gap: 16px; align-items: center;">
-                                        <div style="width: 40px; height: 40px; border-radius: 12px; background: {{ $reply->is_expert_reply ? '#D97706' : ( $reply->user_id === $thread->user_id ? 'var(--panel-primary-soft)' : '#F3F4F6' ) }}; color: {{ $reply->is_expert_reply ? 'white' : ( $reply->user_id === $thread->user_id ? 'var(--panel-primary-dark)' : '#4B5563' ) }}; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 800; flex-shrink: 0; border: 1px solid {{ $reply->is_expert_reply ? 'transparent' : ( $reply->user_id === $thread->user_id ? '#cce1c9' : '#E5E7EB' ) }};">
-                                            {{ strtoupper(substr(optional($reply->user)->name ?? 'U', 0, 1)) }}
-                                        </div>
+                                        @if($reply->user?->profile_photo)
+                                            <img src="{{ Storage::url($reply->user->profile_photo) }}" alt="{{ $reply->user->name }}" style="width: 40px; height: 40px; border-radius: 12px; object-fit: cover; flex-shrink: 0; border: 1px solid {{ $reply->is_expert_reply ? 'transparent' : ( $reply->user_id === $thread->user_id ? '#cce1c9' : '#E5E7EB' ) }};">
+                                        @else
+                                            <div style="width: 40px; height: 40px; border-radius: 12px; background: {{ $reply->is_expert_reply ? '#D97706' : ( $reply->user_id === $thread->user_id ? 'var(--panel-primary-soft)' : '#F3F4F6' ) }}; color: {{ $reply->is_expert_reply ? 'white' : ( $reply->user_id === $thread->user_id ? 'var(--panel-primary-dark)' : '#4B5563' ) }}; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 800; flex-shrink: 0; border: 1px solid {{ $reply->is_expert_reply ? 'transparent' : ( $reply->user_id === $thread->user_id ? '#cce1c9' : '#E5E7EB' ) }};">
+                                                {{ strtoupper(substr(optional($reply->user)->name ?? 'U', 0, 1)) }}
+                                            </div>
+                                        @endif
                                         <div>
                                             <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
                                                 <span style="font-weight: 800; color: var(--agri-text-heading); font-size: 14px;">{{ optional($reply->user)->name ?? 'Farmer' }}</span>

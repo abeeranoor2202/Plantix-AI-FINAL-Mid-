@@ -7,6 +7,7 @@ from .errors import register_error_handlers
 from .extensions import cors, limiter
 from .routes.admin import admin_bp
 from .routes.api import api_bp
+from .services.disease_model_service import DiseaseModelService
 from .services.fertilizer_prediction_service import FertilizerPredictionService
 from .services.model_service import ModelService
 from .services.prediction_service import PredictionService
@@ -42,11 +43,21 @@ def create_app(config_name: str | None = None) -> Flask:
     )
     fertilizer_prediction_service = FertilizerPredictionService(fertilizer_model_service, app.config)
 
+    # VGG16 plant-disease model (vgg16Mymodel.h5)
+    disease_model_service = DiseaseModelService(
+        model_path=app.config.get("DISEASE_MODEL_PATH", app.config["MODEL_PATH"].parent / "vgg16Mymodel.h5"),
+    )
+    if not disease_model_service.is_loaded():
+        app.logger.warning(
+            "Disease model failed to load: %s", disease_model_service.load_error
+        )
+
     app.extensions["prediction_repository"] = prediction_repository
     app.extensions["model_service"] = model_service
     app.extensions["prediction_service"] = prediction_service
     app.extensions["fertilizer_model_service"] = fertilizer_model_service
     app.extensions["fertilizer_prediction_service"] = fertilizer_prediction_service
+    app.extensions["disease_model_service"] = disease_model_service
 
     register_error_handlers(app)
 

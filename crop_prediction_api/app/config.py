@@ -10,6 +10,7 @@ load_dotenv()
 BASE_DIR = Path(__file__).resolve().parents[1]
 DEFAULT_MODEL_PATH = (BASE_DIR / "model" / "RandomForest.pkl").resolve()
 DEFAULT_FERTILIZER_MODEL_PATH = (BASE_DIR / "model" / "fertilizer.pkl").resolve()
+DEFAULT_DISEASE_MODEL_PATH = (BASE_DIR / "model" / "vgg16Mymodel.h5").resolve()
 DEFAULT_DATABASE_PATH = (BASE_DIR / "instance" / "predictions.sqlite3").resolve()
 
 CROP_FEATURES = [
@@ -80,6 +81,9 @@ class BaseConfig:
     FERTILIZER_MODEL_PATH = Path(
         os.getenv("FERTILIZER_MODEL_PATH", str(DEFAULT_FERTILIZER_MODEL_PATH))
     ).resolve()
+    DISEASE_MODEL_PATH = Path(
+        os.getenv("DISEASE_MODEL_PATH", str(DEFAULT_DISEASE_MODEL_PATH))
+    ).resolve()
     DATABASE_PATH = Path(os.getenv("DATABASE_PATH", str(DEFAULT_DATABASE_PATH))).resolve()
     FEATURE_ORDER = CROP_FEATURES
     FERTILIZER_FEATURE_ORDER = FERTILIZER_FEATURES
@@ -88,7 +92,7 @@ class BaseConfig:
     FERTILIZER_MODEL_NAME = os.getenv("FERTILIZER_MODEL_NAME", "fertilizer_recommendation_model")
     FERTILIZER_MODEL_VERSION = os.getenv("FERTILIZER_MODEL_VERSION", "1.0.0")
     ALLOWED_ORIGINS = [origin.strip() for origin in os.getenv("ALLOWED_ORIGINS", "*").split(",") if origin.strip()]
-    MAX_CONTENT_LENGTH = int(os.getenv("MAX_CONTENT_LENGTH", str(1 * 1024 * 1024)))
+    MAX_CONTENT_LENGTH = int(os.getenv("MAX_CONTENT_LENGTH", str(10 * 1024 * 1024)))
     JSON_SORT_KEYS = False
     JSONIFY_PRETTYPRINT_REGULAR = False
     LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO")

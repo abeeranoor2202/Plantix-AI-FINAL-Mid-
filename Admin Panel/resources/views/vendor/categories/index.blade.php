@@ -145,7 +145,8 @@
                                             <i class="fas fa-pen"></i>
                                         </a>
                                         <button type="button" class="btn-action btn-action-delete" title="Delete"
-                                                data-bs-toggle="modal" data-bs-target="#deleteCatModal{{ $cat->id }}">
+                                                data-bs-toggle="modal" data-bs-target="#deleteCatModal{{ $cat->id }}"
+                                                data-toggle="modal" data-target="#deleteCatModal{{ $cat->id }}">
                                             <i class="fas fa-trash"></i>
                                         </button>
                                     @else
@@ -156,35 +157,37 @@
                                 </div>
                             </td>
                         </tr>
-
-                        {{-- Delete modal (only for owned) --}}
-                        @if($isOwned)
-                        <div class="modal fade" id="deleteCatModal{{ $cat->id }}" tabindex="-1" aria-hidden="true">
-                            <div class="modal-dialog modal-dialog-centered">
-                                <form action="{{ route('vendor.categories.destroy', $cat->id) }}" method="POST" class="modal-content">
-                                    @csrf @method('DELETE')
-                                    <div class="modal-header">
-                                        <h5 class="modal-title">Delete Category</h5>
-                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                    </div>
-                                    <div class="modal-body">
-                                        <p class="text-muted mb-0">Are you sure you want to delete <strong>{{ $cat->name }}</strong>?
-                                            @if($cat->products_count > 0)
-                                                <br><span class="text-danger small">This category has {{ $cat->products_count }} product(s) — deletion will be blocked.</span>
-                                            @endif
-                                        </p>
-                                    </div>
-                                    <div class="modal-footer">
-                                        <button type="button" class="btn-agri btn-agri-outline" data-bs-dismiss="modal">Cancel</button>
-                                        <button type="submit" class="btn btn-danger">Delete</button>
-                                    </div>
-                                </form>
-                            </div>
-                        </div>
-                        @endif
                     @endforeach
                 </tbody>
             </x-table>
+
+            @foreach($categories as $cat)
+                @if($cat->isOwnedByVendor(auth('vendor')->user()->vendor->id))
+                    {{-- Delete modal (outside table for stability) --}}
+                    <div class="modal fade" id="deleteCatModal{{ $cat->id }}" tabindex="-1" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered">
+                            <form action="{{ route('vendor.categories.destroy', $cat->id) }}" method="POST" class="modal-content">
+                                @csrf @method('DELETE')
+                                <div class="modal-header">
+                                    <h5 class="modal-title">Delete Category</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body text-start">
+                                    <p class="text-muted mb-0">Are you sure you want to delete <strong>{{ $cat->name }}</strong>?
+                                        @if($cat->products_count > 0)
+                                            <br><span class="text-danger small">This category has {{ $cat->products_count }} product(s) — deletion will be blocked.</span>
+                                        @endif
+                                    </p>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn-agri btn-agri-outline" data-bs-dismiss="modal">Cancel</button>
+                                    <button type="submit" class="btn btn-danger">Delete</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                @endif
+            @endforeach
 
             @if($categories->hasPages())
                 <div style="padding:24px;border-top:1px solid var(--agri-border);display:flex;justify-content:center;">

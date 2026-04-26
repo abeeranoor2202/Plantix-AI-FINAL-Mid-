@@ -21,7 +21,7 @@ class ShopController extends Controller
 
     public function index(Request $request): View
     {
-        $query = Product::with(['vendor', 'category', 'primaryImage', 'approvedReviews'])
+        $query = Product::with(['vendor.author', 'category', 'primaryImage', 'approvedReviews'])
             ->where('is_active', true)
             ->active()
             ->inStock();
@@ -110,7 +110,7 @@ class ShopController extends Controller
             default      => ['created_at', 'desc'],
         };
 
-        $products   = $query->orderBy(...$sort)->with(['category', 'primaryImage', 'vendor', 'stock'])->get();
+        $products   = $query->orderBy(...$sort)->with(['category', 'primaryImage', 'vendor.author', 'stock'])->get();
         $categories = Category::orderBy('name')->get();
         $vendors    = Vendor::where('is_active', true)->where('is_approved', true)->orderBy('title')->get();
         $filterAttributes = Attribute::with('values')
@@ -131,6 +131,9 @@ class ShopController extends Controller
             'category'        => $p->category?->name,
             'vendor'          => $p->vendor?->title,
             'vendor_id'       => $p->vendor_id,
+            'vendor_photo'    => $p->vendor?->author?->profile_photo 
+                                    ? Storage::url($p->vendor->author->profile_photo) 
+                                    : null,
             'rating_avg'      => (float) ($p->rating_avg ?? 0),
             'track_stock'     => (bool) $p->track_stock,
             'stock_quantity'  => (int) ($p->stock?->quantity ?? $p->stock_quantity ?? 0),
@@ -160,7 +163,7 @@ class ShopController extends Controller
     public function show(int $id): View
     {
         $product  = Product::with([
-            'vendor', 'category', 'images',
+            'vendor.author', 'category', 'images',
             'attributes.attribute', 'approvedReviews.user', 'stock',
         ])->where('is_active', true)->active()->findOrFail($id);
 

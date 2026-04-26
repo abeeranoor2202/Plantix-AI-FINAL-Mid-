@@ -104,7 +104,7 @@ class DiseaseDetectionService
             'user_id'          => $user->id,
             'crop_name'        => $meta['crop_name'] ?? null,
             'image_path'       => $imagePath,
-            'model_used'       => 'plantix-ai-v1',
+            'model_used'       => 'vgg16-plant-disease-v1',
             'status'           => 'pending',
             'user_description' => $meta['user_description'] ?? null,
         ]);
@@ -123,14 +123,20 @@ class DiseaseDetectionService
             if ($top['disease'] === 'unknown') {
                 $report->update(['status' => 'manual_review']);
             } else {
+                // Store the raw VGG16 label as detected_disease, display_name for UI
+                $displayName = $top['display_name'] ?? $top['disease'];
+
                 $report->update([
-                    'detected_disease' => $top['disease'],
+                    'detected_disease' => $displayName,
                     'confidence_score' => $top['confidence'],
                     'all_predictions'  => $predictions,
+                    'model_used'       => 'vgg16-plant-disease-v1',
                     'status'           => 'processed',
                 ]);
 
-                $this->generateSuggestion($report, $top['disease']);
+                // Map VGG16 label to knowledge-base key for treatment suggestions
+                $kbKey = $this->mapVgg16LabelToKbKey($top['disease']);
+                $this->generateSuggestion($report, $kbKey);
             }
         } catch (\Throwable $e) {
             Log::error('DiseaseDetectionService processReport failed: ' . $e->getMessage(), [
@@ -138,6 +144,51 @@ class DiseaseDetectionService
             ]);
             $report->update(['status' => 'manual_review']);
         }
+    }
+
+    /**
+     * Map a VGG16 PlantVillage label to a DISEASE_KB key.
+     * Falls back to 'healthy' for healthy classes, or the raw label for unknown ones.
+     */
+    private function mapVgg16LabelToKbKey(string $vgg16Label): string
+    {
+        // Healthy classes
+        if (str_contains(strtolower($vgg16Label), 'healthy')) {
+            return 'healthy';
+        }
+
+        $label = strtolower($vgg16Label);
+
+        $map = [
+            'tomato___late_blight'                                    => 'tomato_blight',
+            'tomato___early_blight'                                   => 'tomato_blight',
+            'tomato___bacterial_spot'                                 => 'tomato_blight',
+            'tomato___leaf_mold'                                      => 'powdery_mildew',
+            'tomato___septoria_leaf_spot'                             => 'tomato_blight',
+            'tomato___spider_mites two-spotted_spider_mite'           => 'tomato_blight',
+            'tomato___target_spot'                                    => 'tomato_blight',
+            'tomato___tomato_yellow_leaf_curl_virus'                  => 'leaf_curl',
+            'tomato___tomato_mosaic_virus'                            => 'leaf_curl',
+            'corn_(maize)___cercospora_leaf_spot gray_leaf_spot'      => 'maize_stalk_rot',
+            'corn_(maize)___common_rust_'                             => 'wheat_rust',
+            'corn_(maize)___northern_leaf_blight'                     => 'maize_stalk_rot',
+            'apple___apple_scab'                                      => 'powdery_mildew',
+            'apple___black_rot'                                       => 'tomato_blight',
+            'apple___cedar_apple_rust'                                => 'wheat_rust',
+            'cherry_(including_sour)___powdery_mildew'                => 'powdery_mildew',
+            'grape___black_rot'                                       => 'tomato_blight',
+            'grape___esca_(black_measles)'                            => 'tomato_blight',
+            'grape___leaf_blight_(isariopsis_leaf_spot)'              => 'tomato_blight',
+            'orange___haunglongbing_(citrus_greening)'                => 'leaf_curl',
+            'peach___bacterial_spot'                                  => 'tomato_blight',
+            'pepper,_bell___bacterial_spot'                           => 'tomato_blight',
+            'potato___early_blight'                                   => 'tomato_blight',
+            'potato___late_blight'                                    => 'tomato_blight',
+            'squash___powdery_mildew'                                 => 'powdery_mildew',
+            'strawberry___leaf_scorch'                                => 'tomato_blight',
+        ];
+
+        return $map[$label] ?? 'healthy';
     }
 
     /**
@@ -197,35 +248,86 @@ class DiseaseDetectionService
     }
 
     /**
-     * Run inference. Tries external API first; falls back to rule-based.
+     * Run inference against the VGG16 Flask disease detection endpoint.
+     *
+     * Endpoint: POST {DISEASE_API_URL}/disease/predict
+     * Auth    : X-API-Key header (DISEASE_API_KEY)
+     *
+     * Response shape:
+     *   {
+     *     "success": true,
+     *     "disease": "Tomato___Late_blight",
+     *     "display_name": "Tomato Late Blight",
+     *     "confidence": 0.97,
+     *     "predictions": [
+     *       {"disease": "...", "display_name": "...", "confidence": 0.97},
+     *       ...
+     *     ]
+     *   }
      */
     private function runInference(string $imagePath, string $cropName): array
     {
-        $apiUrl = config('plantix.disease_api_url');
+        $apiUrl = rtrim((string) config('plantix.disease_api_url'), '/');
+        $apiKey = (string) config('plantix.disease_api_key');
 
-        if ($apiUrl) {
-            try {
-                $fullPath = Storage::disk('local')->path($imagePath);
-                $response = Http::timeout(15)
-                    ->attach('image', file_get_contents($fullPath), basename($imagePath))
-                    ->post($apiUrl, ['crop' => $cropName]);
-
-                if ($response->successful()) {
-                    return $response->json('predictions', []);
-                }
-            } catch (\Throwable $e) {
-                Log::warning('Disease API unavailable, using fallback: ' . $e->getMessage());
-            }
+        if ($apiUrl === '') {
+            Log::warning('DiseaseDetectionService: DISEASE_API_URL is not configured. Report will go to manual_review.');
+            return [['disease' => 'unknown', 'confidence' => 0.0]];
         }
 
-        // Rule-based fallback: random selection from KB (demo behavior)
-        return $this->ruleBasedFallback($cropName);
+        try {
+            $fullPath = Storage::disk('local')->path($imagePath);
+
+            $requestBuilder = Http::timeout(30)
+                ->attach('image', file_get_contents($fullPath), basename($imagePath));
+
+            if ($apiKey !== '') {
+                $requestBuilder = $requestBuilder->withHeaders(['X-API-Key' => $apiKey]);
+            }
+
+            $response = $requestBuilder->post($apiUrl . '/disease/predict');
+
+            if (! $response->successful()) {
+                Log::warning('Disease API returned non-success status.', [
+                    'status' => $response->status(),
+                    'body'   => $response->body(),
+                ]);
+                return [['disease' => 'unknown', 'confidence' => 0.0]];
+            }
+
+            $json = $response->json();
+
+            // Normalise to the internal format: [['disease' => ..., 'confidence' => ...], ...]
+            if (! empty($json['predictions']) && is_array($json['predictions'])) {
+                return array_map(fn($p) => [
+                    'disease'      => $p['disease'] ?? 'unknown',
+                    'display_name' => $p['display_name'] ?? ($p['disease'] ?? 'Unknown'),
+                    'confidence'   => (float) ($p['confidence'] ?? 0.0),
+                ], $json['predictions']);
+            }
+
+            // Fallback: single-result response
+            if (! empty($json['disease'])) {
+                return [[
+                    'disease'      => $json['disease'],
+                    'display_name' => $json['display_name'] ?? $json['disease'],
+                    'confidence'   => (float) ($json['confidence'] ?? 0.0),
+                ]];
+            }
+
+            return [['disease' => 'unknown', 'confidence' => 0.0]];
+
+        } catch (\Throwable $e) {
+            Log::error('DiseaseDetectionService: inference request failed: ' . $e->getMessage(), [
+                'image_path' => $imagePath,
+            ]);
+            return [['disease' => 'unknown', 'confidence' => 0.0]];
+        }
     }
 
     private function ruleBasedFallback(string $cropName): array
     {
-        // No API configured — do NOT guess randomly
-        // Return unknown status so the report goes to manual_review
+        // No API configured — return unknown so the report goes to manual_review
         return [
             ['disease' => 'unknown', 'confidence' => 0.0],
         ];
