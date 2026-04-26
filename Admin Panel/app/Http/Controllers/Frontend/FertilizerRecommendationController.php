@@ -70,7 +70,6 @@ class FertilizerRecommendationController extends Controller
                 'success' => true,
                 'data'    => [
                     'id'                         => $recommendation->id,
-                    'crop_type'                  => $recommendation->crop_type,
                     'fertilizer_plan'            => $recommendation->fertilizer_plan,
                     'application_instructions'   => $recommendation->application_instructions,
                     'estimated_cost_pkr'         => $recommendation->estimated_cost_pkr,
@@ -102,7 +101,7 @@ class FertilizerRecommendationController extends Controller
         $list = FertilizerRecommendation::where('user_id', Auth::id())
             ->latest()
             ->take(20)
-            ->get(['id', 'crop_type', 'growth_stage', 'estimated_cost_pkr', 'created_at']);
+            ->get(['id', 'estimated_cost_pkr', 'created_at']);
 
         return response()->json(['success' => true, 'data' => $list]);
     }

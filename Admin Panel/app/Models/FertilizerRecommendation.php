@@ -11,7 +11,7 @@ class FertilizerRecommendation extends Model
     use SoftDeletes;
 
     protected $fillable = [
-        'user_id', 'soil_test_id', 'crop_type',
+        'user_id', 'soil_test_id',
         'nitrogen', 'phosphorus', 'potassium',
         'fertilizer_plan', 'application_instructions', 'estimated_cost_pkr', 'model_version',
     ];

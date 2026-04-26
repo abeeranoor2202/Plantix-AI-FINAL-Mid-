@@ -58,7 +58,7 @@ class FertilizerRecommendationService
 
     // ── Private ──────────────────────────────────────────────────────────────
 
-    private function buildPlan(string $fertilizerName, string $crop, float $n, float $p, float $k, ?float $confidence): array
+    private function buildPlan(string $fertilizerName, float $n, float $p, float $k, ?float $confidence): array
     {
         $baseDose = $this->estimatePrimaryDose($n, $p, $k);
         $confidencePercent = $confidence === null ? null : round($confidence * 100, 2);
@@ -68,7 +68,7 @@ class FertilizerRecommendationService
             'type'             => 'AI Recommended',
             'dose_kg_per_acre' => $baseDose,
             'timing'           => 'Basal application at land preparation',
-            'notes'            => 'Recommended by ML model for ' . $crop . ($confidencePercent !== null ? (' (confidence: ' . $confidencePercent . '%).') : '.'),
+            'notes'            => 'Recommended by ML model based on soil N, P, K values' . ($confidencePercent !== null ? (' (confidence: ' . $confidencePercent . '%).') : '.'),
         ]];
     }
 
@@ -104,11 +104,11 @@ class FertilizerRecommendationService
     }
 
 
-    private function buildInstructions(string $crop, string $fertilizer, ?float $confidence, array $apiResult): string
+    private function buildInstructions(string $fertilizer, ?float $confidence, array $apiResult): string
     {
         $confidenceText = $confidence === null ? 'N/A' : round($confidence * 100, 2) . '%';
         $lines = [
-            "AI Fertilizer Plan for {$crop}",
+            "AI Fertilizer Plan",
             "",
             "Primary fertilizer: {$fertilizer}",
             "Model confidence: {$confidenceText}",

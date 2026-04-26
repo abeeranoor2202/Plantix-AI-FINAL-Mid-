@@ -233,7 +233,7 @@
                 html += '</div>';
 
                 html += '<div class="d-flex align-items-center justify-content-between mb-4 bg-light p-3 rounded-3 border">';
-                html += '<div><span class="text-muted small d-block mb-1">Crop</span><h5 class="fw-bold text-dark m-0">' + data.crop_type + '</h5></div>';
+                html += '<div><span class="text-muted small d-block mb-1">Soil Input</span><h5 class="fw-bold text-dark m-0">N=' + payload.nitrogen + ' P=' + payload.phosphorus + ' K=' + payload.potassium + '</h5></div>';
                 html += '<div class="text-end"><span class="text-muted small d-block mb-1">Estimated Cost</span><span class="fw-medium text-dark">PKR ' + Number(data.estimated_cost_pkr || 0).toLocaleString() + '</span></div>';
                 html += '</div>';
 
