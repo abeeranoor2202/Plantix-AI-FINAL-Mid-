@@ -57,9 +57,33 @@
                             <label class="agri-label">Category</label>
                             <select name="category_id" id="category_id" class="form-agri">
                                 <option value="">Select category</option>
-                                @foreach($categories ?? [] as $cat)
-                                    <option value="{{ $cat->id }}" @selected(old('category_id', $product->category_id ?? '') == $cat->id)>{{ $cat->name }}</option>
-                                @endforeach
+                                @php
+                                    $myVendorId = auth('vendor')->user()->vendor->id ?? null;
+                                    $globalCats = ($categories ?? collect())->filter(fn($c) => is_null($c->vendor_id));
+                                    $myCats     = ($categories ?? collect())->filter(fn($c) => (int)$c->vendor_id === (int)$myVendorId);
+                                    $otherCats  = ($categories ?? collect())->filter(fn($c) => !is_null($c->vendor_id) && (int)$c->vendor_id !== (int)$myVendorId);
+                                @endphp
+                                @if($globalCats->isNotEmpty())
+                                    <optgroup label="── Global (Admin)">
+                                        @foreach($globalCats as $cat)
+                                            <option value="{{ $cat->id }}" @selected(old('category_id', $product->category_id ?? '') == $cat->id)>{{ $cat->name }}</option>
+                                        @endforeach
+                                    </optgroup>
+                                @endif
+                                @if($myCats->isNotEmpty())
+                                    <optgroup label="── My Categories">
+                                        @foreach($myCats as $cat)
+                                            <option value="{{ $cat->id }}" @selected(old('category_id', $product->category_id ?? '') == $cat->id)>{{ $cat->name }}</option>
+                                        @endforeach
+                                    </optgroup>
+                                @endif
+                                @if($otherCats->isNotEmpty())
+                                    <optgroup label="── Other Vendors">
+                                        @foreach($otherCats as $cat)
+                                            <option value="{{ $cat->id }}" @selected(old('category_id', $product->category_id ?? '') == $cat->id)>{{ $cat->name }}</option>
+                                        @endforeach
+                                    </optgroup>
+                                @endif
                             </select>
                         </div>
                         <div class="col-md-6">

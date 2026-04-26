@@ -1,5 +1,7 @@
 @extends('layouts.app')
 
+@php use Illuminate\Support\Str; @endphp
+
 @section('content')
 <div class="container-fluid" style="padding-top: 24px; padding-bottom: 40px;">
     <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 32px;">
@@ -33,6 +35,7 @@
                 <thead style="background: var(--agri-bg);">
                     <tr>
                         <th style="padding: 16px 24px; font-size: 12px; font-weight: 600; color: var(--agri-text-muted); text-transform: uppercase; border: none;">Name</th>
+                        <th style="padding: 16px 24px; font-size: 12px; font-weight: 600; color: var(--agri-text-muted); text-transform: uppercase; border: none;">Owner</th>
                         <th style="padding: 16px 24px; font-size: 12px; font-weight: 600; color: var(--agri-text-muted); text-transform: uppercase; border: none;">Products</th>
                         <th style="padding: 16px 24px; font-size: 12px; font-weight: 600; color: var(--agri-text-muted); text-transform: uppercase; border: none;">Status</th>
                         <th class="text-end" style="padding: 16px 24px; font-size: 12px; font-weight: 600; color: var(--agri-text-muted); text-transform: uppercase; border: none;">Actions</th>
@@ -42,8 +45,31 @@
                 @forelse($categories as $category)
                     <tr>
                         <td class="px-4 py-3">
-                            <div style="font-weight: 700; color: var(--agri-text-heading);">{{ $category->name }}</div>
-                            <small class="text-muted">ID: {{ $category->id }}</small>
+                            <div class="d-flex align-items-center gap-3">
+                                @if($category->image)
+                                    <img src="{{ asset('storage/' . $category->image) }}" alt="{{ $category->name }}"
+                                         style="width:40px;height:40px;border-radius:10px;object-fit:cover;border:1px solid var(--agri-border);">
+                                @else
+                                    <div style="width:40px;height:40px;border-radius:10px;background:var(--agri-bg);border:1px solid var(--agri-border);display:flex;align-items:center;justify-content:center;">
+                                        <i class="fas fa-shapes text-muted"></i>
+                                    </div>
+                                @endif
+                                <div>
+                                    <div style="font-weight: 700; color: var(--agri-text-heading);">{{ $category->name }}</div>
+                                    <small class="text-muted">ID: {{ $category->id }}</small>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-4 py-3">
+                            @if($category->isGlobal())
+                                <span class="badge rounded-pill" style="background:#eff6ff;color:#1d4ed8;font-weight:700;font-size:10px;padding:4px 10px;">
+                                    <i class="fas fa-shield-alt me-1"></i> Admin (Global)
+                                </span>
+                            @else
+                                <span class="badge rounded-pill" style="background:#fef9c3;color:#92400e;font-weight:700;font-size:10px;padding:4px 10px;" title="{{ $category->createdByVendor?->title }}">
+                                    <i class="fas fa-store me-1"></i> {{ Str::limit($category->createdByVendor?->title ?? 'Vendor', 20) }}
+                                </span>
+                            @endif
                         </td>
                         <td class="px-4 py-3">
                             <div style="font-weight: 700; color: var(--agri-text-main);">{{ $category->products_count }}</div>
@@ -53,21 +79,27 @@
                         </td>
                         <td class="px-4 py-3">
                             <div class="text-end" style="display: flex; justify-content: flex-end; gap: 8px;">
-                                <a href="{{ route('admin.categories.edit', $category->id) }}" class="btn-agri" style="padding: 8px; background: var(--agri-bg); color: #2563eb; border-radius: 999px;" title="View"><i class="fas fa-eye"></i></a>
-                                <a href="{{ route('admin.categories.edit', $category->id) }}" class="btn-agri" style="padding: 8px; background: var(--agri-bg); color: var(--agri-primary); border-radius: 999px;" title="Edit"><i class="fas fa-pen"></i></a>
-                                <form method="POST" action="{{ route('admin.categories.destroy', $category->id) }}" class="d-inline" onsubmit="return confirm('Delete this category?');">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="btn-agri" style="padding: 8px; background: #fef2f2; color: #ef4444; border-radius: 999px; border: none;" title="Delete">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                </form>
+                                @if($category->isGlobal())
+                                    <a href="{{ route('admin.categories.edit', $category->id) }}" class="btn-agri" style="padding: 8px; background: var(--agri-bg); color: #2563eb; border-radius: 999px;" title="View"><i class="fas fa-eye"></i></a>
+                                    <a href="{{ route('admin.categories.edit', $category->id) }}" class="btn-agri" style="padding: 8px; background: var(--agri-bg); color: var(--agri-primary); border-radius: 999px;" title="Edit"><i class="fas fa-pen"></i></a>
+                                    <form method="POST" action="{{ route('admin.categories.destroy', $category->id) }}" class="d-inline" onsubmit="return confirm('Delete this category?');">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="btn-agri" style="padding: 8px; background: #fef2f2; color: #ef4444; border-radius: 999px; border: none;" title="Delete">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </form>
+                                @else
+                                    {{-- Vendor-created: admin can view but not edit/delete --}}
+                                    <a href="{{ route('admin.categories.edit', $category->id) }}" class="btn-agri" style="padding: 8px; background: var(--agri-bg); color: #2563eb; border-radius: 999px;" title="View (read-only)"><i class="fas fa-eye"></i></a>
+                                    <span class="btn-agri" style="padding: 8px; background: #f8fafc; color: #94a3b8; border-radius: 999px; cursor: not-allowed; opacity: .5;" title="Vendor-owned — edit not allowed"><i class="fas fa-lock"></i></span>
+                                @endif
                             </div>
                         </td>
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="4" class="text-center py-5" style="color: var(--agri-text-muted);">No categories found.</td>
+                        <td colspan="5" class="text-center py-5" style="color: var(--agri-text-muted);">No categories found.</td>
                     </tr>
                 @endforelse
                 </tbody>

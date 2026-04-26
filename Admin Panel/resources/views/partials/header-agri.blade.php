@@ -58,8 +58,12 @@
                 @auth('web')
                 <div class="dropdown">
                     <a href="#" class="d-flex align-items-center gap-2 text-dark dropdown-toggle" data-bs-toggle="dropdown" style="text-decoration: none; font-weight: 600;">
-                        <div style="width: 36px; height: 36px; border-radius: 50%; background: var(--agri-primary-light); color: var(--agri-primary); display: flex; align-items: center; justify-content: center;">
-                            <i class="fas fa-user"></i>
+                        <div style="width: 36px; height: 36px; border-radius: 50%; overflow: hidden; background: var(--agri-primary-light); color: var(--agri-primary); display: flex; align-items: center; justify-content: center;">
+                            @if(auth('web')->user()->profile_photo)
+                                <img src="{{ Storage::url(auth('web')->user()->profile_photo) }}" alt="{{ auth('web')->user()->name }}" style="width:100%;height:100%;object-fit:cover;">
+                            @else
+                                <i class="fas fa-user"></i>
+                            @endif
                         </div>
                         {{ Str::limit(auth('web')->user()->name, 14) }}
                     </a>

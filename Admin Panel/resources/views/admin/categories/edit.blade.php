@@ -14,6 +14,16 @@
         <p style="color: var(--agri-text-muted); margin: 4px 0 0 0;">Update category details and review fields.</p>
     </div>
 
+    @if(! $category->isGlobal())
+    <div class="alert d-flex align-items-center gap-3 mb-4" style="background:#fef9c3;border:1px solid #fde68a;border-radius:12px;padding:16px 20px;">
+        <i class="fas fa-lock" style="color:#92400e;font-size:18px;flex-shrink:0;"></i>
+        <div>
+            <div style="font-weight:700;color:#92400e;">Vendor-Owned Category — Read Only</div>
+            <div style="font-size:13px;color:#78350f;">This category was created by vendor <strong>{{ $category->createdByVendor?->title ?? 'a vendor' }}</strong>. Only that vendor can edit or delete it. You can view the details below.</div>
+        </div>
+    </div>
+    @endif
+
     <div class="row justify-content-center">
         <div class="col-xl-9">
             <div class="card-agri" style="padding: 0; overflow: hidden; background: white; border: none; box-shadow: 0 10px 30px rgba(0,0,0,0.04);">
@@ -205,9 +215,11 @@
                     {{-- Action Bar --}}
                     <div style="padding: 32px 40px; background: var(--agri-bg); border-top: 1px solid var(--agri-border); display: flex; justify-content: flex-end; gap: 16px;">
                         <a href="{!! route('admin.categories') !!}" class="btn-agri btn-agri-outline" style="padding: 12px 32px; text-decoration: none; font-weight: 700; min-width: 140px; display: flex; align-items: center; justify-content: center;">{{trans('lang.cancel')}}</a>
+                        @if($category->isGlobal())
                         <button type="button" class="btn-agri btn-agri-primary edit-form-btn" style="padding: 12px 48px; font-weight: 800; font-size: 15px; border-radius: 12px; display: flex; align-items: center; gap: 10px;">
                             <i class="fas fa-save"></i> Save Changes
                         </button>
+                        @endif
                     </div>
                 </div>
             </div>

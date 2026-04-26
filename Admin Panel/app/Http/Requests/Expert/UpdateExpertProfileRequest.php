@@ -46,6 +46,11 @@ class UpdateExpertProfileRequest extends FormRequest
             'specializations'         => ['nullable', 'array', 'max:10'],
             'specializations.*.name'  => ['required_with:specializations', 'string', 'max:100'],
             'specializations.*.level' => ['nullable', 'in:beginner,intermediate,expert'],
+
+            // Password change (optional)
+            'current_password'         => ['nullable', 'string'],
+            'new_password'             => ['nullable', 'string', 'min:8', 'confirmed', 'required_with:current_password'],
+            'new_password_confirmation' => ['nullable', 'string'],
         ];
     }
 }

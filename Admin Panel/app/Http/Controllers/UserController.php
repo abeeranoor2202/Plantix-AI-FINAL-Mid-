@@ -643,10 +643,11 @@ class UserController extends Controller
             
             if ($request->hasFile('profile_photo')) {
                 $file = $request->file('profile_photo');
-                $ext = $file->getClientOriginalExtension();
-                $filename = time() . '.' . $ext;
-                $file->move('storage/profiles/', $filename);
-                $user->profile_photo = 'profiles/' . $filename;
+                // Delete old photo if it exists
+                if ($user->profile_photo && \Illuminate\Support\Facades\Storage::disk('public')->exists($user->profile_photo)) {
+                    \Illuminate\Support\Facades\Storage::disk('public')->delete($user->profile_photo);
+                }
+                $user->profile_photo = $file->store('profile-photos', 'public');
             }
 
             if ($password != '') {

@@ -166,7 +166,26 @@
                         <p>{{ $is_logged_in ? $user->name : 'Guest' }}</p>
                         <p>{{ $roleLabel }}</p>
                     </div>
-                    <img src="{{ asset('/images/users/user-new.png') }}" alt="user" class="profile-pic admin-profile-avatar">
+                    @php
+                        $headerPhoto = null;
+                        if (Auth::guard('admin')->check()) {
+                            $headerPhoto = Auth::guard('admin')->user()->profile_photo ?? null;
+                        } elseif (Auth::guard('expert')->check()) {
+                            $headerPhoto = Auth::guard('expert')->user()->expert?->profile_image ?? Auth::guard('expert')->user()->profile_photo ?? null;
+                        } elseif (Auth::guard('vendor')->check()) {
+                            $headerPhoto = Auth::guard('vendor')->user()->profile_photo ?? null;
+                        } elseif (Auth::check()) {
+                            $headerPhoto = Auth::user()->profile_photo ?? null;
+                        }
+                        $headerName = $user->name ?? 'U';
+                    @endphp
+                    @if($headerPhoto)
+                        <img src="{{ Storage::url($headerPhoto) }}" alt="{{ $headerName }}" class="profile-pic admin-profile-avatar" style="object-fit:cover;">
+                    @else
+                        <div class="profile-pic admin-profile-avatar d-flex align-items-center justify-content-center bg-primary text-white fw-bold" style="font-size:16px; border-radius:50%;">
+                            {{ strtoupper(substr($headerName, 0, 1)) }}
+                        </div>
+                    @endif
                 </div>
             </a>
             <div class="dropdown-menu dropdown-menu-right scale-up" style="border-radius: var(--agri-radius-md); box-shadow: var(--agri-shadow-lg); border: 1px solid var(--agri-border); padding: 10px; min-width: 200px; margin-top: 15px;">

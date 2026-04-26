@@ -72,14 +72,14 @@ class VendorProductController extends Controller
         }
 
         $products   = $query->latest()->paginate(20)->withQueryString();
-        $categories = Category::orderBy('name')->get(['id', 'name']);
+        $categories = Category::with('createdByVendor')->orderBy('name')->get(['id', 'name', 'vendor_id']);
 
         return view('vendor.products.index', compact('products', 'categories'));
     }
 
     public function create(): View
     {
-        $categories = Category::orderBy('name')->get(['id', 'name']);
+        $categories = Category::with('createdByVendor')->orderBy('name')->get(['id', 'name', 'vendor_id']);
 
         return view('vendor.products.form', [
             'categories' => $categories,
@@ -149,7 +149,7 @@ class VendorProductController extends Controller
 
         return view('vendor.products.form', [
             'product'    => $product,
-            'categories' => Category::orderBy('name')->get(['id', 'name']),
+            'categories' => Category::with('createdByVendor')->orderBy('name')->get(['id', 'name', 'vendor_id']),
             'attributeValues' => old('attribute_values', $this->extractAttributeValues($product)),
         ]);
     }

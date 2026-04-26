@@ -55,7 +55,7 @@
                                 <div class="profile-photo-wrapper mb-4">
                                     <div class="position-relative d-inline-block">
                                         @php
-                                            $photo = $user->profile_photo ? asset('storage/'.$user->profile_photo) : asset('images/user.png');
+                                            $photo = $user->profile_photo ? \Illuminate\Support\Facades\Storage::url($user->profile_photo) : asset('images/user.png');
                                         @endphp
                                         <img src="{{ $photo }}" id="profile-preview" class="rounded-circle shadow-sm border" style="width: 120px; height: 120px; object-fit: cover; background: #fdfdfd;">
                                         <label for="profile_photo" class="btn btn-sm btn-agri-primary position-absolute rounded-circle" style="bottom: 0px; right: 0px; width: 32px; height: 32px; padding: 0;">
