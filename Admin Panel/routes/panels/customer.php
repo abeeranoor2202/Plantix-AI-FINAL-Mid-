@@ -78,6 +78,17 @@ Route::get('/experts/{id}',    [\App\Http\Controllers\Frontend\ExpertBrowseContr
 Route::get('/cart/count', [\App\Http\Controllers\Frontend\CartController::class, 'count'])->name('cart.count');
 Route::get('/cart/mini',  [\App\Http\Controllers\Frontend\CartController::class, 'mini'])->name('cart.mini');
 
+// ── AI Chat Widget (public — works for guests and authenticated users) ────────
+// These are intentionally outside the 'customer' middleware so the popup
+// chatbot is accessible on every page without requiring login.
+Route::post('/chat/widget/message', [\App\Http\Controllers\Frontend\AiChatController::class, 'message'])->name('chat.widget.message');
+Route::post('/chat/widget/new',     [\App\Http\Controllers\Frontend\AiChatController::class, 'newSession'])->name('chat.widget.new');
+Route::get('/chat/widget/history',  [\App\Http\Controllers\Frontend\AiChatController::class, 'history'])->name('chat.widget.history');
+
+// ── Weather Widget (public — guests and authenticated users) ──────────────────
+Route::get('/weather/widget',        [\App\Http\Controllers\Frontend\WeatherController::class, 'current'])->name('weather.widget');
+Route::get('/weather/widget/cities', [\App\Http\Controllers\Frontend\WeatherController::class, 'cities'])->name('weather.widget.cities');
+
 // ══════════════════════════════════════════════════════════════════════════════
 // 4. AUTHENTICATED CUSTOMER ROUTES  [EnsureCustomerAuth]
 // ══════════════════════════════════════════════════════════════════════════════

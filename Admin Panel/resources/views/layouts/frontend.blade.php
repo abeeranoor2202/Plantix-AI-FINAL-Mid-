@@ -20,6 +20,8 @@
 @endif
 
 @include('partials.scripts')
+@include('partials.weather-widget')
+@include('partials.chat-widget')
 <script>
     (function () {
         const toastRoot = document.getElementById('platform-toast-root');
