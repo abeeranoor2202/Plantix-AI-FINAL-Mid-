@@ -143,6 +143,8 @@ class CropRecommendationService
                 'predicted_crop' => 'unknown',
                 'confidence_score' => 0,
                 'confidence_percent' => 0,
+                'model_version' => 'flask-api-v1',
+                'model_name' => 'RandomForest',
                 'status' => 'failed',
                 'error_details' => [
                     'message' => $error->getMessage(),

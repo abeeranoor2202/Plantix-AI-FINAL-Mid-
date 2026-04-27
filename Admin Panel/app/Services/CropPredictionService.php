@@ -11,25 +11,69 @@ class CropPredictionService
 {
     public function predict(array $input): array
     {
+        // N, P, K, temperature, humidity, rainfall must be integers (Flask validation rule).
+        // ph is the only field that may be decimal.
         $payload = [
-            'nitrogen' => (float) $input['nitrogen'],
-            'phosphorus' => (float) $input['phosphorus'],
-            'potassium' => (float) $input['potassium'],
-            'temperature' => (float) $input['temperature'],
-            'humidity' => (float) $input['humidity'],
-            'ph' => (float) $input['ph_level'],
-            'rainfall' => (float) $input['rainfall_mm'],
+            'nitrogen'    => (int) $input['nitrogen'],
+            'phosphorus'  => (int) $input['phosphorus'],
+            'potassium'   => (int) $input['potassium'],
+            'temperature' => (int) $input['temperature'],
+            'humidity'    => (int) $input['humidity'],
+            'ph'          => (float) $input['ph_level'],
+            'rainfall'    => (int) $input['rainfall_mm'],
         ];
 
         $response = $this->request('post', '/predict', ['json' => $payload]);
 
+        // Support both response shapes:
+        //
+        // New shape (Flask code updated):
+        //   {"status":"success","data":{"crop":...,"confidence":...}}
+        //
+        // Old/legacy shape (Flask not yet restarted with new code):
+        //   {"success":true,"crop":...,"confidence":...,"request_id":...}
+        $status = Arr::get($response, 'status');
+
+        if ($status === 'low_confidence') {
+            throw new \RuntimeException(
+                Arr::get($response, 'message', 'Unable to confidently recommend a crop.')
+            );
+        }
+
+        if ($status === 'invalid') {
+            throw new \RuntimeException(
+                Arr::get($response, 'message', 'Invalid input provided to crop prediction API.')
+            );
+        }
+
+        // New shape: data is nested under 'data' key
+        if ($status === 'success' && isset($response['data'])) {
+            $data = $response['data'];
+            return [
+                'crop'       => (string) Arr::get($data, 'crop', ''),
+                'confidence' => round((float) Arr::get($data, 'confidence', 0), 4),
+                'request_id' => Arr::get($data, 'request_id'),
+                'record_id'  => Arr::get($data, 'record_id'),
+                'timestamp'  => Arr::get($data, 'timestamp'),
+                'raw'        => $response,
+            ];
+        }
+
+        // Legacy/flat shape: crop and confidence at root level
+        $crop = (string) Arr::get($response, 'crop', Arr::get($response, 'prediction', ''));
+        $confidence = round((float) Arr::get($response, 'confidence', 0), 4);
+
+        if ($crop === '') {
+            throw new \RuntimeException('Crop prediction API returned an empty crop name.');
+        }
+
         return [
-            'crop' => (string) Arr::get($response, 'crop', Arr::get($response, 'prediction', '')),
-            'confidence' => round((float) Arr::get($response, 'confidence', 0), 4),
+            'crop'       => $crop,
+            'confidence' => $confidence,
             'request_id' => Arr::get($response, 'request_id'),
-            'record_id' => Arr::get($response, 'record_id'),
-            'timestamp' => Arr::get($response, 'timestamp'),
-            'raw' => $response,
+            'record_id'  => Arr::get($response, 'record_id'),
+            'timestamp'  => Arr::get($response, 'timestamp'),
+            'raw'        => $response,
         ];
     }
 
