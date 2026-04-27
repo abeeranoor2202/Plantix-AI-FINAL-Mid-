@@ -235,6 +235,7 @@ PROMPT;
             'status'                 => 'active',
             // Store full AI response for rich frontend rendering
             'ai_plan_data'           => $ai,
+            'ai_model'               => config('plantix.openrouter_model'),
         ]);
     }
 
@@ -292,6 +293,47 @@ PROMPT;
             ];
         }
 
+        return $schedule;
+    }
+
+    private function buildWaterPlanFromAi(array $ai, float $acres): array
+    {
+        $plan = [];
+        foreach ($ai['irrigation_plan'] ?? [] as $i => $irr) {
+            $plan[] = [
+                'week'                   => $i + 1,
+                'stage'                  => $irr['stage'] ?? "Irrigation " . ($i + 1),
+                'timing'                 => $irr['timing'] ?? '',
+                'irrigation_mm'          => $irr['amount'] ?? '50mm',
+                'irrigation_acre_inches' => round($acres * 2, 2),
+                'note'                   => $irr['notes'] ?? null,
+            ];
+        }
+        return $plan;
+    }
+
+    private function parseYieldTons(string $range, float $acres): float
+    {
+        // Extract first number from strings like "25-35 maunds/acre" or "1.5-2 tons"
+        preg_match('/[\d.]+/', $range, $m);
+        $perAcre = isset($m[0]) ? (float) $m[0] : 1.5;
+
+        // Convert maunds to tons if needed (1 maund ≈ 0.04 tons)
+        if (stripos($range, 'maund') !== false) {
+            $perAcre = $perAcre * 0.04;
+        }
+
+        return round($perAcre * $acres, 3);
+    }
+
+    private function parseRevenuePkr(string $revenueStr): float
+    {
+        // Extract first number from strings like "PKR 50,000-80,000" or "50000-80000"
+        $clean = str_replace([',', 'PKR', 'Rs', ' '], '', $revenueStr);
+        preg_match('/[\d.]+/', $clean, $m);
+        return isset($m[0]) ? (float) $m[0] : 0.0;
+    }
+}
         return $schedule;
     }
 
