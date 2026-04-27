@@ -43,15 +43,7 @@
                             @endforeach
                         </select>
                     </div>
-                    <div class="col-lg-3 col-md-6">
-                        <label class="agri-label-small">Dispute Status</label>
-                        <select name="dispute_status" class="form-agri" style="margin-bottom: 0;">
-                            <option value="">All Disputes</option>
-                            @foreach(['pending', 'vendor_responded', 'escalated', 'resolved', 'rejected', 'cancelled'] as $disputeStatus)
-                                <option value="{{ $disputeStatus }}" @selected(request('dispute_status') === $disputeStatus)>{{ strtoupper(str_replace('_', ' ', $disputeStatus)) }}</option>
-                            @endforeach
-                        </select>
-                    </div>
+
                     <div class="col-lg-3 col-md-6">
                         <label class="agri-label-small">Amount Range</label>
                         <div class="d-flex gap-2">
@@ -115,9 +107,7 @@
                             <td class="px-4 py-3">
                                 <div class="d-flex flex-column gap-2">
                                     <span class="badge rounded-pill bg-info" style="width: fit-content;">{{ strtoupper(str_replace('_', ' ', (string) $order->status)) }}</span>
-                                    @if(($order->dispute_status ?? 'none') !== 'none')
-                                        <span class="badge rounded-pill bg-warning text-dark" style="width: fit-content;">DISPUTE: {{ strtoupper(str_replace('_', ' ', $order->dispute_status)) }}</span>
-                                    @endif
+
                                 </div>
                             </td>
                             <td class="px-4 py-3">

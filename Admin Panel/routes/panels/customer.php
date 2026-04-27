@@ -122,8 +122,8 @@ Route::middleware(['customer', 'verified'])->group(function () {
     Route::get('/order/success/{id}',      [\App\Http\Controllers\Frontend\CustomerOrderController::class, 'success'])->name('order.success');
     Route::post('/orders/{id}/return',     [\App\Http\Controllers\Frontend\CustomerOrderController::class, 'requestReturn'])->name('order.return');
     Route::post('/orders/{id}/cancel',     [\App\Http\Controllers\Frontend\CustomerOrderController::class, 'cancel'])->name('order.cancel');
-    Route::post('/orders/{id}/dispute',    [\App\Http\Controllers\Frontend\CustomerOrderController::class, 'dispute'])->name('order.dispute');
-    Route::post('/orders/{id}/dispute/escalate', [\App\Http\Controllers\Frontend\CustomerOrderController::class, 'escalateDispute'])->name('order.dispute.escalate');
+    // Route::post('/orders/{id}/dispute',    [\App\Http\Controllers\Frontend\CustomerOrderController::class, 'dispute'])->name('order.dispute');
+    // Route::post('/orders/{id}/dispute/escalate', [\App\Http\Controllers\Frontend\CustomerOrderController::class, 'escalateDispute'])->name('order.dispute.escalate');
     Route::get('/orders/{id}/invoice',     [\App\Http\Controllers\Frontend\InvoiceController::class, 'download'])->name('order.invoice');
 
     // ── Expert quick-book (auth required to submit booking) ─────────────────

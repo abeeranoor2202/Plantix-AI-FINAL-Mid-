@@ -320,65 +320,7 @@
                 </div>
             </div>
 
-            {{-- Dispute Resolution --}}
-            <div class="card-agri mb-4" style="padding: 24px; background: white; border: none; box-shadow: 0 10px 30px rgba(0,0,0,0.04);">
-                <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 20px;">
-                    <div style="width: 32px; height: 32px; background: #FEF2F2; color: #B91C1C; border-radius: 8px; display: flex; align-items: center; justify-content: center;">
-                        <i class="fas fa-balance-scale"></i>
-                    </div>
-                    <h5 style="margin: 0; font-weight: 800; color: var(--agri-text-heading); font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px;">Dispute Resolution</h5>
-                </div>
 
-                @if($order->dispute)
-                    <div style="background: var(--agri-bg); padding: 12px; border-radius: 10px; border: 1px solid var(--agri-border); margin-bottom: 14px; font-size: 13px;">
-                        <div><strong>Status:</strong> {{ strtoupper(str_replace('_', ' ', $order->dispute->status)) }}</div>
-                        <div class="mt-2"><strong>Customer Reason:</strong> {{ $order->dispute->reason }}</div>
-                        @if($order->dispute->escalation_reason)
-                            <div class="mt-2"><strong>Escalation Reason:</strong> {{ $order->dispute->escalation_reason }}</div>
-                        @endif
-                        @if($order->dispute->vendor_response)
-                            <div class="mt-2"><strong>Vendor Response:</strong> {{ $order->dispute->vendor_response }}</div>
-                        @endif
-                        @if($order->dispute->admin_notes)
-                            <div class="mt-2"><strong>Admin Notes:</strong> {{ $order->dispute->admin_notes }}</div>
-                        @endif
-                    </div>
-
-                    @if(in_array($order->dispute->status, ['pending', 'vendor_responded', 'escalated']))
-                        <form action="{{ route('admin.orders.dispute.resolve', $order->id) }}" method="POST">
-                            @csrf
-                            <div class="mb-3">
-                                <label class="agri-label">Resolution Status</label>
-                                <select name="status" class="form-agri @error('status') is-invalid @enderror" required>
-                                    <option value="resolved">RESOLVED</option>
-                                    <option value="refunded">REFUNDED</option>
-                                    <option value="rejected">REJECTED</option>
-                                </select>
-                                @error('status')
-                                    <div class="invalid-feedback d-block">{{ $message }}</div>
-                                @enderror
-                            </div>
-                            <div class="mb-3">
-                                <label class="agri-label">Admin Notes</label>
-                                <textarea name="resolution" class="form-agri @error('resolution') is-invalid @enderror" rows="3" placeholder="Record final decision details..." required>{{ old('resolution') }}</textarea>
-                                @error('resolution')
-                                    <div class="invalid-feedback d-block">{{ $message }}</div>
-                                @enderror
-                            </div>
-                            <div class="mb-3">
-                                <label class="agri-label">Refund Reference (Optional)</label>
-                                <input type="text" name="refund_reference" class="form-agri @error('refund_reference') is-invalid @enderror" value="{{ old('refund_reference') }}" placeholder="Gateway or manual refund reference">
-                                @error('refund_reference')
-                                    <div class="invalid-feedback d-block">{{ $message }}</div>
-                                @enderror
-                            </div>
-                            <button type="submit" class="btn-agri btn-agri-primary w-100" style="padding: 12px; font-weight: 800;">RESOLVE DISPUTE</button>
-                        </form>
-                    @endif
-                @else
-                    <div class="text-muted" style="font-size: 13px;">No dispute is attached to this order.</div>
-                @endif
-            </div>
 
             {{-- Delivery Address --}}
             @if($order->delivery_address)

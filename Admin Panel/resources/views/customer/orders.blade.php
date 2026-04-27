@@ -36,15 +36,7 @@
                                 @endforeach
                             </select>
                         </div>
-                        <div class="col-md-2">
-                            <label class="agri-label">Dispute</label>
-                            <select name="dispute_status" class="form-agri">
-                                <option value="">All Disputes</option>
-                                @foreach(['pending', 'vendor_responded', 'escalated', 'resolved', 'rejected', 'cancelled'] as $disputeStatus)
-                                    <option value="{{ $disputeStatus }}" @selected(request('dispute_status') === $disputeStatus)>{{ strtoupper(str_replace('_', ' ', $disputeStatus)) }}</option>
-                                @endforeach
-                            </select>
-                        </div>
+
                         <div class="col-md-1">
                             <label class="agri-label">Min</label>
                             <input type="number" min="0" step="0.01" name="min_total" class="form-agri" value="{{ request('min_total') }}" placeholder="0">
@@ -89,12 +81,7 @@
                                     <td class="border-bottom-0 py-3">
                                         <div class="d-flex flex-column gap-2">
                                             <x-platform.status-badge domain="order" :status="$order->status" />
-                                            @if(($order->dispute_status ?? 'none') !== 'none')
-                                                <div>
-                                                    <small class="text-muted d-block mb-1" style="font-size: 11px;">Dispute</small>
-                                                    <x-platform.status-badge domain="dispute" :status="$order->dispute_status" />
-                                                </div>
-                                            @endif
+
                                         </div>
                                     </td>
                                     <td class="border-bottom-0 py-3 rounded-end">

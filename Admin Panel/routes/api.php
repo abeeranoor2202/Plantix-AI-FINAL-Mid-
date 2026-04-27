@@ -67,6 +67,7 @@ Route::prefix('v1')->group(function () {
             Route::patch('/{id}/status', [V1ReturnController::class, 'updateStatus'])->middleware('api.role:admin');
         });
 
+        /*
         // Disputes module
         Route::prefix('disputes')->group(function () {
             Route::get('/', [V1DisputeController::class, 'index']);
@@ -75,6 +76,7 @@ Route::prefix('v1')->group(function () {
             Route::post('/orders/{orderId}/respond', [V1DisputeController::class, 'vendorRespond']);
             Route::post('/orders/{orderId}/resolve', [V1DisputeController::class, 'resolve']);
         });
+        */
 
         // Appointments module
         Route::prefix('appointments')->group(function () {
