@@ -62,7 +62,7 @@ Route::prefix('vendor')->name('vendor.')->group(function () {
         Route::get('/orders',               [\App\Http\Controllers\Vendor\VendorOrderController::class, 'index'])->name('orders.index');
         Route::get('/orders/{id}',          [\App\Http\Controllers\Vendor\VendorOrderController::class, 'show'])->name('orders.show');
         Route::post('/orders/{id}/status',  [\App\Http\Controllers\Vendor\VendorOrderController::class, 'updateStatus'])->name('orders.status');
-        Route::post('/orders/{id}/dispute-response', [\App\Http\Controllers\Vendor\VendorOrderController::class, 'respondDispute'])->name('orders.dispute-response');
+        // Route::post('/orders/{id}/dispute-response', [\App\Http\Controllers\Vendor\VendorOrderController::class, 'respondDispute'])->name('orders.dispute-response');
         Route::delete('/orders/{id}',       [\App\Http\Controllers\Vendor\VendorOrderController::class, 'destroy'])->name('orders.destroy');
 
         // ── Notifications ───────────────────────────────────────────────────

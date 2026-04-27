@@ -35,9 +35,7 @@ class OrderApiService
             $query->where('status', $filters['status']);
         }
 
-        if (! empty($filters['dispute_status'])) {
-            $query->where('dispute_status', $filters['dispute_status']);
-        }
+
 
         if (! empty($filters['min_total'])) {
             $query->where('total', '>=', (float) $filters['min_total']);

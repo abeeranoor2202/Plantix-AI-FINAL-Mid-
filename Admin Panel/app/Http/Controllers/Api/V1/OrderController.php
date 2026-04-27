@@ -15,7 +15,7 @@ class OrderController extends ApiController
         $filters = $request->validate([
             'search' => ['nullable', 'string', 'max:255'],
             'status' => ['nullable', 'string', 'max:50'],
-            'dispute_status' => ['nullable', 'string', 'max:50'],
+
             'min_total' => ['nullable', 'numeric', 'min:0'],
             'max_total' => ['nullable', 'numeric', 'min:0'],
             'date_from' => ['nullable', 'date'],
