@@ -40,7 +40,10 @@
                             <h5 style="font-size: 15px; font-weight: 700; color: var(--agri-text-heading); margin-bottom: 4px;">Enable COD</h5>
                             <p style="font-size: 13px; color: var(--agri-text-muted); margin: 0;">Enable cash payment option for delivery orders.</p>
                         </div>
-                        <input type="checkbox" class="enable_cod" id="enable_cod" style="width: 50px; height: 26px; cursor: pointer; accent-color: var(--agri-primary);" @checked($codEnabled)>
+                        <label class="agri-switch">
+                            <input type="checkbox" class="enable_cod" id="enable_cod" @checked($codEnabled)>
+                            <span class="agri-slider"></span>
+                        </label>
                     </div>
 
                     <div style="display: flex; gap: 10px; margin-top: 24px;">

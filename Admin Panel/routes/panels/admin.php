@@ -189,7 +189,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
             Route::get('/',             [\App\Http\Controllers\Admin\AdminOrderController::class, 'index'])->name('index');
             Route::get('/{id}',         [\App\Http\Controllers\Admin\AdminOrderController::class, 'show'])->name('show');
             Route::post('/{id}/status', [\App\Http\Controllers\Admin\AdminOrderController::class, 'updateStatus'])->middleware(['permission:orders,orders.status'])->name('status');
-            Route::post('/{id}/dispute/resolve', [\App\Http\Controllers\Admin\AdminOrderController::class, 'resolveDispute'])->middleware(['permission:orders,orders.status'])->name('dispute.resolve');
+            // Route::post('/{id}/dispute/resolve', [\App\Http\Controllers\Admin\AdminOrderController::class, 'resolveDispute'])->middleware(['permission:orders,orders.status'])->name('dispute.resolve');
         });
 
         // ── Expert Payout Requests ────────────────────────────────────────────
