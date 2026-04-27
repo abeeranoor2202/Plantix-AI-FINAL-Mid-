@@ -25,12 +25,7 @@
         ['label' => 'Forum', 'icon' => 'mdi-forum-outline', 'active' => Request::is('admin/forum') || Request::is('admin/forum/*'), 'route' => route('admin.forum.index'), 'ability' => 'admin.forum'],
         ['label' => 'Forum Flags', 'icon' => 'mdi-flag-outline', 'active' => Request::is('admin/forum/flags*'), 'route' => route('admin.forum.flags.index'), 'ability' => 'admin.forum'],
         ['label' => 'Forum Categories', 'icon' => 'mdi-view-grid-outline', 'active' => Request::is('admin/forum/categories*'), 'route' => route('admin.forum.categories.index'), 'ability' => 'admin.forum'],
-        ['label' => 'AI Overview', 'icon' => 'mdi-brain', 'active' => Request::is('admin/ai-modules') || Request::is('admin/ai-modules/'), 'route' => route('admin.ai.dashboard'), 'ability' => 'admin.ai-modules'],
-        ['label' => 'Crop Recommendations', 'icon' => 'mdi-sprout', 'active' => Request::is('admin/ai-modules/crop-recommendations*'), 'route' => route('admin.ai.crop-recommendations'), 'ability' => 'admin.ai-modules'],
-        ['label' => 'Disease Reports', 'icon' => 'mdi-bug-outline', 'active' => Request::is('admin/ai-modules/disease-reports*'), 'route' => route('admin.ai.disease-reports'), 'ability' => 'admin.ai-modules'],
-        ['label' => 'Fertilizer Recs', 'icon' => 'mdi-flask-outline', 'active' => Request::is('admin/ai-modules/fertilizer*'), 'route' => route('admin.ai.fertilizer'), 'ability' => 'admin.ai-modules'],
-        ['label' => 'Crop Plans', 'icon' => 'mdi-calendar-text-outline', 'active' => Request::is('admin/ai-modules/crop-plans*'), 'route' => route('admin.ai.crop-plans'), 'ability' => 'admin.ai-modules'],
-        ['label' => 'Seasonal Data', 'icon' => 'mdi-weather-sunny', 'active' => Request::is('admin/ai-modules/seasonal-data*'), 'route' => route('admin.ai.seasonal-data'), 'ability' => 'admin.ai-modules'],
+
         ['label' => 'Push Notifications', 'icon' => 'mdi-bell-outline', 'active' => Request::is('admin/notification*'), 'route' => route('admin.notification.send'), 'ability' => 'admin.general-notifications'],
         ['label' => 'Stripe Settings', 'icon' => 'mdi-credit-card-outline', 'active' => Request::is('admin/settings/payment/stripe*'), 'route' => route('admin.payment.stripe'), 'ability' => 'admin.payment-method'],
         ['label' => 'COD Settings', 'icon' => 'mdi-cash', 'active' => Request::is('admin/settings/payment/cod*'), 'route' => route('admin.payment.cod'), 'ability' => 'admin.payment-method'],

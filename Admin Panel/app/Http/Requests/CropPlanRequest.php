@@ -14,13 +14,16 @@ class CropPlanRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'season'          => ['required', 'string', 'in:Rabi,Kharif,Zaid'],
-            'year'            => ['required', 'integer', 'min:2020', 'max:2035'],
-            'primary_crop'    => ['required', 'string', 'max:100'],
-            'farm_size_acres' => ['nullable', 'numeric', 'min:0.1', 'max:10000'],
-            'soil_type'       => ['nullable', 'string', 'in:loamy,clay,sandy,silt,peat'],
-            'water_source'    => ['nullable', 'string', 'in:rain,irrigation,both'],
-            'farm_profile_id' => ['nullable', 'integer', 'exists:farm_profiles,id'],
+            'season'             => ['required', 'string', 'in:Rabi,Kharif,Zaid'],
+            'year'               => ['required', 'integer', 'min:2020', 'max:2035'],
+            'primary_crop'       => ['required', 'string', 'max:100'],
+            'farm_size_acres'    => ['nullable', 'numeric', 'min:0.1', 'max:10000'],
+            'soil_type'          => ['nullable', 'string', 'in:loamy,clay,sandy,silt,peat,chalky'],
+            'water_source'       => ['nullable', 'string', 'in:rain,irrigation,both'],
+            'irrigation_type'    => ['nullable', 'string', 'max:50'],
+            'climate'            => ['nullable', 'string', 'max:50'],
+            'water_availability' => ['nullable', 'string', 'in:abundant,moderate,limited,scarce'],
+            'farm_profile_id'    => ['nullable', 'integer', 'exists:farm_profiles,id'],
         ];
     }
 

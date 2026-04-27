@@ -14,11 +14,13 @@ class CropPlan extends Model
         'user_id', 'farm_profile_id', 'season', 'year', 'primary_crop',
         'crop_schedule', 'water_plan', 'expected_yield_tons', 'estimated_revenue',
         'soil_suitability_notes', 'recommendations', 'status',
+        'ai_plan_data', 'ai_model',
     ];
 
     protected $casts = [
         'crop_schedule'       => 'array',
         'water_plan'          => 'array',
+        'ai_plan_data'        => 'array',
         'expected_yield_tons' => 'decimal:3',
         'estimated_revenue'   => 'decimal:2',
     ];
