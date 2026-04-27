@@ -39,9 +39,20 @@ class WeatherService
     {
         $cacheKey = 'weather_city_' . strtolower(str_replace(' ', '_', $city));
 
-        return Cache::remember($cacheKey, now()->addMinutes($this->cacheTtlMinutes), function () use ($city) {
-            return $this->fetchAndStore($city, null, null);
-        });
+        // Only cache successful (non-unavailable) responses
+        $cached = Cache::get($cacheKey);
+        if ($cached && ($cached['condition'] ?? '') !== 'Unavailable') {
+            return $cached;
+        }
+
+        $data = $this->fetchAndStore($city, null, null);
+
+        // Don't cache unavailable results — let the next request retry the API
+        if (($data['condition'] ?? '') !== 'Unavailable') {
+            Cache::put($cacheKey, $data, now()->addMinutes($this->cacheTtlMinutes));
+        }
+
+        return $data;
     }
 
     /**
@@ -169,15 +180,30 @@ class WeatherService
 
         try {
             $params = ['appid' => $this->apiKey, 'units' => 'metric'];
+
             if ($city) {
+                // First attempt: with Pakistan country code
                 $params['q'] = $city . ',PK';
+                $response = Http::timeout(8)->get("{$this->baseUrl}/weather", $params);
+
+                // If not found, retry without country code (covers AJK, GB, and lesser-known cities)
+                if (!$response->successful()) {
+                    Log::info("OWM city+PK lookup failed for '{$city}' ({$response->status()}), retrying without country code.");
+                    $params['q'] = $city;
+                    $response = Http::timeout(8)->get("{$this->baseUrl}/weather", $params);
+                }
             } else {
                 $params['lat'] = $lat;
                 $params['lon'] = $lon;
+                $response = Http::timeout(8)->get("{$this->baseUrl}/weather", $params);
             }
 
-            $response = Http::timeout(8)->get("{$this->baseUrl}/weather", $params);
-            return $response->successful() ? $response->json() : null;
+            if (!$response->successful()) {
+                Log::warning("OWM current weather failed for city='{$city}': HTTP {$response->status()} — {$response->body()}");
+                return null;
+            }
+
+            return $response->json();
         } catch (\Throwable $e) {
             Log::warning('OpenWeatherMap current weather failed: ' . $e->getMessage());
             return null;
@@ -192,15 +218,29 @@ class WeatherService
 
         try {
             $params = ['appid' => $this->apiKey, 'units' => 'metric', 'cnt' => 40];
+
             if ($city) {
+                // First attempt: with Pakistan country code
                 $params['q'] = $city . ',PK';
+                $response = Http::timeout(8)->get("{$this->baseUrl}/forecast", $params);
+
+                // Retry without country code if not found
+                if (!$response->successful()) {
+                    $params['q'] = $city;
+                    $response = Http::timeout(8)->get("{$this->baseUrl}/forecast", $params);
+                }
             } else {
                 $params['lat'] = $lat;
                 $params['lon'] = $lon;
+                $response = Http::timeout(8)->get("{$this->baseUrl}/forecast", $params);
             }
 
-            $response = Http::timeout(8)->get("{$this->baseUrl}/forecast", $params);
-            return $response->successful() ? $response->json() : null;
+            if (!$response->successful()) {
+                Log::warning("OWM forecast failed for city='{$city}': HTTP {$response->status()}");
+                return null;
+            }
+
+            return $response->json();
         } catch (\Throwable $e) {
             Log::warning('OpenWeatherMap forecast failed: ' . $e->getMessage());
             return null;
