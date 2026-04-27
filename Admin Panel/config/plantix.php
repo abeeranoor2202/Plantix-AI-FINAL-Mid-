@@ -60,6 +60,12 @@ return [
     'ai_chat_model'       => env('OPENAI_CHAT_MODEL', 'gpt-4o-mini'),
     'ai_chat_max_history' => (int) env('AI_CHAT_MAX_HISTORY', 10),
 
+    // ── OpenRouter (https://openrouter.ai) ───────────────────────────────────
+    // Used for AI-powered crop planning via LLM
+    'openrouter_api_key' => env('OPENROUTER_API_KEY', ''),
+    'openrouter_model'   => env('OPENROUTER_MODEL', 'google/gemma-3-27b-it:free'),
+    'openrouter_timeout' => (int) env('OPENROUTER_TIMEOUT', 30),
+
     // ── Security ─────────────────────────────────────────────────────────────
     // Admin IP whitelist: comma-separated IPs / CIDR ranges.
     // Empty = no restriction (all IPs allowed).

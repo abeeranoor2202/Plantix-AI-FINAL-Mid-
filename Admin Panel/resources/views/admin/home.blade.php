@@ -4,7 +4,7 @@
 <div class="container-fluid" style="padding-top: 24px; padding-bottom: 40px;">
     <x-platform.dashboard-shell
         title="Admin Dashboard"
-        subtitle="Users, vendors, experts, disputes, reports, and system activity"
+        subtitle="Users, vendors, experts, reports, and system activity"
         :summary-cards="$unifiedSummary ?? []"
         :alerts="$dashboardAlerts ?? []"
         :recent-activity="$unifiedRecentActivity ?? []"

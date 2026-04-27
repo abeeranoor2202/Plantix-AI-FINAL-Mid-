@@ -32,12 +32,6 @@ class AlertingService
                 'count' => $pendingReturns,
             ],
             [
-                'level' => $pendingDisputes > 10 ? 'high' : 'medium',
-                'key' => 'disputes.open',
-                'label' => 'Open order disputes',
-                'count' => $pendingDisputes,
-            ],
-            [
                 'level' => $pendingAppointments > 25 ? 'high' : 'medium',
                 'key' => 'appointments.pending',
                 'label' => 'Pending appointments',

@@ -150,10 +150,7 @@ class AdminRbacSeeder extends Seeder
         ['name' => 'notification',      'group' => 'general-notifications', 'display_name' => 'View Notifications'],
         ['name' => 'notification.send', 'group' => 'general-notifications', 'display_name' => 'Send Notification Broadcast'],
 
-        // ── AI Modules (group: ai-modules) ───────────────────────────────────
-        ['name' => 'ai-modules.view',   'group' => 'ai-modules', 'display_name' => 'View AI Modules'],
-        ['name' => 'ai-modules.edit',   'group' => 'ai-modules', 'display_name' => 'Edit AI Module Data'],
-        ['name' => 'ai-modules.assign', 'group' => 'ai-modules', 'display_name' => 'Assign Disease Reports'],
+
 
         // ── Reports (group: reports) ─────────────────────────────────────────
         ['name' => 'reports.view', 'group' => 'reports', 'display_name' => 'View Reports'],
@@ -202,7 +199,7 @@ class AdminRbacSeeder extends Seeder
             'description' => 'Manages admin sub-users, RBAC roles/permissions, global settings, and payment methods.',
             'guard'       => 'admin',
             'is_active'   => true,
-            'perm_groups' => ['admins', 'roles', 'global-setting', 'payment-method', 'forum', 'appointments', 'products', 'orders', 'returns', 'stock', 'experts', 'ai-modules', 'reports'],
+            'perm_groups' => ['admins', 'roles', 'global-setting', 'payment-method', 'forum', 'appointments', 'products', 'orders', 'returns', 'stock', 'experts', 'reports'],
         ],
     ];
 
