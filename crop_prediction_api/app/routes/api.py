@@ -54,8 +54,8 @@ def predict():
         raise APIError("Request body must be valid JSON.", status_code=400, error_code="invalid_json")
 
     prediction_service = current_app.extensions["prediction_service"]
-    result = prediction_service.predict(payload, request)
-    return jsonify(result), 200
+    result, status_code = prediction_service.predict(payload, request)
+    return jsonify(result), status_code
 
 
 @api_bp.post("/fertilizer/predict")
