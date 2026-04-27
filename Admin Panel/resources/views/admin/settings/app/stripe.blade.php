@@ -40,10 +40,13 @@
                             <h5 style="font-size: 15px; font-weight: 700; color: var(--agri-text-heading); margin-bottom: 4px;">Enable Stripe</h5>
                             <p style="font-size: 13px; color: var(--agri-text-muted); margin: 0;">Enable Stripe card payments for checkout.</p>
                         </div>
-                        <input type="checkbox" class="enable_stripe" id="enable_stripe" style="width: 50px; height: 26px; cursor: pointer; accent-color: var(--agri-primary);">
+                        <label class="agri-switch">
+                            <input type="checkbox" class="enable_stripe" id="enable_stripe">
+                            <span class="agri-slider"></span>
+                        </label>
                     </div>
 
-                    <div class="row g-3 mb-2">
+                    <div class="row g-3 mb-2" style="display: none;">
                         <div class="col-12">
                             <label style="font-size: 12px; font-weight: 700; color: var(--agri-text-muted); text-transform: uppercase; margin-bottom: 8px; display: block;">Publishable Key</label>
                             <input type="text" class="form-agri stripe_key" placeholder="pk_test_...">
@@ -62,12 +65,15 @@
                         </div>
                     </div>
 
-                    <div style="background: #ecfdf5; padding: 20px; border-radius: 14px; border: 1px dashed #86efac; display: flex; align-items: center; justify-content: space-between; margin-top: 22px;">
+                    <div style="background: #ecfdf5; padding: 20px; border-radius: 14px; border: 1px dashed #86efac; display: none; align-items: center; justify-content: space-between; margin-top: 22px;">
                         <div>
                             <h5 style="font-size: 15px; font-weight: 700; color: var(--agri-text-heading); margin-bottom: 4px;">Enable Stripe Withdrawals</h5>
                             <p style="font-size: 13px; color: var(--agri-text-muted); margin: 0;">Allow payouts via Stripe for withdrawals.</p>
                         </div>
-                        <input type="checkbox" class="withdraw_enable" id="withdraw_enable" style="width: 50px; height: 26px; cursor: pointer; accent-color: var(--agri-primary);">
+                        <label class="agri-switch">
+                            <input type="checkbox" class="withdraw_enable" id="withdraw_enable">
+                            <span class="agri-slider"></span>
+                        </label>
                     </div>
 
                     <div style="display: flex; gap: 10px; margin-top: 24px;">
@@ -78,7 +84,7 @@
             </div>
         </div>
 
-        <div class="col-lg-4">
+        <div class="col-lg-4" style="display: none;">
             <div class="card-agri" style="padding: 24px;">
                 <h5 style="font-weight: 700; color: var(--agri-text-heading); margin-bottom: 14px;">Security Standard</h5>
                 <p style="font-size: 14px; color: var(--agri-text-muted); line-height: 1.6; margin-bottom: 0;">Stripe is a PCI Service Provider Level 1 and supports encrypted card processing.</p>

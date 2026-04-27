@@ -33,9 +33,13 @@ class CheckoutRequest extends FormRequest
 
     public function rules(): array
     {
+        $allowed = [];
+        if (\App\Models\Setting::get('cod_enabled', true)) $allowed[] = 'cod';
+        if (\App\Models\Setting::get('stripe_enabled', true)) $allowed[] = 'stripe';
+
         return [
             'delivery_address' => 'required|string|max:1000',
-            'payment_method'   => 'required|in:cod,stripe',
+            'payment_method'   => 'required|in:' . implode(',', $allowed),
             'coupon_code'      => 'nullable|string|max:50',
             'notes'            => 'nullable|string|max:500',
             'delivery_fee'     => 'nullable|numeric|min:0',

@@ -75,6 +75,10 @@ class CartCheckoutService
      */
     public function initiate(User $user, array $data): array
     {
+        if (! \App\Models\Setting::get('stripe_enabled', true)) {
+            throw ValidationException::withMessages(['payment' => 'Stripe payment is currently disabled.']);
+        }
+
         Stripe::setApiKey(config('services.stripe.secret'));
 
         $cart = Cart::with('items.product.stock')
@@ -492,6 +496,10 @@ class CartCheckoutService
      */
     public function placeCodOrder(User $user, array $data): Order
     {
+        if (! \App\Models\Setting::get('cod_enabled', true)) {
+            throw ValidationException::withMessages(['payment' => 'Cash on Delivery is currently disabled.']);
+        }
+
         $cart = Cart::with('items.product.stock')->where('user_id', $user->id)->firstOrFail();
 
         if ($cart->items->isEmpty()) {

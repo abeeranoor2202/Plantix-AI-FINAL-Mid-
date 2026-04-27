@@ -704,6 +704,14 @@ document.addEventListener('DOMContentLoaded', function () {
                         <h5 class="fw-bold mb-1" style="font-size:17px;color:#1a1a1a;">
                             <i class="fas fa-calendar-plus me-2" style="color:var(--agri-primary);"></i>Quick Book
                         </h5>
+                        @php $stripeEnabled = \App\Models\Setting::get('stripe_enabled', true); @endphp
+                        
+                        @if(!$stripeEnabled)
+                        <div class="alert alert-warning border-0 p-3 mb-0" style="border-radius:12px; background:#fff8e6;">
+                            <h6 class="fw-bold text-warning-emphasis mb-2"><i class="fas fa-exclamation-triangle me-2"></i>Booking Unavailable</h6>
+                            <p class="small text-muted mb-0">Online appointment booking is currently disabled. Please check back later or contact support.</p>
+                        </div>
+                        @else
                         <p class="text-muted mb-4" style="font-size:13px;">Fill in the details and we'll confirm your appointment.</p>
 
                         @if($errors->any())
@@ -805,6 +813,7 @@ document.addEventListener('DOMContentLoaded', function () {
                                 <i class="fas fa-lock me-1"></i> Secure booking. You'll receive a confirmation shortly.
                             </p>
                         </form>
+                        @endif
                     </div>
                     @else
                     <div class="card-agri p-4 text-center">

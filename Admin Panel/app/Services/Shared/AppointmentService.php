@@ -80,6 +80,12 @@ class AppointmentService
         $expert = Expert::findOrFail($data['expert_id']);
         $this->availability->assertExpertAvailable($expert);
 
+        if (! \App\Models\Setting::get('stripe_enabled', true)) {
+            throw ValidationException::withMessages([
+                'payment' => 'Appointment booking is currently unavailable (Stripe payment is disabled).',
+            ]);
+        }
+
         $type        = $data['type'] ?? 'online';
         $duration    = (int) ($data['duration_minutes'] ?? $expert->consultation_duration_minutes ?? 60);
         if (empty($data['slot_id']) && ! empty($data['scheduled_at'])) {

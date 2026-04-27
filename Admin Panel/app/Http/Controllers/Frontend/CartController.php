@@ -294,6 +294,8 @@ class CartController extends Controller
             'cart'      => $cart,
             'addresses' => $user->addresses,
             'globalCoupons' => $globalCoupons,
+            'stripeEnabled' => (bool) \App\Models\Setting::get('stripe_enabled', true),
+            'codEnabled'    => (bool) \App\Models\Setting::get('cod_enabled', true),
         ]);
     }
 

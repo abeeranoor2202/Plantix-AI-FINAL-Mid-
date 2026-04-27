@@ -179,9 +179,16 @@
                             <div class="payment-methods mt-4 mb-4">
                                 <h5 class="fw-bold text-dark fs-6 mb-3">Payment Method</h5>
                                 
+                                @if(!$stripeEnabled && !$codEnabled)
+                                    <div class="alert alert-warning small">
+                                        <i class="fas fa-exclamation-triangle me-2"></i> No payment methods are currently available. Please contact support.
+                                    </div>
+                                @endif
+
+                                @if($codEnabled)
                                 <label class="card border mb-2 p-3 d-flex flex-row align-items-start gap-3" for="cashOnDelivery" style="border-radius: var(--agri-radius-sm); cursor: pointer;">
                                     <input class="form-check-input mt-1" type="radio" name="payment_method" id="cashOnDelivery"
-                                        value="cod" {{ old('payment_method','cod')==='cod'?'checked':'' }} style="width: 18px; height: 18px; cursor: pointer; flex-shrink: 0;">
+                                        value="cod" {{ (old('payment_method')==='cod' || !$stripeEnabled) ? 'checked' : '' }} style="width: 18px; height: 18px; cursor: pointer; flex-shrink: 0;">
                                     <div class="text-dark m-0">
                                         <div class="fw-bold d-flex align-items-center gap-2">
                                             <i class="fas fa-money-bill-wave text-success"></i> Cash on Delivery (COD)
@@ -189,10 +196,12 @@
                                         <p class="small text-muted mb-0 mt-1">Pay with cash upon delivery of your items.</p>
                                     </div>
                                 </label>
+                                @endif
                                 
+                                @if($stripeEnabled)
                                 <label class="card border p-3 d-flex flex-row align-items-start gap-3" for="stripePayment" style="border-radius: var(--agri-radius-sm); cursor: pointer;">
                                     <input class="form-check-input mt-1" type="radio" name="payment_method" id="stripePayment"
-                                        value="stripe" {{ old('payment_method')==='stripe'?'checked':'' }} style="width: 18px; height: 18px; cursor: pointer; flex-shrink: 0;">
+                                        value="stripe" {{ (old('payment_method')==='stripe' || !$codEnabled) ? 'checked' : '' }} style="width: 18px; height: 18px; cursor: pointer; flex-shrink: 0;">
                                     <div class="text-dark m-0 d-flex flex-column">
                                         <div class="fw-bold d-flex align-items-center gap-2">
                                             <i class="far fa-credit-card text-primary"></i> Online Payment
@@ -205,9 +214,10 @@
                                         </div>
                                     </div>
                                 </label>
+                                @endif
                             </div>
 
-                            <button type="submit" class="btn-agri btn-agri-primary w-100 {{ $items->isEmpty() ? 'disabled opacity-50' : '' }}" style="padding: 14px 24px; font-size: 16px;">
+                            <button type="submit" class="btn-agri btn-agri-primary w-100 {{ ($items->isEmpty() || (!$stripeEnabled && !$codEnabled)) ? 'disabled opacity-50' : '' }}" style="padding: 14px 24px; font-size: 16px;">
                                 Confirm &amp; Place Order <i class="fas fa-check-circle ms-2"></i>
                             </button>
                             
