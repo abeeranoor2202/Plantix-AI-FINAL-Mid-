@@ -10,6 +10,7 @@ use App\Models\SeasonalData;
 use App\Services\Customer\OpenRouterCropPlanningService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use InvalidArgumentException;
 
 class CropPlanningController extends Controller
 {
@@ -41,7 +42,17 @@ class CropPlanningController extends Controller
                 ->value('id');
         }
 
-        $plan = $this->service->generate($user, $data, $farmProfileId);
+        try {
+            $plan = $this->service->generate($user, $data, $farmProfileId);
+        } catch (InvalidArgumentException $e) {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $e->getMessage(),
+                ], 422);
+            }
+            return redirect()->back()->withErrors(['query' => $e->getMessage()])->withInput();
+        }
 
         if ($request->ajax() || $request->wantsJson()) {
             return response()->json([

@@ -6,6 +6,7 @@ use App\Models\CropPlan;
 use App\Models\User;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use InvalidArgumentException;
 
 /**
  * OpenRouterCropPlanningService
@@ -19,6 +20,20 @@ use Illuminate\Support\Facades\Log;
 class OpenRouterCropPlanningService
 {
     private const OPENROUTER_URL = 'https://openrouter.ai/api/v1/chat/completions';
+
+    /**
+     * Keywords that must appear in a valid crop-planning request.
+     * If none of these are present in the combined input string, the request
+     * is considered off-topic and rejected before hitting the API.
+     */
+    private const AGRICULTURE_KEYWORDS = [
+        'crop', 'wheat', 'rice', 'maize', 'corn', 'cotton', 'sugarcane',
+        'potato', 'tomato', 'onion', 'mango', 'citrus', 'sunflower',
+        'soybean', 'barley', 'sorghum', 'millet', 'vegetable', 'fruit',
+        'farm', 'soil', 'fertilizer', 'irrigation', 'harvest', 'sowing',
+        'season', 'rabi', 'kharif', 'zaid', 'acre', 'yield', 'pest',
+        'disease', 'agri', 'cultivation', 'plantation', 'field',
+    ];
 
     private const SYSTEM_PROMPT = 'You are an expert agronomist for Pakistan. Generate a comprehensive crop cultivation plan. Respond ONLY with a single valid JSON object — no markdown fences, no extra text. Use this exact structure: {"overview":"string","suitability":{"score":0,"label":"string","notes":[]},"land_preparation":{"steps":[],"timing":"string"},"sowing":{"seed_rate":"string","spacing":"string","depth":"string","best_time":"string"},"fertilizer_schedule":[{"stage":"string","fertilizer":"string","dose":"string","notes":"string"}],"irrigation_plan":[{"stage":"string","timing":"string","amount":"string","notes":"string"}],"pest_disease_management":[{"threat":"string","symptoms":"string","control":"string"}],"harvest":{"days_to_maturity":"string","indicators":"string","method":"string","post_harvest":"string"},"expected_yield":{"range":"string","unit":"string","revenue_estimate_pkr":"string"},"key_tips":[]}';
 
@@ -35,9 +50,14 @@ class OpenRouterCropPlanningService
             return $this->fallback->generate($user, $input, $farmProfileId);
         }
 
+        $this->validateAgricultureInput($input);
+
         try {
             $aiData = $this->callOpenRouter($input);
             return $this->persistPlan($user, $input, $farmProfileId, $aiData);
+        } catch (InvalidArgumentException $e) {
+            // Off-topic / invalid input — re-throw so the controller can return a 422
+            throw $e;
         } catch (\Throwable $e) {
             Log::error('OpenRouter crop planning failed: ' . $e->getMessage(), [
                 'user_id' => $user->id,
@@ -49,9 +69,32 @@ class OpenRouterCropPlanningService
 
     // ── Private ───────────────────────────────────────────────────────────────
 
+    /**
+     * Reject requests that have nothing to do with agriculture.
+     * Checks the combined input values against a whitelist of agri-keywords.
+     *
+     * @throws InvalidArgumentException if the input is off-topic.
+     */
+    private function validateAgricultureInput(array $input): void
+    {
+        // Build a single lowercase string from all input values for scanning
+        $haystack = strtolower(implode(' ', array_map('strval', $input)));
+
+        foreach (self::AGRICULTURE_KEYWORDS as $keyword) {
+            if (str_contains($haystack, $keyword)) {
+                return; // at least one agri keyword found — valid request
+            }
+        }
+
+        throw new InvalidArgumentException(
+            'This service only generates agricultural crop plans. '
+            . 'Please provide valid farming details (crop, season, soil type, etc.).'
+        );
+    }
+
     private function callOpenRouter(array $input): array
     {
-        $model   = config('plantix.openrouter_model', 'google/gemma-3-27b-it:free');
+        $model   = config('plantix.openrouter_model', 'google/gemini-2.0-flash-001');
         $timeout = (int) config('plantix.openrouter_timeout', 30);
 
         $response = Http::withHeaders([

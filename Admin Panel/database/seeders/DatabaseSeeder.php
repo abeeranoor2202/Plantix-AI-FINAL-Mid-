@@ -88,7 +88,6 @@ class DatabaseSeeder extends Seeder
             FarmProfileSeeder::class,         // farm_profiles
             CropActivitySeeder::class,        // crop plans / soil tests / crop activity
             DiseaseReportSeeder::class,       // crop_disease_reports
-            FertilizerRecommendationSeeder::class,
             SeasonalDataSeeder::class,
             ForumFlagSeeder::class,           // forum_flags (needs replies + users)
             ComprehensivePakistanAgriSeeder::class,
