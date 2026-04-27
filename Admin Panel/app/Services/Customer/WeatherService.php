@@ -151,8 +151,12 @@ class WeatherService
 
         $data = $this->parseOWMResponse($current, $forecast);
 
-        // Persist to DB
-        WeatherLog::create($data);
+        // Persist to DB — wrapped so a schema mismatch never breaks the widget
+        try {
+            WeatherLog::create($data);
+        } catch (\Throwable $e) {
+            Log::warning('WeatherLog persist failed: ' . $e->getMessage());
+        }
 
         return $data;
     }
@@ -214,30 +218,59 @@ class WeatherService
         $daily  = [];
 
         if ($forecast && isset($forecast['list'])) {
-            // Build hourly (next 24h)
+            // Pakistan timezone offset: UTC+5
+            $pkTz = new \DateTimeZone('Asia/Karachi');
+
+            // Build hourly (next 24h — 8 × 3-hour slots)
             foreach (array_slice($forecast['list'], 0, 8) as $item) {
+                $dt = (new \DateTime('@' . $item['dt']))->setTimezone($pkTz);
                 $hourly[] = [
-                    'time'      => date('H:i', $item['dt']),
+                    'time'      => $dt->format('H:i'),
                     'temp_c'    => $item['main']['temp'] ?? null,
                     'condition' => $item['weather'][0]['description'] ?? '',
                     'icon'      => $item['weather'][0]['icon'] ?? '',
                 ];
             }
 
-            // Build daily (next 5 days, one entry per day)
-            $daysSeen = [];
+            // Build daily (next 5 days, prefer the noon/12:00 entry per day for accuracy)
+            // Group all entries by date (Pakistan time), then pick the one closest to noon
+            $byDay = [];
             foreach ($forecast['list'] as $item) {
-                $day = date('Y-m-d', $item['dt']);
-                if (!isset($daysSeen[$day]) && count($daily) < 5) {
-                    $daysSeen[$day] = true;
-                    $daily[] = [
-                        'date'      => $day,
-                        'min_c'     => $item['main']['temp_min'] ?? null,
-                        'max_c'     => $item['main']['temp_max'] ?? null,
-                        'condition' => $item['weather'][0]['description'] ?? '',
-                        'icon'      => $item['weather'][0]['icon'] ?? '',
-                    ];
+                $dt  = (new \DateTime('@' . $item['dt']))->setTimezone($pkTz);
+                $day = $dt->format('Y-m-d');
+                $hour = (int) $dt->format('H');
+
+                if (!isset($byDay[$day])) {
+                    $byDay[$day] = [];
                 }
+                $byDay[$day][] = ['hour' => $hour, 'item' => $item];
+            }
+
+            // Skip today — only show future days
+            $today = (new \DateTime('now', $pkTz))->format('Y-m-d');
+            $futureDays = array_filter(array_keys($byDay), fn($d) => $d > $today);
+            sort($futureDays);
+
+            foreach (array_slice($futureDays, 0, 5) as $day) {
+                $entries = $byDay[$day];
+
+                // Pick entry closest to noon (12:00)
+                usort($entries, fn($a, $b) => abs($a['hour'] - 12) <=> abs($b['hour'] - 12));
+                $best = $entries[0]['item'];
+
+                // Compute true min/max across all entries for that day
+                $temps = array_column(array_column($entries, 'item'), 'main');
+                $allTemps = array_filter(array_column($temps, 'temp'));
+                $minTemp = !empty($allTemps) ? min($allTemps) : ($best['main']['temp_min'] ?? null);
+                $maxTemp = !empty($allTemps) ? max($allTemps) : ($best['main']['temp_max'] ?? null);
+
+                $daily[] = [
+                    'date'      => $day,
+                    'min_c'     => $minTemp !== null ? round($minTemp, 1) : null,
+                    'max_c'     => $maxTemp !== null ? round($maxTemp, 1) : null,
+                    'condition' => $best['weather'][0]['description'] ?? '',
+                    'icon'      => $best['weather'][0]['icon'] ?? '',
+                ];
             }
         }
 
@@ -245,8 +278,8 @@ class WeatherService
             'city'              => $current['name'] ?? null,
             'latitude'          => $current['coord']['lat'] ?? null,
             'longitude'         => $current['coord']['lon'] ?? null,
-            'temperature_c'     => $main['temp'] ?? null,
-            'feels_like_c'      => $main['feels_like'] ?? null,
+            'temperature_c'     => isset($main['temp']) ? round($main['temp'], 1) : null,
+            'feels_like_c'      => isset($main['feels_like']) ? round($main['feels_like'], 1) : null,
             'humidity'          => $main['humidity'] ?? null,
             'wind_speed_kmh'    => isset($wind['speed']) ? round($wind['speed'] * 3.6, 1) : null,
             'wind_direction'    => $this->degreeToCompass($wind['deg'] ?? null),
@@ -265,17 +298,16 @@ class WeatherService
     {
         return [
             'city'              => $city,
-            'latitude'          => 31.5204,
-            'longitude'         => 74.3587,
-            'temperature_c'     => 32.5,
-            'feels_like_c'      => 35.0,
-            'humidity'          => 55,
-            'wind_speed_kmh'    => 15,
-            'wind_direction'    => 'NW',
+            'latitude'          => null,
+            'longitude'         => null,
+            'temperature_c'     => null,
+            'feels_like_c'      => null,
+            'humidity'          => null,
+            'wind_speed_kmh'    => null,
+            'wind_direction'    => null,
             'rainfall_mm'       => 0,
-            'condition'         => 'Partly Cloudy',
-            'icon_code'         => '02d',
-            'uv_index'          => 7.2,
+            'condition'         => 'Unavailable',
+            'icon_code'         => '01d',
             'hourly_forecast'   => [],
             'daily_forecast'    => [],
             'raw_response'      => [],

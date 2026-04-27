@@ -353,7 +353,7 @@
         citySugg.innerHTML = '';
         if (q.length < 1) { citySugg.classList.remove('show'); return; }
 
-        const matches = allCities.filter(function (c) { return c.toLowerCase().startsWith(q); }).slice(0, 8);
+        const matches = allCities.filter(function (c) { return c.toLowerCase().includes(q); }).slice(0, 8);
         if (!matches.length) { citySugg.classList.remove('show'); return; }
 
         matches.forEach(function (city) {
@@ -395,6 +395,10 @@
 
     /* ── Load weather ────────────────────────────────────────────────────── */
     function loadWeather(params) {
+        // Show loading state in pill
+        document.getElementById('px-pill-temp').innerHTML = '<span class="px-w-skeleton"></span>';
+        document.getElementById('px-pill-city').textContent = 'Loading…';
+
         const url = new URL(WEATHER_URL, window.location.origin);
         if (params.city) url.searchParams.set('city', params.city);
         if (params.lat)  { url.searchParams.set('lat', params.lat); url.searchParams.set('lon', params.lon); }
@@ -405,11 +409,16 @@
                 if (d.success) {
                     renderWeather(d.data);
                     renderAlerts(d.alerts);
+                } else {
+                    document.getElementById('px-pill-temp').textContent = '--';
+                    document.getElementById('px-pill-city').textContent = params.city || 'Error';
                 }
             })
             .catch(function () {
+                document.getElementById('px-pill-temp').textContent = '--';
+                document.getElementById('px-pill-city').textContent = 'Unavailable';
                 document.getElementById('px-w-current-block').innerHTML =
-                    '<div class="px-w-error">Could not load weather data.</div>';
+                    '<div class="px-w-error">Could not load weather data. Check your connection.</div>';
             });
     }
 
