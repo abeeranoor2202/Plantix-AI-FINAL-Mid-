@@ -50,10 +50,9 @@
             @php
                 $items    = $cart->items ?? collect();
                 $subtotal = $items->sum(fn($i) => $i->unit_price * $i->quantity);
-                $couponDiscount = session('coupon_discount', 0);
                 $shipping = 500;
-                $tax      = round(($subtotal - $couponDiscount) * 0.05);
-                $total    = max(0, $subtotal - $couponDiscount) + $shipping + $tax;
+                $tax      = round($subtotal * 0.05);
+                $total    = $subtotal + $shipping + $tax;
             @endphp
 
             <div class="row g-4">
@@ -67,19 +66,6 @@
                                 <a href="{{ route('shop') }}" class="btn-agri btn-agri-primary">Browse Shop</a>
                             </div>
                         @else
-                            @if(!empty($globalCoupons) && $globalCoupons->isNotEmpty())
-                                <div class="bg-white border rounded-3 p-3 mb-4">
-                                    <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
-                                        <div class="text-dark fw-bold"><i class="fas fa-ticket-alt text-success me-2"></i>Available coupons</div>
-                                        <div class="d-flex flex-wrap gap-2">
-                                            @foreach($globalCoupons as $coupon)
-                                                <span class="badge bg-success-subtle text-success border border-success">{{ $coupon->code }}</span>
-                                            @endforeach
-                                        </div>
-                                    </div>
-                                </div>
-                            @endif
-
                             <div class="table-responsive">
                                 <table class="table align-middle" style="border-collapse: separate; border-spacing: 0;">
                                     <thead style="background: var(--agri-bg);">
@@ -154,13 +140,6 @@
                                 <span class="fw-medium text-dark">PKR {{ number_format($subtotal, 2) }}</span>
                             </div>
                             
-                            @if($couponDiscount > 0)
-                                <div class="d-flex justify-content-between text-success">
-                                    <span>Discount ({{ session('coupon_code') }})</span>
-                                    <span class="fw-bold">- PKR {{ number_format($couponDiscount, 2) }}</span>
-                                </div>
-                            @endif
-                            
                             <div class="d-flex justify-content-between text-muted">
                                 <span>Shipping Estimate</span>
                                 <span class="fw-medium text-dark">PKR {{ number_format($shipping, 2) }}</span>
@@ -175,41 +154,6 @@
                                 <span class="fw-bold text-dark fs-5">Total</span>
                                 <span class="fw-bold text-success fs-4">PKR {{ number_format($total, 2) }}</span>
                             </div>
-                        </div>
-
-                        {{-- Coupon form --}}
-                        <div class="bg-light p-3 rounded-3 mb-4 border">
-                            @if(session('coupon_code'))
-                                <div class="d-flex align-items-center justify-content-between">
-                                    <div class="d-flex align-items-center gap-2 text-success fw-medium">
-                                        <i class="fas fa-tags"></i> <span class="text-uppercase">{{ session('coupon_code') }}</span> applied
-                                    </div>
-                                    <form method="POST" action="{{ route('cart.coupon.remove') }}" class="m-0">
-                                        @csrf @method('DELETE')
-                                        <button class="btn btn-sm text-danger p-0 border-0" title="Remove Coupon" style="background: none;"><i class="fas fa-times-circle fs-5"></i></button>
-                                    </form>
-                                </div>
-                            @else
-                                @if(!empty($globalCoupons) && $globalCoupons->isNotEmpty())
-                                    <div class="mb-3 small text-muted">
-                                        <div class="fw-bold text-dark mb-2"><i class="fas fa-ticket-alt text-success me-1"></i>Suggested coupons</div>
-                                        <div class="d-flex flex-wrap gap-2">
-                                            @foreach($globalCoupons as $coupon)
-                                                <span class="badge bg-success-subtle text-success border border-success">{{ $coupon->code }}</span>
-                                            @endforeach
-                                        </div>
-                                    </div>
-                                @endif
-                                <form method="POST" action="{{ route('cart.coupon.apply') }}" class="m-0 d-flex gap-2">
-                                    @csrf
-                                    <div class="position-relative flex-grow-1">
-                                        <i class="fas fa-ticket-alt position-absolute text-muted" style="top: 50%; left: 12px; transform: translateY(-50%);"></i>
-                                        <input type="text" name="code" class="form-agri m-0 ps-5" placeholder="Promo Code" style="height: 42px;">
-                                    </div>
-                                    <button class="btn-agri text-dark bg-white border" style="height: 42px; padding: 0 16px;" type="submit">Apply</button>
-                                </form>
-                                @error('coupon')<small class="text-danger d-block mt-2">{{ $message }}</small>@enderror
-                            @endif
                         </div>
 
                         <a href="{{ route('checkout') }}" class="btn-agri btn-agri-primary w-100 {{ $items->isEmpty() ? 'disabled opacity-50' : '' }}" style="padding: 14px 24px; font-size: 16px;">
