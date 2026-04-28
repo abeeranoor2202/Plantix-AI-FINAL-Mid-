@@ -15,7 +15,6 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
-
 class CartController extends Controller
 {
     public function __construct(
@@ -267,7 +266,7 @@ class CartController extends Controller
 
     // ── Checkout ──────────────────────────────────────────────────────────────
 
-    public function checkout(): View
+    public function checkout(): View|RedirectResponse
     {
         $user = auth('web')->user();
         $cart = Cart::with('items.product.primaryImage')
